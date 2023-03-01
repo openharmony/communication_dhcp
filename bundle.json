@@ -1,10 +1,10 @@
 {
-    "name": "@ohos/communication_wifi",
+    "name": "@ohos/communication_dhcp",
     "version": "3.1.0",
     "description": "The DHCP module provides DHCP client and DHCP service, used to obtain, assign and manage IP address.",
     "homePage": "https://gitee.com/openharmony",
     "license": "Apache License 2.0",
-    "repository": "https://gitee.com/openharmony/communication_wifi",
+    "repository": "https://gitee.com/openharmony/communication_dhcp",
     "domain": "os",
     "language": "",
     "publishAs": "code-segment",
@@ -32,7 +32,7 @@
         }
     ],
     "segment": {
-        "destPath": "foundation/communication/wifi/dhcp"
+        "destPath": "foundation/communication/dhcp"
     },
     "component": {
         "name": "dhcp",
@@ -64,9 +64,9 @@
         "build": {
             "group_type": {
                 "base_group": [
-                    "//foundation/communication/wifi/dhcp/services/mgr_service:dhcp_manager_service",
-                    "//foundation/communication/wifi/dhcp/services/dhcp_client:dhcp_client_service",
-                    "//foundation/communication/wifi/dhcp/services/dhcp_server:dhcp_server"
+                    "//foundation/communication/dhcp/services/mgr_service:dhcp_manager_service",
+                    "//foundation/communication/dhcp/services/dhcp_client:dhcp_client_service",
+                    "//foundation/communication/dhcp/services/dhcp_server:dhcp_server"
                 ],
                 "fwk_group": [],
                 "service_group": []
@@ -74,9 +74,9 @@
             "inner_kits": [
             ],
             "test": [
-                "//foundation/communication/wifi/dhcp/test/services/mgr_service:unittest",
-                "//foundation/communication/wifi/dhcp/test/services/dhcp_client:unittest",
-                "//foundation/communication/wifi/dhcp/test/services/dhcp_server/unittest:unittest"
+                "//foundation/communication/dhcp/test/services/mgr_service:unittest",
+                "//foundation/communication/dhcp/test/services/dhcp_client:unittest",
+                "//foundation/communication/dhcp/test/services/dhcp_server/unittest:unittest"
             ]
         },
         "hisysevent_config": [
