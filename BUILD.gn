@@ -13,7 +13,7 @@
 
 if (defined(ohos_lite)) {
   import("//build/lite/config/component/lite_component.gni")
-  import("//foundation/communication/dhcp/dhcp_lite.gni")
+  import("//foundation/communication/wifi/dhcp/dhcp_lite.gni")
 
   lite_component("dhcp") {
     deps = [

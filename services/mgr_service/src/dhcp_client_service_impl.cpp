@@ -545,20 +545,29 @@ int DhcpClientServiceImpl::CheckDhcpClientRunning(const std::string &ifname)
 
     std::string pidFile = DHCP_WORK_DIR + ifname + DHCP_CLIENT_PID_FILETYPE;
     pid_t pid = DhcpFunc::GetPID(pidFile);
-    if (pid > 0) {
-        int nRet = DhcpFunc::CheckProRunning(pid, DHCP_CLIENT_FILE);
-        if (nRet == -1) {
-            WIFI_LOGE("CheckDhcpClientRunning %{public}s failed, pid:%{public}d", ifname.c_str(), pid);
-            return DHCP_OPT_FAILED;
-        } else if (nRet == 0) {
-            WIFI_LOGI("CheckDhcpClientRunning %{public}s, %{public}s is not running, need remove %{public}s",
-                ifname.c_str(), DHCP_CLIENT_FILE.c_str(), pidFile.c_str());
-            DhcpFunc::RemoveFile(pidFile);
-        } else {
-            WIFI_LOGI("CheckDhcpClientRunning %{public}s, %{public}s is running, pid:%{public}d",
-                ifname.c_str(), DHCP_CLIENT_FILE.c_str(), pid);
+    if (pid <= 0) {
+        return DHCP_OPT_SUCCESS;
+    }
+
+    int nRet = DhcpFunc::CheckProRunning(pid, DHCP_CLIENT_FILE);
+    if (nRet == -1) {
+        WIFI_LOGE("CheckDhcpClientRunning %{public}s failed, pid:%{public}d", ifname.c_str(), pid);
+        return DHCP_OPT_FAILED;
+    }
+    if (nRet == 0) {
+        WIFI_LOGI("CheckDhcpClientRunning %{public}s, %{public}s is not running, need remove %{public}s",
+            ifname.c_str(), DHCP_CLIENT_FILE.c_str(), pidFile.c_str());
+        DhcpFunc::RemoveFile(pidFile);
+    } else {
+        WIFI_LOGI("CheckDhcpClientRunning %{public}s, %{public}s is running, pid:%{public}d",
+            ifname.c_str(), DHCP_CLIENT_FILE.c_str(), pid);
+        int nStatus = GetDhcpStatus(ifname);
+        if (nStatus == -1) {
+            nStatus = StopDhcpClient(ifname, false);
+            WIFI_LOGI("CheckDhcpClientRunning, NOT find dhcp info, stop dhcp client, nStatus:%{public}d", nStatus);
         }
     }
+
     WIFI_LOGI("CheckDhcpClientRunning %{public}s finished, pid:%{public}d, pro:%{public}s",
         ifname.c_str(), pid, DHCP_CLIENT_FILE.c_str());
     return DHCP_OPT_SUCCESS;
@@ -757,6 +766,7 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
     } else {
         /* Parent process */
         WIFI_LOGI("StartDhcpClient() vfork %{public}d success, parent:%{public}d, begin waitpid...", pid, getpid());
+        int ret = ForkExecParentProcess(ifname, bIpv6, true, pid);
         pid_t pidRet = waitpid(pid, nullptr, 0);
         if (pidRet == pid) {
             WIFI_LOGI("StartDhcpClient() waitpid child:%{public}d success.", pid);
@@ -764,7 +774,7 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
             WIFI_LOGE("StartDhcpClient() waitpid child:%{public}d failed, pidRet:%{public}d!", pid, pidRet);
         }
 
-        return ForkExecParentProcess(ifname, bIpv6, true, pid);
+        return ret;
     }
 
     return DHCP_OPT_SUCCESS;

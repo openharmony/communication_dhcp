@@ -13,7 +13,7 @@
 
 SUBSYSTEM_DIR = "//foundation/communication"
 WIFI_ROOT_DIR = "$SUBSYSTEM_DIR/wifi/wifi"
-DHCP_ROOT_DIR = "$SUBSYSTEM_DIR/dhcp"
+DHCP_ROOT_DIR = "$SUBSYSTEM_DIR/wifi/dhcp"
 
 declare_args() {
 }
