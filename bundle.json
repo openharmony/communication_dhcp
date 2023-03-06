@@ -54,6 +54,7 @@
                 "hisysevent_native"
             ],
             "third_party": [
+                "wpa_supplicant",
                 "node",
                 "bounds_checking_function",
                 "googletest",
