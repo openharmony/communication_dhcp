@@ -12,7 +12,7 @@
 # limitations under the License.
 
 import("//build/test.gni")
-import("//foundation/communication/wifi/dhcp/dhcp.gni")
+import("//foundation/communication/dhcp/dhcp.gni")
 
 module_output_path = "dhcp/dhcp_server_test"
 
