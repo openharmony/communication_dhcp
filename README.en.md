@@ -1,36 +1,25 @@
 # communication_dhcp
 
 #### Description
-{**When you're done, you can delete the content in this README and update the file with details for others getting started with your repository**}
+Dynamic Host Configuration Protocol (DHCP) is a standard protocol defined by RFC 1541 that allows servers to dynamically assign IP addresses and configuration information to clients. The DHCP protocol supports C/S (client/server) structure, which mainly includes two parts:
+
+1. DHCP client: it is usually mobile phones, PCs, printers and other terminal devices in the network, using the IP information assigned from the DHCP server, including IP address, default gateway and DNS.
+
+2. DHCP server: used to manage all IP network information, and process the client's DHCP request, assigning IP address, subnet mask, default gateway and other content to the accessing client.
 
 #### Software Architecture
-Software architecture description
+Software architecture description:
+As shown in the figure below, the DhcpService class provides an interface for external management of DHCP module services, including start, stop and result acquisition of DHCP client services. start, stop and management of address pools and lease tables on the DHCP server, etc., which is convenient for calling the interface of DhcpService services in other subsystem business implementations.
 
-#### Installation
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
+![](figures/zh-cn_image_dhcp.png)
 
 #### Instructions
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
+1. Call the class DhcpServiceAPI to get the IDhcpService instance;
+2. Start DHCP function (Client/Server) through IDhcpService instance;
+3. The client registers the callback of the DhcpResultNotify class through GetDhcpResult;
+4. The server side obtains the notification of the DHCP server exit abnormally through GetDhcpSerProExit.
 
-#### Contribution
+#### Related project
 
-1.  Fork the repository
-2.  Create Feat_xxx branch
-3.  Commit your code
-4.  Create Pull Request
-
-
-#### Gitee Feature
-
-1.  You can use Readme\_XXX.md to support different languages, such as Readme\_en.md, Readme\_zh.md
-2.  Gitee blog [blog.gitee.com](https://blog.gitee.com)
-3.  Explore open source project [https://gitee.com/explore](https://gitee.com/explore)
-4.  The most valuable open source project [GVP](https://gitee.com/gvp)
-5.  The manual of Gitee [https://gitee.com/help](https://gitee.com/help)
-6.  The most popular members  [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+communication_wifi
