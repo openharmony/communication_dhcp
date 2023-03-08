@@ -38,7 +38,7 @@ local_base_include_dirs = [
 ]
 
 if (defined(ohos_lite)) {
-  shared_library("dhcp_manager_service") {
+  shared_library("dhcp2_manager_service") {
     sources = local_base_sources
 
     include_dirs = local_base_include_dirs
@@ -68,7 +68,7 @@ if (defined(ohos_lite)) {
     ]
   }
 } else {
-  ohos_shared_library("dhcp_manager_service") {
+  ohos_shared_library("dhcp2_manager_service") {
     sanitize = {
       cfi = true
       boundary_sanitize = true
