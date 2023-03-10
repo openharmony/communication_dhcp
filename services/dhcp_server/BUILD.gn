@@ -41,7 +41,7 @@ local_base_include_dirs = [
 dhcp_hilog_enable = true
 
 if (defined(ohos_lite)) {
-  executable("dhcp2_server") {
+  executable("dhcp_server") {
     sources = local_base_sources
 
     include_dirs = local_base_include_dirs
@@ -64,7 +64,7 @@ if (defined(ohos_lite)) {
     }
   }
 } else {
-  ohos_executable("dhcp2_server") {
+  ohos_executable("dhcp_server") {
     install_enable = true
     sources = local_base_sources
 

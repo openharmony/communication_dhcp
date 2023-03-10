@@ -37,7 +37,7 @@ local_base_include_dirs = [
 ]
 
 if (defined(ohos_lite)) {
-  executable("dhcp2_client_service") {
+  executable("dhcp_client_service") {
     sources = local_base_sources
 
     include_dirs = local_base_include_dirs
@@ -56,7 +56,7 @@ if (defined(ohos_lite)) {
     ]
   }
 } else {
-  ohos_executable("dhcp2_client_service") {
+  ohos_executable("dhcp_client_service") {
     install_enable = true
     sources = local_base_sources
 
