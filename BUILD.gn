@@ -17,9 +17,9 @@ if (defined(ohos_lite)) {
 
   lite_component("dhcp") {
     deps = [
-      "$DHCP_ROOT_DIR/services/dhcp_client:dhcp2_client_service",
-      "$DHCP_ROOT_DIR/services/dhcp_server:dhcp2_server",
-      "$DHCP_ROOT_DIR/services/mgr_service:dhcp2_manager_service",
+      "$DHCP_ROOT_DIR/services/dhcp_client:dhcp_client_service",
+      "$DHCP_ROOT_DIR/services/dhcp_server:dhcp_server",
+      "$DHCP_ROOT_DIR/services/mgr_service:dhcp_manager_service",
     ]
 
     features = []
