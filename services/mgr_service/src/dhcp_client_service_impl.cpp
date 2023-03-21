@@ -29,6 +29,7 @@ DEFINE_WIFILOG_DHCP_LABEL("DhcpClientServiceImpl");
 
 namespace OHOS {
 namespace Wifi {
+std::mutex DhcpClientServiceImpl::m_DhcpResultInfoMutex;
 std::map<std::string, DhcpResult> DhcpClientServiceImpl::m_mapDhcpResult;
 std::map<std::string, DhcpServiceInfo> DhcpClientServiceImpl::m_mapDhcpInfo;
 DhcpClientServiceImpl::DhcpClientServiceImpl()
@@ -164,13 +165,16 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
             WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, dhcp result notify size:0, erase!", ifname.c_str());
             continue;
         }
-
         /* Check dhcp result */
-        auto iterDhcpResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
-        if (iterDhcpResult == DhcpClientServiceImpl::m_mapDhcpResult.end()) {
-            WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, dhcp result is getting...", ifname.c_str());
-            ++iterNotify;
-            continue;
+        std::map<std::string, DhcpResult>::iterator iterDhcpResult;
+        {
+            std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
+            iterDhcpResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
+            if (iterDhcpResult == DhcpClientServiceImpl::m_mapDhcpResult.end()) {
+                WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, dhcp result is getting...", ifname.c_str());
+                ++iterNotify;
+                continue;
+            }
         }
 
         auto iterReq = iterNotify->second.begin();
@@ -309,10 +313,13 @@ void DhcpClientServiceImpl::RunDhcpRecvMsgThreadFunc(const std::string &ifname)
     std::string strResultFile = DHCP_WORK_DIR + ifname + DHCP_RESULT_FILETYPE;
     for (; ;) {
         /* Check break condition. */
-        auto iter = this->m_mapDhcpInfo.find(ifname);
-        if ((iter != this->m_mapDhcpInfo.end()) && ((iter->second).clientRunStatus) != 1) {
-            WIFI_LOGI("RunDhcpRecvMsgThreadFunc() Status != 1, need break, ifname:%{public}s.", ifname.c_str());
-            break;
+        {
+            std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
+            auto iter = this->m_mapDhcpInfo.find(ifname);
+            if ((iter != this->m_mapDhcpInfo.end()) && ((iter->second).clientRunStatus) != 1) {
+                WIFI_LOGI("RunDhcpRecvMsgThreadFunc() Status != 1, need break, ifname:%{public}s.", ifname.c_str());
+                break;
+            }
         }
 
         /* Check dhcp result file is or not exist. */
@@ -352,6 +359,7 @@ void DhcpClientServiceImpl::DhcpPacketInfoHandle(
     }
 
     DhcpResult result;
+    std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
     auto iterResult = m_mapDhcpResult.find(ifname);
     if (!success) {
         /* get failed */
@@ -457,6 +465,7 @@ int DhcpClientServiceImpl::ForkExecParentProcess(const std::string &ifname, bool
         m_mapDhcpRecvMsgThread.emplace(std::make_pair(ifname, pThread));
 #endif
         /* normal started, update dhcp client service running status */
+        std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
         auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
         if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
             DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6 = bIpv6;
@@ -478,6 +487,7 @@ int DhcpClientServiceImpl::ForkExecParentProcess(const std::string &ifname, bool
         if (UnsubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
             WIFI_LOGI("ForkExecParentProcess() UnsubscribeDhcpEvent ifname:%{public}s failed.", ifname.c_str());
         }
+        std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
         auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
         if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
             /* not start */
@@ -516,7 +526,7 @@ pid_t DhcpClientServiceImpl::GetDhcpClientProPid(const std::string &ifname)
         WIFI_LOGE("GetDhcpClientProPid() error, ifname is empty!");
         return 0;
     }
-
+    std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
     auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
     if (iter == DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
         WIFI_LOGI("GetDhcpClientProPid() m_mapDhcpInfo no find ifname:%{public}s.", ifname.c_str());
@@ -590,6 +600,7 @@ int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &
     DhcpResult result;
     result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
     std::string ifname = splits[DHCP_NUM_ZERO];
+    std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
     auto iter = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
     if ((iter != DhcpClientServiceImpl::m_mapDhcpResult.end()) && ((iter->second).uAddTime == result.uAddTime)) {
         WIFI_LOGI("GetSuccessIpv4Result() %{public}s old %{public}u equal new %{public}u, no need update.",
@@ -663,6 +674,7 @@ int DhcpClientServiceImpl::GetDhcpEventIpv4Result(const int code, const std::vec
         result.iptype = 0;
         result.isOptSuc = false;
         result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
+        std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
         auto iterResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
         if (iterResult != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
             iterResult->second = result;
@@ -832,7 +844,7 @@ int DhcpClientServiceImpl::GetDhcpStatus(const std::string &ifname)
         WIFI_LOGE("DhcpClientServiceImpl::GetDhcpStatus() error, ifname is empty!");
         return -1;
     }
-
+    std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
     auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
     if (iter == DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
         WIFI_LOGI("DhcpClientServiceImpl::GetDhcpStatus() m_mapDhcpInfo no find ifname:%{public}s.", ifname.c_str());
@@ -913,7 +925,7 @@ int DhcpClientServiceImpl::GetDhcpInfo(const std::string &ifname, DhcpServiceInf
         WIFI_LOGE("DhcpClientServiceImpl::GetDhcpInfo() error, ifname is empty!");
         return DHCP_OPT_FAILED;
     }
-
+    std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
     auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
     if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
         dhcp = iter->second;
@@ -932,6 +944,7 @@ int DhcpClientServiceImpl::RenewDhcpClient(const std::string &ifname)
         WIFI_LOGW("RenewDhcpClient() dhcp client service not started, now start ifname:%{public}s.", ifname.c_str());
 
         /* Start dhcp client service */
+        std::unique_lock<std::mutex> lockdhcp(m_DhcpResultInfoMutex);
         return StartDhcpClient(ifname, DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6);
     }
 
