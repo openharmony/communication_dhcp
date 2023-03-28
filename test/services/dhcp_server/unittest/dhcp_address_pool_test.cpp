@@ -585,7 +585,6 @@ HWTEST_F(DhcpAddressPoolTest, NextIpOffsetTest, TestSize.Level1)
     EXPECT_TRUE(NextIpOffset(netmask) == 0);
     SetDistributeMode(1);
     usleep(10);
-    uint32_t nextOffset = NextIpOffset(netmask);
     SetDistributeMode(0);
 }
 
