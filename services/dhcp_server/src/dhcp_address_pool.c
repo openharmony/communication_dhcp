@@ -112,7 +112,7 @@ int CheckIpAvailability(DhcpAddressPool *pool, uint8_t macAddr[DHCP_HWADDR_LENGT
             lease->bindingTime = lease->pendingTime;
             return DHCP_TRUE;
         }
-        if (IsExpire(lease) && !same) {
+        if (IsExpire(lease)) {
             LOGD("the binding recoder has expired.");
             lease->pendingTime = Tmspsec();
             lease->bindingTime = lease->pendingTime;
@@ -142,7 +142,6 @@ int CheckRangeAvailability(
         LOGD("distribution IP address");
         AddressBinding lease = {0};
         lease.pendingTime = Tmspsec();
-        lease.leaseTime = pool->leaseTime;
         lease.bindingMode = BIND_PENDING;
         lease.ipAddress = distIp;
         lease.bindingTime = lease.pendingTime;

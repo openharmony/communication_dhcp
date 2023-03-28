@@ -14,21 +14,14 @@
  */
 
 #include "dhcp_service_api.h"
-#include <memory>
 #include "dhcp_service.h"
 #include "i_dhcp_service.h"
-#include "wifi_logger.h"
-
-DEFINE_WIFILOG_DHCP_LABEL("DhcpServiceApi");
 
 namespace OHOS {
 namespace Wifi {
 std::unique_ptr<IDhcpService> DhcpServiceApi::GetInstance()
 {
     std::unique_ptr<IDhcpService> service = std::make_unique<DhcpService>();
-    if (service == nullptr) {
-        WIFI_LOGI("DhcpApi GetInstance is null");
-    }
     return service;
 }
 

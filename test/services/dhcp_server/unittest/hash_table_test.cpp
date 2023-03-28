@@ -116,7 +116,7 @@ HWTEST_F(HashTableTest, GetAtTest, TestSize.Level1)
     uintptr_t valPtr = At(&table, (uintptr_t)&testKey);
     uint32_t rstVal = 0;
     if (valPtr) {
-        rstVal = *(uint32_t*)valPtr;
+        rstVal = *reinterpret_cast<uint32_t*>(valPtr);
     }
     EXPECT_EQ(expectVal, rstVal);
     EXPECT_EQ(HASH_SUCCESS, ClearAll(&table));

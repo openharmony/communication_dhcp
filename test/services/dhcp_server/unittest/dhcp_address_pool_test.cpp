@@ -198,8 +198,8 @@ HWTEST_F(DhcpAddressPoolTest, IsReservedIpTest, TestSize.Level1)
 {
     AddressBinding bind = {0};
     bind.bindingMode = BIND_MODE_DYNAMIC;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.1");
     ASSERT_TRUE(testIp1 != 0);
     uint32_t testIp2 = ParseIpAddr("192.168.100.2");
@@ -289,8 +289,8 @@ HWTEST_F(DhcpAddressPoolTest, AddLeaseTest, TestSize.Level1)
     AddressBinding lease = {0};
     lease.bindingMode = BIND_MODE_DYNAMIC;
     lease.bindingStatus = BIND_ASSOCIATED;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3d, 0x65, 0x3a, 0x0a, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3d, 0x65, 0x3a, 0x0a, 0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.101");
     ASSERT_TRUE(testIp1 != 0);
     lease.ipAddress = testIp1;
@@ -315,7 +315,7 @@ HWTEST_F(DhcpAddressPoolTest, GetLeaseTest, TestSize.Level1)
     AddressBinding lease = {0};
     lease.bindingMode = BIND_MODE_DYNAMIC;
     lease.bindingStatus = BIND_ASSOCIATED;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.101");
     uint32_t testIp2 = ParseIpAddr("192.168.100.110");
     ASSERT_TRUE(testIp1 != 0);
@@ -346,7 +346,7 @@ HWTEST_F(DhcpAddressPoolTest, UpdateLeaseTest, TestSize.Level1)
     AddressBinding lease = {0};
     lease.bindingMode = BIND_MODE_DYNAMIC;
     lease.bindingStatus = BIND_ASSOCIATED;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.101");
     uint32_t testIp2 = ParseIpAddr("192.168.100.110");
     ASSERT_TRUE(testIp1 != 0);
@@ -394,9 +394,9 @@ HWTEST_F(DhcpAddressPoolTest, LoadBindingRecodersTest, TestSize.Level1)
     lease.pendingTime = 1631260680;
     lease.bindingTime = 1631260680;
 
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
-    uint8_t testMac3[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x0b, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
+    const uint8_t testMac3[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x0b, 0};
     lease.ipAddress = testIp1;
     for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
         lease.chaddr[i] = testMac1[i];
@@ -547,7 +547,7 @@ HWTEST_F(DhcpAddressPoolTest, GetBindingByIpTest, TestSize.Level1)
     lease.bindingStatus = BIND_ASSOCIATED;
     lease.pendingTime = 1631260680;
     lease.bindingTime = 1631260680;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     lease.ipAddress = testIp1;
     for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
         lease.chaddr[i] = testMac1[i];
@@ -585,8 +585,6 @@ HWTEST_F(DhcpAddressPoolTest, NextIpOffsetTest, TestSize.Level1)
     EXPECT_TRUE(NextIpOffset(netmask) == 0);
     SetDistributeMode(1);
     usleep(10);
-    uint32_t nextOffset = NextIpOffset(netmask);
-    EXPECT_TRUE(nextOffset >= 0);
     SetDistributeMode(0);
 }
 
@@ -595,7 +593,7 @@ HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)
     AddressBinding lease = {0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.110");
     ASSERT_TRUE(testIp1 != 0);
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     lease.ipAddress = testIp1;
     for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
         lease.chaddr[i] = testMac1[i];

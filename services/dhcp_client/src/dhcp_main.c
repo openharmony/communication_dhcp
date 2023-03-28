@@ -33,7 +33,7 @@
 static int Usage(void);
 static int RunChildProcess(void);
 static int CreateDaemon(void);
-static int CheckClientProParam(int argc, char *argv[]);
+static int CheckClientProParam(const int argc, char *argv[]);
 static int GetClientOption(int argc, char *argv[]);
 static int InitSpecifiedClientCfg(int argc, char *argv[]);
 static int ExecClientProAction(const char *action);
@@ -142,7 +142,7 @@ static int CreateDaemon(void)
     return DHCP_OPT_SUCCESS;
 }
 
-static int CheckClientProParam(int argc, char *argv[])
+static int CheckClientProParam(const int argc, char *argv[])
 {
     if (argc <= NUMBER_ONE) {
         printf("CheckClientProParam() argc:%d error, please input valid ACTION!\n", argc);

@@ -161,7 +161,7 @@ ssize_t recvfrom(int __fd, void *__buf, size_t __n, int __flags, struct sockaddr
                 DhcpMsgManager::GetInstance().PopSendMsg();
                 uint32_t srcIp = DhcpMsgManager::GetInstance().GetClientIp();
                 if (__addr != nullptr && srcIp != 0) {
-                    struct sockaddr_in *sAddr = (struct sockaddr_in *)__addr;
+                    struct sockaddr_in *sAddr = reinterpret_cast<sockaddr_in *>(__addr);
                     sAddr->sin_addr.s_addr = HostToNetwork(srcIp);
                     DhcpMsgManager::GetInstance().SetClientIp(0);
                 }

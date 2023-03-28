@@ -31,9 +31,6 @@ public:
     {
         printf("DhcpServiceTest SetUp()...\n");
         pDhcpService = std::make_unique<DhcpService>();
-        if (pDhcpService == nullptr) {
-            printf("DhcpServiceTest SetUp() make_unique DhcpService failed\n");
-        }
     }
     virtual void TearDown()
     {

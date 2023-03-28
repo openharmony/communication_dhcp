@@ -154,7 +154,7 @@ int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
             struct DhcpClientCfg *pCfg = GetDhcpClientCfg();
             pCfg->timeoutExit = true;
         } else if (nRet == 3) {
-            struct DhcpPacket *dhcp = (struct DhcpPacket *)calloc(1, sizeof(*dhcp));
+            struct DhcpPacket *dhcp = reinterpret_cast<struct DhcpPacket *>(calloc(1, sizeof(*dhcp)));
             if (dhcp != nullptr) {
                 SendReboot(dhcp, time(nullptr));
             }

@@ -44,16 +44,6 @@ enum SignalEvent {
     RESTART,
 };
 
-typedef struct DhcpOptionField {
-    const char *field;
-    int code;
-    const char *explain;
-    const char *format;
-    int supported;
-    int (*parseOption)(DhcpOption *, int, char *);
-
-} DhcpOptionField;
-
 void LoadLocalConfig(DhcpAddressPool *pool)
 {
     LOGD("loading local configure ...");
@@ -150,6 +140,7 @@ static int InitDomainNameServer(DhcpConfig *config)
 {
     DhcpOption argOpt = {DOMAIN_NAME_SERVER_OPTION, 0, {0}};
     ArgumentInfo *arg = GetArgument("dns");
+    uint32_t dnsAddress = 0;
     if (arg) {
         char *pSave = NULL;
         char *pTok = strtok_r(arg->value, ",", &pSave);
@@ -157,7 +148,6 @@ static int InitDomainNameServer(DhcpConfig *config)
             LOGE("strtok_r pTok NULL or len is 0!");
             return RET_FAILED;
         }
-        uint32_t dnsAddress;
         while (pTok != NULL) {
             if ((dnsAddress = ParseIpAddr(pTok)) == 0) {
                 LOGE("ParseIpAddr %s failed, code:%d", pTok, argOpt.code);
@@ -170,7 +160,7 @@ static int InitDomainNameServer(DhcpConfig *config)
         }
     } else {
         LOGW("%{public}s, set dns to serverId as default.", __func__);
-        uint32_t dnsAddress = config->serverId;
+        dnsAddress = config->serverId;
         if (AppendAddressOption(&argOpt, dnsAddress) != RET_SUCCESS) {
             LOGW("failed to append dns option.");
         }
@@ -306,7 +296,6 @@ static void SignalHandler(int signal)
     switch (signal) {
         case SIGTERM: {
             exit(0);
-            break;
         }
         case SIGUSR1:
             break;

@@ -196,7 +196,7 @@ DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config)
     if (!config) {
         return NULL;
     }
-    DhcpClientContext *context = (DhcpClientContext *)calloc(1, sizeof(DhcpClientContext));
+    DhcpClientContext *context = reinterpret_cast<DhcpClientContext *>(calloc(1, sizeof(DhcpClientContext)));
     if (context == NULL) {
         LOGE("failed to calloc client context.");
         return NULL;
@@ -268,7 +268,7 @@ int ParseDhcpOptions(PDhcpMsgInfo msg)
     return ret;
 }
 
-int SendDhcpMessage(DhcpClientContext *ctx, PDhcpMsgInfo msg)
+int SendDhcpMessage(const DhcpClientContext *ctx, PDhcpMsgInfo msg)
 {
     if (!ctx || !msg) {
         LOGE("client context or message pointer is null.");

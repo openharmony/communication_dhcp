@@ -28,7 +28,7 @@
 const int HASH_DEFAULT_VALUE = 5381;
 const int HASH_CALC_MODE_HASH = 1;
 
-size_t HashCode(uintptr_t key, size_t keySize);
+size_t HashCode(uintptr_t rawKey, size_t keySize);
 int HashCompare(uintptr_t firstKey, uintptr_t secondKey, size_t keySize);
 size_t Hash(const HashTable *table, uintptr_t key);
 int HashEquals(const HashTable *table, uintptr_t firstKey, uintptr_t secondKey);
@@ -337,7 +337,7 @@ int HashAdjustCapacity(HashTable *table)
 
 int HashAllocate(HashTable *table, size_t capacity)
 {
-    if (capacity <= 0) {
+    if (capacity == 0) {
         return HASH_ERROR;
     }
     if ((table->nodes = calloc(capacity, sizeof(HashNode *))) == 0) {

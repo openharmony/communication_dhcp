@@ -76,7 +76,7 @@ DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config);
 
 int *StatrDhcpClient(DhcpClientContext *config);
 
-int SendDhcpMessage(DhcpClientContext *ctx, PDhcpMsgInfo msg);
+int SendDhcpMessage(const DhcpClientContext *ctx, PDhcpMsgInfo msg);
 
 int DhcpDiscover(DhcpClientContext *ctx);
 

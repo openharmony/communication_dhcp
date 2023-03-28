@@ -224,10 +224,6 @@ int DhcpClientServiceImpl::SubscribeDhcpEvent(const std::string &strAction)
         matchingSkills.AddEvent(strAction);
         EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
         auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-        if (dhcpSubscriber == nullptr) {
-            WIFI_LOGE("SubscribeDhcpEvent error, dhcpSubscriber is nullptr!");
-            return DHCP_OPT_FAILED;
-        }
         m_mapEventSubscriber.emplace(std::make_pair(strAction, dhcpSubscriber));
     }
     if (m_mapEventSubscriber[strAction] == nullptr) {
@@ -348,8 +344,6 @@ void DhcpClientServiceImpl::RunDhcpRecvMsgThreadFunc(const std::string &ifname)
             WIFI_LOGI("RunDhcpRecvMsgThreadFunc() GetDhcpPacketResult NULL, ifname:%{public}s.", ifname.c_str());
             usleep(SLEEP_TIME_200_MS);
         }
-
-        continue;
     }
 }
 

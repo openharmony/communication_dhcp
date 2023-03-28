@@ -31,7 +31,7 @@ bool GetDhcpOptionUint8(const struct DhcpPacket *packet, int code, uint8_t *data
 bool GetDhcpOptionUint32(const struct DhcpPacket *packet, int code, uint32_t *data);
 bool GetDhcpOptionUint32n(const struct DhcpPacket *packet, int code, uint32_t *data1, uint32_t *data2);
 char *GetDhcpOptionString(const struct DhcpPacket *packet, int code);
-int GetEndOptionIndex(uint8_t *pOpts);
+int GetEndOptionIndex(const uint8_t *pOpts);
 int AddOptStrToOpts(uint8_t *pOpts, uint8_t *pOpt, int nOptLen);
 int AddOptValueToOpts(uint8_t *pOpts, uint8_t code, uint32_t value);
 
