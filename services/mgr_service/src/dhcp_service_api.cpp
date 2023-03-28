@@ -26,9 +26,6 @@ namespace Wifi {
 std::unique_ptr<IDhcpService> DhcpServiceApi::GetInstance()
 {
     std::unique_ptr<IDhcpService> service = std::make_unique<DhcpService>();
-    if (service == nullptr) {
-        WIFI_LOGI("DhcpApi GetInstance is null");
-    }
     return service;
 }
 

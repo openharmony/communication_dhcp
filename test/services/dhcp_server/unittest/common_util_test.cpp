@@ -28,9 +28,6 @@ HWTEST(CommonUtilTest, LogTimeTest, TestSize.Level1)
     EXPECT_TRUE(curr > begin);
     begin = Tmspusec();
     EXPECT_TRUE(begin > 0);
-    sleep(1);
-    curr = Tmspusec();
-    EXPECT_TRUE(begin > 0);
 }
 
 HWTEST(CommonUtilTest, LeftTirmTest, TestSize.Level1)

@@ -41,7 +41,7 @@ uint32_t HostBits(uint32_t netmask);
 uint32_t HostTotal(uint32_t netmask);
 uint32_t ParseIp(const uint8_t *ipAddr);
 const char *ParseStrIp(uint32_t ipAddr);
-int IsEmptyHWAddr(uint8_t macAddr[DHCP_HWADDR_LENGTH]);
+int IsEmptyHWAddr(const uint8_t macAddr[DHCP_HWADDR_LENGTH]);
 char *ParseStrMac(const uint8_t *macAddr, size_t addrSize);
 int ParseMacAddress(const char *strMac, uint8_t macAddr[DHCP_HWADDR_LENGTH]);
 
@@ -49,7 +49,7 @@ uint32_t HostToNetwork(uint32_t host);
 uint32_t NetworkToHost(uint32_t network);
 
 char *ParseLogMac(uint8_t macAddr[DHCP_HWADDR_LENGTH]);
-int AddrEquels(uint8_t firstAddr[DHCP_HWADDR_LENGTH], uint8_t secondAddr[DHCP_HWADDR_LENGTH], int addrLength);
+int AddrEquels(const uint8_t firstAddr[DHCP_HWADDR_LENGTH], uint8_t secondAddr[DHCP_HWADDR_LENGTH], int addrLength);
 #ifdef __cplusplus
 }
 #endif

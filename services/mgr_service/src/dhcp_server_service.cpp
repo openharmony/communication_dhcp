@@ -727,7 +727,6 @@ void DhcpServerService::RunDhcpSerProExitThreadFunc()
         }
         WIFI_LOGI("RunDhcpSerProExitThreadFunc() dhcp ser pro exit notify finished.");
         sleep(DHCP_NUM_ONE);
-        continue;
     }
     WIFI_LOGI("RunDhcpSerProExitThreadFunc() end!");
 }

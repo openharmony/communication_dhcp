@@ -308,7 +308,7 @@ char *GetDhcpOptionString(const struct DhcpPacket *packet, int code)
 }
 
 /* Obtain the end index from options. */
-int GetEndOptionIndex(uint8_t *pOpts)
+int GetEndOptionIndex(const uint8_t *pOpts)
 {
     int nIndex = 0;
     while (pOpts[nIndex] != END_OPTION) {

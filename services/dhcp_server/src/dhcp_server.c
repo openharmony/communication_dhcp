@@ -140,17 +140,13 @@ int BindNetInterface(int fd, const char *ifname)
     if (memset_s(&iface, sizeof(iface), 0, sizeof(iface)) != EOK) {
         return RET_FAILED;
     }
-    if (ifname) {
-        ssize_t ifnameSize = strlen(ifname);
-        if (strncpy_s(iface.ifr_ifrn.ifrn_name, sizeof(iface.ifr_ifrn.ifrn_name), ifname, ifnameSize) != EOK) {
-            return RET_FAILED;
-        };
-        if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, (char *)&iface, sizeof(iface)) == -1) {
-            LOGE("failed to bind network device interface[%s].", ifname);
-            return RET_FAILED;
-        }
-    } else {
-        LOGW("no interface specified.");
+    ssize_t ifnameSize = strlen(ifname);
+    if (strncpy_s(iface.ifr_ifrn.ifrn_name, sizeof(iface.ifr_ifrn.ifrn_name), ifname, ifnameSize) != EOK) {
+        return RET_FAILED;
+    };
+    if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, (char *)&iface, sizeof(iface)) == -1) {
+        LOGE("failed to bind network device interface[%s].", ifname);
+        return RET_FAILED;
     }
     return RET_SUCCESS;
 }

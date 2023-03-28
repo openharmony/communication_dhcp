@@ -291,7 +291,7 @@ char *ParseLogMac(uint8_t macAddr[DHCP_HWADDR_LENGTH])
     return strLogMacAddr;
 }
 
-int IsEmptyHWAddr(uint8_t macAddr[DHCP_HWADDR_LENGTH])
+int IsEmptyHWAddr(const uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
     for (int i = 0; i < MAC_ADDR_LENGTH; i++) {
         if (macAddr[i] != 0) {
@@ -301,7 +301,7 @@ int IsEmptyHWAddr(uint8_t macAddr[DHCP_HWADDR_LENGTH])
     return DHCP_TRUE;
 }
 
-int AddrEquels(uint8_t firstAddr[DHCP_HWADDR_LENGTH], uint8_t secondAddr[DHCP_HWADDR_LENGTH], int addrLength)
+int AddrEquels(const uint8_t firstAddr[DHCP_HWADDR_LENGTH], uint8_t secondAddr[DHCP_HWADDR_LENGTH], int addrLength)
 {
     int len = addrLength;
     if (len > DHCP_HWADDR_LENGTH) {

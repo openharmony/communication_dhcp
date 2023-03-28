@@ -126,11 +126,11 @@ bool DhcpServerTest::InitBindingRecodersTest()
     if (!m_pServerCtx) {
         return false;
     }
-    ServerContext *srvIns = (ServerContext *)m_pServerCtx->instance;
+    ServerContext *srvIns = reinterpret_cast<ServerContext *>(m_pServerCtx->instance);
     
     AddressBinding bind = {0};
     bind.bindingMode = BIND_MODE_DYNAMIC;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     uint32_t testIp1 = ParseIpAddr("192.168.189.101");
     bind.ipAddress = testIp1;
     for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
@@ -141,7 +141,7 @@ bool DhcpServerTest::InitBindingRecodersTest()
         return false;
     }
 
-    uint8_t testMac5[DHCP_HWADDR_LENGTH] =  {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0e, 0};
+    const uint8_t testMac5[DHCP_HWADDR_LENGTH] =  {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0e, 0};
     uint32_t testIp5 = ParseIpAddr("192.168.189.130");
     bind.ipAddress = testIp5;
     bind.bindingMode = BIND_MODE_DYNAMIC;
@@ -155,7 +155,7 @@ bool DhcpServerTest::InitBindingRecodersTest()
         return false;
     }
 
-    uint8_t testMac6[DHCP_HWADDR_LENGTH] =  {0x00, 0xae, 0x3c, 0x65, 0x3a, 0x0e, 0};
+    const uint8_t testMac6[DHCP_HWADDR_LENGTH] =  {0x00, 0xae, 0x3c, 0x65, 0x3a, 0x0e, 0};
     uint32_t testIp6 = ParseIpAddr("192.168.189.118");
     bind.ipAddress = testIp6;
     bind.bindingMode = BIND_MODE_DYNAMIC;
@@ -305,7 +305,7 @@ void DhcpServerTest::DelayStopServer()
     EXPECT_CALL(SystemFuncMock::GetInstance(), close(_)).WillRepeatedly(Return(0));
     std::this_thread::sleep_for(std::chrono::seconds(SLEEP_TIME));
     if (m_pServerCtx && m_pServerCtx->instance) {
-        ServerContext *srvIns = (ServerContext *)m_pServerCtx->instance;
+        ServerContext *srvIns = reinterpret_cast<ServerContext *>(m_pServerCtx->instance);
         srvIns->looperState = SLEEP_TIME;
     }
     std::this_thread::sleep_for(std::chrono::seconds(SERVER_RUNING_TIME));
@@ -650,7 +650,7 @@ HWTEST_F(DhcpServerTest, ReceiveDhcpMessageFailedTest, TestSize.Level1)
     ON_CALL(SystemFuncMock::GetInstance(), recvfrom(_, _, _, _, _, _))
         .WillByDefault(Return((int)sizeof(DhcpMsgInfo)));
     DhcpMsgInfo msgInfo = {{0}, 0, {0}};
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
+    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
 
     int ret = ReceiveDhcpMessage(1, &msgInfo); // failed to select isset.
     EXPECT_TRUE(ret == RET_SELECT_TIME_OUT || ret == RET_ERROR);

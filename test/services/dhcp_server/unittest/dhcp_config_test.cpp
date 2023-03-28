@@ -51,7 +51,7 @@ public:
         return;
     }
 
-    std::string GetConfigFile()
+    std::string GetConfigFile() const
     {
         return mFilePath;
     }

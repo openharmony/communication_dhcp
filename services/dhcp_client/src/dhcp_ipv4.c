@@ -173,7 +173,7 @@ static void AddParamaterRequestList(struct DhcpPacket *packet)
     int end = GetEndOptionIndex(packet->options);
     int i;
     int len = 0;
-    uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {SUBNET_MASK_OPTION,
+    const uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {SUBNET_MASK_OPTION,
         ROUTER_OPTION,
         DOMAIN_NAME_SERVER_OPTION,
         HOST_NAME_OPTION,
@@ -263,10 +263,7 @@ static void InitSelecting(time_t timestamp)
 
     /* Broadcast dhcp discover packet. */
     DhcpDiscover(g_transID, g_requestedIp4);
-    if (g_dhcp4State != DHCP_STATE_SELECTING) {
-        g_dhcp4State = DHCP_STATE_SELECTING;
-    }
-
+    g_dhcp4State = DHCP_STATE_SELECTING;
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << g_sentPacketNum;
     g_timeoutTimestamp = timestamp + uTimeoutSec;
     LOGI("InitSelecting() DhcpDiscover g_sentPacketNum:%{public}u,timeoutSec:%{public}u,timestamp:%{public}u.",
@@ -337,7 +334,7 @@ static void AddParamaterRebootList(struct DhcpPacket *packet)
     int end = GetEndOptionIndex(packet->options);
     int i;
     int len = 0;
-    uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {
+    const uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {
         SUBNET_MASK_OPTION,
         STATIC_ROUTE_OPTION,
         ROUTER_OPTION,
@@ -422,7 +419,6 @@ static void Reboot(time_t timestamp)
     uint32_t leaseTime;
     uint32_t renewalTime;
     uint32_t rebindTime;
-    uint32_t interval;
     struct stat st;
     if (!GetDhcpOptionUint32(pkt, IP_ADDRESS_LEASE_TIME_OPTION, &leaseTime)) {
         leaseTime = ~0U;
@@ -435,7 +431,7 @@ static void Reboot(time_t timestamp)
             pkt = NULL;
             return;
         } else {
-            interval = timestamp - st.st_mtime;
+            uint32_t interval = timestamp - st.st_mtime;
             leaseTime -= interval;
             renewalTime = leaseTime * RENEWAL_SEC_MULTIPLE;
             rebindTime = leaseTime * REBIND_SEC_MULTIPLE;
@@ -776,9 +772,6 @@ static int WriteDhcpResult(struct DhcpResult *result)
     FormatString(result);
 
     uint32_t curTime = (uint32_t)time(NULL);
-    if ((time_t)curTime == (time_t)-1) {
-        return DHCP_OPT_FAILED;
-    }
     LOGI("WriteDhcpResult() "
          "result->strYiaddr:%{private}s,strOptServerId:%{private}s,strOptSubnet:%{private}s,uOptLeasetime:%{public}u,"
          " curTime:%{public}u.",
