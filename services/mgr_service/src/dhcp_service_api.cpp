@@ -14,7 +14,6 @@
  */
 
 #include "dhcp_service_api.h"
-#include <memory>
 #include "dhcp_service.h"
 #include "i_dhcp_service.h"
 
