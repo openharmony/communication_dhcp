@@ -97,8 +97,8 @@ if (defined(ohos_lite)) {
     ]
 
     deps = [
-      "//third_party/openssl:libcrypto_static",
       "//third_party/bounds_checking_function:libsec_shared",
+      "//third_party/openssl:libcrypto_static",
     ]
 
     cflags_cc = [ "-fno-rtti" ]
@@ -108,9 +108,7 @@ if (defined(ohos_lite)) {
       "hiviewdfx_hilog_native:libhilog",
     ]
     defines = [ "OHOS_ARCH_LITE" ]
-    symlink_target_name = [
-      "dhcp_client_service",
-    ]
+    symlink_target_name = [ "dhcp_client_service" ]
     install_images = [ "updater" ]
     part_name = "dhcp"
     subsystem_name = "communication"

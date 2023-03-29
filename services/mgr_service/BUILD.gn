@@ -127,9 +127,7 @@ if (defined(ohos_lite)) {
 
     defines = [ "OHOS_ARCH_LITE" ]
 
-    deps = [
-      "//third_party/bounds_checking_function:libsec_shared",
-    ]
+    deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
 
     external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
     ldflags = [
