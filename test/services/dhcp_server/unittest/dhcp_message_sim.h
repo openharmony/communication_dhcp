@@ -12,19 +12,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#ifndef OHOS_DHCP_MESSAGE_SIM_H
+#define OHOS_DHCP_MESSAGE_SIM_H
 
 #include <queue>
 #include <mutex>
 #include "dhcp_define.h"
 #include "dhcp_message.h"
 
-#ifndef OHOS_DHCP_MESSAGE_SIM_H
-#define OHOS_DHCP_MESSAGE_SIM_H
-
 typedef struct DhcpClientConfig DhcpClientConfig;
-
 typedef struct DhcpClientContext DhcpClientContext;
-
 
 namespace OHOS {
 namespace Wifi {

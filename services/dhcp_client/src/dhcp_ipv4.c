@@ -149,6 +149,7 @@ int ExecDhcpRenew(void)
         case DHCP_STATE_BOUND:
             /* Set socket mode, send unicast packet. */
             SetSocketMode(SOCKET_MODE_KERNEL);
+            /* fall-through */
         case DHCP_STATE_RENEWING:
         case DHCP_STATE_REBINDING:
             LOGI("ExecDhcpRenew() dhcp ipv4 old state:%{public}d, set state:RENEWED.", g_dhcp4State);
@@ -431,7 +432,7 @@ static void Reboot(time_t timestamp)
             pkt = NULL;
             return;
         } else {
-            uint32_t interval = timestamp - st.st_mtime;
+            uint32_t interval = (uint32_t)(timestamp - st.st_mtime);
             leaseTime -= interval;
             renewalTime = leaseTime * RENEWAL_SEC_MULTIPLE;
             rebindTime = leaseTime * REBIND_SEC_MULTIPLE;
@@ -548,6 +549,7 @@ static void DhcpRequestHandle(time_t timestamp)
             LOGI("DhcpRequestHandle() 333 the renewal time run out, ready to enter renewing state...");
             g_dhcp4State = DHCP_STATE_RENEWING;
             SetSocketMode(SOCKET_MODE_KERNEL);
+            /* fall-through */
         case DHCP_STATE_RENEWING:
             Renewing(timestamp);
             break;
