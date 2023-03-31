@@ -104,4 +104,38 @@ if (defined(ohos_lite)) {
     part_name = "dhcp"
     subsystem_name = "communication"
   }
+
+  ohos_shared_library("dhcp_updater_manager") {
+    sanitize = {
+      cfi = true
+      boundary_sanitize = true
+      cfi_cross_dso = true
+    }
+    install_enable = true
+    sources = local_base_sources
+
+    include_dirs = local_base_include_dirs
+    include_dirs += [
+      "//commonlibrary/c_utils/base/include",
+      "//third_party/bounds_checking_function/include",
+    ]
+
+    cflags_cc = [
+      "-std=c++17",
+      "-Wall",
+    ]
+
+    defines = [ "OHOS_ARCH_LITE" ]
+
+    deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+
+    external_deps = [ "hiviewdfx_hilog_native:libhilog" ]
+    ldflags = [
+      "-fPIC",
+      "-Wl,-E",
+    ]
+    install_images = [ "updater" ]
+    part_name = "dhcp"
+    subsystem_name = "communication"
+  }
 }

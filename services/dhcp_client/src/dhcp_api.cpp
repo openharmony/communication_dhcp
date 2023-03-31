@@ -15,11 +15,6 @@
 #include "dhcp_api.h"
 
 #ifdef OHOS_ARCH_LITE
-static bool PublishDhcpEvent(const char *action, const int code, const char *data)
-{
-    return true;
-}
-
 bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname)
 {
     return true;

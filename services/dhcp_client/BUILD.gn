@@ -84,4 +84,33 @@ if (defined(ohos_lite)) {
     part_name = "dhcp"
     subsystem_name = "communication"
   }
+
+  ohos_executable("dhcp_updater_client") {
+    install_enable = true
+    sources = local_base_sources
+
+    include_dirs = local_base_include_dirs
+    include_dirs += [
+      "//commonlibrary/c_utils/base/include",
+      "//third_party/openssl/include",
+      "//third_party/bounds_checking_function/include",
+    ]
+
+    deps = [
+      "//third_party/bounds_checking_function:libsec_shared",
+      "//third_party/openssl:libcrypto_static",
+    ]
+
+    cflags_cc = [ "-fno-rtti" ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hiviewdfx_hilog_native:libhilog",
+    ]
+    defines = [ "OHOS_ARCH_LITE" ]
+    symlink_target_name = [ "dhcp_client_service" ]
+    install_images = [ "updater" ]
+    part_name = "dhcp"
+    subsystem_name = "communication"
+  }
 }
