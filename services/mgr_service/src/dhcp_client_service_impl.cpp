@@ -583,14 +583,9 @@ int DhcpClientServiceImpl::CheckDhcpClientRunning(const std::string &ifname)
 int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &splits)
 {
     /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    if (splits.size() != EVENT_DATA_NUM) {
-        WIFI_LOGE("GetSuccessIpv4Result() splits.size:%{public}d error!", (int)splits.size());
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Check field cliIp. */
-    if (splits[DHCP_NUM_TWO] == INVALID_STRING) {
-        WIFI_LOGE("GetSuccessIpv4Result() cliIp:%{public}s error!", splits[DHCP_NUM_TWO].c_str());
+    if ((splits.size() != EVENT_DATA_NUM) || (splits[DHCP_NUM_TWO] == INVALID_STRING)) {
+        WIFI_LOGE("GetSuccessIpv4Result() splits.size:%{public}d cliIp:%{public}s error!", (int)splits.size(),
+            splits[DHCP_NUM_TWO].c_str());
         return DHCP_OPT_FAILED;
     }
 

@@ -431,7 +431,7 @@ static void Reboot(time_t timestamp)
             pkt = NULL;
             return;
         } else {
-            uint32_t interval = timestamp - st.st_mtime;
+            uint32_t interval = (uint32_t)(timestamp - st.st_mtime);
             leaseTime -= interval;
             renewalTime = leaseTime * RENEWAL_SEC_MULTIPLE;
             rebindTime = leaseTime * REBIND_SEC_MULTIPLE;
