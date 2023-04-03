@@ -173,7 +173,7 @@ public:
     static int DhcpEventResultHandle(const int code, const std::string &data);
 
 public:
-    static std::mutex m_DhcpResultInfoMutex;
+    static pthread_mutex_t m_DhcpResultInfoMutex;
     static std::map<std::string, DhcpResult> m_mapDhcpResult;
     static std::map<std::string, DhcpServiceInfo> m_mapDhcpInfo;
 
