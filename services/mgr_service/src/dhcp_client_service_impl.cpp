@@ -170,15 +170,15 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
         }
         /* Check dhcp result */
         pthread_mutex_lock(&m_DhcpResultInfoMutex);
-        std::map<std::string, DhcpResult>::iterator iterDhcpResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
-        if (iterDhcpResult == DhcpClientServiceImpl::m_mapDhcpResult.end()) {
+        std::map<std::string, DhcpResult>::iterator dhcpRlt = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
+        if (dhcpRlt == DhcpClientServiceImpl::m_mapDhcpResult.end()) {
             WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, dhcp result is getting...", ifname.c_str());
             ++iterNotify;
             pthread_mutex_unlock(&m_DhcpResultInfoMutex);
             continue;
         }
-        bool isOptSuc = (iterDhcpResult->second).isOptSuc;
-        DhcpResult dhcpResult = iterDhcpResult->second;
+        bool isOptSuc = (dhcpRlt->second).isOptSuc;
+        DhcpResult dhcpResult = dhcpRlt->second;
         pthread_mutex_unlock(&m_DhcpResultInfoMutex);
 
         auto iterReq = iterNotify->second.begin();
@@ -377,14 +377,11 @@ void DhcpClientServiceImpl::DhcpPacketInfoHandle(
         pthread_mutex_unlock(&m_DhcpResultInfoMutex);
         return;
     }
-    WIFI_LOGI("DhcpPacketInfoHandle() DhcpResult %{public}s old %{public}u no equal new %{public}u, need update...",
-        ifname.c_str(), (iterResult->second).uAddTime, packetResult.uAddTime);
 
     /* get success, add or reload dhcp packet info */
     auto iterInfo = m_mapDhcpInfo.find(ifname);
     if (iterInfo != m_mapDhcpInfo.end()) {
         m_mapDhcpInfo[ifname].serverIp = packetResult.strOptServerId;
-        WIFI_LOGI("DhcpPacketInfoHandle() m_mapDhcpInfo find ifname:%{public}s.", ifname.c_str());
     }
 
     result.iptype = 0;
