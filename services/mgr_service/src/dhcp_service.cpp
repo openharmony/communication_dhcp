@@ -57,9 +57,6 @@ int DhcpService::StartDhcpClient(const std::string& ifname, bool bIpv6)
 
 int DhcpService::StopDhcpClient(const std::string& ifname, bool bIpv6)
 {
-    if (!CheckIfaceValid(ifname)) {
-        return DHCP_OPT_FAILED;
-    }
     if (m_pClientService == nullptr) {
         m_pClientService = std::make_unique<DhcpClientServiceImpl>();
         if (m_pClientService == nullptr) {
