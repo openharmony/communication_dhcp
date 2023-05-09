@@ -76,8 +76,15 @@
             "inner_api": [
                 {
                     "header": {
-                        "header_base": "//foundation/communication/dhcp/interface/inner_api",
-                        "header_files": []
+                        "header_base": "//foundation/communication/dhcp/interfaces/inner_api",
+                        "header_files": [
+                            "include/dhcp_define.h",
+                            "include/dhcp_service_api.h",
+                            "interfaces/i_dhcp_client_service.h",
+                            "interfaces/i_dhcp_result_notify.h",
+                            "interfaces/i_dhcp_server_service.h",
+                            "interfaces/i_dhcp_service.h"
+                        ]
                     },
                     "name": "//foundation/communication/dhcp/services/mgr_service:dhcp_manager_service"
                 }
