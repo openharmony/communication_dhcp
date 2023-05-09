@@ -73,7 +73,14 @@
                 "fwk_group": [],
                 "service_group": []
             },
-            "inner_kits": [
+            "inner_api": [
+                {
+                    "header": {
+                        "header_base": "//foundation/communication/dhcp/interface/inner_api",
+                        "header_files": []
+                    },
+                    "name": "//foundation/communication/dhcp/services/mgr_service:dhcp_manager_service"
+                }
             ],
             "test": [
                 "//foundation/communication/dhcp/test/services/mgr_service:unittest",
