@@ -113,6 +113,7 @@ if (defined(ohos_lite)) {
     public_configs = [ ":dhcp_exported_header_files" ]
     subsystem_name = "communication"
     innerapi_tags = [ "platformsdk" ]
+    version_script = "libdhcp_manager_service.map"
   }
 
   ohos_shared_library("dhcp_updater_manager") {
