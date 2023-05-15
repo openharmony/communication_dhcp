@@ -37,6 +37,14 @@ local_base_include_dirs = [
   "$DHCP_ROOT_DIR/interfaces/inner_api/include",
 ]
 
+config("dhcp_exported_header_files") {
+  visibility = [ ":*" ]
+  include_dirs = [
+    "$DHCP_ROOT_DIR/interfaces/inner_api/interfaces",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+  ]
+}
+
 if (defined(ohos_lite)) {
   shared_library("dhcp_manager_service") {
     sources = local_base_sources
@@ -102,7 +110,10 @@ if (defined(ohos_lite)) {
     ]
 
     part_name = "dhcp"
+    public_configs = [ ":dhcp_exported_header_files" ]
     subsystem_name = "communication"
+    innerapi_tags = [ "platformsdk" ]
+    version_script = "libdhcp_manager_service.map"
   }
 
   ohos_shared_library("dhcp_updater_manager") {
