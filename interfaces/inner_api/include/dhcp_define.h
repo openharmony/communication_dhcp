@@ -64,7 +64,13 @@ const std::string INVALID_STRING("*");
 const std::string EVENT_DATA_DELIMITER(",");
 const std::string EVENT_DATA_IPV4("ipv4");
 const std::string EVENT_DATA_IPV6("ipv6");
+
+#ifdef OHOS_EUPDATER
+const std::string DHCP_WORK_DIR("/tmp/service/el1/public/dhcp/");
+#else
 const std::string DHCP_WORK_DIR("/data/service/el1/public/dhcp/");
+#endif // OHOS_EUPDATER
+
 const std::string DHCP_CLIENT_PID_FILETYPE(".pid");
 const std::string DHCP_RESULT_FILETYPE(".result");
 #ifdef OHOS_ARCH_LITE
