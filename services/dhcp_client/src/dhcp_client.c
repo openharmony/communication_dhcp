@@ -28,9 +28,11 @@
 
 #undef LOG_TAG
 #define LOG_TAG "WifiDhcpClient"
+#define CHECK_PARENTPROCESS_STATUS_SLEEP_TIME (500 * 1000)
 
 /* Default options. */
-static struct DhcpClientCfg g_clientCfg = {"", "", "", "", "", 0, 0, DHCP_IP_TYPE_NONE, {'\0'}, NULL, false, "", "", 0};
+static struct DhcpClientCfg g_clientCfg = {"", "", "", "", "", 0, 0, DHCP_IP_TYPE_NONE, {'\0'}, NULL,
+    false, "", "", 0, -1};
 
 struct DhcpClientCfg *GetDhcpClientCfg(void)
 {
@@ -43,6 +45,15 @@ int StartProcess(void)
     if (InitSignalHandle() != DHCP_OPT_SUCCESS) {
         return DHCP_OPT_FAILED;
     }
+
+    /* Create a thread to check the parent process status that creates the daemon */
+    pthread_t tid;
+    int ret = pthread_create(&tid, NULL, CheckParentProcessIsExist, NULL);
+    if (ret != 0) {
+        LOGE("Create thread failed!");
+        return DHCP_OPT_FAILED;
+    }
+    pthread_detach(tid);
 
     if ((g_clientCfg.getMode == DHCP_IP_TYPE_ALL) || (g_clientCfg.getMode == DHCP_IP_TYPE_V4)) {
         /* Handle dhcp v4. */
@@ -84,4 +95,18 @@ int GetProStatus(const char *pidFile)
     }
     LOGI("GetProStatus() %{public}s pid:%{public}d, %{public}s is running.", pidFile, pid, DHCPC_NAME);
     return 1;
+}
+
+void *CheckParentProcessIsExist(void *arg)
+{
+    while (1) {
+        if (kill(g_clientCfg.parentProcessId, 0) == -1) {
+            LOGE("CheckParentProcessIsExist, Parent Process %{public}d is not exist!", g_clientCfg.parentProcessId);
+            StopProcess(g_clientCfg.pidFile);
+            return NULL;
+        }
+
+        usleep(CHECK_PARENTPROCESS_STATUS_SLEEP_TIME);
+        continue;
+    }
 }

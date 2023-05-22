@@ -16,7 +16,8 @@
 #include "dhcp_server_service.h"
 
 #include <unistd.h>
-
+#include <csignal>
+#include <sys/prctl.h>
 #include "dhcp_func.h"
 #include "wifi_logger.h"
 #include "securec.h"
@@ -83,6 +84,7 @@ int DhcpServerService::StartDhcpServer(const std::string &ifname)
             (GetUsingIpRange(ifname, ipRange) != DHCP_OPT_SUCCESS)) {
             return DHCP_OPT_FAILED;
         }
+        prctl(PR_SET_PDEATHSIG, SIGKILL);
         ForkExecProcess(ifname, localIp, netmask, ipRange);
     } else {
         /* Parent process */
@@ -454,6 +456,7 @@ int DhcpServerService::ReloadConfig(const std::string& ifname)
             (GetUsingIpRange(ifname, ipRange) != DHCP_OPT_SUCCESS)) {
             return DHCP_OPT_FAILED;
         }
+        prctl(PR_SET_PDEATHSIG, SIGKILL);
         ForkExecProcess(ifname, localIp, netmask, ipRange);
     } else {
         /* Parent process */

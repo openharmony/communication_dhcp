@@ -291,6 +291,9 @@ static int ExecClientProAction(const char *action)
         return 1;
     }
 
+    /* Record the parent process id that creates the daemon */
+    g_cltCfg->parentProcessId = getppid();
+
     /* Create a daemon process. */
     if (CreateDaemon() != DHCP_OPT_SUCCESS) {
         LOGE("ExecClientProAction() CreateDaemon failed!");
