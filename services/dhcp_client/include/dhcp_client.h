@@ -52,11 +52,13 @@ struct DhcpClientCfg {
     char leaseFile[DIR_MAX_LEN];
     char result6File[DIR_MAX_LEN];
     pthread_t thrId;
+    pid_t parentProcessId;
 };
 
 int StartProcess(void);
 int StopProcess(const char *pidFile);
 int GetProStatus(const char *pidFile);
+void *CheckParentProcessIsExist(void *arg);
 
 struct DhcpClientCfg *GetDhcpClientCfg(void);
 
