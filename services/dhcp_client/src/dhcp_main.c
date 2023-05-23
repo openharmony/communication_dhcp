@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <stdio.h>
 #include <errno.h>
+#include <ctype.h>
 
 #include "securec.h"
 #include "dhcp_client.h"
@@ -206,12 +207,46 @@ static int GetClientOption(int argc, char *argv[])
     return 0;
 }
 
+static int CheckIfaceNameIsLegal(const char *argv)
+{
+    if (argv == NULL) {
+        LOGE("parameter error, argv is NULL!");
+        return DHCP_OPT_FAILED;
+    }
+
+    char ifaceName[INFNAME_SIZE] = {0};
+    if (strncpy_s(ifaceName, INFNAME_SIZE, argv, INFNAME_SIZE - 1) != EOK) {
+        LOGE("call strncpy_s fail!");
+        return DHCP_OPT_FAILED;
+    }
+
+    if (strlen(ifaceName) == 0) {
+        LOGE("parameter error, ifaceName len is zero!");
+        return DHCP_OPT_FAILED;
+    }
+
+    for (int i = 0; i < strlen(ifaceName) - 1; ++i) {
+        if ((isalnum(ifaceName[i]) == 0) && ifaceName[i] != '-' && ifaceName[i] != '_') {
+            LOGE("parameter error, ifaceName is illegal!");
+            return DHCP_OPT_FAILED;
+        }
+    }
+
+    return DHCP_OPT_SUCCESS;
+}
+
 static int InitSpecifiedClientCfg(int argc, char *argv[])
 {
     if (argc < NUMBER_TWO + 1) {
         LOGE("parameter error!");
         return DHCP_OPT_FAILED;
     }
+
+    if (CheckIfaceNameIsLegal(argv[NUMBER_TWO]) != DHCP_OPT_SUCCESS) {
+        LOGE("parameter error, CheckIfaceNameIsLegal fail!");
+        return DHCP_OPT_FAILED;
+    }
+
     g_cltCfg = GetDhcpClientCfg();
     if ((strncpy_s(g_cltCfg->workDir, sizeof(g_cltCfg->workDir), WORKDIR, DIR_MAX_LEN - 1) != EOK) ||
         (strncpy_s(g_cltCfg->ifaceName, sizeof(g_cltCfg->ifaceName), argv[NUMBER_TWO], INFNAME_SIZE - 1) != EOK)) {
@@ -232,32 +267,29 @@ static int InitSpecifiedClientCfg(int argc, char *argv[])
         return DHCP_OPT_FAILED;
     }
 
-    int n = snprintf_s(g_cltCfg->confFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s", g_cltCfg->workDir, DHCPC_CONF);
-    if (n < 0) {
+    if (snprintf_s(g_cltCfg->confFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s", g_cltCfg->workDir, DHCPC_CONF) < 0) {
         return DHCP_OPT_FAILED;
     }
-    n = snprintf_s(g_cltCfg->pidFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.pid", g_cltCfg->workDir, g_cltCfg->ifaceName);
-    if (n < 0) {
+
+    if (snprintf_s(g_cltCfg->pidFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.pid",
+        g_cltCfg->workDir, g_cltCfg->ifaceName) < 0) {
         return DHCP_OPT_FAILED;
     }
-    n = snprintf_s(
-        g_cltCfg->resultFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.result", g_cltCfg->workDir, g_cltCfg->ifaceName);
-    if (n < 0) {
+
+    if (snprintf_s(g_cltCfg->resultFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.result",
+        g_cltCfg->workDir, g_cltCfg->ifaceName) < 0) {
         return DHCP_OPT_FAILED;
     }
-    n = snprintf_s(
-        g_cltCfg->leaseFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s"DHCPC_LEASE, g_cltCfg->workDir, g_cltCfg->ifaceName);
-    if (n < 0) {
+
+    if (snprintf_s(g_cltCfg->leaseFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%sdhcp_client_service-%s.lease",
+        g_cltCfg->workDir, g_cltCfg->ifaceName) < 0) {
         return DHCP_OPT_FAILED;
     }
-    LOGI("InitSpecifiedClientCfg() "
-         "g_cltCfg->workDir:%{public}s,confFile:%{public}s,pidFile:%{public}s,resultFile:%{public}s, "
-         "getMode:%{public}d",
-        g_cltCfg->workDir,
-        g_cltCfg->confFile,
-        g_cltCfg->pidFile,
-        g_cltCfg->resultFile,
-        g_cltCfg->getMode);
+
+    LOGI("InitSpecifiedClientCfg: "
+        "g_cltCfg->workDir:%{public}s,confFile:%{public}s,pidFile:%{public}s,resultFile:%{public}s,getMode:%{public}d",
+        g_cltCfg->workDir, g_cltCfg->confFile, g_cltCfg->pidFile, g_cltCfg->resultFile, g_cltCfg->getMode);
+
     return DHCP_OPT_SUCCESS;
 }
 
