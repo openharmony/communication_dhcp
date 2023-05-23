@@ -50,7 +50,7 @@ static int CheckOptionsData(const struct DhcpPacket *packet, int code, int index
         return DHCP_OPT_FAILED;
     }
 
-    if (index >= maxLen) {
+    if (index >= maxLen - DHCP_OPT_DATA_INDEX) {
         LOGW("CheckOptionsData code:%{public}d,index:%{public}d more than max bytes:%{public}d!",
             code, index, maxLen);
         return DHCP_OPT_FAILED;
