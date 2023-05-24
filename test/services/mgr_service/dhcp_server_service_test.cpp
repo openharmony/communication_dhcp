@@ -23,7 +23,8 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::Wifi;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpServerServiceTest : public testing::Test {
 public:
     static void SetUpTestCase(){}
@@ -265,4 +266,6 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
     std::vector<std::string> vecLeases;
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->GetLeases(ifname, vecLeases));
     ASSERT_TRUE(DhcpFunc::RemoveFile(strFile));
+}
+}
 }

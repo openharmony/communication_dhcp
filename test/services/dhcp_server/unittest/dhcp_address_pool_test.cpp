@@ -14,8 +14,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdint>
+#include <cstdbool>
 #include "dhcp_define.h"
 #include "dhcp_ipv4.h"
 #include "dhcp_message.h"
@@ -26,7 +26,8 @@
 #include "securec.h"
 
 using namespace testing::ext;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpAddressPoolTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -601,4 +602,6 @@ HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)
     EXPECT_EQ(RET_ERROR, RemoveLease(NULL, &lease));
     EXPECT_EQ(RET_ERROR, RemoveLease(&testPool, NULL));
     EXPECT_EQ(RET_FAILED, RemoveLease(&testPool, &lease));
+}
+}
 }

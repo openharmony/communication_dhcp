@@ -23,7 +23,8 @@
 #include "address_utils.h"
 
 using namespace testing::ext;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpOptionTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -174,4 +175,6 @@ HWTEST_F(DhcpOptionTest, AppendAddressOptionTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, AppendAddressOption(&optDns, testDns2));
     EXPECT_EQ(RET_SUCCESS, AppendAddressOption(&optDns, testDns3));
     EXPECT_EQ(12, optDns.length);
+}
+}
 }

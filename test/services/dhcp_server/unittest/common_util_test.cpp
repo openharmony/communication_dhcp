@@ -18,6 +18,8 @@
 #include "common_util.h"
 
 using namespace testing::ext;
+namespace OHOS {
+namespace Wifi {
 HWTEST(CommonUtilTest, LogTimeTest, TestSize.Level1)
 {
     LogTime();
@@ -81,4 +83,6 @@ HWTEST(CommonUtilTest, CreatePathTest, TestSize.Level1)
     ASSERT_EQ(RET_FAILED, CreatePath(""));
     ASSERT_EQ(RET_SUCCESS, CreatePath(testPath));
     EXPECT_EQ(0, remove(testPath));
+}
+}
 }

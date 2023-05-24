@@ -22,7 +22,8 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::Wifi;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpFuncTest : public testing::Test {
 public:
     static void SetUpTestCase(){}
@@ -244,4 +245,6 @@ HWTEST_F(DhcpFuncTest, CreateDirs_TEST, TestSize.Level1)
 {
     std::string strDir;
     EXPECT_EQ(DhcpFunc::CreateDirs(strDir), DHCP_OPT_FAILED);
+}
+}
 }
