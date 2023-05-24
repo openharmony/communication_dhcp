@@ -31,12 +31,11 @@
 #undef LOG_TAG
 #define LOG_TAG "DhcpMessageSimulator"
 using namespace OHOS::Wifi;
-namespace OHOS {
-namespace Wifi {
+
 constexpr int  OPT_MESSAGE_TYPE_LEGTH = 1;
-#define uint8_t OPT_HEADER_LENGTH = 2
-#define uint8_t MAGIC_COOKIE_LENGTH = 4
-#define uint32_t DHCP_MAGIC_COOKIE = 0x63825363
+constexpr uint8_t OPT_HEADER_LENGTH = 2;
+constexpr uint8_t MAGIC_COOKIE_LENGTH = 4;
+constexpr uint32_t DHCP_MAGIC_COOKIE = 0x63825363;
 
 DhcpMsgManager& DhcpMsgManager::GetInstance()
 {
@@ -413,6 +412,4 @@ int DhcpRelease(DhcpClientContext *ctx)
     }
     LOGD("send dhcp release...");
     return RET_SUCCESS;
-}
-}
 }

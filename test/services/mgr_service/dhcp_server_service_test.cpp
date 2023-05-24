@@ -121,12 +121,12 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test2, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, tagName));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, tagName));
 
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));    //start vfork failed
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));   //start vfork success
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));    //restart stop kill failed
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));    //restart stop waitpid failed
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));    //restart start vfork failed
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));   //restart start vfork success
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
 
     DhcpResultNotify dhcpResultNotify;
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->GetDhcpSerProExit("", nullptr));
