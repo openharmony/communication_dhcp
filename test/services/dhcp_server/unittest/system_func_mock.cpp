@@ -35,7 +35,7 @@ using namespace OHOS::Wifi;
 #define LOG_TAG "DhcpServerSystemFuncMock"
 
 static bool g_mockTag = false;
-
+static int TIME_MSEC_TO_USEC = 1000;
 SystemFuncMock &SystemFuncMock::GetInstance()
 {
     static SystemFuncMock gSystemFuncMock;
@@ -110,7 +110,7 @@ int __wrap_select(int __nfds, fd_set *__readfds, fd_set *__writefds, fd_set *__e
         int retval = SystemFuncMock::GetInstance().select(__nfds, __readfds, __writefds, __exceptfds, __timeout);
         if (retval == 0) {
             if (__timeout != nullptr) {
-                usleep(DHCP_SEL_WAIT_TIMEOUTS * 1000);
+                usleep(DHCP_SEL_WAIT_TIMEOUTS * TIME_MSEC_TO_USEC);
                 LOGD("select time out.");
             }
         }

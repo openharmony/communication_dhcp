@@ -20,6 +20,18 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace Wifi {
+class DhcpConfigTest : public testing::Test {
+public:
+    static void SetUpTestCase()
+    {}
+    static void TearDownTestCase()
+    {}
+    virtual void SetUp()
+    {}
+    virtual void TearDown()
+    {}
+};
+
 class MockConfigFile {
 public:
     MockConfigFile() : mFilePath("./unittest_dhcp_config.conf")
@@ -36,8 +48,8 @@ public:
         if (fp == nullptr) {
             return;
         }
-        fprintf(fp, "%s\n", line.c_str());
-        fclose(fp);
+        (void)fprintf(fp, "%s\n", line.c_str());
+        (void)fclose(fp);
         return;
     }
 
@@ -47,8 +59,8 @@ public:
         if (fp == nullptr) {
             return;
         }
-        fprintf(fp, "%s\n", line.c_str());
-        fclose(fp);
+        (void)fprintf(fp, "%s\n", line.c_str());
+        (void)fclose(fp);
         return;
     }
 

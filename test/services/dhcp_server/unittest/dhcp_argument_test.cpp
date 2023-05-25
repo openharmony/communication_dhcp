@@ -35,7 +35,7 @@ HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
     PrintRequiredArguments();
     ShowHelp(2);
     char *argv[ARGUMENT_VALUE_SIZE] = {
-                                        const_cast<char *>(""), 
+                                        const_cast<char *>(""),
                                         const_cast<char *>("--dns=192.168.1.1,192.168.1.2"),
                                         const_cast<char *>("--ifname=eth0"),
                                         const_cast<char *>("--gateway=192.168.1.1"),

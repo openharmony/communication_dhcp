@@ -3,9 +3,9 @@
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *    http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -32,7 +32,7 @@
 #define LOG_TAG "DhcpMessageSimulator"
 using namespace OHOS::Wifi;
 
-constexpr int  OPT_MESSAGE_TYPE_LEGTH = 1;
+constexpr int OPT_MESSAGE_TYPE_LEGTH = 1;
 constexpr uint8_t OPT_HEADER_LENGTH = 2;
 constexpr uint8_t MAGIC_COOKIE_LENGTH = 4;
 constexpr uint32_t DHCP_MAGIC_COOKIE = 0x63825363;
@@ -154,7 +154,7 @@ int FillHwAddr(uint8_t *dst, size_t dsize, uint8_t *src, size_t ssize)
     if (!dst || !src) {
         return DHCP_FALSE;
     }
-    if (ssize > dsize){
+    if (ssize > dsize) {
         return DHCP_FALSE;
     }
     if (memset_s(dst, dsize, 0, dsize) != EOK) {
@@ -179,32 +179,32 @@ DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config)
 {
     LOGD("init dhcp client.");
     if (!config) {
-        return NULL;
+        return nullptr;
     }
     DhcpClientContext *context = reinterpret_cast<DhcpClientContext *>(calloc(1, sizeof(DhcpClientContext)));
-    if (context == NULL) {
+    if (context == nullptr) {
         LOGE("failed to calloc client context.");
-        return NULL;
+        return nullptr;
     }
     if (memset_s(context, sizeof(DhcpClientContext), 0, sizeof(DhcpClientContext)) != EOK) {
         LOGE("failed to reset client context.");
         free(context);
-        return NULL;
+        return nullptr;
     }
     if (memset_s(context->config.ifname, IFACE_NAME_SIZE, '\0', IFACE_NAME_SIZE) != EOK) {
         LOGE("failed to reset interface name.");
         free(context);
-        return NULL;
+        return nullptr;
     }
     if (strncpy_s(context->config.ifname, IFACE_NAME_SIZE, config->ifname, strlen(config->ifname)) != EOK) {
         LOGE("failed to set interface name.");
         free(context);
-        return NULL;
+        return nullptr;
     }
     if (!FillHwAddr(context->config.chaddr, DHCP_HWADDR_LENGTH, config->chaddr, MAC_ADDR_LENGTH)) {
         LOGE("failed to set chaddr.");
         free(context);
-        return NULL;
+        return nullptr;
     }
     context->clientFd = 1;
     return context;
