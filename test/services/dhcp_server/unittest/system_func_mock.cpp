@@ -30,13 +30,12 @@ using namespace OHOS::Wifi;
 #define MAGIC_COOKIE_LENGTH 4
 #define OPT_HEADER_LENGTH 2
 #define TIME_SEC_TO_USEC (1000 * 1000)
-#define TIME_MSEC_TO_USEC 1000
 
 #undef LOG_TAG
 #define LOG_TAG "DhcpServerSystemFuncMock"
 
 static bool g_mockTag = false;
-
+static int TIME_MSEC_TO_USEC = 1000;
 SystemFuncMock &SystemFuncMock::GetInstance()
 {
     static SystemFuncMock gSystemFuncMock;
