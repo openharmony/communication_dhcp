@@ -18,7 +18,7 @@
 #define OHOS_DHCP_SYSTEM_FUNC_MOCK_H
 
 #include <gmock/gmock.h>
-#include <stdint.h>
+#include <cstdint>
 #include <dlfcn.h>
 #include <unistd.h>
 

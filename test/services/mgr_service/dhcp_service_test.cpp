@@ -22,7 +22,8 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::Wifi;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpServiceTest : public testing::Test {
 public:
     static void SetUpTestCase(){}
@@ -87,4 +88,6 @@ HWTEST_F(DhcpServiceTest, DhcpServerService_Test1, TestSize.Level1)
     DhcpResultNotify dhcpResultNotify;
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->GetDhcpSerProExit(ifname, &dhcpResultNotify));
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->StopDhcpServer(ifname));
+}
+}
 }

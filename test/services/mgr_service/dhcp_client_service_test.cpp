@@ -24,7 +24,8 @@
 using namespace testing::ext;
 using namespace OHOS;
 using namespace OHOS::Wifi;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpClientServiceTest : public testing::Test {
 public:
     static void SetUpTestCase(){}
@@ -125,4 +126,6 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StartDhcpClient("wlan1", false));
 
     MockSystemFunc::SetMockFlag(false);
+}
+}
 }

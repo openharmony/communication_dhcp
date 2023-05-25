@@ -12,7 +12,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+#include <cstdint>
+#include <sys/select.h>
+#include <sys/time.h>
 #include "system_func_mock.h"
 #include "address_utils.h"
 #include "dhcp_define.h"
@@ -22,9 +24,6 @@
 #include "dhcp_message_sim.h"
 #include "dhcp_option.h"
 #include "securec.h"
-#include <stdint.h>
-#include <sys/select.h>
-#include <sys/time.h>
 
 using namespace OHOS::Wifi;
 

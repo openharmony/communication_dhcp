@@ -21,7 +21,8 @@
 #include "common_util.h"
 
 using namespace testing::ext;
-
+namespace OHOS {
+namespace Wifi {
 HWTEST(DhcpBindingTest, NextPendingIntervalTest, TestSize.Level1)
 {
     uint64_t pendingInterval = 0;
@@ -105,4 +106,6 @@ HWTEST(DhcpBindingTest, ParseAddressBindingTest, TestSize.Level1)
     uint64_t curr = Tmspsec();
     msg = "00:01:02:03:04:05 127.0.0.1 60 " + std::to_string(curr + 60) + " " + std::to_string(curr + 10) + " 5 2 1 2";
     EXPECT_TRUE(ParseAddressBinding(&binding, msg.c_str()) == 0);
+}
+}
 }
