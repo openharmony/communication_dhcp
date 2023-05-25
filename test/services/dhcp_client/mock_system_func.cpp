@@ -20,6 +20,9 @@
 using namespace OHOS::Wifi;
 
 static bool g_mockTag = false;
+static int NUM_TWO = 2;
+static int NUM_THREE = 3;
+static int NUM_FOUR = 4;
 
 MockSystemFunc &MockSystemFunc::GetInstance()
 {
@@ -149,16 +152,16 @@ int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
         FD_ZERO(readfds);
         if (nRet == 1) {
             FD_SET(GetPacketReadSockFd(), readfds);
-        } else if (nRet == 2) {
+        } else if (nRet == NUM_TWO) {
             FD_SET(GetSigReadSockFd(), readfds);
             struct DhcpClientCfg *pCfg = GetDhcpClientCfg();
             pCfg->timeoutExit = true;
-        } else if (nRet == 3) {
+        } else if (nRet == NUM_THREE) {
             struct DhcpPacket *dhcp = reinterpret_cast<struct DhcpPacket *>(calloc(1, sizeof(*dhcp)));
             if (dhcp != nullptr) {
                 SendReboot(dhcp, time(nullptr));
             }
-        } else if (nRet == 4) {
+        } else if (nRet == NUM_FOUR) {
             FD_SET(GetSigReadSockFd(), readfds);
         }
         return nRet;

@@ -50,7 +50,8 @@ public:
 
 private:
     MockSystemFunc();
-    ~MockSystemFunc(){}
+    ~MockSystemFunc()
+    {}
 };
 }  // namespace Wifi
 }  // namespace OHOS

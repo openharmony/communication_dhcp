@@ -22,7 +22,7 @@
 using namespace testing::ext;
 
 namespace OHOS {
-class DhcpClientFuncTest : public testing::Test {
+class DhcpClientTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {}
@@ -34,7 +34,7 @@ public:
     {}
 };
 
-HWTEST_F(DhcpClientFuncTest, StartProcess_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientTest, StartProcess_SUCCESS, TestSize.Level1)
 {
     struct DhcpClientCfg *pCfg = GetDhcpClientCfg();
     ASSERT_TRUE(strncpy_s(pCfg->workDir, DIR_MAX_LEN, "./", DIR_MAX_LEN - 1) == EOK);
@@ -42,10 +42,10 @@ HWTEST_F(DhcpClientFuncTest, StartProcess_SUCCESS, TestSize.Level1)
     ASSERT_TRUE(snprintf_s(pCfg->confFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s", pCfg->workDir, DHCPC_CONF) >= 0);
     ASSERT_TRUE(
         snprintf_s(pCfg->pidFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.pid", pCfg->workDir, pCfg->ifaceName) >= 0);
-    ASSERT_TRUE(
-        snprintf_s(pCfg->resultFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.result", pCfg->workDir, pCfg->ifaceName) >= 0);
-    ASSERT_TRUE(
-        snprintf_s(pCfg->result6File, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.result6", pCfg->workDir, pCfg->ifaceName) >= 0);
+    ASSERT_TRUE(snprintf_s(pCfg->resultFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.result",
+        pCfg->workDir, pCfg->ifaceName) >= 0);
+    ASSERT_TRUE(snprintf_s(pCfg->result6File, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.result6",
+        pCfg->workDir, pCfg->ifaceName) >= 0);
     ASSERT_TRUE(
         snprintf_s(pCfg->leaseFile, DIR_MAX_LEN, DIR_MAX_LEN - 1, "%s%s.lease", pCfg->workDir, pCfg->ifaceName) >= 0);
     pCfg->getMode = DHCP_IP_TYPE_ALL;
@@ -69,7 +69,7 @@ HWTEST_F(DhcpClientFuncTest, StartProcess_SUCCESS, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, StartProcess());
 }
 
-HWTEST_F(DhcpClientFuncTest, GetProStatus_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientTest, GetProStatus_SUCCESS, TestSize.Level1)
 {
     char workDir[DIR_MAX_LEN] = "./";
     char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
@@ -79,13 +79,13 @@ HWTEST_F(DhcpClientFuncTest, GetProStatus_SUCCESS, TestSize.Level1)
     unlink(pidFile);
 }
 
-HWTEST_F(DhcpClientFuncTest, GetProStatus_FAILED, TestSize.Level1)
+HWTEST_F(DhcpClientTest, GetProStatus_FAILED, TestSize.Level1)
 {
     char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
     EXPECT_EQ(0, GetProStatus(pidFile));
 }
 
-HWTEST_F(DhcpClientFuncTest, StopProcess_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientTest, StopProcess_SUCCESS, TestSize.Level1)
 {
     char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
     EXPECT_EQ(DHCP_OPT_SUCCESS, StopProcess(pidFile));
