@@ -19,9 +19,9 @@
 #include "dhcp_client.h"
 #include "securec.h"
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 using namespace testing::ext;
 
