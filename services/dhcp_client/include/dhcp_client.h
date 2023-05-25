@@ -23,7 +23,12 @@
 extern "C" {
 #endif
 
+#ifdef OHOS_EUPDATER
+#define WORKDIR                 "/tmp/service/el1/public/dhcp/"
+#else
 #define WORKDIR                 "/data/service/el1/public/dhcp/"
+#endif // OHOS_EUPDATER
+
 #define DHCPC_NAME              "dhcp_client_service"
 #define DHCPC_CONF              "dhcp_client_service.conf"
 #define DHCPC_PID               "dhcp_client_service.pid"

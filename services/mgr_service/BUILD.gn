@@ -136,7 +136,10 @@ if (defined(ohos_lite)) {
       "-Wall",
     ]
 
-    defines = [ "OHOS_ARCH_LITE" ]
+    defines = [
+      "OHOS_ARCH_LITE",
+      "OHOS_EUPDATER",
+    ]
 
     deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
 
