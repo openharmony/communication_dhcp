@@ -33,7 +33,8 @@ public:
 
 private:
     MockCustomFunc();
-    ~MockCustomFunc(){}
+    ~MockCustomFunc()
+    {}
 };
 }  // namespace OHOS
 

@@ -21,7 +21,10 @@
 using namespace OHOS;
 
 static bool g_mockTag = false;
-
+static int NUM_TWO = 2;
+static int NUM_THREE = 3;
+static int NUM_FOUR = 4;
+static int NUM_TEN = 10;
 MockCustomFunc &MockCustomFunc::GetInstance()
 {
     static MockCustomFunc gMockCustomFunc;
@@ -48,7 +51,7 @@ static int AddOptDoubleValueToOpts(uint8_t *pOpts, uint8_t code, uint32_t value1
 {
     uint8_t uOption[DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + DHCP_UINT32_BYTES * 2] = {0};
     uOption[DHCP_OPT_CODE_INDEX] = code;
-    uOption[DHCP_OPT_LEN_INDEX] = DHCP_UINT32_BYTES * 2;
+    uOption[DHCP_OPT_LEN_INDEX] = DHCP_UINT32_BYTES * NUM_TWO;
     if ((memcpy_s(uOption + DHCP_OPT_DATA_INDEX, DHCP_UINT32_BYTES, &value1, DHCP_UINT32_BYTES) != EOK) ||
         (memcpy_s(uOption + DHCP_OPT_DATA_INDEX + DHCP_UINT32_BYTES,
             DHCP_UINT32_BYTES, &value2, DHCP_UINT32_BYTES) != EOK)) {
@@ -74,15 +77,15 @@ int __wrap_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
         if (nLen == 1) {
             GetPacketHeaderInfo(getPacket, DHCP_OFFER);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
-        } else if (nLen == 2) {
+        } else if (nLen == NUM_TWO) {
             GetPacketHeaderInfo(getPacket, DHCP_ACK);
-        } else if (nLen == 3) {
+        } else if (nLen == NUM_THREE) {
             GetPacketHeaderInfo(getPacket, DHCP_NAK);
-        } else if (nLen == 4) {
+        } else if (nLen == NUM_FOUR) {
             GetPacketHeaderInfo(getPacket, DHCP_ACK);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
             AddOptValueToOpts(getPacket->options, SUBNET_MASK_OPTION, 0);
-            AddOptValueToOpts(getPacket->options, IP_ADDRESS_LEASE_TIME_OPTION, htonl(10));
+            AddOptValueToOpts(getPacket->options, IP_ADDRESS_LEASE_TIME_OPTION, htonl(NUM_TEN));
             AddOptDoubleValueToOpts(getPacket->options, ROUTER_OPTION, uSerIp, uCliIp);
             AddOptDoubleValueToOpts(getPacket->options, DOMAIN_NAME_SERVER_OPTION, uSerIp, uCliIp);
         }
@@ -108,14 +111,14 @@ int __wrap_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd)
         if (nLen == 1) {
             GetPacketHeaderInfo(getPacket, DHCP_OFFER);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
-        } else if (nLen == 2) {
+        } else if (nLen == NUM_TWO) {
             GetPacketHeaderInfo(getPacket, DHCP_ACK);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
             AddOptValueToOpts(getPacket->options, SUBNET_MASK_OPTION, 0);
-            AddOptValueToOpts(getPacket->options, IP_ADDRESS_LEASE_TIME_OPTION, htonl(4));
+            AddOptValueToOpts(getPacket->options, IP_ADDRESS_LEASE_TIME_OPTION, htonl(NUM_FOUR));
             AddOptDoubleValueToOpts(getPacket->options, ROUTER_OPTION, uSerIp, uCliIp);
             AddOptDoubleValueToOpts(getPacket->options, DOMAIN_NAME_SERVER_OPTION, uSerIp, uCliIp);
-        } else if (nLen == 3) {
+        } else if (nLen == NUM_THREE) {
             GetPacketHeaderInfo(getPacket, DHCP_NAK);
         }
         return nLen;

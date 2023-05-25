@@ -14,8 +14,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdint>
+#include <cstdbool>
 #include "hash_table.h"
 
 using namespace testing::ext;
@@ -42,7 +42,6 @@ public:
 public:
     HashTable table;
 };
-
 
 HWTEST_F(HashTableTest, InitializedTest, TestSize.Level1)
 {

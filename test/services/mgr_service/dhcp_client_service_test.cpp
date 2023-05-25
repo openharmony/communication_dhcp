@@ -28,8 +28,10 @@ namespace OHOS {
 namespace Wifi {
 class DhcpClientServiceTest : public testing::Test {
 public:
-    static void SetUpTestCase(){}
-    static void TearDownTestCase(){}
+    static void SetUpTestCase()
+    {}
+    static void TearDownTestCase()
+    {}
     virtual void SetUp()
     {
         printf("DhcpClientServiceTest SetUp()...\n");

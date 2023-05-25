@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-#include <stdint.h>
+#include <cstdint>
 #include "dhcp_define.h"
 #include "address_utils.h"
 

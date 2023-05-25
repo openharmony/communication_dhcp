@@ -14,8 +14,8 @@
  */
 
 #include <gtest/gtest.h>
-#include <stdint.h>
-#include <stdbool.h>
+#include <cstdint>
+#include <cstdbool>
 #include "dhcp_define.h"
 #include "dhcp_ipv4.h"
 #include "dhcp_message.h"

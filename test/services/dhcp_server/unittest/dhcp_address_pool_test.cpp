@@ -74,10 +74,8 @@ public:
         testPool.serverId = 0;
         testPool.leaseTime = 0;
     }
-
 public:
     DhcpAddressPool testPool;
-
 };
 
 HWTEST_F(DhcpAddressPoolTest, AddBindingTest, TestSize.Level1)
@@ -453,9 +451,6 @@ HWTEST_F(DhcpAddressPoolTest, CheckRangeAvailabilityTest, TestSize.Level1)
     EXPECT_EQ(0, outOfRange);
     EXPECT_EQ(RET_FAILED, CheckRangeAvailability(&testPool, testMac3, testIp3, &outOfRange));
     EXPECT_EQ(1, outOfRange);
-
-    
-
 }
 
 extern "C" int CheckIpAvailability(DhcpAddressPool *pool, uint8_t macAddr[DHCP_HWADDR_LENGTH], uint32_t distIp);
