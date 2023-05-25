@@ -26,7 +26,8 @@
 
 using namespace testing::ext;
 using namespace OHOS::Wifi;
-
+namespace OHOS {
+namespace Wifi {
 class DhcpIpv4Test : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -81,4 +82,6 @@ HWTEST_F(DhcpIpv4Test, TEST_FAILED, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, SetIpv4State(-1));
     EXPECT_EQ(DHCP_OPT_FAILED, GetPacketHeaderInfo(NULL, 0));
     EXPECT_EQ(DHCP_OPT_FAILED, GetPacketCommonInfo(NULL));
+}
+}
 }

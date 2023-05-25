@@ -19,7 +19,8 @@
 #include "address_utils.h"
 
 using namespace testing::ext;
-
+namespace OHOS {
+namespace Wifi {
 const uint8_t netmask24[] =  {255, 255, 255, 0};
 const uint8_t netmask25[] =  {255, 255, 255, 128};
 const uint8_t netmask26[] =  {255, 255, 255, 192};
@@ -269,4 +270,6 @@ HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level1)
     EXPECT_EQ(1, AddrEquels(testMac1, testMac2, MAC_ADDR_LENGTH));
     EXPECT_EQ(0, AddrEquels(testMac1, testMac3, MAC_ADDR_LENGTH));
     EXPECT_EQ(0, AddrEquels(testMac2, testMac3, MAC_ADDR_LENGTH));
+}
+}
 }

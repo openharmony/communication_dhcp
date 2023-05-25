@@ -19,7 +19,8 @@
 #include "hash_table.h"
 
 using namespace testing::ext;
-
+namespace OHOS {
+namespace Wifi {
 class HashTableTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -175,4 +176,6 @@ HWTEST_F(HashTableTest, CapExtendTest, TestSize.Level1)
     EXPECT_EQ(HASH_SUCCESS, CapExtend(&testTable, HASH_MINI_CAPACITY * 5));
     EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY);
     EXPECT_EQ(HASH_SUCCESS, DestroyHashTable(&testTable));
+}
+}
 }

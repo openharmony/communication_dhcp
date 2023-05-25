@@ -18,7 +18,8 @@
 #include "dhcp_config.h"
 
 using namespace testing::ext;
-
+namespace OHOS {
+namespace Wifi {
 class MockConfigFile {
 public:
     MockConfigFile() : mFilePath("./unittest_dhcp_config.conf")
@@ -110,4 +111,6 @@ HWTEST(DhcpConfigTest, LoadConfigTest, TestSize.Level1)
               "renewalTime=10\nrebindingTime=10\ndistribution=0\nbroadcast=1\ninvalid_key=haha";
     mockConfigFile.ClearAndWriteFile(content);
     EXPECT_TRUE(LoadConfig(configFile.c_str(), ifName.c_str(), &config) == RET_SUCCESS);
+}
+}
 }
