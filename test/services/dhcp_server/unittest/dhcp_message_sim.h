@@ -25,8 +25,7 @@ typedef struct DhcpClientContext DhcpClientContext;
 
 namespace OHOS {
 namespace Wifi {
-class DhcpMsgManager
-{
+class DhcpMsgManager {
 public:
     static DhcpMsgManager &GetInstance(void);
 
@@ -45,8 +44,8 @@ public:
     void SetClientIp(uint32_t ipAddr);
     uint32_t GetClientIp() const;
 private:
-    DhcpMsgManager(){};
-    ~DhcpMsgManager(){};
+    DhcpMsgManager() {};
+    ~DhcpMsgManager() {};
 
     std::mutex m_recvQueueLocker;
     std::queue<DhcpMessage> m_recvMessages;
@@ -59,12 +58,11 @@ private:
 
 typedef struct {
     int (*OnReceivedOffer)(DhcpMessage *msg);
-    int (*OnReceivedNak)( DhcpMessage *msg);
+    int (*OnReceivedNak)(DhcpMessage *msg);
     int (*OnReceivedAck)(DhcpMessage *msg);
 } DhcpClientCallback;
 
-struct DhcpClientConfig
-{
+struct DhcpClientConfig {
     char ifname[IFACE_NAME_SIZE];
     uint8_t chaddr[DHCP_HWADDR_LENGTH];
 };

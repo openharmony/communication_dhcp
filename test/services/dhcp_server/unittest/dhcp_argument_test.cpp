@@ -16,15 +16,15 @@
 #include <gtest/gtest.h>
 #include <string>
 #include <securec.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string>
+#include <cstdlib>
+#include <cstdio>
 #include "dhcp_argument.h"
 #include "dhcp_define.h"
 
 using namespace testing::ext;
 
-
+namespace OHOS {
+namespace Wifi {
 HWTEST(DhcpArgumentTest, InitArgumentsTest, TestSize.Level1)
 {
     EXPECT_TRUE(InitArguments() == RET_SUCCESS);
@@ -95,4 +95,6 @@ HWTEST(DhcpArgumentTest, HasArgumentTest, TestSize.Level1)
     name = "lease";
     EXPECT_TRUE(HasArgument(name) == 1);
     FreeArguments();
+}
+}
 }

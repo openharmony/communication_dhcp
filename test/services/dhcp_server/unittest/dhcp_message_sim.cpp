@@ -14,8 +14,8 @@
  */
 
 #include "dhcp_message_sim.h"
-#include <stdio.h>
-#include <stdint.h>
+#include <cstdio>
+#include <cstdint>
 #include <net/if.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
@@ -28,29 +28,14 @@
 #include "securec.h"
 #include "common_util.h"
 
-#define OPT_MESSAGE_TYPE_LEGTH 1
-#define OPT_HEADER_LENGTH 2
-#define OPT_TIME_LENGTH 4
-#define OPT_TYPE_FIELD_LENGTH 1
-#define OPT_MAC_ADDR_LENGTH 6
-#define MAGIC_COOKIE_LENGTH 4
-#define OPT_BROADCAST_FLAG_ENABLE 0
-
-#define OFFER_MIN_INTERVAL_TIME 5
-
-#define PENDING_DEFAULT_TIMEOUT 1200
-#define PENDING_DEFAULT_INTERVAL 1
-#define PENDING_INTERVAL_CHECKING_ENABLE 1
-#define DHCP_MAGIC_COOKIE 0x63825363
-#define ALLOW_NOBINDING_REQUEST 1
-#define REUSE_ADDRESS_ENABLE 1
-#define WAIT_STOPED_TIME 5
-
 #undef LOG_TAG
 #define LOG_TAG "DhcpMessageSimulator"
-
-
 using namespace OHOS::Wifi;
+
+constexpr int  OPT_MESSAGE_TYPE_LEGTH = 1;
+constexpr uint8_t OPT_HEADER_LENGTH = 2;
+constexpr uint8_t MAGIC_COOKIE_LENGTH = 4;
+constexpr uint32_t DHCP_MAGIC_COOKIE = 0x63825363;
 
 DhcpMsgManager& DhcpMsgManager::GetInstance()
 {
