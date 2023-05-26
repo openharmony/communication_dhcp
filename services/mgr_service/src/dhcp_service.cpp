@@ -245,7 +245,7 @@ bool DhcpService::CheckIfaceValid(const std::string& ifname)
     for (ifni = ifidxs; !(ifni->if_index == 0 && ifni->if_name == nullptr); ifni++) {
         if (ifni->if_name == nullptr) {
             WIFI_LOGW("ifni->if_name is nullptr");
-            break;
+            continue;
         }
         if (strcmp(ifni->if_name, ifname.c_str()) == 0) {
             if_freenameindex(ifidxs);
