@@ -21,10 +21,10 @@
 #include "dhcp_server_service.h"
 #include "wifi_logger.h"
 
-DEFINE_WIFILOG_DHCP_LABEL("DhcpService");
-
 namespace OHOS {
 namespace Wifi {
+DEFINE_WIFILOG_DHCP_LABEL("DhcpService");
+
 DhcpService::DhcpService() : m_pClientService(nullptr), m_pServerService(nullptr)
 {
     WIFI_LOGI("DhcpService constructor...");
@@ -243,7 +243,11 @@ bool DhcpService::CheckIfaceValid(const std::string& ifname)
         return false;
     }
     for (ifni = ifidxs; !(ifni->if_index == 0 && ifni->if_name == nullptr); ifni++) {
-        if (strncmp(ifni->if_name, ifname.c_str(), strlen(ifni->if_name)) == 0) {
+        if (ifni->if_name == nullptr) {
+            WIFI_LOGW("ifni->if_name is nullptr");
+            break;
+        }
+        if (strcmp(ifni->if_name, ifname.c_str()) == 0) {
             if_freenameindex(ifidxs);
             return true;
         }

@@ -22,12 +22,12 @@ namespace Wifi {
 #include "wifi_logger.h"
 #include "dhcp_client_service_impl.h"
 
-DEFINE_WIFILOG_DHCP_LABEL("DhcpEventSubscriber");
-
 using namespace OHOS::EventFwk;
 
 namespace OHOS {
 namespace Wifi {
+DEFINE_WIFILOG_DHCP_LABEL("DhcpEventSubscriber");
+
 void DhcpEventSubscriber::OnReceiveEvent(const OHOS::EventFwk::CommonEventData &data)
 {
     std::lock_guard<std::mutex> lock(onReceivedLock_);

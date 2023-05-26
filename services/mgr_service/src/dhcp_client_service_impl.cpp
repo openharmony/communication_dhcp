@@ -25,10 +25,10 @@
 #include "wifi_logger.h"
 #include "dhcp_event_subscriber.h"
 
-DEFINE_WIFILOG_DHCP_LABEL("DhcpClientServiceImpl");
-
 namespace OHOS {
 namespace Wifi {
+DEFINE_WIFILOG_DHCP_LABEL("DhcpClientServiceImpl");
+
 pthread_mutex_t DhcpClientServiceImpl::m_DhcpResultInfoMutex;
 std::map<std::string, DhcpResult> DhcpClientServiceImpl::m_mapDhcpResult;
 std::map<std::string, DhcpServiceInfo> DhcpClientServiceImpl::m_mapDhcpInfo;

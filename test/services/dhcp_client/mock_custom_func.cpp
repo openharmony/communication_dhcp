@@ -49,7 +49,7 @@ extern "C" {
 #endif
 static int AddOptDoubleValueToOpts(uint8_t *pOpts, uint8_t code, uint32_t value1, uint32_t value2)
 {
-    uint8_t uOption[DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + DHCP_UINT32_BYTES * 2] = {0};
+    uint8_t uOption[DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + DHCP_UINT32_DOUBLE_BYTES] = {0};
     uOption[DHCP_OPT_CODE_INDEX] = code;
     uOption[DHCP_OPT_LEN_INDEX] = DHCP_UINT32_BYTES * NUM_TWO;
     if ((memcpy_s(uOption + DHCP_OPT_DATA_INDEX, DHCP_UINT32_BYTES, &value1, DHCP_UINT32_BYTES) != EOK) ||

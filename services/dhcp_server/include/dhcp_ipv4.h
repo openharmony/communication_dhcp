@@ -18,7 +18,6 @@
 
 // See: RFC 2132        DHCP Options and BOOTP Vendor Extensions      March 1997
 enum DhcpOptions {
-
     /*
      * 3. RFC 1497 Vendor Extensions
      * This section lists the vendor extensions as defined in RFC 1497.

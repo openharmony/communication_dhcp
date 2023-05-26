@@ -26,10 +26,10 @@
 #include "wifi_logger.h"
 #include "dhcp_event_subscriber.h"
 
-DEFINE_WIFILOG_DHCP_LABEL("DhcpFunc");
-
 namespace OHOS {
 namespace Wifi {
+DEFINE_WIFILOG_DHCP_LABEL("DhcpFunc");
+
 bool DhcpFunc::Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool bHost)
 {
     if (strIp.empty()) {

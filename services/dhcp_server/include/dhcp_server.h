@@ -41,7 +41,6 @@ void RegisterDhcpCallback(PDhcpServerContext ctx, DhcpServerCallback callback);
 int FreeServerContext(PDhcpServerContext *ctx);
 int SaveLease(PDhcpServerContext ctx);
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo);
-
 #ifdef __cplusplus
 }
 #endif
