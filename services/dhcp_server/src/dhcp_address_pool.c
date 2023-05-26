@@ -599,7 +599,7 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         }
     }
 
-    if(fclose(fp) != 0) {
+    if (fclose(fp) != 0) {
         LOGE("SaveBindingRecoders fclose fp failed!");
     }
     lastTime = currTime;
