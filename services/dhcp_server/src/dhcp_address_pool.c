@@ -557,7 +557,7 @@ int LoadBindingRecoders(DhcpAddressPool *pool)
         }
     }
 
-    if(fclose(fp) != 0) {
+    if (fclose(fp) != 0) {
         LOGE("LoadBindingRecoders fclose fp failed!");
     }
     return RET_SUCCESS;
