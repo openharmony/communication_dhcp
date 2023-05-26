@@ -150,25 +150,25 @@ int __wrap_close(int _fileno)
 ssize_t recvfrom(int __fd, void *__buf, size_t __n, int __flags, struct sockaddr *__addr, socklen_t *__addr_len)
 {
     LOGD("==>recvfrom.");
-    if (g_mockTag) {
-        LOGD(" ==>mock enable.");
-        if (DhcpMsgManager::GetInstance().SendTotal() > 0 && __buf) {
-            LOGD("== new message received.");
-            DhcpMessage msg = { 0 };
-            if (DhcpMsgManager::GetInstance().FrontSendMsg(&msg)) {
-                (void)memcpy_s(__buf, __n, &msg, sizeof(DhcpMessage));
-                DhcpMsgManager::GetInstance().PopSendMsg();
-                uint32_t srcIp = DhcpMsgManager::GetInstance().GetClientIp();
-                if (__addr != nullptr && srcIp != 0) {
-                    struct sockaddr_in *sAddr = reinterpret_cast<sockaddr_in *>(__addr);
-                    sAddr->sin_addr.s_addr = HostToNetwork(srcIp);
-                    DhcpMsgManager::GetInstance().SetClientIp(0);
-                }
-                return sizeof(DhcpMessage);
-            }
-        }
-    } else {
+    if (!g_mockTag) {
         LOGD(" ==>mock disable.");
+        return SystemFuncMock::GetInstance().recvfrom(__fd, __buf, __n, __flags, __addr, __addr_len);
+    }
+    LOGD(" ==>mock enable.");
+    if (DhcpMsgManager::GetInstance().SendTotal() > 0 && __buf) {
+        LOGD("== new message received.");
+        DhcpMessage msg = { 0 };
+        if (DhcpMsgManager::GetInstance().FrontSendMsg(&msg)) {
+            (void)memcpy_s(__buf, __n, &msg, sizeof(DhcpMessage));
+            DhcpMsgManager::GetInstance().PopSendMsg();
+            uint32_t srcIp = DhcpMsgManager::GetInstance().GetClientIp();
+            if (__addr != nullptr && srcIp != 0) {
+                struct sockaddr_in *sAddr = reinterpret_cast<sockaddr_in *>(__addr);
+                sAddr->sin_addr.s_addr = HostToNetwork(srcIp);
+                DhcpMsgManager::GetInstance().SetClientIp(0);
+            }
+            return sizeof(DhcpMessage);
+        }
     }
     return SystemFuncMock::GetInstance().recvfrom(__fd, __buf, __n, __flags, __addr, __addr_len);
 }

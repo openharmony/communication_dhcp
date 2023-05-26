@@ -40,7 +40,6 @@
 #define LOGF(...) ((void)HiLogPrint(LOG_CORE, LOG_FATAL, LOG_DOMAIN, LOG_TAG, __VA_ARGS__))
 #else
 #include <stdio.h>
-#include <time.h>
 #include "common_util.h"
 
 #define LOG_DEBUG "Debug"
@@ -59,7 +58,7 @@
         printf(" %s] %s ", LOG_DEBUG, LOG_TAG); \
         printf((log), ##__VA_ARGS__);           \
         printf("(line:%d)\n", __LINE__);        \
-    } while (0);
+    } while (0)
 
 #define LOGW(log, ...)                         \
     do {                                       \
@@ -67,7 +66,7 @@
         printf(" %s] %s ", LOG_WARN, LOG_TAG); \
         printf((log), ##__VA_ARGS__);          \
         printf("\n");                          \
-    } while (0);
+    } while (0)
 
 #define LOGE(log, ...)                          \
     do {                                        \
@@ -75,7 +74,7 @@
         printf(" %s] %s ", LOG_ERROR, LOG_TAG); \
         printf((log), ##__VA_ARGS__);           \
         printf("(line:%d)\n", __LINE__);        \
-    } while (0);
+    } while (0)
 
 #define LOGI(log, ...)                         \
     do {                                       \
@@ -83,7 +82,7 @@
         printf(" %s] %s ", LOG_INFO, LOG_TAG); \
         printf((log), ##__VA_ARGS__);          \
         printf("\n");                          \
-    } while (0);
+    } while (0)
 
 #endif  // DHCP_HILOG_ENABLE
 #endif

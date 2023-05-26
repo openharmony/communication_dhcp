@@ -47,7 +47,7 @@ public:
     std::unique_ptr<DhcpServerService> pServerService;
 };
 
-HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test2, TestSize.Level1)
+HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test001, TestSize.Level1)
 {
     ASSERT_TRUE(pServerService != nullptr);
 
@@ -98,7 +98,27 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test2, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_ERROR, pServerService->RemoveAllDhcpRange(tagName));
     tagName = "sta1";
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->RemoveAllDhcpRange(tagName));
+    MockSystemFunc::SetMockFlag(false);
+}
 
+HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test002, TestSize.Level1)
+{
+    ASSERT_TRUE(pServerService != nullptr);
+
+    MockSystemFunc::SetMockFlag(true);
+
+    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
+        .WillOnce(Return(-1)).WillOnce(Return(1))
+        .WillOnce(Return(-1)).WillOnce(Return(1))
+        .WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _))
+        .WillOnce(Return(-1)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
+        .WillOnce(Return(-1)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), ioctl(_, _, _)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
     std::string ifname;
     DhcpRange setRange;
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, setRange));
@@ -112,10 +132,37 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test2, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, setRange));
 
     ifname.clear();
-    tagName = "sta";
+    std::string tagName = "sta";
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, tagName));
     ifname = "wlan0";
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, "sta1"));
+    MockSystemFunc::SetMockFlag(false);
+}
+
+HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test003, TestSize.Level1)
+{
+    ASSERT_TRUE(pServerService != nullptr);
+
+    MockSystemFunc::SetMockFlag(true);
+
+    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
+        .WillOnce(Return(-1)).WillOnce(Return(1))
+        .WillOnce(Return(-1)).WillOnce(Return(1))
+        .WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _))
+        .WillOnce(Return(-1)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
+        .WillOnce(Return(-1)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), ioctl(_, _, _)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
+    std::string ifname = "wlan0";
+    std::string tagName = "sta";
+    DhcpRange putRange;
+    putRange.iptype = 0;
+    putRange.strStartip = "192.168.0.1";
+    putRange.strEndip = "192.168.0.49";
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->PutDhcpRange(tagName, putRange));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->RemoveDhcpRange(tagName, putRange));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, tagName));
