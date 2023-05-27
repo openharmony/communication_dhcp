@@ -556,7 +556,10 @@ int LoadBindingRecoders(DhcpAddressPool *pool)
             Insert(&(pool->leaseTable), (uintptr_t)&bind.ipAddress, (uintptr_t)&bind);
         }
     }
-    fclose(fp);
+
+    if (fclose(fp) != 0) {
+        LOGE("LoadBindingRecoders fclose fp failed!");
+    }
     return RET_SUCCESS;
 }
 
@@ -595,7 +598,10 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
             node = node->next;
         }
     }
-    fclose(fp);
+
+    if (fclose(fp) != 0) {
+        LOGE("SaveBindingRecoders fclose fp failed!");
+    }
     lastTime = currTime;
     return RET_SUCCESS;
 }

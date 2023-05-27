@@ -121,34 +121,6 @@ uint32_t DhcpMsgManager::GetClientIp() const
     return m_clientIpAddress;
 }
 
-struct DhcpClientContext
-{
-    int clientFd;
-    int state;
-    DhcpClientConfig config;
-};
-
-struct sockaddr_in *BroadcastAddrIn(void)
-{
-    static struct sockaddr_in broadcastAddrIn = {0};
-    if (broadcastAddrIn.sin_port == 0) {
-        broadcastAddrIn.sin_port = htons(DHCP_SERVER_PORT);
-        broadcastAddrIn.sin_family = AF_INET;
-        broadcastAddrIn.sin_addr.s_addr = INADDR_BROADCAST;
-    }
-    return &broadcastAddrIn;
-}
-struct sockaddr_in *DestinationAddr(void)
-{
-    static struct sockaddr_in destAddrIn = {0};
-    if (destAddrIn.sin_port == 0) {
-        destAddrIn.sin_port = htons(DHCP_SERVER_PORT);
-        destAddrIn.sin_family = AF_INET;
-        destAddrIn.sin_addr.s_addr = INADDR_BROADCAST;
-    }
-    return &destAddrIn;
-}
-
 int FillHwAddr(uint8_t *dst, size_t dsize, uint8_t *src, size_t ssize)
 {
     if (!dst || !src) {
@@ -164,15 +136,6 @@ int FillHwAddr(uint8_t *dst, size_t dsize, uint8_t *src, size_t ssize)
         return DHCP_FALSE;
     }
     return DHCP_TRUE;
-}
-
-struct sockaddr_in *SetDestinationAddr(uint32_t ipAddress)
-{
-    struct sockaddr_in *destAddr = DestinationAddr();
-    if (destAddr != nullptr) {
-        destAddr->sin_addr.s_addr = htons(ipAddress);
-    }
-    return destAddr;
 }
 
 DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config)

@@ -32,6 +32,7 @@
 #include <net/if_arp.h>
 
 #include "securec.h"
+#include "dhcp_api.h"
 #include "dhcp_client.h"
 #include "dhcp_options.h"
 #include "dhcp_socket.h"
@@ -149,7 +150,7 @@ int ExecDhcpRenew(void)
         case DHCP_STATE_BOUND:
             /* Set socket mode, send unicast packet. */
             SetSocketMode(SOCKET_MODE_KERNEL);
-            /* fall-through */
+            /* fall through */
         case DHCP_STATE_RENEWING:
         case DHCP_STATE_REBINDING:
             LOGI("ExecDhcpRenew() dhcp ipv4 old state:%{public}d, set state:RENEWED.", g_dhcp4State);
@@ -549,7 +550,7 @@ static void DhcpRequestHandle(time_t timestamp)
             LOGI("DhcpRequestHandle() 333 the renewal time run out, ready to enter renewing state...");
             g_dhcp4State = DHCP_STATE_RENEWING;
             SetSocketMode(SOCKET_MODE_KERNEL);
-            /* fall-through */
+            /* fall through */
         case DHCP_STATE_RENEWING:
             Renewing(timestamp);
             break;
@@ -1092,7 +1093,6 @@ int InitSignalHandle(void)
     return DHCP_OPT_SUCCESS;
 }
 
-extern bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname);
 int PublishDhcpResultEvent(const char *ifname, const int code, struct DhcpResult *result)
 {
     if (ifname == NULL) {
