@@ -51,6 +51,11 @@
                 "ipc",
                 "ces_standard",
                 "hiviewdfx_hilog_native",
+                "ability_base",
+                "bundle_framework",
+                "c_utils",
+                "eventhandler",
+                "comment_event_service",
                 "hisysevent_native"
             ],
             "third_party": [
@@ -58,7 +63,7 @@
                 "node",
                 "bounds_checking_function",
                 "googletest",
-                "openssl"
+                "thirdparty_openssl"
             ]
         },
         "build": {
