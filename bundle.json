@@ -48,21 +48,15 @@
         "ram": "",
         "deps": {
             "components": [
-                "ipc",
-                "ces_standard",
-                "hiviewdfx_hilog_native",
                 "ability_base",
                 "bundle_framework",
                 "c_utils",
                 "common_event_service",
                 "eventhandler",
-                "hisysevent_native"
+                "hiviewdfx_hilog_native"
             ],
             "third_party": [
-                "wpa_supplicant",
-                "node",
                 "bounds_checking_function",
-                "googletest",
                 "thirdparty_openssl"
             ]
         },
