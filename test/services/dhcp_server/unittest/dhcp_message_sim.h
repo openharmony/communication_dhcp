@@ -20,8 +20,8 @@
 #include "dhcp_define.h"
 #include "dhcp_message.h"
 
-typedef struct DhcpClientConfig DhcpClientConfig;
-typedef struct DhcpClientContext DhcpClientContext;
+using DhcpClientConfig = struct DhcpClientConfig;
+using DhcpClientContext = struct DhcpClientContext;
 
 namespace OHOS {
 namespace Wifi {
@@ -56,15 +56,16 @@ private:
 }  // namespace Wifi
 }  // namespace OHOS
 
-typedef struct {
-    int (*OnReceivedOffer)(DhcpMessage *msg);
-    int (*OnReceivedNak)(DhcpMessage *msg);
-    int (*OnReceivedAck)(DhcpMessage *msg);
-} DhcpClientCallback;
-
 struct DhcpClientConfig {
     char ifname[IFACE_NAME_SIZE];
     uint8_t chaddr[DHCP_HWADDR_LENGTH];
+};
+
+struct DhcpClientContext
+{
+    int clientFd;
+    int state;
+    DhcpClientConfig config;
 };
 
 DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config);

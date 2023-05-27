@@ -24,6 +24,5 @@ std::unique_ptr<IDhcpService> DhcpServiceApi::GetInstance()
     std::unique_ptr<IDhcpService> service = std::make_unique<DhcpService>();
     return service;
 }
-
 }  // namespace Wifi
 }  // namespace OHOS

@@ -257,7 +257,9 @@ static int ParseConfigFile(const char *configFile, const char *ifname, DhcpConfi
             break;
         }
     }
-    fclose(fp);
+    if (fclose(fp) != 0) {
+        LOGE("ParseConfigFile fclose fp failed!");
+    }
     return RET_SUCCESS;
 }
 
