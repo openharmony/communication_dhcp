@@ -439,7 +439,6 @@ int DhcpServerTest::InitDhcpRequests()
     uint8_t testMac4[DHCP_HWADDR_LENGTH] =  {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0d, 0};
     testIp = ParseIpAddr("192.168.190.210");
     if (TestDhcpRequestByMac(testIp, srvId, testMac4) != RET_SUCCESS) {
-
         return RET_FAILED;
     }
     uint8_t testMac5[DHCP_HWADDR_LENGTH] =  {0x0a, 0x0e, 0x3c, 0x65, 0x3a, 0x0e, 0};
