@@ -248,6 +248,7 @@ static int SetDhcpMessageInfo(PDhcpMsgInfo msgInfo, uint8_t *recvBuffer, int rsi
 {
     if (recvBuffer == NULL) {
         LOGW("SetDhcpMessageInfo error, recvBuffer is NULL!");
+        return RET_FAILED;
     }
     msgInfo->length = rsize;
     if (memcpy_s(&msgInfo->packet, sizeof(DhcpMessage), recvBuffer, rsize) != EOK) {

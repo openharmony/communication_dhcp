@@ -46,9 +46,10 @@ struct ServerContext {
     int looperState;
     int initialized;
 };
+
 namespace OHOS {
 namespace Wifi {
-static const int SERVER_RUNING_TIME = 10; // the value is in units of seconds.
+constexpr int SERVER_RUNING_TIME = 10; // the value is in units of seconds.
 
 class DhcpServerTest : public testing::Test {
 public:
@@ -744,7 +745,6 @@ HWTEST_F(DhcpServerTest, InitServerFixedOptionsFailedTest, TestSize.Level1)
     tempCtx.instance = &srvInst;
     EXPECT_EQ(RET_FAILED, InitServerFixedOptions(&tempConfig, &tempCtx));
 }
-
 
 extern "C" int AppendReplyTimeOptions(PDhcpServerContext ctx, PDhcpOptionList options);
 HWTEST_F(DhcpServerTest, AppendReplyTimeOptionsFailedTest, TestSize.Level1)
