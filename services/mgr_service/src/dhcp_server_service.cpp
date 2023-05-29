@@ -22,10 +22,10 @@
 #include "wifi_logger.h"
 #include "securec.h"
 
-DEFINE_WIFILOG_DHCP_LABEL("DhcpServerService");
-
 namespace OHOS {
 namespace Wifi {
+DEFINE_WIFILOG_DHCP_LABEL("DhcpServerService");
+
 std::map<std::string, DhcpServerInfo> DhcpServerService::m_mapDhcpServer;
 DhcpServerService::DhcpServerService()
 {

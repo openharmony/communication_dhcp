@@ -37,9 +37,6 @@ using namespace OHOS::Wifi;
 #undef LOG_TAG
 #define LOG_TAG "DhcpServerTest"
 
-
-static const int SERVER_RUNING_TIME = 10; // the value is in units of seconds.
-
 struct ServerContext {
     int broadCastFlagEnable;
     DhcpAddressPool addressPool;
@@ -49,6 +46,9 @@ struct ServerContext {
     int looperState;
     int initialized;
 };
+namespace OHOS {
+namespace Wifi {
+static const int SERVER_RUNING_TIME = 10; // the value is in units of seconds.
 
 class DhcpServerTest : public testing::Test {
 public:
@@ -793,4 +793,6 @@ HWTEST_F(DhcpServerTest, SaveLeaseFailedTest, TestSize.Level1)
     ASSERT_TRUE(memset_s(&tempCtx, sizeof(DhcpServerContext), 0, sizeof(DhcpServerContext)) == EOK);
     EXPECT_EQ(RET_FAILED, SaveLease(nullptr));
     EXPECT_EQ(RET_FAILED, SaveLease(&tempCtx));
+}
+}
 }
