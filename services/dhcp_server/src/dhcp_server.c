@@ -244,35 +244,6 @@ struct sockaddr_in *DestinationAddr(uint32_t ipAddress)
     return destAddr;
 }
 
-static int SetDhcpMessageInfo(PDhcpMsgInfo msgInfo, uint8_t *recvBuffer, int rsize)
-{
-    if (recvBuffer == NULL) {
-        LOGW("SetDhcpMessageInfo error, recvBuffer is NULL!");
-        return RET_FAILED;
-    }
-    msgInfo->length = rsize;
-    if (memcpy_s(&msgInfo->packet, sizeof(DhcpMessage), recvBuffer, rsize) != EOK) {
-        return RET_FAILED;
-    }
-    if (msgInfo->packet.op != BOOTREQUEST) {
-        LOGW("dhcp message type error!");
-        return RET_FAILED;
-    }
-    if (msgInfo->packet.hlen > DHCP_HWADDR_LENGTH) {
-        LOGW("hlen error!");
-        return RET_FAILED;
-    }
-    if (IsEmptyHWAddr(msgInfo->packet.chaddr)) {
-        LOGW("client hardware address error!");
-        return RET_FAILED;
-    }
-    if (IsReserved(msgInfo->packet.chaddr)) {
-        LOGD("ignore client, %s", ParseLogMac(msgInfo->packet.chaddr));
-        return RET_FAILED;
-    }
-    return RET_SUCCESS;
-}
-
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
 {
     static uint8_t recvBuffer[RECV_BUFFER_SIZE] = {0};
@@ -308,7 +279,24 @@ int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
         LOGW("message length error, received %d bytes.", rsize);
         return RET_FAILED;
     }
-    if(SetDhcpMessageInfo(msgInfo, recvBuffer, rsize) != RET_SUCCESS) {
+    msgInfo->length = rsize;
+    if (memcpy_s(&msgInfo->packet, sizeof(DhcpMessage), recvBuffer, rsize) != EOK) {
+        return RET_FAILED;
+    }
+    if (msgInfo->packet.op != BOOTREQUEST) {
+        LOGW("dhcp message type error!");
+        return RET_FAILED;
+    }
+    if (msgInfo->packet.hlen > DHCP_HWADDR_LENGTH) {
+        LOGW("hlen error!");
+        return RET_FAILED;
+    }
+    if (IsEmptyHWAddr(msgInfo->packet.chaddr)) {
+        LOGW("client hardware address error!");
+        return RET_FAILED;
+    }
+    if (IsReserved(msgInfo->packet.chaddr)) {
+        LOGD("ignore client, %s", ParseLogMac(msgInfo->packet.chaddr));
         return RET_FAILED;
     }
     return RET_SUCCESS;

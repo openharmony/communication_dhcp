@@ -445,85 +445,82 @@ int DhcpClientServiceImpl::ForkExecChildProcess(const std::string &ifname, bool 
     _exit(-1);
 }
 
-int DhcpClientServiceImpl::ForkExecParentProcessClientStart(const std::string &ifname, bool bIpv6, pid_t pid)
+int DhcpClientServiceImpl::ForkExecParentProcess(const std::string &ifname, bool bIpv6, bool bStart, pid_t pid)
 {
     std::string strAction = OHOS::Wifi::COMMON_EVENT_DHCP_GET_IPV4 + "." + ifname;
+    if (bStart) {
 #ifdef OHOS_ARCH_LITE
-    /* check and new receive dhcp packet msg thread */
-    std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
-    auto iterRecvMsgThread = m_mapDhcpRecvMsgThread.find(ifname);
-    if (iterRecvMsgThread != m_mapDhcpRecvMsgThread.end()) {
-        WIFI_LOGE("ForkExecParentProcessClientStart() RecvMsgThread exist ifname:%{public}s, need erase!", ifname.c_str());
-        return DHCP_OPT_FAILED;
-    }
-    std::thread *pThread = new std::thread(&DhcpClientServiceImpl::RunDhcpRecvMsgThreadFunc, this, ifname);
-    if (pThread == nullptr) {
-        WIFI_LOGE("ForkExecParentProcessClientStart() init pThread failed, ifname:%{public}s.", ifname.c_str());
-        return DHCP_OPT_FAILED;
-    }
-    m_mapDhcpRecvMsgThread.emplace(std::make_pair(ifname, pThread));
-#endif
-    /* normal started, update dhcp client service running status */
-    pthread_mutex_lock(&m_DhcpResultInfoMutex);
-    auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
-    if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6 = bIpv6;
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 1;
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = pid;
-    } else {
-        DhcpServiceInfo dhcpInfo;
-        dhcpInfo.enableIPv6 = bIpv6;
-        dhcpInfo.clientRunStatus = 1;
-        dhcpInfo.clientProPid = pid;
-        DhcpClientServiceImpl::m_mapDhcpInfo.emplace(std::make_pair(ifname, dhcpInfo));
-    }
-    /* Subscribe dhcp event. */
-    if (SubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-        return DHCP_OPT_FAILED;
-    }
-    pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-    return DHCP_OPT_SUCCESS;
-}
-
-int DhcpClientServiceImpl::ForkExecParentProcessClientStop(const std::string &ifname, bool bIpv6, pid_t pid)
-{
-    std::string strAction = OHOS::Wifi::COMMON_EVENT_DHCP_GET_IPV4 + "." + ifname;
-    /* Unsubscribe dhcp event. */
-    if (UnsubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
-        WIFI_LOGI("ForkExecParentProcessClientStop() UnsubscribeDhcpEvent ifname:%{public}s failed.", ifname.c_str());
-    }
-    pthread_mutex_lock(&m_DhcpResultInfoMutex);
-    auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
-    if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
-        /* not start */
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 0;
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = 0;
-
-        auto iterResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
-        if (iterResult != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
-            DhcpClientServiceImpl::m_mapDhcpResult.erase(iterResult);
-            WIFI_LOGI("ForkExecParentProcessClientStop() m_mapDhcpResult erase ifname:%{public}s success.", ifname.c_str());
-        }
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-#ifdef OHOS_ARCH_LITE
+        /* check and new receive dhcp packet msg thread */
         std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
-        auto iterRecvMsgThreadMap = m_mapDhcpRecvMsgThread.find(ifname);
-        if (iterRecvMsgThreadMap == m_mapDhcpRecvMsgThread.end()) {
-            WIFI_LOGI("ForkExecParentProcessClientStop() RecvMsgThread already del ifname:%{public}s.", ifname.c_str());
-            return DHCP_OPT_SUCCESS;
+        auto iterRecvMsgThread = m_mapDhcpRecvMsgThread.find(ifname);
+        if (iterRecvMsgThread != m_mapDhcpRecvMsgThread.end()) {
+            WIFI_LOGE("ForkExecParentProcess() RecvMsgThread exist ifname:%{public}s, need erase!", ifname.c_str());
+            return DHCP_OPT_FAILED;
         }
-        if (iterRecvMsgThreadMap->second != nullptr) {
-            iterRecvMsgThreadMap->second->join();
-            delete iterRecvMsgThreadMap->second;
-            iterRecvMsgThreadMap->second = nullptr;
-            WIFI_LOGI("ForkExecParentProcessClientStop() destroy RecvThread success, ifname:%{public}s.", ifname.c_str());
+        std::thread *pThread = new std::thread(&DhcpClientServiceImpl::RunDhcpRecvMsgThreadFunc, this, ifname);
+        if (pThread == nullptr) {
+            WIFI_LOGE("ForkExecParentProcess() init pThread failed, ifname:%{public}s.", ifname.c_str());
+            return DHCP_OPT_FAILED;
         }
-        WIFI_LOGI("ForkExecParentProcessClientStop() m_mapDhcpRecvMsgThread erase ifname:%{public}s.", ifname.c_str());
-        m_mapDhcpRecvMsgThread.erase(iterRecvMsgThreadMap);
+        m_mapDhcpRecvMsgThread.emplace(std::make_pair(ifname, pThread));
 #endif
-    } else {
+        /* normal started, update dhcp client service running status */
+        pthread_mutex_lock(&m_DhcpResultInfoMutex);
+        auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
+        if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6 = bIpv6;
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 1;
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = pid;
+        } else {
+            DhcpServiceInfo dhcpInfo;
+            dhcpInfo.enableIPv6 = bIpv6;
+            dhcpInfo.clientRunStatus = 1;
+            dhcpInfo.clientProPid = pid;
+            DhcpClientServiceImpl::m_mapDhcpInfo.emplace(std::make_pair(ifname, dhcpInfo));
+        }
+        /* Subscribe dhcp event. */
+        if (SubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+            return DHCP_OPT_FAILED;
+        }
         pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+    } else {
+        /* Unsubscribe dhcp event. */
+        if (UnsubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
+            WIFI_LOGI("ForkExecParentProcess() UnsubscribeDhcpEvent ifname:%{public}s failed.", ifname.c_str());
+        }
+        pthread_mutex_lock(&m_DhcpResultInfoMutex);
+        auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
+        if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
+            /* not start */
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 0;
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = 0;
+
+            auto iterResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
+            if (iterResult != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
+                DhcpClientServiceImpl::m_mapDhcpResult.erase(iterResult);
+                WIFI_LOGI("ForkExecParentProcess() m_mapDhcpResult erase ifname:%{public}s success.", ifname.c_str());
+            }
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+#ifdef OHOS_ARCH_LITE
+            std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
+            auto iterRecvMsgThreadMap = m_mapDhcpRecvMsgThread.find(ifname);
+            if (iterRecvMsgThreadMap == m_mapDhcpRecvMsgThread.end()) {
+                WIFI_LOGI("ForkExecParentProcess() RecvMsgThread already del ifname:%{public}s.", ifname.c_str());
+                return DHCP_OPT_SUCCESS;
+            }
+            if (iterRecvMsgThreadMap->second != nullptr) {
+                iterRecvMsgThreadMap->second->join();
+                delete iterRecvMsgThreadMap->second;
+                iterRecvMsgThreadMap->second = nullptr;
+                WIFI_LOGI("ForkExecParentProcess() destroy RecvThread success, ifname:%{public}s.", ifname.c_str());
+            }
+            WIFI_LOGI("ForkExecParentProcess() m_mapDhcpRecvMsgThread erase ifname:%{public}s.", ifname.c_str());
+            m_mapDhcpRecvMsgThread.erase(iterRecvMsgThreadMap);
+#endif
+        } else {
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+        }
     }
     return DHCP_OPT_SUCCESS;
 }
@@ -786,7 +783,7 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
     } else {
         /* Parent process */
         WIFI_LOGI("StartDhcpClient() vfork %{public}d success, parent:%{public}d, begin waitpid...", pid, getpid());
-        int ret = ForkExecParentProcessClientStart(ifname, bIpv6, pid);
+        int ret = ForkExecParentProcess(ifname, bIpv6, true, pid);
         pid_t pidRet = waitpid(pid, nullptr, 0);
         if (pidRet == pid) {
             WIFI_LOGI("StartDhcpClient() waitpid child:%{public}d success.", pid);
@@ -842,7 +839,7 @@ int DhcpClientServiceImpl::StopDhcpClient(const std::string &ifname, bool bIpv6)
             WIFI_LOGE("StopDhcpClient() waitpid child:%{public}d failed, pidRet:%{public}d!", pid, pidRet);
         }
 
-        return bExecParentProcess ? ForkExecParentProcessClientStop(ifname, bIpv6) : DHCP_OPT_SUCCESS;
+        return bExecParentProcess ? ForkExecParentProcess(ifname, bIpv6) : DHCP_OPT_SUCCESS;
     }
 }
 

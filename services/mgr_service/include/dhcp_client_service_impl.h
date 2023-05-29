@@ -225,21 +225,14 @@ private:
      */
     int ForkExecChildProcess(const std::string& ifname, bool bIpv6, bool bStart = false);
     /**
-     * @Description : Fork parent process when start dhcp client function for handle dhcp function.
+     * @Description : Fork parent process function for handle dhcp function.
      *
      * @param ifname - interface name, eg:wlan0 [in]
      * @param bIpv6 - can or not get ipv6 [in]
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
-    int ForkExecParentProcessClientStart(const std::string& ifname, bool bIpv6, pid_t pid = 0);
-    /**
-     * @Description : Fork parent process when stop dhcp client function for handle dhcp function.
-     *
-     * @param ifname - interface name, eg:wlan0 [in]
-     * @param bIpv6 - can or not get ipv6 [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    int ForkExecParentProcessClientStop(const std::string& ifname, bool bIpv6, pid_t pid = 0);
+    int ForkExecParentProcess(const std::string& ifname, bool bIpv6, bool bStart = false, pid_t pid = 0);
+
     /**
      * @Description : Subscribe dhcp event.
      *

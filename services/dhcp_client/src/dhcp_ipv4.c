@@ -651,12 +651,13 @@ static void ParseOtherNetworkInfo(const struct DhcpPacket *packet, struct DhcpRe
     return;
 }
 
-static void GetYiaddr(struct DhcpResult *result)
+static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult *result)
 {
-    if (result == NULL) {
-        LOGE("GetYiaddr() error, result is NULL!");
+    if ((packet == NULL) || (result == NULL)) {
+        LOGE("ParseNetworkInfo() error, packet == NULL or result == NULL!");
         return;
     }
+
     char *pReqIp = Ip4IntConToStr(g_requestedIp4, false);
     if (pReqIp != NULL) {
         LOGI("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{private}s.", ntohl(g_requestedIp4), pReqIp);
@@ -669,15 +670,7 @@ static void GetYiaddr(struct DhcpResult *result)
         free(pReqIp);
         pReqIp = NULL;
     }
-}
 
-static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult *result)
-{
-    if ((packet == NULL) || (result == NULL)) {
-        LOGE("ParseNetworkInfo() error, packet == NULL or result == NULL!");
-        return;
-    }
-    GetYiaddr(result);
     uint32_t u32Data = 0;
     if (GetDhcpOptionUint32(packet, SUBNET_MASK_OPTION, &u32Data)) {
         char *pSubIp = Ip4IntConToStr(u32Data, true);
