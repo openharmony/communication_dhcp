@@ -37,7 +37,7 @@ typedef struct tm *ptm;
 void LogTime(void)
 {
     time_t curr;
-    time(&curr);
+    (void)time(&curr);
     struct tm nowTime;
     localtime_r(&curr, &nowTime);
     ptm tt = &nowTime;
