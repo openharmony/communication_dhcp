@@ -37,9 +37,6 @@ using namespace OHOS::Wifi;
 #undef LOG_TAG
 #define LOG_TAG "DhcpServerTest"
 
-
-static const int SERVER_RUNING_TIME = 10; // the value is in units of seconds.
-
 struct ServerContext {
     int broadCastFlagEnable;
     DhcpAddressPool addressPool;
@@ -49,6 +46,10 @@ struct ServerContext {
     int looperState;
     int initialized;
 };
+
+namespace OHOS {
+namespace Wifi {
+constexpr int SERVER_RUNING_TIME = 10; // the value is in units of seconds.
 
 class DhcpServerTest : public testing::Test {
 public:
@@ -438,7 +439,6 @@ int DhcpServerTest::InitDhcpRequests()
     uint8_t testMac4[DHCP_HWADDR_LENGTH] =  {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0d, 0};
     testIp = ParseIpAddr("192.168.190.210");
     if (TestDhcpRequestByMac(testIp, srvId, testMac4) != RET_SUCCESS) {
-
         return RET_FAILED;
     }
     uint8_t testMac5[DHCP_HWADDR_LENGTH] =  {0x0a, 0x0e, 0x3c, 0x65, 0x3a, 0x0e, 0};
@@ -745,7 +745,6 @@ HWTEST_F(DhcpServerTest, InitServerFixedOptionsFailedTest, TestSize.Level1)
     EXPECT_EQ(RET_FAILED, InitServerFixedOptions(&tempConfig, &tempCtx));
 }
 
-
 extern "C" int AppendReplyTimeOptions(PDhcpServerContext ctx, PDhcpOptionList options);
 HWTEST_F(DhcpServerTest, AppendReplyTimeOptionsFailedTest, TestSize.Level1)
 {
@@ -793,4 +792,6 @@ HWTEST_F(DhcpServerTest, SaveLeaseFailedTest, TestSize.Level1)
     ASSERT_TRUE(memset_s(&tempCtx, sizeof(DhcpServerContext), 0, sizeof(DhcpServerContext)) == EOK);
     EXPECT_EQ(RET_FAILED, SaveLease(nullptr));
     EXPECT_EQ(RET_FAILED, SaveLease(&tempCtx));
+}
+}
 }
