@@ -91,7 +91,6 @@ int GetDhcpClinetState(DhcpClientContext *ctx);
 int FreeDhcpClient(DhcpClientContext *ctx);
 int InitMessage(DhcpClientContext *ctx, PDhcpMsgInfo msg, uint8_t msgType);
 int FillHwAddr(uint8_t *dst, size_t dsize, uint8_t *src, size_t ssize);
-int ParseDhcpOptions(PDhcpMsgInfo msg);
 int ParseReceivedOptions(PDhcpMsgInfo msg);
 
 #endif

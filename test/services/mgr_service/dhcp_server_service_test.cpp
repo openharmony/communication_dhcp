@@ -206,7 +206,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
 
     std::string ifname = "wlan0";
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));    //start vfork child failed
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     DhcpRange setRange;
     setRange.iptype = 0;
     setRange.strStartip = "192.168.0.1";

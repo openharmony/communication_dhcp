@@ -173,7 +173,7 @@ DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config)
     return context;
 }
 
-int ParseDhcpOptions(PDhcpMsgInfo msg)
+static int ParseDhcpOptions(PDhcpMsgInfo msg)
 {
     int ret;
     PDhcpOptionNode pNode = msg->options.first->next;
