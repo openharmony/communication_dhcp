@@ -939,7 +939,7 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     }
     if (reqIp != 0 && reqIp != binding->ipAddress) {
         LOGE("error request message.");
-        return REPLY_NONE;
+        return REPLY_NAK;
     }
     AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     if (!lease) {
