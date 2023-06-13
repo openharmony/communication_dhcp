@@ -148,6 +148,7 @@ if (defined(ohos_lite)) {
       "-fPIC",
       "-Wl,-E",
     ]
+    symlink_target_name = [ "libdhcp_manager_service.z.so" ]
     install_images = [ "updater" ]
     part_name = "dhcp"
     subsystem_name = "communication"
