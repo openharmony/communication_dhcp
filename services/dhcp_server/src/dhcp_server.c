@@ -1461,10 +1461,15 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
     }
     DhcpOption *current, *end;
     current = (DhcpOption *)msg->packet.options;
-    end = (DhcpOption *)(((uint8_t *)msg->packet.options) + (msg->length - DHCP_MSG_HEADER_SIZE));
+    /* "end" point to Option-255,the end flag of options list */
+    end = (DhcpOption *)(((uint8_t *)msg->packet.options) + (msg->length - DHCP_MSG_HEADER_SIZE - OPT_HEADER_LENGTH));
 
     if (memcmp(current, MAGIC_COOKIE_DATA, sizeof(MAGIC_COOKIE_DATA)) != 0) {
         LOGD("bad magic cookie.");
+        return RET_FAILED;
+    }
+    if (end->code != END_OPTION) {
+        LOGE("bad end option code %{public}u.", end->code);
         return RET_FAILED;
     }
     current = (DhcpOption *)(((uint8_t *)current) + MAGIC_COOKIE_LENGTH);
@@ -1483,7 +1488,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         current = (DhcpOption *)(((uint8_t *)current) + OPT_HEADER_LENGTH + current->length);
         optTotal++;
     }
-    if (current < end && current->code == END_OPTION) {
+    if (current <= end && current->code == END_OPTION) {
         LOGD("option list size:%zu xid:%u", msg->options.size, msg->packet.xid);
         return RET_SUCCESS;
     }
