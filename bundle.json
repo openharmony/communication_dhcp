@@ -87,6 +87,13 @@
                         ]
                     },
                     "name": "//foundation/communication/dhcp/services/mgr_service:dhcp_manager_service"
+                },
+                {
+                    "header": {
+                        "header_base": "//foundation/communication/dhcp/interfaces/inner_api",
+                        "header_files": [ ]
+                    },
+                    "name": "//foundation/communication/dhcp/services/mgr_service:dhcp_updater_manager"
                 }
             ],
             "test": [
