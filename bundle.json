@@ -1,5 +1,5 @@
 {
-    "name": "@ohos/communication_dhcp",
+    "name": "@ohos/dhcp",
     "version": "3.1.0",
     "description": "The DHCP module provides DHCP client and DHCP service, used to obtain, assign and manage IP address.",
     "homePage": "https://gitee.com/openharmony",
@@ -42,22 +42,23 @@
         "features": [
         ],
         "adapted_system_type": [
+            "small",
             "standard"
         ],
         "rom": "",
         "ram": "",
         "deps": {
             "components": [
-                "ipc",
-                "ces_standard",
-                "hiviewdfx_hilog_native",
-                "hisysevent_native"
+                "ability_base",
+                "bundle_framework",
+                "c_utils",
+                "common_event_service",
+                "eventhandler",
+                "hiviewdfx_hilog_native"
             ],
             "third_party": [
-                "wpa_supplicant",
-                "node",
                 "bounds_checking_function",
-                "googletest",
+                "thirdparty_openssl",
                 "openssl"
             ]
         },
