@@ -32,16 +32,17 @@
         }
     ],
     "segment": {
-        "destPath": "foundation/communication/dhcp"
+        "destPath": "foundation/communication/wifi/dhcp"
     },
     "component": {
         "name": "dhcp",
-        "subsystem": "communication",
+        "subsystem": "connectivity",
         "syscap": [
         ],
         "features": [
         ],
         "adapted_system_type": [
+            "small",
             "standard"
         ],
         "rom": "",
