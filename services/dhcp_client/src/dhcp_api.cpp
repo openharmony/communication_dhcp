@@ -30,7 +30,10 @@ bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *if
 
 using namespace OHOS::EventFwk;
 
-static bool PublishDhcpEvent(const char *action, const int code, const char *data)
+static const std::string DHCP_SUB_PERMISSION = "ohos.permission.GET_WIFI_INFO_INTERNAL";
+
+static bool PublishDhcpEvent(const char *action, const int code, const char *data,
+    const std::vector<std::string> &permissions)
 {
     Want want;
     want.SetAction(action);
@@ -38,6 +41,20 @@ static bool PublishDhcpEvent(const char *action, const int code, const char *dat
     commonData.SetWant(want);
     commonData.SetCode(code);
     commonData.SetData(data);
+    if (action == nullptr || data == nullptr) {
+        LOGE("PublishDhcpEvent()  action or data is nullptr");
+        return false;
+    }
+    if (permissions.size() > 0) {
+        CommonEventPublishInfo publishInfo;
+        publishInfo.SetSubscriberPermissions(permissions);
+        if (!CommonEventManager::PublishCommonEvent(commonData, publishInfo)) {
+            LOGE("failed to publish event[%{public}s], code:%{public}d", action, code);
+            return false;
+        }
+        LOGI("successed to publish event:%{public}s, code:%{public}d, data:%{private}s.", action, code, data);
+        return true;
+    }
     if (!CommonEventManager::PublishCommonEvent(commonData)) {
         LOGE("PublishDhcpEvent() PublishCommonEvent failed, action:%{public}s, code:%{public}d, data:%{public}s.",
             action, code, data);
@@ -51,7 +68,7 @@ static bool PublishDhcpEvent(const char *action, const int code, const char *dat
 bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname)
 {
     char strAction[STRING_MAX_LEN] = {0};
-    if (ifname == NULL) {
+    if (ifname == nullptr) {
         if (strncpy_s(strAction, sizeof(strAction), EVENT_GET_IPV4, strlen(EVENT_GET_IPV4)) != EOK) {
             LOGE("PublishDhcpIpv4ResultEvent() strncpy_s %{public}s failed!", EVENT_GET_IPV4);
             return false;
@@ -62,6 +79,8 @@ bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *if
             return false;
         }
     }
-    return PublishDhcpEvent(strAction, code, data);
+    std::vector<std::string> dhcpPermissions;
+    dhcpPermissions.emplace_back(DHCP_SUB_PERMISSION);
+    return PublishDhcpEvent(strAction, code, data, dhcpPermissions);
 }
 #endif
