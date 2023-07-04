@@ -1,5 +1,5 @@
 {
-    "name": "@ohos/dhcp",
+    "name": "@ohos/init",
     "version": "3.1.0",
     "description": "The DHCP module provides DHCP client and DHCP service, used to obtain, assign and manage IP address.",
     "homePage": "https://gitee.com/openharmony",
@@ -36,7 +36,7 @@
     },
     "component": {
         "name": "dhcp",
-        "subsystem": "communication",
+        "subsystem": "connectivity",
         "syscap": [
         ],
         "features": [
