@@ -36,7 +36,7 @@
     },
     "component": {
         "name": "dhcp",
-        "subsystem": "connectivity",
+        "subsystem": "communication",
         "syscap": [
         ],
         "features": [
