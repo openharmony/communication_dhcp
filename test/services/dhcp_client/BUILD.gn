@@ -88,7 +88,7 @@ ohos_unittest("dhcp_client_unittest") {
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
-    "hiviewdfx_hilog_native:libhilog",
+    "hilog:libhilog",
   ]
   configs = [ ":module_private_config" ]
 

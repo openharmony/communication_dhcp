@@ -82,7 +82,7 @@ ohos_unittest("dhcp_server_unittest") {
   defines = [ "DHCP_SEL_WAIT_TIMEOUTS=1" ]
 
   if (dhcp_hilog_enable) {
-    external_deps += [ "hiviewdfx_hilog_native:libhilog" ]
+    external_deps += [ "hilog:libhilog" ]
     defines += [ "DHCP_HILOG_ENABLE" ]
   }
 
