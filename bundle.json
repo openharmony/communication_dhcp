@@ -58,7 +58,6 @@
             ],
             "third_party": [
                 "bounds_checking_function",
-                "thirdparty_openssl",
                 "openssl"
             ]
         },
