@@ -129,5 +129,92 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
 
     MockSystemFunc::SetMockFlag(false);
 }
+
+HWTEST_F(DhcpClientServiceTest, SubscribeDhcpEvent_Test, TestSize.Level1)
+{
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StartDhcpClient(nullptr, true));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpStatus_Test, TestSize.Level1)
+{
+    EXPECT_EQ(-1, pClientService->GetDhcpStatus(nullptr));
+}
+
+HWTEST_F(DhcpClientServiceTest, RemoveDhcpResult_Test, TestSize.Level1)
+{
+    IDhcpResultNotify pResultNotify;
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->RemoveDhcpResult(nullptr));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->RemoveDhcpResult(&pResultNotify));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpInfo_Test, TestSize.Level1)
+{
+    DhcpServiceInfo dhcp;
+    std::string ifname = "wlan0";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpInfo(nullptr, dhcp));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->GetDhcpInfo(ifname, dhcp));
+}
+
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4Result_Test1, TestSize.Level1)
+{
+    std::vector<std::string> splits;
+    splits.push_back("::Ipv4");
+    int code = 0;
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(code, splits));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4Result_Test2, TestSize.Level1)
+{
+    std::vector<std::string> splits(11);
+    int code = 0;
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(code, splits));
+    splits[0] = "ipv4";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(code, splits));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4Result_Test3, TestSize.Level1)
+{
+    std::vector<std::string> splits(11);
+    int code = PUBLISH_CODE_SUCCESS;
+    splits[0] = "ipv4";
+    splits[1] = ":";
+    splits[2] = "*";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(code, splits));
+
+    code = PUBLISH_CODE_FAILED;
+    splits[2] = "::";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(code, splits));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4Result_Test3, TestSize.Level1)
+{
+    std::vector<std::string> splits(11);
+    int code = PUBLISH_CODE_FAILED;
+    splits[0] = "ipv4";
+    splits[1] = ":";
+    splits[2] = "*";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->GetDhcpEventIpv4Result(code, splits));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4Result_Test4, TestSize.Level1)
+{
+    std::vector<std::string> splits(11);
+    int code = 2;
+    splits[0] = "ipv4";
+    splits[1] = ":";
+    splits[2] = "*";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(code, splits));
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4Result_Test5, TestSize.Level1)
+{
+    std::vector<std::string> splits(11);
+    int code = PUBLISH_CODE_SUCCESS;
+    splits[0] = "ipv4";
+    splits[1] = ":";
+    splits[2] = "::";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->GetDhcpEventIpv4Result(code, splits));
+}
 }
 }

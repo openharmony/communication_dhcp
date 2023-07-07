@@ -83,5 +83,65 @@ HWTEST_F(DhcpIpv4Test, TEST_FAILED, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, GetPacketHeaderInfo(NULL, 0));
     EXPECT_EQ(DHCP_OPT_FAILED, GetPacketCommonInfo(NULL));
 }
+
+HWTEST_F(DhcpIpv4Test, DhcpRenew_FAILED, TestSize.Level1)
+{
+    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpRenew(1, 0, 0));
+}
+
+HWTEST_F(DhcpIpv4Test, DhcpRenew_SUCCESS, TestSize.Level1)
+{
+    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpRenew(1, 0, 1));
+}
+
+HWTEST_F(DhcpIpv4Test, DhcpRequest_SUCCESS, TestSize.Level1)
+{
+    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpRequest(1, 0, 1));
+}
+
+HWTEST_F(DhcpIpv4Test, DhcpDiscover_SUCCESS, TestSize.Level1)
+{
+    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpDiscover(1, 0));
+}
+
+HWTEST_F(DhcpIpv4Test, DhcpDiscover_SUCCESS2, TestSize.Level1)
+{
+    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpDiscover(0, 1));
+}
+
+HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail1, TestSize.Level1)
+{
+    DhcpResult result;
+    char *ifname = NULL;
+    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, &result));
+}
+
+HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail2, TestSize.Level1)
+{
+    DhcpResult result;
+    char *ifname = "testcode//";
+    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, DHCP_HWADDR_LENGTH, &result));
+}
+
+HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail3, TestSize.Level1)
+{
+    DhcpResult *result = NULL;
+    char *ifname = "testcode//";
+    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, result));
+}
+
+HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail4, TestSize.Level1)
+{
+    DhcpResult result;
+    char *ifname = "testcode//";
+    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, &result));
+}
+
+HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail2, TestSize.Level1)
+{
+    DhcpResult result;
+    char *ifname = "testcode//";
+    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_FAILED, &result));
+}
 }
 }

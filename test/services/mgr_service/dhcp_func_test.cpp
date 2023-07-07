@@ -248,5 +248,24 @@ HWTEST_F(DhcpFuncTest, CreateDirs_TEST, TestSize.Level1)
     std::string strDir;
     EXPECT_EQ(DhcpFunc::CreateDirs(strDir), DHCP_OPT_FAILED);
 }
+
+HWTEST_F(DhcpFuncTest, CheckProRunning_Fail, TestSize.Level1)
+{
+    std::string proName = "test/code";
+    EXPECT_EQ(DhcpFunc::CheckProRunning(0, nullptr), -1);
+    EXPECT_EQ(DhcpFunc::CheckProRunning(1, nullptr), -1);
+    EXPECT_EQ(DhcpFunc::CheckProRunning(1, proName), 0);
+}
+
+HWTEST_F(DhcpFuncTest, SplitString_Test, TestSize.Level1)
+{
+    std::string src = "test/code";
+    std::string delim = "/";
+    std::vector<std::string> splits;
+    EXPECT_EQ(DhcpFunc::SplitString(nullptr, nullptr, 0, splits), false);
+    EXPECT_EQ(DhcpFunc::SplitString(src, nullptr, 0, splits), false);
+    EXPECT_EQ(DhcpFunc::SplitString(src, delim, 0, splits), false);
+    EXPECT_EQ(DhcpFunc::SplitString(src, delim, 1, splits), true);
+}
 }
 }
