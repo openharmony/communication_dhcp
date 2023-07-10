@@ -37,6 +37,7 @@
 #include "dhcp_options.h"
 #include "dhcp_socket.h"
 #include "dhcp_function.h"
+#include "dhcp_ipv6.h"
 
 #undef LOG_TAG
 #define LOG_TAG "WifiDhcpIpv4"
@@ -400,7 +401,6 @@ void SendReboot(struct DhcpPacket *p, time_t timestamp)
     g_requestedIp4 = p->yiaddr;
 
     free(p);
-    p = NULL;
 
     g_transID = GetTransId();
     g_dhcp4State = DHCP_STATE_INITREBOOT;
@@ -630,7 +630,7 @@ static void ParseOtherNetworkInfo(const struct DhcpPacket *packet, struct DhcpRe
         char *pDnsIp = Ip4IntConToStr(u32Data, true);
         if (pDnsIp != NULL) {
             LOGI("ParseOtherNetworkInfo() recv DHCP_ACK 6, dns1: %{private}u->%{private}s.", u32Data, pDnsIp);
-            if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN- 1) != EOK) {
                 free(pDnsIp);
                 pDnsIp = NULL;
                 return;
@@ -640,7 +640,7 @@ static void ParseOtherNetworkInfo(const struct DhcpPacket *packet, struct DhcpRe
         }
         if ((u32Data2 > 0) && ((pDnsIp = Ip4IntConToStr(u32Data2, true)) != NULL)) {
             LOGI("ParseOtherNetworkInfo() recv DHCP_ACK 6, dns2: %{private}u->%{private}s.", u32Data2, pDnsIp);
-            if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN- 1) != EOK) {
                 LOGE("ParseOtherNetworkInfo() strncpy_s Failed.");
             }
             free(pDnsIp);
@@ -661,7 +661,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
     char *pReqIp = Ip4IntConToStr(g_requestedIp4, false);
     if (pReqIp != NULL) {
         LOGI("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{private}s.", ntohl(g_requestedIp4), pReqIp);
-        if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, pReqIp, INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, pReqIp, INET_ADDRSTRLEN- 1) != EOK) {
             LOGI("ParseNetworkInfo() strncpy_s failed!");
             free(pReqIp);
             pReqIp = NULL;
@@ -676,7 +676,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
         char *pSubIp = Ip4IntConToStr(u32Data, true);
         if (pSubIp != NULL) {
             LOGI("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.", u32Data, pSubIp);
-            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp, INET_ADDRSTRLEN- 1) != EOK) {
                 free(pSubIp);
                 pSubIp = NULL;
                 return;
@@ -692,7 +692,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
         char *pRouterIp = Ip4IntConToStr(u32Data, true);
         if (pRouterIp != NULL) {
             LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router1: %{private}u->%{private}s.", u32Data, pRouterIp);
-            if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN- 1) != EOK) {
                 free(pRouterIp);
                 pRouterIp = NULL;
                 return;
@@ -702,7 +702,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
         }
         if ((u32Data2 > 0) && ((pRouterIp = Ip4IntConToStr(u32Data2, true)) != NULL)) {
             LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router2: %{private}u->%{private}s.", u32Data2, pRouterIp);
-            if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN- 1) != EOK) {
                 free(pRouterIp);
                 pRouterIp = NULL;
                 return;
@@ -723,37 +723,37 @@ static void FormatString(struct DhcpResult *result)
     }
 
     if (strlen(result->strYiaddr) == 0) {
-        if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
     if (strlen(result->strOptServerId) == 0) {
-        if (strncpy_s(result->strOptServerId, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strOptServerId, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
     if (strlen(result->strOptSubnet) == 0) {
-        if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
     if (strlen(result->strOptDns1) == 0) {
-        if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
     if (strlen(result->strOptDns2) == 0) {
-        if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
     if (strlen(result->strOptRouter1) == 0) {
-        if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
     if (strlen(result->strOptRouter2) == 0) {
-        if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, "*", INET_ADDRSTRLEN- 1) != EOK) {
             return;
         }
     }
@@ -897,7 +897,7 @@ static void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp
         char *pSerIp = Ip4IntConToStr(g_serverIp4, false);
         if (pSerIp != NULL) {
             LOGI("ParseDhcpAckPacket() recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
-            if (strncpy_s(dhcpResult.strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(dhcpResult.strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN- 1) != EOK) {
                 free(pSerIp);
                 pSerIp = NULL;
                 return;
@@ -1034,6 +1034,7 @@ static void SignalReceiver(void)
     switch (signum) {
         case SIGTERM:
             LOGW("SignalReceiver() SIGTERM!");
+            DhcpIPV6Stop();
             SetSocketMode(SOCKET_MODE_INVALID);
             unlink(g_cltCnf->pidFile);
             unlink(g_cltCnf->resultFile);

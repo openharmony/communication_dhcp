@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021 Huawei Device Co., Ltd.
+ * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -12,17 +12,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef DHCP_API_H
-#define DHCP_API_H
+#ifndef OHOS_IP6KERNEL_H
+#define OHOS_IP6KERNEL_H
 
-#include "dhcp_define.h"
+#include <stdint.h>
+#include "dhcp_ipv6.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname);
+
+#define KERNEL_BUFF_SIZE (8 * 1024)
+
+void handleKernelEvent(const uint8_t* data, int len, onIpv6AddressEvent addrCallback);
+
+void setSocketFilter(void* addr);
+
 #ifdef __cplusplus
 }
 #endif
-
 #endif
