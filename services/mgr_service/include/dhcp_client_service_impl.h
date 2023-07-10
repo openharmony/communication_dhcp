@@ -30,14 +30,12 @@ namespace Wifi {
 struct DhcpResultReq {
     int timeouts;
     int getTimestamp;
-    int status; // 1-ipv4 getted,2-ipv6 getted,3-all getted
     IDhcpResultNotify *pResultNotify;
 
     DhcpResultReq()
     {
         timeouts = RECEIVER_TIMEOUT;
         getTimestamp = 0;
-        status = 0;
         pResultNotify = nullptr;
     }
 };
@@ -157,14 +155,6 @@ public:
     static int GetSuccessIpv4Result(const std::vector<std::string> &splits);
 
     /**
-     * @Description : Get dhcp event success ipv6 result.
-     *
-     * @param splits - dhcp event result vector [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    static int GetSuccessIpv6Result(const std::vector<std::string> &splits);
-
-    /**
      * @Description : Get dhcp event ipv4 result.
      *
      * @param code - dhcp event result code [in]
@@ -172,15 +162,6 @@ public:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     static int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &splits);
-
-    /**
-     * @Description : Get dhcp event ipv6 result.
-     *
-     * @param code - dhcp event result code [in]
-     * @param splits - dhcp event result vector [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    static int GetDhcpEventIpv6Result(const int code, const std::vector<std::string> &splits);
 
     /**
      * @Description : Handle dhcp event result string.
@@ -243,7 +224,6 @@ private:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     int ForkExecChildProcess(const std::string& ifname, bool bIpv6, bool bStart = false);
-
     /**
      * @Description : Fork parent process function for handle dhcp function.
      *
@@ -252,24 +232,6 @@ private:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     int ForkExecParentProcess(const std::string& ifname, bool bIpv6, bool bStart = false, pid_t pid = 0);
-
-    /**
-     * @Description : Fork parent process start function for handle dhcp function.
-     *
-     * @param ifname - interface name, eg:wlan0 [in]
-     * @param bIpv6 - can or not get ipv6 [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    int DealParentProcessStart(const std::string& ifname, bool bIpv6, pid_t pid = 0);
-
-    /**
-     * @Description : Fork parent process stop function for handle dhcp function.
-     *
-     * @param ifname - interface name, eg:wlan0 [in]
-     * @param bIpv6 - can or not get ipv6 [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    int DealParentProcessStop(const std::string& ifname, bool bIpv6, pid_t pid = 0);
 
     /**
      * @Description : Subscribe dhcp event.

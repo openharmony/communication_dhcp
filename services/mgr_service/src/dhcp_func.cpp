@@ -492,11 +492,9 @@ int DhcpFunc::GetDhcpPacketResult(const std::string& filename, struct DhcpPacket
     }
     /* Format: IpFlag AddTime cliIp servIp subnet dns1 dns2 router1 router2 vendor lease */
     int nRes = fscanf_s(pFile, "%s %u %s %s %s %s %s %s %s %s %u\n", strIpFlag, DHCP_NUM_EIGHT, &result.uAddTime,
-        result.strYiaddr, INET_ADDRSTRLEN, result.strOptServerId, INET_ADDRSTRLEN,
-        result.strOptSubnet, INET_ADDRSTRLEN, result.strOptDns1, INET_ADDRSTRLEN,
-        result.strOptDns2, INET_ADDRSTRLEN, result.strOptRouter1, INET_ADDRSTRLEN,
-        result.strOptRouter2, INET_ADDRSTRLEN, result.strOptVendor, DHCP_FILE_MAX_BYTES,
-        &result.uOptLeasetime);
+        result.strYiaddr, INET_ADDRSTRLEN, result.strOptServerId, INET_ADDRSTRLEN, result.strOptSubnet, INET_ADDRSTRLEN,
+        result.strOptDns1, INET_ADDRSTRLEN, result.strOptDns2, INET_ADDRSTRLEN, result.strOptRouter1, INET_ADDRSTRLEN,
+        result.strOptRouter2, INET_ADDRSTRLEN, result.strOptVendor, DHCP_FILE_MAX_BYTES, &result.uOptLeasetime);
     if (nRes == EOF) {
         WIFI_LOGE("GetDhcpPacketResult() fscanf %{public}s err:%{public}s!", filename.c_str(), strerror(errno));
         fclose(pFile);
