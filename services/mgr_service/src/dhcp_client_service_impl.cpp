@@ -138,9 +138,7 @@ void DhcpClientServiceImpl::CheckTimeout()
                     (*iterReq)->getTimestamp,
                     (*iterReq)->timeouts,
                     curTime);
-                if (((*iterReq)->status & DHCP_IPV4_GETTED) == 0) {
-                    (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_TIMEOUT, ifname, "get dhcp result timeout!");
-                }
+                (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_TIMEOUT, ifname, "get dhcp result timeout!");
                 delete *iterReq;
                 *iterReq = nullptr;
                 iterReq = itemNotify.second.erase(iterReq);
@@ -203,20 +201,11 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
                 WIFI_LOGE("DhcpResultHandle() ifname:%{public}s get dhcp result failed!", ifname.c_str());
                 (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_FAILED, ifname, "get dhcp result failed!");
             }
-            if (dhcpResult.iptype == 0) {
-                (*iterReq)->status |= DHCP_IPV4_GETTED;
-            } else if (dhcpResult.iptype == 1) {
-                (*iterReq)->status |= DHCP_IPV6_GETTED;
-            }
-            if ((*iterReq)->status == DHCP_IPALL_GETED) {
-                delete *iterReq;
-                *iterReq = NULL;
-                iterReq = iterNotify->second.erase(iterReq);
-            } else {
-                ++iterReq;
-            }
+            delete *iterReq;
+            *iterReq = nullptr;
+            iterReq = iterNotify->second.erase(iterReq);
         }
-        DhcpClientServiceImpl::m_mapDhcpResult.erase(dhcpRlt);
+
         ++iterNotify;
     }
 
@@ -239,8 +228,6 @@ int DhcpClientServiceImpl::SubscribeDhcpEvent(const std::string &strAction)
         EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
         auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
         m_mapEventSubscriber.emplace(std::make_pair(strAction, dhcpSubscriber));
-    } else {
-        return DHCP_OPT_SUCCESS;
     }
     if (m_mapEventSubscriber[strAction] == nullptr) {
         WIFI_LOGE("SubscribeDhcpEvent mapEventSubscriber %{public}s nullptr!", strAction.c_str());
@@ -458,85 +445,84 @@ int DhcpClientServiceImpl::ForkExecChildProcess(const std::string &ifname, bool 
     _exit(-1);
 }
 
-int DhcpClientServiceImpl::DealParentProcessStart(const std::string& ifname, bool bIpv6, pid_t pid)
-{
-    std::string strAction = OHOS::Wifi::COMMON_EVENT_DHCP_GET_IPV4 + "." + ifname;
-#ifdef OHOS_ARCH_LITE
-    /* check and new receive dhcp packet msg thread */
-    std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
-    auto iterRecvMsgThread = m_mapDhcpRecvMsgThread.find(ifname);
-    if (iterRecvMsgThread != m_mapDhcpRecvMsgThread.end()) {
-        WIFI_LOGE("ForkExecParentProcess() RecvMsgThread exist ifname:%{public}s, need erase!", ifname.c_str());
-        return DHCP_OPT_FAILED;
-    }
-    std::thread *pThread = new std::thread(&DhcpClientServiceImpl::RunDhcpRecvMsgThreadFunc, this, ifname);
-    if (pThread == nullptr) {
-        WIFI_LOGE("ForkExecParentProcess() init pThread failed, ifname:%{public}s.", ifname.c_str());
-        return DHCP_OPT_FAILED;
-    }
-    m_mapDhcpRecvMsgThread.emplace(std::make_pair(ifname, pThread));
-#endif
-    /* normal started, update dhcp client service running status */
-    pthread_mutex_lock(&m_DhcpResultInfoMutex);
-    auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
-    if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6 = bIpv6;
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 1;
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = pid;
-    } else {
-        DhcpServiceInfo dhcpInfo;
-        dhcpInfo.enableIPv6 = bIpv6;
-        dhcpInfo.clientRunStatus = 1;
-        dhcpInfo.clientProPid = pid;
-        DhcpClientServiceImpl::m_mapDhcpInfo.emplace(std::make_pair(ifname, dhcpInfo));
-    }
-    /* Subscribe dhcp event. */
-    if (SubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-        return DHCP_OPT_FAILED;
-    }
-    pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-    return DHCP_OPT_SUCCESS;
-}
-
-int DhcpClientServiceImpl::DealParentProcessStop(const std::string& ifname, bool bIpv6, pid_t pid)
-{
-    pthread_mutex_lock(&m_DhcpResultInfoMutex);
-    auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
-    if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
-        /* not start */
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 0;
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = 0;
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-#ifdef OHOS_ARCH_LITE
-        std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
-        auto iterRecvMsgThreadMap = m_mapDhcpRecvMsgThread.find(ifname);
-        if (iterRecvMsgThreadMap == m_mapDhcpRecvMsgThread.end()) {
-            WIFI_LOGI("ForkExecParentProcess() RecvMsgThread already del ifname:%{public}s.", ifname.c_str());
-            return DHCP_OPT_SUCCESS;
-        }
-        if (iterRecvMsgThreadMap->second != nullptr) {
-            iterRecvMsgThreadMap->second->join();
-            delete iterRecvMsgThreadMap->second;
-            iterRecvMsgThreadMap->second = nullptr;
-            WIFI_LOGI("ForkExecParentProcess() destroy RecvThread success, ifname:%{public}s.", ifname.c_str());
-        }
-        WIFI_LOGI("ForkExecParentProcess() m_mapDhcpRecvMsgThread erase ifname:%{public}s.", ifname.c_str());
-        m_mapDhcpRecvMsgThread.erase(iterRecvMsgThreadMap);
-#endif
-    } else {
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-    }
-    return DHCP_OPT_SUCCESS;
-}
-
 int DhcpClientServiceImpl::ForkExecParentProcess(const std::string &ifname, bool bIpv6, bool bStart, pid_t pid)
 {
+    std::string strAction = OHOS::Wifi::COMMON_EVENT_DHCP_GET_IPV4 + "." + ifname;
     if (bStart) {
-        return DealParentProcessStart(ifname, bStart, pid);
+#ifdef OHOS_ARCH_LITE
+        /* check and new receive dhcp packet msg thread */
+        std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
+        auto iterRecvMsgThread = m_mapDhcpRecvMsgThread.find(ifname);
+        if (iterRecvMsgThread != m_mapDhcpRecvMsgThread.end()) {
+            WIFI_LOGE("ForkExecParentProcess() RecvMsgThread exist ifname:%{public}s, need erase!", ifname.c_str());
+            return DHCP_OPT_FAILED;
+        }
+        std::thread *pThread = new std::thread(&DhcpClientServiceImpl::RunDhcpRecvMsgThreadFunc, this, ifname);
+        if (pThread == nullptr) {
+            WIFI_LOGE("ForkExecParentProcess() init pThread failed, ifname:%{public}s.", ifname.c_str());
+            return DHCP_OPT_FAILED;
+        }
+        m_mapDhcpRecvMsgThread.emplace(std::make_pair(ifname, pThread));
+#endif
+        /* normal started, update dhcp client service running status */
+        pthread_mutex_lock(&m_DhcpResultInfoMutex);
+        auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
+        if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6 = bIpv6;
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 1;
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = pid;
+        } else {
+            DhcpServiceInfo dhcpInfo;
+            dhcpInfo.enableIPv6 = bIpv6;
+            dhcpInfo.clientRunStatus = 1;
+            dhcpInfo.clientProPid = pid;
+            DhcpClientServiceImpl::m_mapDhcpInfo.emplace(std::make_pair(ifname, dhcpInfo));
+        }
+        /* Subscribe dhcp event. */
+        if (SubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+            return DHCP_OPT_FAILED;
+        }
+        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
     } else {
-        return DealParentProcessStop(ifname, bStart, pid);
+        /* Unsubscribe dhcp event. */
+        if (UnsubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
+            WIFI_LOGI("ForkExecParentProcess() UnsubscribeDhcpEvent ifname:%{public}s failed.", ifname.c_str());
+        }
+        pthread_mutex_lock(&m_DhcpResultInfoMutex);
+        auto iter = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
+        if (iter != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
+            /* not start */
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 0;
+            DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = 0;
+
+            auto iterResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
+            if (iterResult != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
+                DhcpClientServiceImpl::m_mapDhcpResult.erase(iterResult);
+                WIFI_LOGI("ForkExecParentProcess() m_mapDhcpResult erase ifname:%{public}s success.", ifname.c_str());
+            }
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+#ifdef OHOS_ARCH_LITE
+            std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
+            auto iterRecvMsgThreadMap = m_mapDhcpRecvMsgThread.find(ifname);
+            if (iterRecvMsgThreadMap == m_mapDhcpRecvMsgThread.end()) {
+                WIFI_LOGI("ForkExecParentProcess() RecvMsgThread already del ifname:%{public}s.", ifname.c_str());
+                return DHCP_OPT_SUCCESS;
+            }
+            if (iterRecvMsgThreadMap->second != nullptr) {
+                iterRecvMsgThreadMap->second->join();
+                delete iterRecvMsgThreadMap->second;
+                iterRecvMsgThreadMap->second = nullptr;
+                WIFI_LOGI("ForkExecParentProcess() destroy RecvThread success, ifname:%{public}s.", ifname.c_str());
+            }
+            WIFI_LOGI("ForkExecParentProcess() m_mapDhcpRecvMsgThread erase ifname:%{public}s.", ifname.c_str());
+            m_mapDhcpRecvMsgThread.erase(iterRecvMsgThreadMap);
+#endif
+        } else {
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+        }
     }
+    return DHCP_OPT_SUCCESS;
 }
 
 pid_t DhcpClientServiceImpl::GetDhcpClientProPid(const std::string &ifname)
@@ -618,9 +604,7 @@ int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &
     std::string ifname = splits[DHCP_NUM_ZERO];
     pthread_mutex_lock(&m_DhcpResultInfoMutex);
     auto iter = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
-    if ((iter != DhcpClientServiceImpl::m_mapDhcpResult.end()) &&
-        ((iter->second).uAddTime == result.uAddTime) &&
-        ((iter->second).iptype == 0)) {
+    if ((iter != DhcpClientServiceImpl::m_mapDhcpResult.end()) && ((iter->second).uAddTime == result.uAddTime)) {
         WIFI_LOGI("GetSuccessIpv4Result() %{public}s old %{public}u equal new %{public}u, no need update.",
             ifname.c_str(), (iter->second).uAddTime, result.uAddTime);
         pthread_mutex_unlock(&m_DhcpResultInfoMutex);
@@ -658,63 +642,6 @@ int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &
     }
     pthread_mutex_unlock(&m_DhcpResultInfoMutex);
     WIFI_LOGI("GetSuccessIpv4Result() %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
-        "strSubnet:%{private}s, strDns1:%{private}s, Dns2:%{private}s, strRouter1:%{private}s, Router2:%{private}s, "
-        "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
-        ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
-        result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
-        result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
-    return DHCP_OPT_SUCCESS;
-}
-
-int DhcpClientServiceImpl::GetSuccessIpv6Result(const std::vector<std::string> &splits)
-{
-    /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    if ((splits.size() != IPV6_EVENT_DATA_NUM) || (splits[DHCP_NUM_TWO] == INVALID_STRING)) {
-        WIFI_LOGE("GetSuccessIpv6Result() splits.size:%{public}d cliIp:%{public}s error!", (int)splits.size(),
-            splits[DHCP_NUM_TWO].c_str());
-        return DHCP_OPT_FAILED;
-    }
-
-    DhcpResult result;
-    result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
-    std::string ifname = splits[DHCP_NUM_ZERO];
-    pthread_mutex_lock(&m_DhcpResultInfoMutex);
-    auto iter = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
-    if ((iter != DhcpClientServiceImpl::m_mapDhcpResult.end()) &&
-        ((iter->second).uAddTime == result.uAddTime) &&
-        ((iter->second).iptype == 1)) {
-        WIFI_LOGI("GetSuccessIpv6Result() %{public}s old %{public}u equal new %{public}u, no need update.",
-            ifname.c_str(), (iter->second).uAddTime, result.uAddTime);
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-        return DHCP_OPT_SUCCESS;
-    }
-
-    if (iter != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
-        WIFI_LOGI("GetSuccessIpv6Result() DhcpResult %{public}s old %{public}u no equal new %{public}u, need update...",
-            ifname.c_str(), (iter->second).uAddTime, result.uAddTime);
-    }
-
-    /* Reload dhcp packet info. */
-    auto iterInfo = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
-    if (iterInfo != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
-        WIFI_LOGI("GetSuccessIpv6Result() m_mapDhcpInfo find ifname:%{public}s.", ifname.c_str());
-        DhcpClientServiceImpl::m_mapDhcpInfo[ifname].serverIp = splits[DHCP_NUM_FOUR];
-    }
-
-    result.iptype       = 1;
-    result.isOptSuc     = true;
-    result.strYourCli   = splits[DHCP_NUM_THREE];
-    result.strSubnet    = splits[DHCP_NUM_FIVE];
-    result.strDns1      = splits[DHCP_NUM_SEVEN];
-    result.strRouter1   = splits[DHCP_NUM_SIX];
-    result.uGetTime     = (uint32_t)time(NULL);
-    if (iter != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
-        iter->second = result;
-    } else {
-        DhcpClientServiceImpl::m_mapDhcpResult.emplace(std::make_pair(ifname, result));
-    }
-    pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-    WIFI_LOGI("GetSuccessIpv6Result() %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
         "strSubnet:%{private}s, strDns1:%{private}s, Dns2:%{private}s, strRouter1:%{private}s, Router2:%{private}s, "
         "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
         ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
@@ -772,55 +699,6 @@ int DhcpClientServiceImpl::GetDhcpEventIpv4Result(const int code, const std::vec
     return DHCP_OPT_SUCCESS;
 }
 
-int DhcpClientServiceImpl::GetDhcpEventIpv6Result(const int code, const std::vector<std::string> &splits)
-{
-    /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    if (splits.size() != IPV6_EVENT_DATA_NUM) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() splits.size:%{public}d error!", (int)splits.size());
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Check field ifname and time. */
-    if (splits[DHCP_NUM_ZERO].empty() || splits[DHCP_NUM_ONE].empty()) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() ifname or time is empty!");
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Check field cliIp. */
-    if (((code == PUBLISH_CODE_SUCCESS) && (splits[DHCP_NUM_TWO] == INVALID_STRING))
-    || ((code == PUBLISH_CODE_FAILED) && (splits[DHCP_NUM_TWO] != INVALID_STRING))) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() code:%{public}d,%{public}s error!", code, splits[DHCP_NUM_TWO].c_str());
-        return DHCP_OPT_FAILED;
-    }
-
-    std::string ifname = splits[DHCP_NUM_ZERO];
-    if (code == PUBLISH_CODE_FAILED) {
-        /* Get failed. */
-        DhcpResult result;
-        result.iptype = 1;
-        result.isOptSuc = false;
-        result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
-        pthread_mutex_lock(&m_DhcpResultInfoMutex);
-        auto iterResult = DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
-        if (iterResult != DhcpClientServiceImpl::m_mapDhcpResult.end()) {
-            iterResult->second = result;
-        } else {
-            m_mapDhcpResult.emplace(std::make_pair(ifname, result));
-        }
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
-        WIFI_LOGI("GetDhcpEventIpv6Result() ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
-        return DHCP_OPT_SUCCESS;
-    }
-
-    /* Get success. */
-    if (GetSuccessIpv6Result(splits) != DHCP_OPT_SUCCESS) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() GetDhcpEventIpv6Result failed!");
-        return DHCP_OPT_FAILED;
-    }
-    WIFI_LOGI("GetDhcpEventIpv6Result() ifname:%{public}s result.isOptSuc:true!", ifname.c_str());
-    return DHCP_OPT_SUCCESS;
-}
-
 int DhcpClientServiceImpl::DhcpEventResultHandle(const int code, const std::string &data)
 {
     if (data.empty()) {
@@ -863,17 +741,6 @@ int DhcpClientServiceImpl::DhcpEventResultHandle(const int code, const std::stri
 
         if (GetDhcpEventIpv4Result(code, vecSplits) != DHCP_OPT_SUCCESS) {
             WIFI_LOGE("DhcpEventResultHandle() GetDhcpEventIpv4Result failed!");
-            return DHCP_OPT_FAILED;
-        }
-    } else if (strFlag == EVENT_DATA_IPV6) {
-        std::vector<std::string> vecSplits;
-        if (!DhcpFunc::SplitString(strResult, EVENT_DATA_DELIMITER, IPV6_EVENT_DATA_NUM, vecSplits)) {
-            WIFI_LOGE("DhcpEventResultHandle() SplitString strResult:%{public}s failed!", strResult.c_str());
-            return DHCP_OPT_FAILED;
-        }
-
-        if (GetDhcpEventIpv6Result(code, vecSplits) != DHCP_OPT_SUCCESS) {
-            WIFI_LOGE("DhcpEventResultHandle() GetDhcpEventIpv6Result failed!");
             return DHCP_OPT_FAILED;
         }
     }
@@ -1016,7 +883,6 @@ int DhcpClientServiceImpl::GetDhcpResult(const std::string &ifname, IDhcpResultN
     }
     pResultReq->timeouts = timeouts;
     pResultReq->getTimestamp = (uint32_t)time(NULL);
-    pResultReq->status = 0;
     pResultReq->pResultNotify = pResultNotify;
 
     std::unique_lock<std::mutex> lock(mResultNotifyMutex);
