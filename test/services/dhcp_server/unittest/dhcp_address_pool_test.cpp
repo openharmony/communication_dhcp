@@ -598,5 +598,15 @@ HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)
     EXPECT_EQ(RET_ERROR, RemoveLease(&testPool, NULL));
     EXPECT_EQ(RET_FAILED, RemoveLease(&testPool, &lease));
 }
+/**
+ * @tc.name: SaveBindingRecodersTest
+ * @tc.desc: SaveBindingRecoders()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpAddressPoolTest, SaveBindingRecodersTest, TestSize.Level1)
+{
+    EXPECT_EQ(RET_FAILED, SaveBindingRecoders(NULL, 0));
+}
 }
 }
