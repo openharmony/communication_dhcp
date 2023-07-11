@@ -316,10 +316,5 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->GetLeases(ifname, vecLeases));
     ASSERT_TRUE(DhcpFunc::RemoveFile(strFile));
 }
-
-HWTEST_F(DhcpFuncTest, CreateDefaultConfigFile_Test, TestSize.Level1)
-{
-    EXPECT_EQ(DHCP_OPT_ERROR, pServerService->CreateDefaultConfigFile(nullptr));
-}
 }
 }

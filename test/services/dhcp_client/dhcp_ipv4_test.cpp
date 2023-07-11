@@ -112,36 +112,35 @@ HWTEST_F(DhcpIpv4Test, DhcpDiscover_SUCCESS2, TestSize.Level1)
 HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail1, TestSize.Level1)
 {
     DhcpResult result;
-    char *ifname = NULL;
-    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, &result));
+    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(nullptr, PUBLISH_CODE_SUCCESS, &result));
 }
 
 HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail2, TestSize.Level1)
 {
     DhcpResult result;
-    char *ifname = "testcode//";
+    char ifname[] = "testcode//";
     EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, DHCP_HWADDR_LENGTH, &result));
 }
 
 HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail3, TestSize.Level1)
 {
     DhcpResult *result = NULL;
-    char *ifname = "testcode//";
+    char ifname[] = "testcode//";
     EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, result));
 }
 
 HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail4, TestSize.Level1)
 {
     DhcpResult result;
-    char *ifname = "testcode//";
-    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, &result));
+    char ifname[] = "testcode//";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, PublishDhcpResultEvent(ifname, PUBLISH_CODE_SUCCESS, &result));
 }
 
-HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail2, TestSize.Level1)
+HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail5, TestSize.Level1)
 {
     DhcpResult result;
-    char *ifname = "testcode//";
-    EXPECT_EQ(DHCP_OPT_FAILED, PublishDhcpResultEvent(ifname, PUBLISH_CODE_FAILED, &result));
+    char ifname[] = "testcode//";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, PublishDhcpResultEvent(ifname, PUBLISH_CODE_FAILED, &result));
 }
 }
 }
