@@ -25,6 +25,7 @@
 #include "securec.h"
 #include "dhcp_function.h"
 #include "dhcp_ipv4.h"
+#include "dhcp_ipv6.h"
 
 #undef LOG_TAG
 #define LOG_TAG "WifiDhcpClient"
@@ -54,6 +55,18 @@ int StartProcess(void)
         return DHCP_OPT_FAILED;
     }
     pthread_detach(tid);
+
+    if (g_clientCfg.getMode == DHCP_IP_TYPE_ALL || (g_clientCfg.getMode == DHCP_IP_TYPE_V6)) {
+        if (g_clientCfg.getMode == DHCP_IP_TYPE_ALL) {
+            if (pthread_create(&g_clientCfg.thrId, NULL, &DhcpIPV6Start,
+                (void*)g_clientCfg.ifaceName) != 0) {
+                LOGE("dhcp6 start client failed!");
+            }
+        } else {
+            StartIpv6(g_clientCfg.ifaceName);
+            return DHCP_OPT_SUCCESS;
+        }
+    }
 
     if ((g_clientCfg.getMode == DHCP_IP_TYPE_ALL) || (g_clientCfg.getMode == DHCP_IP_TYPE_V4)) {
         /* Handle dhcp v4. */
