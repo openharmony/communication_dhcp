@@ -51,7 +51,7 @@ HWTEST_F(DhcpOptionTest, InitOptionListTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, InitOptionList(&testOpts));
     FreeOptionList(&testOpts);
     EXPECT_EQ(RET_SUCCESS, InitOptionList(&options));
-    EXPECT_EQ(RET_SUCCESS, InitOptionList(NULL));
+    EXPECT_EQ(RET_ERROR, InitOptionList(NULL));
 }
 
 HWTEST_F(DhcpOptionTest, HasInitializedTest, TestSize.Level1)
