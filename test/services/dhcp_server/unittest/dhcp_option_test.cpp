@@ -51,6 +51,7 @@ HWTEST_F(DhcpOptionTest, InitOptionListTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, InitOptionList(&testOpts));
     FreeOptionList(&testOpts);
     EXPECT_EQ(RET_SUCCESS, InitOptionList(&options));
+    EXPECT_EQ(RET_SUCCESS, InitOptionList(NULL));
 }
 
 HWTEST_F(DhcpOptionTest, HasInitializedTest, TestSize.Level1)
@@ -75,6 +76,7 @@ HWTEST_F(DhcpOptionTest, PushBackOptionTest, TestSize.Level1)
     EXPECT_TRUE(options.size == 2);
     ClearOptions(&options);
     EXPECT_TRUE(options.size == 0);
+    ClearOptions(NULL);
 }
 
 HWTEST_F(DhcpOptionTest, PushFrontOptionTest, TestSize.Level1)
@@ -136,6 +138,9 @@ HWTEST_F(DhcpOptionTest, RemoveOptionTest, TestSize.Level1)
 HWTEST_F(DhcpOptionTest, FillOptionTest, TestSize.Level1)
 {
     const char *serverInfo = "dhcp server 1.0";
+    DhcpOptionList optRouter;
+    optRouter.first = NULL;
+    FreeOptionList(&optRouter);
     DhcpOption optVendorInfo = {VENDOR_SPECIFIC_INFO_OPTION, 0, {0}};
     EXPECT_EQ(RET_FAILED, FillOption(&optVendorInfo, NULL, 0));
     EXPECT_EQ(RET_ERROR, FillOption(NULL, serverInfo, strlen(serverInfo)));
@@ -168,6 +173,7 @@ HWTEST_F(DhcpOptionTest, AppendAddressOptionTest, TestSize.Level1)
     EXPECT_TRUE(testDns2 != 0);
     uint32_t testDns3 = ParseIpAddr("192.168.100.3");
     EXPECT_TRUE(testDns3 != 0);
+    FreeOptionList(NULL);
 
     DhcpOption optDns = {DOMAIN_NAME_SERVER_OPTION, 0, {0}};
     EXPECT_EQ(RET_ERROR, AppendAddressOption(NULL, testDns1));

@@ -131,15 +131,21 @@ HWTEST_F(HashTableTest, RemoveTest, TestSize.Level1)
     uint32_t val2 = 2002;
     uint32_t key3 = 1003;
     uint32_t val3 = 2003;
+    uint32_t key4 = 0;
 
     EXPECT_EQ(HASH_INSERTED, Insert(&table, (uintptr_t)&key1, (uintptr_t)&val1));
     EXPECT_EQ(HASH_INSERTED, Insert(&table, (uintptr_t)&key2, (uintptr_t)&val2));
     EXPECT_EQ(HASH_INSERTED, Insert(&table, (uintptr_t)&key3, (uintptr_t)&val3));
+    EXPECT_EQ(HASH_ERROR, Insert(0, (uintptr_t)&key3, (uintptr_t)&val3));
+    EXPECT_EQ(HASH_INSERTED, Insert(&table, (uintptr_t)&key4, (uintptr_t)&val3));
+
 
     uint32_t testKey  = 1002;
     EXPECT_EQ(1, ContainsKey(&table, (uintptr_t)&testKey));
     EXPECT_EQ(HASH_SUCCESS, Remove(&table, (uintptr_t)&testKey));
     EXPECT_EQ(0, ContainsKey(&table, (uintptr_t)&testKey));
+    EXPECT_EQ(0, ContainsKey(&table, 0));
+    EXPECT_EQ(0, ContainsKey(0, (uintptr_t)&testKey));
     EXPECT_EQ(HASH_SUCCESS, ClearAll(&table));
     EXPECT_TRUE(table.size == 0);
 }
@@ -157,11 +163,15 @@ HWTEST_F(HashTableTest, EmptyTest, TestSize.Level1)
 HWTEST_F(HashTableTest, ResizeTest, TestSize.Level1)
 {
     HashTable testTable;
+    EXPECT_EQ(HASH_ERROR, CreateHashTable(0, sizeof(uint32_t),
+        sizeof(uint32_t), HASH_MINI_CAPACITY));
     EXPECT_EQ(HASH_SUCCESS, CreateHashTable(&testTable, sizeof(uint32_t),
         sizeof(uint32_t), HASH_MINI_CAPACITY));
     EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY);
     EXPECT_EQ(HASH_SUCCESS, Resize(&testTable, HASH_MINI_CAPACITY * 2));
+    testTable.capacity = HASH_MINI_CAPACITY * 2;
     EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY * 2);
+    EXPECT_EQ(HASH_SUCCESS, Resize(&testTable, HASH_MINI_CAPACITY / 2));
     EXPECT_EQ(HASH_SUCCESS, DestroyHashTable(&testTable));
 }
 
@@ -173,8 +183,36 @@ HWTEST_F(HashTableTest, CapExtendTest, TestSize.Level1)
         sizeof(uint32_t), HASH_MINI_CAPACITY));
     EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY);
     EXPECT_EQ(HASH_SUCCESS, CapExtend(&testTable, HASH_MINI_CAPACITY * 5));
+    EXPECT_EQ(HASH_ERROR, CapExtend(0, HASH_MINI_CAPACITY));
     EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY);
     EXPECT_EQ(HASH_SUCCESS, DestroyHashTable(&testTable));
+    EXPECT_EQ(HASH_ERROR, ClearAll(0));
+}
+/**
+ * @tc.name: AtTest
+ * @tc.desc: At()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(HashTableTest, AtTest, TestSize.Level1)
+{
+    uint32_t testKey  = 1002;
+    uint32_t expectVal = 0;
+    uintptr_t valPtr;
+    valPtr = At(0, (uintptr_t)&testKey);
+    uint32_t rstVal = 0;
+    if (valPtr) {
+        rstVal = *reinterpret_cast<uint32_t*>(valPtr);
+    }
+    EXPECT_EQ(expectVal, rstVal);
+
+    valPtr = At(&table, (uintptr_t)&expectVal);
+    if (valPtr) {
+        rstVal = *reinterpret_cast<uint32_t*>(valPtr);
+    }
+    EXPECT_EQ(expectVal, rstVal);
+    EXPECT_EQ(HASH_SUCCESS, ClearAll(&table));
+    EXPECT_TRUE(table.size == 0);
 }
 }
 }
