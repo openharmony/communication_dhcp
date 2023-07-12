@@ -25,11 +25,12 @@
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/time.h>
+#include <net/if.h>
 
 #include "securec.h"
 #include "dhcp_define.h"
 #include "dhcp_api.h"
-#include "dhcp_ipv6_kernel.h"
+#include "dhcp_ipv6_event.h"
 #include "dhcp_ipv6.h"
 
 #undef LOG_TAG
@@ -39,6 +40,8 @@ pthread_cond_t g_ipv6WaitSignal;
 pthread_mutex_t g_ipv6Mutex;
 
 #define DEFAULUT_BAK_DNS "240e:4c:4008::1"
+#define DEFAULT_ROUTE "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff"
+const char *DEFAULT_IPV6_ANY_INIT_ADDR = "::";
 
 #define IPV6_WAIT_TIMEOUT (30 * 1000)
 #define IPV6_WAIT_NSEC 1000000000
@@ -95,22 +98,69 @@ struct DhcpIPV6Info g_DhcpIpv6Info;
 #define MASK_HALF 2
 #define MASK_THREE 3
 
-void PublishDhcpIpv6ResultEvent(void)
+#define MASK_FILTER 0x7
+
+#ifndef ND_OPT_RDNSS
+#define ND_OPT_RDNSS 25
+struct nd_opt_rdnss {
+    uint8_t nd_opt_rdnss_type;
+    uint8_t nd_opt_rdnss_len;
+    uint16_t nd_opt_rdnss_reserved;
+    uint32_t nd_opt_rdnss_lifetime;
+} _packed;
+#endif
+#define ND_OPT_MIN_LEN 3
+
+#define IPV6_ALL_GETTED 3
+
+#define CHAR_BIT 8
+
+char g_ifName[INFNAME_SIZE] = {0};
+
+static void FormatIPV6Info(struct DhcpIPV6Info* info)
 {
-    uint32_t curTime = (uint32_t)time(NULL);
-    char strData[STRING_MAX_LEN] = {0};
-    if (snprintf_s(strData, STRING_MAX_LEN, STRING_MAX_LEN - 1, "ipv6:%s,%u,%s,%s,%s,%s,%s,%s",
-        "wlan0", curTime, g_DhcpIpv6Info.linkIpv6Addr, g_DhcpIpv6Info.globalIpv6Addr,
-        g_DhcpIpv6Info.globalIpv6Addr, g_DhcpIpv6Info.ipv6MaskAddr, "::", DEFAULUT_BAK_DNS) < 0) {
-            LOGE("PublishDhcpIpv6ResultEvent failed, snprintf_s failed");
+    if (!info) {
+        return;
+    }
+
+    if (strlen(info->linkIpv6Addr) == 0) {
+        if (strncpy_s(info->linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, "*", 1) != EOK) {
             return;
         }
-    if (!PublishDhcpIpv4ResultEvent(PUBLISH_CODE_SUCCESS, strData, "wlan0")) {
+    }
+
+    if (strlen(info->ipv6SubnetAddr) == 0) {
+        if (strncpy_s(info->ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN, "*", 1) != EOK) {
+            return;
+        }
+    }
+
+    if (strlen(info->dnsAddr) == 0) {
+        if (strncpy_s(info->dnsAddr, DHCP_INET6_ADDRSTRLEN, "*", 1) != EOK) {
+            return;
+        }
+    }
+}
+
+void PublishDhcpIpv6ResultEvent(void)
+{
+    FormatIPV6Info(&g_DhcpIpv6Info);
+
+    uint32_t curTime = (uint32_t)time(NULL);
+    char strData[STRING_MAX_LEN] = {0};
+    if (snprintf_s(strData, STRING_MAX_LEN, STRING_MAX_LEN - 1, "ipv6:%s,%u,%s,%s,%s,%s,%s,%s,%s",
+        g_ifName, curTime, g_DhcpIpv6Info.linkIpv6Addr, g_DhcpIpv6Info.globalIpv6Addr,
+        g_DhcpIpv6Info.globalIpv6Addr, g_DhcpIpv6Info.ipv6SubnetAddr,
+        g_DhcpIpv6Info.routeAddr, g_DhcpIpv6Info.dnsAddr, DEFAULUT_BAK_DNS) < 0) {
+            LOGE("PublishDhcpIpv6ResultEvent failed, snprintf_s failed");
+        return;
+    }
+    if (!PublishDhcpIpv4ResultEvent(PUBLISH_CODE_SUCCESS, strData, g_ifName)) {
         LOGE("PublishDhcpIpv6ResultEvent %{public}s failed!", strData);
     }
 }
 
-unsigned int ipv6AddrScope2Type(unsigned int scope)
+static unsigned int ipv6AddrScope2Type(unsigned int scope)
 {
     switch (scope) {
         case IPV6_ADDR_SCOPE_NODELOCAL:
@@ -135,8 +185,12 @@ unsigned int ipv6AddrScope2Type(unsigned int scope)
     return IPV6_ADDR_SCOPE_TYPE(scope);
 }
 
-int getAddrType(const struct in6_addr *addr)
+static int getAddrType(const struct in6_addr *addr)
 {
+    if (!addr) {
+        LOGE("getAddrType failed, data invalid.");
+        return IPV6_ADDR_LINKLOCAL;
+    }
     unsigned int st = addr->s6_addr32[0];
     if ((st & htonl(ADDRTYPE_FLAG_HIGHE)) != htonl(ADDRTYPE_FLAG_ZERO) &&
         (st & htonl(ADDRTYPE_FLAG_HIGHE)) != htonl(ADDRTYPE_FLAG_HIGHE)) {
@@ -181,13 +235,54 @@ int getAddrType(const struct in6_addr *addr)
     return (IPV6_ADDR_UNICAST | IPV6_ADDR_SCOPE_TYPE(IPV6_ADDR_SCOPE_GLOBAL));
 }
 
-int getAddrScope(const struct in6_addr *addr)
+static int getAddrScope(const struct in6_addr *addr)
 {
+    if (!addr) {
+        LOGE("getAddrType failed, data invalid.");
+        return IPV6_ADDR_LINKLOCAL;
+    }
     return getAddrType(addr) & IPV6_ADDR_SCOPE_MASK;
 }
 
-const char* getMaskFromIPV6Addr(const u_char *src, char* dst, size_t size)
+static void GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen)
 {
+    if (!ipv6Addr || !ipv6PrefixBuf) {
+        LOGE("GetIpv6Prefix failed, input invalid.");
+        return;
+    }
+    if (prefixLen >= DHCP_INET6_ADDRSTRLEN) {
+        strlcpy(ipv6PrefixBuf, ipv6Addr, DHCP_INET6_ADDRSTRLEN);
+        return;
+    }
+
+    struct in6_addr ipv6AddrBuf = IN6ADDR_ANY_INIT;
+    inet_pton(AF_INET6, ipv6Addr, &ipv6AddrBuf);
+
+    char buf[INET6_ADDRSTRLEN] = {0};
+    if (inet_ntop(AF_INET6, &ipv6AddrBuf, buf, INET6_ADDRSTRLEN) == NULL) {
+        strlcpy(ipv6PrefixBuf, ipv6Addr, DHCP_INET6_ADDRSTRLEN);
+        return;
+    }
+
+    struct in6_addr ipv6Prefix = IN6ADDR_ANY_INIT;
+    uint32_t byteIndex = prefixLen / CHAR_BIT;
+    if (memset_s(ipv6Prefix.s6_addr, sizeof(ipv6Prefix.s6_addr), 0, sizeof(ipv6Prefix.s6_addr)) != EOK ||
+        memcpy_s(ipv6Prefix.s6_addr, sizeof(ipv6Prefix.s6_addr), &ipv6AddrBuf, byteIndex) != EOK) {
+        return;
+    }
+    uint32_t bitOffset = prefixLen & MASK_FILTER;
+    if ((bitOffset != 0) && (byteIndex < INET_ADDRSTRLEN)) {
+        ipv6Prefix.s6_addr[byteIndex] = ipv6AddrBuf.s6_addr[byteIndex] & (0xff00 >> bitOffset);
+    }
+    inet_ntop(AF_INET6, &ipv6Prefix, ipv6PrefixBuf, INET6_ADDRSTRLEN);
+}
+
+static const char* getRouteFromIPV6Addr(const u_char *src, char* route, size_t size)
+{
+    if (!src || !route) {
+        LOGE("getRouteFromIPV6Addr failed, input invalid.");
+        return NULL;
+    }
     char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:255.255.255.255")] = {0};
     char *tp = NULL;
     char *ep = NULL;
@@ -267,20 +362,26 @@ const char* getMaskFromIPV6Addr(const u_char *src, char* dst, size_t size)
     }
     *tp++ = '\0';
     size_t prefLen = (size_t)(tp - tmp);
-    if (prefLen + MASK_HALF > size) {
+    if (prefLen + MASK_THREE > size) {
         errno = ENOSPC;
         return NULL;
     }
-    strlcpy(dst, tmp, size);
-    // append ::
-    dst[prefLen - 1] = ':';
-    dst[prefLen] = ':';
-    dst[prefLen + 1] = '\0';
-    return (dst);
+    char strData[INET6_ADDRSTRLEN] = {0};
+    strlcpy(strData, tmp, size);
+    // append ::1
+    if (snprintf_s(route, INET6_ADDRSTRLEN, INET6_ADDRSTRLEN - 1, "%s::1", strData) < 0) {
+        LOGE("getRouteFromIPV6Addr failed, snprintf_s failed");
+        return NULL;
+    }
+    return (route);
 }
 
 void readIPV6Address(const char* ifname)
 {
+    if (!ifname) {
+        LOGE("readIPV6Address failed, ifname invalid.");
+        return;
+    }
     bool ipv6Notify = false;
     struct ifaddrs* ifAddrStruct = NULL;
     getifaddrs(&ifAddrStruct);
@@ -303,15 +404,24 @@ void readIPV6Address(const char* ifname)
         int scope = getAddrScope(&ipv6Addr->sin6_addr);
         if (scope == 0) {
             (void)memcpy_s(g_DhcpIpv6Info.globalIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN);
-            if (!getMaskFromIPV6Addr(ipv6Addr->sin6_addr.s6_addr, g_DhcpIpv6Info.ipv6MaskAddr, INET6_ADDRSTRLEN)) {
+            if (!getRouteFromIPV6Addr(ipv6Addr->sin6_addr.s6_addr, g_DhcpIpv6Info.routeAddr, INET6_ADDRSTRLEN)) {
                 LOGE("readIPV6Address get route failed.");
             }
+            struct sockaddr_in6 *mask = (struct sockaddr_in6 *)ifAddrStruct->ifa_netmask;
+            if (!mask) {
+                (void)inet_ntop(AF_INET6, &mask->sin6_addr,
+                    g_DhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN);
+            }
+            g_DhcpIpv6Info.status = IPV6_ALL_GETTED;
+            (void)strncpy_s(g_DhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN,
+                DEFAULUT_BAK_DNS, sizeof(DEFAULUT_BAK_DNS));
             ipv6Notify = true;
+            break;
         } else if (scope == IPV6_ADDR_LINKLOCAL) {
             (void)memcpy_s(g_DhcpIpv6Info.linkIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN);
         }
         LOGI("readIPV6Address addr: %{private}s, max: %{private}s, scope: %{public}d",
-            addr_str, g_DhcpIpv6Info.ipv6MaskAddr, scope);
+            addr_str, g_DhcpIpv6Info.ipv6SubnetAddr, scope);
         ifAddrStruct = ifAddrStruct->ifa_next;
     }
     if (ipv6Notify) {
@@ -319,29 +429,99 @@ void readIPV6Address(const char* ifname)
     }
 }
 
-void onIpv6AddressAddEvent(void* data)
+void checkBroadIPV6Result(void)
 {
+    if (g_DhcpIpv6Info.status != IPV6_ALL_GETTED) {
+        return;
+    }
+    PublishDhcpIpv6ResultEvent();
+    pthread_mutex_lock(&g_ipv6Mutex);
+    pthread_cond_signal(&g_ipv6WaitSignal);
+    pthread_mutex_unlock(&g_ipv6Mutex);
+}
+
+void onIpv6AddressAddEvent(void* data, int prefixLen, int ifaIndex)
+{
+    int currIndex = if_nametoindex(g_ifName);
+    if (currIndex != ifaIndex) {
+        LOGE("address ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
+        return;
+    }
+    if (!data) {
+        LOGE("onIpv6AddressAddEvent failed, data invalid.");
+        return;
+    }
     struct in6_addr *addr = (struct in6_addr*)data;
     char addr_str[INET6_ADDRSTRLEN] = {0};
     inet_ntop(AF_INET6, addr, addr_str, INET6_ADDRSTRLEN);
     int scope = getAddrScope(addr);
     if (scope == 0) {
+        (void)memset_s(g_DhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN);
+        (void)memset_s(g_DhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN);
+        (void)memset_s(g_DhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN);
+        g_DhcpIpv6Info.status |= 1;
         (void)memcpy_s(g_DhcpIpv6Info.globalIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN);
-        if (!getMaskFromIPV6Addr(addr->s6_addr, g_DhcpIpv6Info.ipv6MaskAddr, INET6_ADDRSTRLEN)) {
+        if (!getRouteFromIPV6Addr(addr->s6_addr, g_DhcpIpv6Info.routeAddr, INET6_ADDRSTRLEN)) {
             LOGE("onIpv6AddressAddEvent get route failed.");
         }
-        PublishDhcpIpv6ResultEvent();
-        pthread_mutex_lock(&g_ipv6Mutex);
-        pthread_cond_signal(&g_ipv6WaitSignal);
-        pthread_mutex_unlock(&g_ipv6Mutex);
+        GetIpv6Prefix(DEFAULT_ROUTE, g_DhcpIpv6Info.ipv6SubnetAddr, prefixLen);
+        checkBroadIPV6Result();
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
+        (void)memset_s(g_DhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN);
         (void)memcpy_s(g_DhcpIpv6Info.linkIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN);
     }
-    LOGI("onIpv6AddressAddEvent addr: %{private}s, max: %{private}s, scope: %{private}d",
-        addr_str, g_DhcpIpv6Info.ipv6MaskAddr, scope);
+    LOGI("onIpv6AddressAddEvent addr: %{private}s, max: %{private}s, route: %{private}s, scope: %{private}d",
+        addr_str, g_DhcpIpv6Info.ipv6SubnetAddr, g_DhcpIpv6Info.routeAddr, scope);
 }
 
-int32_t createKernelSocket(void)
+void onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
+{
+    int currIndex = if_nametoindex(g_ifName);
+    if (currIndex != ifaIndex) {
+        LOGE("dnsevent ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
+        return;
+    }
+    g_DhcpIpv6Info.status |= (1 << 1);
+    (void)strncpy_s(g_DhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN,
+        DEFAULUT_BAK_DNS, sizeof(DEFAULUT_BAK_DNS));
+    do {
+        if (!data) {
+            LOGE("onIpv6DnsAddEvent failed, data invalid.");
+            break;
+        }
+        struct nd_opt_hdr *opthdr = (struct nd_opt_hdr *)(data);
+        uint16_t optlen = opthdr->nd_opt_len;
+        if (optlen * CHAR_BIT > len) {
+            LOGE("dns len invalid optlen:%{public}d > len:%{public}d", optlen, len);
+            break;
+        }
+        if (opthdr->nd_opt_type != ND_OPT_RDNSS) {
+            LOGE("dns nd_opt_type invlid:%{public}d", opthdr->nd_opt_type);
+            break;
+        }
+        if ((optlen < ND_OPT_MIN_LEN) || !(optlen & 0x1)) {
+            LOGE("dns optLen invlid:%{public}d", optlen);
+            break;
+        }
+        (void)memset_s(g_DhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN);
+        int numaddrs = (optlen - 1) / 2;
+        struct nd_opt_rdnss *rndsopt = (struct nd_opt_rdnss *)opthdr;
+        struct in6_addr *addrs = (struct in6_addr *)(rndsopt + 1);
+        for (int i = 0; i < numaddrs; i++) {
+            inet_ntop(AF_INET6, addrs + i, g_DhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN);
+            break;
+        }
+        LOGI("onIpv6DnsAddEvent addr: %{public}s", g_DhcpIpv6Info.dnsAddr);
+    } while (false);
+    checkBroadIPV6Result();
+}
+
+static int32_t createKernelSocket(void)
 {
     int32_t sz = KERNEL_BUFF_SIZE;
     int32_t on = 1;
@@ -356,12 +536,12 @@ int32_t createKernelSocket(void)
         return -1;
     }
     if (setsockopt(sockFd, SOL_SOCKET, SO_RCVBUF, &sz, sizeof(sz)) < 0) {
-        LOGE("setsockopt socket SO_RCVBUFFORCE failed.");
+        LOGE("setsockopt socket SO_RCVBUF failed.");
         close(sockFd);
         return -1;
     }
     if (setsockopt(sockFd, SOL_SOCKET, SO_PASSCRED, &on, sizeof(on)) < 0) {
-        LOGE("setsockopt socket SO_RCVBUFFORCE failed.");
+        LOGE("setsockopt socket SO_PASSCRED failed.");
         close(sockFd);
         return -1;
     }
@@ -378,16 +558,27 @@ int32_t createKernelSocket(void)
 
 int StartIpv6(const char *ifname)
 {
+    if (!ifname) {
+        LOGE("StartIpv6 failed, ifname invalid.");
+        return -1;
+    }
+    LOGI("StartIpv6 enter. %{public}s", ifname);
+    if (strncpy_s(g_ifName, INFNAME_SIZE, ifname, strlen(ifname)) != EOK) {
+        LOGE("StartIpv6 failed, strncpy_s faild.");
+        return -1;
+    }
     (void)memset_s(&g_DhcpIpv6Info, sizeof(g_DhcpIpv6Info), 0, sizeof(g_DhcpIpv6Info));
     readIPV6Address(ifname);
     if (g_DhcpIpv6Info.globalIpv6Addr[0] != '\0') {
-        return 0;
+        LOGI("StartIpv6 get an exist address.");
     }
+    g_DhcpIpv6Info.status = 0;
     pthread_cond_init(&g_ipv6WaitSignal, NULL);
     pthread_mutex_init(&g_ipv6Mutex, NULL);
     g_runFlag = true;
     int32_t sockFd = createKernelSocket();
     if (sockFd < 0) {
+        LOGE("StartIpv6 createKernelSocket failed.");
         g_runFlag = false;
         return -1;
     }
@@ -407,7 +598,7 @@ int StartIpv6(const char *ifname)
             LOGE("recv kernel socket failed.");
             break;
         }
-        handleKernelEvent(buff, len, onIpv6AddressAddEvent);
+        handleKernelEvent(buff, len, onIpv6AddressAddEvent, onIpv6DnsAddEvent);
     }
     g_runFlag = false;
     free(buff);
@@ -417,6 +608,10 @@ int StartIpv6(const char *ifname)
 
 void *DhcpIPV6Start(void* param)
 {
+    if (!param) {
+        LOGE("DhcpIPV6Start failed, param invalid.");
+        return NULL;
+    }
     int result = StartIpv6((char*)param);
     if (result < 0) {
         LOGE("dhcp6 run failed.");
@@ -432,7 +627,7 @@ void DhcpIPV6Stop(void)
         pthread_mutex_destroy(&g_ipv6Mutex);
         return;
     }
-    
+
     struct timespec abstime = {0};
     struct timeval now = {0};
     const long timeout = IPV6_WAIT_TIMEOUT;

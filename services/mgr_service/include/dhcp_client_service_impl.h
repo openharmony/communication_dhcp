@@ -191,9 +191,27 @@ public:
      */
     static int DhcpEventResultHandle(const int code, const std::string &data);
 
+    /**
+     * @Description : check result already exist
+     *
+     * @param ifname - interface name
+     * @param result - dhcp result
+     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
+     */
+    static bool CheckDhcpResultExist(const std::string &ifname, DhcpResult &result);
+
+    /**
+     * @Description : Handle dhcp event result string.
+     *
+     * @param ifname - interface name
+     * @param result - dhcp result
+     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
+     */
+    static void PushDhcpResult(const std::string &ifname, DhcpResult &result);
+
 public:
     static pthread_mutex_t m_DhcpResultInfoMutex;
-    static std::map<std::string, DhcpResult> m_mapDhcpResult;
+    static std::map<std::string, std::vector<DhcpResult>> m_mapDhcpResult;
     static std::map<std::string, DhcpServiceInfo> m_mapDhcpInfo;
 
 private:
