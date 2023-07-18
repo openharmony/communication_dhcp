@@ -24,7 +24,8 @@ extern "C" {
 
 #define KERNEL_BUFF_SIZE (8 * 1024)
 
-void handleKernelEvent(const uint8_t* data, int len, onIpv6AddressEvent addrCallback);
+void handleKernelEvent(const uint8_t* data, int len,
+    onIpv6AddressEvent addrCallback, onIpv6DnsEvent dnsCallback);
 
 void setSocketFilter(void* addr);
 

@@ -21,13 +21,17 @@ extern "C" {
 
 #define DHCP_INET6_ADDRSTRLEN 128
 
-typedef void (*onIpv6AddressEvent)(void* data);
+typedef void (*onIpv6AddressEvent)(void* data, int prefixLen, int ifaIndex);
+typedef void (*onIpv6DnsEvent)(void* data, int len, int ifaIndex);
 
 struct DhcpIPV6Info {
     char linkIpv6Addr[DHCP_INET6_ADDRSTRLEN];
     char globalIpv6Addr[DHCP_INET6_ADDRSTRLEN];
-    char ipv6MaskAddr[DHCP_INET6_ADDRSTRLEN];
+    char ipv6SubnetAddr[DHCP_INET6_ADDRSTRLEN];
     char randIpv6Addr[DHCP_INET6_ADDRSTRLEN];
+    char routeAddr[DHCP_INET6_ADDRSTRLEN];
+    char dnsAddr[DHCP_INET6_ADDRSTRLEN];
+    int status;   // 1 ipv4 getted, 2 dns getted, 3 ipv4 and dns getted
 };
 
 void *DhcpIPV6Start(void* param);
