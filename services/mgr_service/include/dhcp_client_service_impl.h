@@ -22,8 +22,7 @@
 #include <mutex>
 
 #include "i_dhcp_client_service.h"
-#include "dhcp_define.h"
-
+#include "dhcp_ipv6_client.h"
 
 namespace OHOS {
 namespace Wifi {
@@ -157,14 +156,6 @@ public:
     static int GetSuccessIpv4Result(const std::vector<std::string> &splits);
 
     /**
-     * @Description : Get dhcp event success ipv6 result.
-     *
-     * @param splits - dhcp event result vector [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    static int GetSuccessIpv6Result(const std::vector<std::string> &splits);
-
-    /**
      * @Description : Get dhcp event ipv4 result.
      *
      * @param code - dhcp event result code [in]
@@ -172,15 +163,6 @@ public:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     static int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &splits);
-
-    /**
-     * @Description : Get dhcp event ipv6 result.
-     *
-     * @param code - dhcp event result code [in]
-     * @param splits - dhcp event result vector [in]
-     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
-     */
-    static int GetDhcpEventIpv6Result(const int code, const std::vector<std::string> &splits);
 
     /**
      * @Description : Handle dhcp event result string.
@@ -236,6 +218,13 @@ private:
      *
      */
     void RunDhcpResultHandleThreadFunc();
+
+    /**
+     * @Description : get ipv6 info tread
+     *
+    */
+    void RunIpv6ThreadFunc();
+
 #ifdef OHOS_ARCH_LITE
     /**
      * @Description : Dhcp recv msg threads execution function.
@@ -316,6 +305,13 @@ private:
      */
     int UnsubscribeAllDhcpEvent();
 
+    /**
+     * @Description : handle ipv6 info changed.
+     *
+     * @Return : none.
+    */
+    void OnAddressChangedCallback(const std::string ifname, DhcpIpv6Info &info);
+
 private:
     std::mutex mResultNotifyMutex;
     bool isExitDhcpResultHandleThread;
@@ -328,6 +324,10 @@ private:
 
     std::mutex m_subscriberMutex;
     std::map<std::string, std::shared_ptr<OHOS::Wifi::DhcpEventSubscriber>> m_mapEventSubscriber;
+
+    std::string currIfName;
+    DhcpIpv6Client ipv6Client;
+    std::thread *pDhcpIpv6ClientThread;
 };
 }  // namespace Wifi
 }  // namespace OHOS

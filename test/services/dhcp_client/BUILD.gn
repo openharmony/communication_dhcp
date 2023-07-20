@@ -33,8 +33,6 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client.c",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.c",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv4.c",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6.c",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.c",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.c",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.c",
     "dhcp_client_test.cpp",

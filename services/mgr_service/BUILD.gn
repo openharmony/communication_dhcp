@@ -25,6 +25,8 @@ local_base_sources = [
   "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_client_service_impl.cpp",
   "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_event_subscriber.cpp",
   "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_func.cpp",
+  "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_ipv6_client.cpp",
+  "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_ipv6_event.cpp",
   "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_server_service.cpp",
   "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_service.cpp",
   "$DHCP_ROOT_DIR/services/mgr_service/src/dhcp_service_api.cpp",

@@ -37,7 +37,6 @@
 #include "dhcp_options.h"
 #include "dhcp_socket.h"
 #include "dhcp_function.h"
-#include "dhcp_ipv6.h"
 
 #undef LOG_TAG
 #define LOG_TAG "WifiDhcpIpv4"
@@ -1035,7 +1034,6 @@ static void SignalReceiver(void)
     switch (signum) {
         case SIGTERM:
             LOGW("SignalReceiver() SIGTERM!");
-            DhcpIPV6Stop();
             SetSocketMode(SOCKET_MODE_INVALID);
             unlink(g_cltCnf->pidFile);
             unlink(g_cltCnf->resultFile);
