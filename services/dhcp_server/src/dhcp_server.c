@@ -626,7 +626,6 @@ void InitLeaseFile(DhcpAddressPool *pool)
 static void ExitProcess(void)
 {
     LOGD("dhcp server stopped.");
-    sleep(1);
 }
 
 int StartDhcpServer(PDhcpServerContext ctx)
