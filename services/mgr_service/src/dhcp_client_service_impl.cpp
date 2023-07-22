@@ -37,6 +37,7 @@ DhcpClientServiceImpl::DhcpClientServiceImpl()
     pthread_mutex_init(&m_DhcpResultInfoMutex, NULL);
     isExitDhcpResultHandleThread = false;
     pDhcpResultHandleThread = nullptr;
+    pDhcpIpv6ClientThread = nullptr;
 #ifdef OHOS_ARCH_LITE
     m_mapDhcpRecvMsgThread.clear();
 #endif
@@ -47,6 +48,8 @@ DhcpClientServiceImpl::DhcpClientServiceImpl()
     m_mapEventSubscriber.clear();
     InitDhcpMgrThread();
     DhcpFunc::CreateDirs(DHCP_WORK_DIR);
+    using namespace std::placeholders;
+    ipv6Client.SetCallback(std::bind(&DhcpClientServiceImpl::OnAddressChangedCallback, this, _1, _2));
 }
 
 DhcpClientServiceImpl::~DhcpClientServiceImpl()
@@ -96,6 +99,12 @@ void DhcpClientServiceImpl::ExitDhcpMgrThread()
         delete pDhcpResultHandleThread;
         pDhcpResultHandleThread = nullptr;
     }
+    ipv6Client.DhcpIPV6Stop();
+    if (pDhcpIpv6ClientThread != nullptr) {
+        pDhcpIpv6ClientThread->join();
+        delete pDhcpIpv6ClientThread;
+        pDhcpIpv6ClientThread = nullptr;
+    }
 
     if (!m_mapDhcpResultNotify.empty()) {
         WIFI_LOGE("ExitDhcpMgrThread() error, m_mapDhcpResultNotify is not empty!");
@@ -130,7 +139,7 @@ void DhcpClientServiceImpl::CheckTimeout()
                 return;
             }
             tempTime = (*iterReq)->getTimestamp + (*iterReq)->timeouts;
-            if (tempTime <= curTime) {
+            if (tempTime <= curTime && ((*iterReq)->status & DHCP_IPV4_GETTED) == 0) {
                 /* get dhcp result timeout */
                 WIFI_LOGW("CheckTimeout() ifname:%{public}s get timeout, getTime:%{public}u,timeout:%{public}d, "
                           "curTime:%{public}u!",
@@ -138,9 +147,7 @@ void DhcpClientServiceImpl::CheckTimeout()
                     (*iterReq)->getTimestamp,
                     (*iterReq)->timeouts,
                     curTime);
-                if (((*iterReq)->status & DHCP_IPV4_GETTED) == 0) {
-                    (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_TIMEOUT, ifname, "get dhcp result timeout!");
-                }
+                (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_TIMEOUT, ifname, "get dhcp result timeout!");
                 delete *iterReq;
                 *iterReq = nullptr;
                 iterReq = itemNotify.second.erase(iterReq);
@@ -211,13 +218,7 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
                 } else if (dhcpResult.iptype == 1) {
                     (*iterReq)->status |= DHCP_IPV6_GETTED;
                 }
-                if ((*iterReq)->status == DHCP_IPALL_GETED) {
-                    delete *iterReq;
-                    *iterReq = NULL;
-                    iterReq = iterNotify->second.erase(iterReq);
-                } else {
-                    ++iterReq;
-                }
+                ++iterReq;
             }
         }
         ++iterNotify;
@@ -637,52 +638,6 @@ int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &
     return DHCP_OPT_SUCCESS;
 }
 
-int DhcpClientServiceImpl::GetSuccessIpv6Result(const std::vector<std::string> &splits)
-{
-    /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    if ((splits.size() != IPV6_EVENT_DATA_NUM) || (splits[DHCP_NUM_TWO] == INVALID_STRING)) {
-        WIFI_LOGE("GetSuccessIpv6Result() splits.size:%{public}d cliIp:%{public}s error!", (int)splits.size(),
-            splits[DHCP_NUM_TWO].c_str());
-        return DHCP_OPT_FAILED;
-    }
-
-    DhcpResult result;
-    result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
-    result.iptype       = 1;
-    std::string ifname = splits[DHCP_NUM_ZERO];
-    if (CheckDhcpResultExist(ifname, result)) {
-        WIFI_LOGI("GetSuccessIpv6Result() %{public}s old %{public}u equal new %{public}u, no need update.",
-            ifname.c_str(), result.uAddTime, result.uAddTime);
-        return DHCP_OPT_SUCCESS;
-    }
-
-    WIFI_LOGI("GetSuccessIpv6Result() DhcpResult %{public}s old %{public}u no equal new %{public}u, need update...",
-        ifname.c_str(), result.uAddTime, result.uAddTime);
-
-    /* Reload dhcp packet info. */
-    auto iterInfo = DhcpClientServiceImpl::m_mapDhcpInfo.find(ifname);
-    if (iterInfo != DhcpClientServiceImpl::m_mapDhcpInfo.end()) {
-        WIFI_LOGI("GetSuccessIpv6Result() m_mapDhcpInfo find ifname:%{public}s.", ifname.c_str());
-    }
-
-    result.isOptSuc     = true;
-    result.strYourCli   = splits[DHCP_NUM_THREE];
-    result.strSubnet    = splits[DHCP_NUM_FIVE];
-    result.strRouter1   = splits[DHCP_NUM_SIX];
-    result.strDns1      = splits[DHCP_NUM_EIGHT];
-    result.strDns2      = splits[DHCP_NUM_SEVEN];
-    result.strRouter2   = "*";
-    result.uGetTime     = (uint32_t)time(NULL);
-    PushDhcpResult(ifname, result);
-    WIFI_LOGI("GetSuccessIpv6Result() %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
-        "strSubnet:%{private}s, strDns1:%{private}s, Dns2:%{private}s, strRouter1:%{private}s, Router2:%{private}s, "
-        "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
-        ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
-        result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
-        result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
-    return DHCP_OPT_SUCCESS;
-}
-
 int DhcpClientServiceImpl::GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &splits)
 {
     /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
@@ -725,48 +680,6 @@ int DhcpClientServiceImpl::GetDhcpEventIpv4Result(const int code, const std::vec
     return DHCP_OPT_SUCCESS;
 }
 
-int DhcpClientServiceImpl::GetDhcpEventIpv6Result(const int code, const std::vector<std::string> &splits)
-{
-    /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    if (splits.size() != IPV6_EVENT_DATA_NUM) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() splits.size:%{public}d error!", (int)splits.size());
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Check field ifname and time. */
-    if (splits[DHCP_NUM_ZERO].empty() || splits[DHCP_NUM_ONE].empty()) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() ifname or time is empty!");
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Check field cliIp. */
-    if (((code == PUBLISH_CODE_SUCCESS) && (splits[DHCP_NUM_TWO] == INVALID_STRING))
-    || ((code == PUBLISH_CODE_FAILED) && (splits[DHCP_NUM_TWO] != INVALID_STRING))) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() code:%{public}d,%{public}s error!", code, splits[DHCP_NUM_TWO].c_str());
-        return DHCP_OPT_FAILED;
-    }
-
-    std::string ifname = splits[DHCP_NUM_ZERO];
-    if (code == PUBLISH_CODE_FAILED) {
-        /* Get failed. */
-        DhcpResult result;
-        result.iptype = 1;
-        result.isOptSuc = false;
-        result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
-        PushDhcpResult(ifname, result);
-        WIFI_LOGI("GetDhcpEventIpv6Result() ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
-        return DHCP_OPT_SUCCESS;
-    }
-
-    /* Get success. */
-    if (GetSuccessIpv6Result(splits) != DHCP_OPT_SUCCESS) {
-        WIFI_LOGE("GetDhcpEventIpv6Result() GetDhcpEventIpv6Result failed!");
-        return DHCP_OPT_FAILED;
-    }
-    WIFI_LOGI("GetDhcpEventIpv6Result() ifname:%{public}s result.isOptSuc:true!", ifname.c_str());
-    return DHCP_OPT_SUCCESS;
-}
-
 bool DhcpClientServiceImpl::CheckDhcpResultExist(const std::string &ifname, DhcpResult &result)
 {
     bool exist = false;
@@ -796,7 +709,11 @@ void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, DhcpResult
             if (iterResult->second[i].iptype != result.iptype) {
                 continue;
             }
-            if (iterResult->second[i].uAddTime != result.uAddTime) {
+            if (iterResult->second[i].iptype == 0) {
+                if (iterResult->second[i].uAddTime != result.uAddTime) {
+                    iterResult->second[i] = result;
+                }
+            } else {
                 iterResult->second[i] = result;
             }
             pthread_mutex_unlock(&m_DhcpResultInfoMutex);
@@ -855,20 +772,36 @@ int DhcpClientServiceImpl::DhcpEventResultHandle(const int code, const std::stri
             WIFI_LOGE("DhcpEventResultHandle() GetDhcpEventIpv4Result failed!");
             return DHCP_OPT_FAILED;
         }
-    } else if (strFlag == EVENT_DATA_IPV6) {
-        std::vector<std::string> vecSplits;
-        if (!DhcpFunc::SplitString(strResult, EVENT_DATA_DELIMITER, IPV6_EVENT_DATA_NUM, vecSplits)) {
-            WIFI_LOGE("DhcpEventResultHandle() SplitString strResult:%{public}s failed!", strResult.c_str());
-            return DHCP_OPT_FAILED;
-        }
-
-        if (GetDhcpEventIpv6Result(code, vecSplits) != DHCP_OPT_SUCCESS) {
-            WIFI_LOGE("DhcpEventResultHandle() GetDhcpEventIpv6Result failed!");
-            return DHCP_OPT_FAILED;
-        }
     }
 
     return DHCP_OPT_SUCCESS;
+}
+
+void DhcpClientServiceImpl::RunIpv6ThreadFunc()
+{
+    ipv6Client.DhcpIpv6Start(currIfName.c_str());
+}
+
+void DhcpClientServiceImpl::OnAddressChangedCallback(const std::string ifname, DhcpIpv6Info &info)
+{
+    DhcpResult result;
+    result.uAddTime = (uint32_t)time(NULL);
+    result.iptype = 1;
+    result.isOptSuc     = true;
+    result.strYourCli   = info.globalIpv6Addr;
+    result.strSubnet    = info.ipv6SubnetAddr;
+    result.strRouter1   = info.routeAddr;
+    result.strDns1      = info.dnsAddr;
+    result.strDns2      = info.dnsAddr2;
+    result.strRouter2   = "*";
+    result.uGetTime     = (uint32_t)time(NULL);
+    PushDhcpResult(ifname, result);
+    WIFI_LOGI("OnAddressChangedCallback %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
+        "strSubnet:%{private}s, strDns1:%{private}s, Dns2:%{private}s, strRouter1:%{private}s, Router2:%{private}s, "
+        "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
+        ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
+        result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
+        result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
 }
 
 int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6)
@@ -877,9 +810,21 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
         WIFI_LOGE("DhcpClientServiceImpl::StartDhcpClient() error, ifname is empty!");
         return DHCP_OPT_FAILED;
     }
-
+    currIfName = ifname;
     WIFI_LOGI("enter StartDhcpClient()...ifname:%{public}s, bIpv6:%{public}d.", ifname.c_str(), bIpv6);
-
+    if (bIpv6) {
+        ipv6Client.Reset();
+        if (!ipv6Client.IsRunning() && pDhcpIpv6ClientThread) {
+            delete pDhcpIpv6ClientThread;
+            pDhcpIpv6ClientThread = NULL;
+        }
+        if (!pDhcpIpv6ClientThread) {
+            pDhcpIpv6ClientThread = new std::thread(&DhcpClientServiceImpl::RunIpv6ThreadFunc, this);
+            if (pDhcpIpv6ClientThread == nullptr) {
+                WIFI_LOGE("dhcp ipv6 start client thread failed!");
+            }
+        }
+    }
     /* check config */
     /* check dhcp client service running status */
     if (CheckDhcpClientRunning(ifname) != DHCP_OPT_SUCCESS) {
@@ -1010,14 +955,11 @@ int DhcpClientServiceImpl::GetDhcpResult(const std::string &ifname, IDhcpResultN
     pResultReq->pResultNotify = pResultNotify;
 
     std::unique_lock<std::mutex> lock(mResultNotifyMutex);
-    auto iter = m_mapDhcpResultNotify.find(ifname);
-    if (iter != m_mapDhcpResultNotify.end()) {
-        iter->second.push_back(pResultReq);
-    } else {
-        std::list<DhcpResultReq *> listDhcpResultReq;
-        listDhcpResultReq.push_back(pResultReq);
-        m_mapDhcpResultNotify.emplace(std::make_pair(ifname, listDhcpResultReq));
-    }
+    ReleaseResultNotifyMemory();
+    m_mapDhcpResultNotify.clear();
+    std::list<DhcpResultReq *> listDhcpResultReq;
+    listDhcpResultReq.push_back(pResultReq);
+    m_mapDhcpResultNotify.emplace(std::make_pair(ifname, listDhcpResultReq));
     WIFI_LOGI("GetDhcpResult() ifname:%{public}s,timeouts:%{public}d, result push_back!", ifname.c_str(), timeouts);
     return DHCP_OPT_SUCCESS;
 }
