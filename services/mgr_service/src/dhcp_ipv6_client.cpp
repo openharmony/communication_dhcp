@@ -451,17 +451,15 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
         return -1;
     }
     struct timeval timeout = {0};
-    fd_set rSet, wSet;
+    fd_set rSet;
     timeout.tv_sec = 1;
     timeout.tv_usec = 0;
     while (runFlag) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0,
             KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
-        FD_ZERO(&wSet);
         FD_SET(sockFd, &rSet);
-        FD_SET(sockFd, &wSet);
-        int iRet = select(sockFd + 1, &rSet, &wSet, NULL, &timeout);
+        int iRet = select(sockFd + 1, &rSet, NULL, NULL, &timeout);
         if (iRet < 0) {
             WIFI_LOGE("StartIpv6 select failed.");
             break;
