@@ -34,7 +34,7 @@ void DhcpIpv6Client::setSocketFilter(void* addr)
     struct sockaddr_nl *nladdr = (struct sockaddr_nl*)addr;
     nladdr->nl_family = KERNEL_SOCKET_FAMILY;
     nladdr->nl_pid = 0;
-    nladdr->nl_groups = RTMGRP_IPV6_IFADDR | (1 << (RTNLGRP_ND_USEROPT - 1));
+    nladdr->nl_groups = RTMGRP_IPV6_IFADDR | RTMGRP_IPV6_ROUTE | (1 << (RTNLGRP_ND_USEROPT - 1));
 }
 
 void DhcpIpv6Client::parseNdUserOptMessage(void* data, int len)
@@ -60,6 +60,53 @@ void DhcpIpv6Client::parseNdUserOptMessage(void* data, int len)
         return;
     }
     onIpv6DnsAddEvent((void*)(msg + 1), optlen, msg->nduseropt_ifindex);
+}
+
+void DhcpIpv6Client::parseNDRouteMessage(void* msg)
+{
+    if (msg == NULL) {
+        return;
+    }
+    struct nlmsghdr *hdrMsg = (struct nlmsghdr*)msg;
+    struct rtmsg* rtMsg = reinterpret_cast<struct rtmsg*>(NLMSG_DATA(hdrMsg));
+    if (hdrMsg->nlmsg_len < sizeof(struct rtmsg)) {
+        WIFI_LOGE("invliad msglen:%{public}d", hdrMsg->nlmsg_len);
+        return;
+    }
+    if ((rtMsg->rtm_protocol != RTPROT_KERNEL && rtMsg->rtm_protocol != RTPROT_RA) ||
+        (rtMsg->rtm_scope != RT_SCOPE_UNIVERSE) || (rtMsg->rtm_type != RTN_UNICAST) ||
+        (rtMsg->rtm_src_len != 0) || (rtMsg->rtm_flags & RTM_F_CLONED)) {
+        WIFI_LOGE("invliad arg");
+        return;
+    }
+    char dst[DHCP_INET6_ADDRSTRLEN] = {0};
+    char gateway[DHCP_INET6_ADDRSTRLEN] = {0};
+    int32_t rtmFamily = rtMsg->rtm_family;
+    size_t size = RTM_PAYLOAD(hdrMsg);
+    int ifindex = -1;
+    rtattr *rtaInfo = NULL;
+    for (rtaInfo = RTM_RTA(rtMsg); RTA_OK(rtaInfo, (int)size); rtaInfo = RTA_NEXT(rtaInfo, size)) {
+        switch (rtaInfo->rta_type) {
+            case RTA_GATEWAY:
+                if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, gateway, sizeof(gateway)) != 0) {
+                    WIFI_LOGE("inet_ntop RTA_GATEWAY failed.");
+                    return;
+                }
+                break;
+            case RTA_DST:
+                if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, dst, sizeof(dst)) != 0) {
+                    WIFI_LOGE("inet_ntop RTA_DST failed.");
+                    return;
+                }
+                break;
+            case RTA_OIF:
+                ifindex = *(reinterpret_cast<int32_t*>(RTA_DATA(rtaInfo)));
+                break;
+            default:
+                break;
+        }
+    }
+    onIpv6RouteAddEvent(gateway, dst, ifindex);
 }
 
 void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
@@ -97,6 +144,8 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             }
             size_t optsize = NLMSG_PAYLOAD(nlh, sizeof(*ndmsg));
             parseNdUserOptMessage((void*)ndmsg, optsize);
+        } else if (nlh->nlmsg_type == RTM_NEWROUTE) {
+            parseNDRouteMessage((void*)nlh);
         }
         nlh = NLMSG_NEXT(nlh, len);
     }
