@@ -54,16 +54,18 @@ public:
     void Reset();
 private:
     int32_t createKernelSocket(void);
-    const char* getRouteFromIPV6Addr(const u_char *src, char* route, size_t size);
     void GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen);
+    int GetIpFromS6Address(void* addr, int family, char* buf, int buflen);
     int getAddrScope(const struct in6_addr *addr);
     int getAddrType(const struct in6_addr *addr);
     unsigned int ipv6AddrScope2Type(unsigned int scope);
     void onIpv6DnsAddEvent(void* data, int len, int ifaIndex);
+    void onIpv6RouteAddEvent(char* gateway, char* dst, int ifaIndex);
     void onIpv6AddressAddEvent(void* data, int prefixLen, int ifaIndex);
     void setSocketFilter(void* addr);
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
+    void parseNDRouteMessage(void* msg);
 
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged;
     std::string interfaceName;

@@ -51,8 +51,6 @@ const unsigned int IPV6_ADDR_SCOPE_NODELOCAL = 0X01;
 const unsigned int  IPV6_ADDR_SCOPE_LINKLOCAL = 0X02;
 const unsigned int  IPV6_ADDR_SCOPE_SITELOCAL = 0X05;
 const int  IPV6_ADDR_SCOPE_GLOBAL = 0X0E;
-const int IPV6_MASK_SZ = 8;
-const int INT16SZ = 2;
 const int S6_ADDR_INDEX_ZERO = 0;
 const int S6_ADDR_INDEX_FIRST = 1;
 const int S6_ADDR_INDEX_SECOND = 2;
@@ -67,8 +65,6 @@ const int ADDRTYPE_FLAG_HIGHFE8 = 0xFE800000;
 const int ADDRTYPE_FLAG_HIGHFEC = 0xFEC00000;
 const int ADDRTYPE_FLAG_HIGHFE = 0xFE000000;
 const int ADDRTYPE_FLAG_HIGHFC = 0xFC000000;
-const int MASK_HALF = 2;
-const int MASK_THREE = 3;
 const int MASK_FILTER = 0x7;
 const int KERNEL_BUFF_SIZE = (8 * 1024);
 const int ND_OPT_MIN_LEN = 3;
@@ -202,103 +198,13 @@ void DhcpIpv6Client::GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, ui
     inet_ntop(AF_INET6, &ipv6Prefix, ipv6PrefixBuf, INET6_ADDRSTRLEN);
 }
 
-const char* DhcpIpv6Client::getRouteFromIPV6Addr(const u_char *src, char* route, size_t size)
+int DhcpIpv6Client::GetIpFromS6Address(void* addr, int family, char* buf, int buflen)
 {
-    if (!src || !route) {
-        WIFI_LOGE("getRouteFromIPV6Addr failed, input invalid.");
-        return NULL;
+    if (!inet_ntop(family, (struct in6_addr*)addr, buf, buflen)) {
+        WIFI_LOGE("GetIpFromS6Address failed");
+        return -1;
     }
-    char tmp[sizeof("ffff:ffff:ffff:ffff:ffff:255.255.255.255")] = {0};
-    char *tp = NULL;
-    char *ep = NULL;
-    struct { int base, len;} best, cur;
-    u_int words[IPV6_MASK_SZ/INT16SZ];
-    int i;
-    int advance;
-    (void)memset_s(words, sizeof(words), 0, sizeof(words));
-    for (i = 0; i < IPV6_MASK_SZ; i++) {
-        words[i / MASK_HALF] |= (src[i] << ((1 - (i % MASK_HALF)) << MASK_THREE));
-    }
-    best.base = -1;
-    cur.base = -1;
-    for (i = 0; i < (IPV6_MASK_SZ / INT16SZ); i++) {
-        if (words[i] == 0) {
-            if (cur.base == -1) {
-                cur.base = i;
-                cur.len = i;
-            } else {
-                cur.len++;
-            }
-        } else {
-            if (cur.base != -1) {
-                if (best.base == -1 || cur.len > best.len) {
-                    best = cur;
-                }
-                cur.base = -1;
-            }
-        }
-    }
-    if (cur.base != -1) {
-        if (best.base == -1 || cur.len > best.len) {
-            best = cur;
-        }
-    }
-    if (best.base != -1 && best.len < MASK_HALF) {
-        best.base = -1;
-    }
-    tp = tmp;
-    ep = tmp + sizeof(tmp);
-    for (i = 0; i < (IPV6_MASK_SZ / INT16SZ) && tp < ep; i++) {
-        if (best.base != -1 && i >= best.base &&
-            i < (best.base + best.len)) {
-            if (i == best.base) {
-                if (tp + 1 >= ep) {
-                    errno = ENOSPC;
-                    return NULL;
-                }
-                *tp++ =':';
-            }
-            continue;
-        }
-        if (i != 0) {
-            if (tp + 1 >= ep) {
-                errno = ENOSPC;
-                return NULL;
-            }
-            *tp++ = ':';
-        }
-        advance = snprintf_s(tp, ep -tp, ep -tp - 1, "%x", words[i]);
-        if (advance <= 0 || advance >= ep - tp) {
-            errno = ENOSPC;
-            return NULL;
-        }
-        tp += advance;
-    }
-    if (best.base != -1 && (best.base + best.len) == (IPV6_MASK_SZ / INT16SZ)) {
-        if (tp + 1 >= ep) {
-            errno = ENOSPC;
-            return NULL;
-        }
-        *tp++ = ':';
-    }
-    if (tp + 1 >= ep) {
-        errno = ENOSPC;
-        return NULL;
-    }
-    *tp++ = '\0';
-    size_t prefLen = (size_t)(tp - tmp);
-    if (prefLen + MASK_THREE > size) {
-        errno = ENOSPC;
-        return NULL;
-    }
-    char strData[INET6_ADDRSTRLEN] = {0};
-    strlcpy(strData, tmp, size);
-    // append ::1
-    if (snprintf_s(route, INET6_ADDRSTRLEN, INET6_ADDRSTRLEN - 1, "%s::1", strData) < 0) {
-        WIFI_LOGE("getRouteFromIPV6Addr failed, snprintf_s failed");
-        return NULL;
-    }
-    return (route);
+    return 0;
 }
 
 void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaIndex)
@@ -319,15 +225,10 @@ void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaInd
     if (scope == 0) {
         (void)memset_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN,
             0, DHCP_INET6_ADDRSTRLEN);
-        (void)memset_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN,
-            0, DHCP_INET6_ADDRSTRLEN);
         (void)memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
             0, DHCP_INET6_ADDRSTRLEN);
         dhcpIpv6Info.status |= 1;
         (void)memcpy_s(dhcpIpv6Info.globalIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN);
-        if (!getRouteFromIPV6Addr(addr->s6_addr, dhcpIpv6Info.routeAddr, INET6_ADDRSTRLEN)) {
-            WIFI_LOGE("onIpv6AddressAddEvent get route failed.");
-        }
         GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
         onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
@@ -381,6 +282,30 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
         onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
         WIFI_LOGI("onIpv6DnsAddEvent addr: %{public}s", dhcpIpv6Info.dnsAddr2);
     } while (false);
+}
+
+void DhcpIpv6Client::onIpv6RouteAddEvent(char* gateway, char* dst, int ifaIndex)
+{
+    int currIndex = if_nametoindex(interfaceName.c_str());
+    if (currIndex != ifaIndex) {
+        WIFI_LOGE("route ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
+        return;
+    }
+    WIFI_LOGE("onIpv6RouteAddEvent gateway:%{public}s, dst:%{public}s, ifindex:%{public}d",
+        gateway, dst, ifaIndex);
+    if (!gateway || !dst) {
+        WIFI_LOGE("onIpv6RouteAddEvent input invalid.");
+        return;
+    }
+    if (strlen(dst) == 0 && strlen(gateway) != 0) {
+        (void)memset_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN);
+        if (strncpy_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN, gateway, strlen(gateway)) != EOK) {
+            WIFI_LOGE("onIpv6RouteAddEvent strncpy_s gateway failed");
+            return;
+        }
+        onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
+    }
 }
 
 int32_t DhcpIpv6Client::createKernelSocket(void)
