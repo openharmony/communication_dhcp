@@ -25,6 +25,7 @@
 #include <net/if.h>
 #include <arpa/inet.h>
 
+#include "dhcp_options.h"
 #include "securec.h"
 #include "dhcp_client.h"
 
@@ -203,9 +204,13 @@ int SendToDhcpPacket(
         close(nFd);
         return SOCKET_OPT_FAILED;
     }
+    /* get append options length , include endpoint length(3) */
+    int optionLen = GetEndOptionIndex(sendPacket->options) + 3;
+    int sendLen = sizeof(udpPackets) - sizeof(udpPackets.data.options) + optionLen;
+    int dhcpPackLen = sizeof(struct DhcpPacket) - sizeof(udpPackets.data.options) + optionLen;
     udpPackets.udp.source = htons(BOOTP_CLIENT);
     udpPackets.udp.dest = htons(BOOTP_SERVER);
-    udpPackets.udp.len = htons(sizeof(udpPackets.udp) + sizeof(struct DhcpPacket));
+    udpPackets.udp.len = htons(sizeof(udpPackets.udp) + dhcpPackLen);
     udpPackets.ip.tot_len = udpPackets.udp.len;
     udpPackets.ip.protocol = IPPROTO_UDP;
     udpPackets.ip.saddr = srcIp;
@@ -217,15 +222,19 @@ int SendToDhcpPacket(
     udpPackets.udp.check = GetCheckSum((uint16_t *)&udpPackets, sizeof(struct UdpDhcpPacket));
     udpPackets.ip.ihl = sizeof(udpPackets.ip) >> DHCP_UINT16_BYTES;
     udpPackets.ip.version = IPVERSION;
-    udpPackets.ip.tot_len = htons(sizeof(struct UdpDhcpPacket));
+    udpPackets.ip.tot_len = htons(sendLen);
     udpPackets.ip.ttl = IPDEFTTL;
     udpPackets.ip.check = GetCheckSum((uint16_t *)&(udpPackets.ip), sizeof(udpPackets.ip));
 
-    ssize_t nBytes = sendto(nFd, &udpPackets, sizeof(udpPackets), 0, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
+    ssize_t nBytes = sendto(nFd, &udpPackets, sendLen, 0, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
     if (nBytes <= 0) {
-        LOGE("SendToDhcpPacket() fd:%{public}d failed, sendto error:%{public}d.", nFd, errno);
+        LOGE("SendToDhcpPacket() optionLen:%{public}d sendLen:%{public}d, "
+            "dhcpPackLen:%{public}d fd:%{public}d failed, sendto error:%{public}d.",
+            optionLen, sendLen, dhcpPackLen, nFd, errno);
     } else {
-        LOGI("SendToDhcpPacket() fd:%{public}d, index:%{public}d, bytes:%{public}d.", nFd, destIndex, (int)nBytes);
+        LOGI("SendToDhcpPacket() optionLen:%{public}d sendLen:%{public}d, "
+            "dhcpPackLen:%{public}d fd:%{public}d, index:%{public}d, bytes:%{public}d.",
+            optionLen, sendLen, dhcpPackLen, nFd, destIndex, (int)nBytes);
     }
     close(nFd);
     return (nBytes <= 0) ? SOCKET_OPT_FAILED : SOCKET_OPT_SUCCESS;
