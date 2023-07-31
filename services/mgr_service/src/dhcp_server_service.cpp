@@ -480,7 +480,7 @@ int DhcpServerService::ForkExecProcess(
         WIFI_LOGE("ForkExecProcess param error, ifname is empty!");
         return DHCP_OPT_FAILED;
     }
-    WIFI_LOGI("ForkExecProcess %{public}s %{public}s %{public}s %{public}s %{public}s",
+    WIFI_LOGI("ForkExecProcess %{public}s %{public}s %{private}s %{public}s %{public}s",
         DHCP_SERVER_FILE.c_str(), ifname.c_str(), ip.c_str(), mask.c_str(), pool.c_str());
     char args[DHCP_SER_ARGSNUM][PARAM_MAX_SIZE];
     char* args2[DHCP_SER_ARGSNUM];

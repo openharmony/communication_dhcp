@@ -280,7 +280,7 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
             break;
         }
         onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
-        WIFI_LOGI("onIpv6DnsAddEvent addr: %{public}s", dhcpIpv6Info.dnsAddr2);
+        WIFI_LOGI("onIpv6DnsAddEvent addr: %{private}s", dhcpIpv6Info.dnsAddr2);
     } while (false);
 }
 
