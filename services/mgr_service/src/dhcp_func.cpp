@@ -286,11 +286,11 @@ int DhcpFunc::CheckRangeNetwork(const std::string strInf, const std::string strB
     }
 
     if (!CheckSameNetwork(uIp, uBegin, uMask)) {
-        WIFI_LOGE("Check %{public}s %{public}s %{public}s failed", strInf.c_str(), strIp.c_str(), strBegin.c_str());
+        WIFI_LOGE("Check %{public}s %{private}s %{public}s failed", strInf.c_str(), strIp.c_str(), strBegin.c_str());
         return DHCP_OPT_FAILED;
     }
     if (!CheckSameNetwork(uIp, uEnd, uMask)) {
-        WIFI_LOGE("Check end %{public}s %{public}s %{public}s failed", strInf.c_str(), strIp.c_str(), strEnd.c_str());
+        WIFI_LOGE("Check end %{public}s %{private}s %{public}s failed", strInf.c_str(), strIp.c_str(), strEnd.c_str());
         return DHCP_OPT_FAILED;
     }
     return DHCP_OPT_SUCCESS;
