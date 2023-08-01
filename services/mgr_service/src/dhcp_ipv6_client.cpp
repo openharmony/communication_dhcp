@@ -68,6 +68,7 @@ const int ADDRTYPE_FLAG_HIGHFC = 0xFC000000;
 const int MASK_FILTER = 0x7;
 const int KERNEL_BUFF_SIZE = (8 * 1024);
 const int ND_OPT_MIN_LEN = 3;
+const int ROUTE_BUFF_SIZE = 1024;
 
 #define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
 #define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
@@ -223,6 +224,7 @@ void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaInd
     inet_ntop(AF_INET6, addr, addr_str, INET6_ADDRSTRLEN);
     int scope = getAddrScope(addr);
     if (scope == 0) {
+        getIpv6RouteAddr();
         (void)memset_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN,
             0, DHCP_INET6_ADDRSTRLEN);
         (void)memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
@@ -352,6 +354,16 @@ void DhcpIpv6Client::Reset()
     (void)memset_s(&dhcpIpv6Info, sizeof(dhcpIpv6Info), 0, sizeof(dhcpIpv6Info));
 }
 
+void DhcpIpv6Client::getIpv6RouteAddr()
+{
+    int len = ROUTE_BUFF_SIZE;
+    char buffer[ROUTE_BUFF_SIZE] = {0};
+    fillRouteData(buffer, len);
+    if (send(ipv6SocketFd, buffer, len, 0) < 0) {
+        WIFI_LOGE("getIpv6RouteAddr send route info failed.");
+    }
+}
+
 int DhcpIpv6Client::StartIpv6(const char *ifname)
 {
     if (!ifname) {
@@ -362,8 +374,8 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
     interfaceName = ifname;
     (void)memset_s(&dhcpIpv6Info, sizeof(dhcpIpv6Info), 0, sizeof(dhcpIpv6Info));
     runFlag = true;
-    int32_t sockFd = createKernelSocket();
-    if (sockFd < 0) {
+    ipv6SocketFd = createKernelSocket();
+    if (ipv6SocketFd < 0) {
         WIFI_LOGE("StartIpv6 createKernelSocket failed.");
         runFlag = false;
         return -1;
@@ -371,7 +383,7 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
     uint8_t *buff = (uint8_t*)malloc(KERNEL_BUFF_SIZE * sizeof(uint8_t));
     if (buff == NULL) {
         WIFI_LOGE("ipv6 malloc buff failed.");
-        close(sockFd);
+        close(ipv6SocketFd);
         runFlag = false;
         return -1;
     }
@@ -383,18 +395,18 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0,
             KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
-        FD_SET(sockFd, &rSet);
-        int iRet = select(sockFd + 1, &rSet, NULL, NULL, &timeout);
+        FD_SET(ipv6SocketFd, &rSet);
+        int iRet = select(ipv6SocketFd + 1, &rSet, NULL, NULL, &timeout);
         if (iRet < 0) {
             WIFI_LOGE("StartIpv6 select failed.");
             break;
         } else if (iRet == 0) {
             continue;
         }
-        if (!FD_ISSET(sockFd, &rSet)) {
+        if (!FD_ISSET(ipv6SocketFd, &rSet)) {
             continue;
         }
-        int32_t len = recv(sockFd, buff, 8 *1024, 0);
+        int32_t len = recv(ipv6SocketFd, buff, 8 *1024, 0);
         if (len < 0) {
             if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK) {
                 continue;
@@ -406,7 +418,8 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
         }
         handleKernelEvent(buff, len);
     }
-    close(sockFd);
+    close(ipv6SocketFd);
+    ipv6SocketFd = 0;
     runFlag = false;
     free(buff);
     buff = NULL;
