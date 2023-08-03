@@ -66,11 +66,15 @@ private:
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
     void parseNDRouteMessage(void* msg);
+    void parseNewneighMessage(void* msg);
+    void getIpv6RouteAddr();
+    void fillRouteData(char* buff, int &len);
 
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged;
     std::string interfaceName;
     bool runFlag = false;
     struct DhcpIpv6Info dhcpIpv6Info;
+    int32_t ipv6SocketFd = 0;
 };
 }  // namespace Wifi
 }  // namespace OHOS

@@ -784,6 +784,12 @@ void DhcpClientServiceImpl::RunIpv6ThreadFunc()
 
 void DhcpClientServiceImpl::OnAddressChangedCallback(const std::string ifname, DhcpIpv6Info &info)
 {
+    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0) {
+        WIFI_LOGE("OnAddressChangedCallback invalid, ipaddr:%{private}s, route:%{private}s",
+            info.globalIpv6Addr, info.routeAddr);
+        return;
+    }
+
     DhcpResult result;
     result.uAddTime = (uint32_t)time(NULL);
     result.iptype = 1;

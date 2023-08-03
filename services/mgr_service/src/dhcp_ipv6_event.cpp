@@ -14,6 +14,7 @@
  */
 #include "dhcp_ipv6_client.h"
 
+#include <unistd.h>
 #include <linux/rtnetlink.h>
 #include "wifi_logger.h"
 
@@ -109,6 +110,53 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
     onIpv6RouteAddEvent(gateway, dst, ifindex);
 }
 
+void DhcpIpv6Client::parseNewneighMessage(void* msg)
+{
+    if (!msg) {
+        return;
+    }
+    struct nlmsghdr *nlh = (struct nlmsghdr*)msg;
+    struct ndmsg *ndm = (struct ndmsg *)NLMSG_DATA(nlh);
+    if (!ndm) {
+        return;
+    }
+    if (ndm->ndm_family == KERNEL_SOCKET_IFA_FAMILY &&
+        ndm->ndm_state == NUD_REACHABLE) {
+        struct rtattr *rta = RTM_RTA(ndm);
+        int rtl = RTM_PAYLOAD(nlh);
+        while (RTA_OK(rta, rtl)) {
+            if (rta->rta_type == NDA_DST) {
+                struct in6_addr *addr = (struct in6_addr *)RTA_DATA(rta);
+                char gateway[DHCP_INET6_ADDRSTRLEN] = {0};
+                char dst[DHCP_INET6_ADDRSTRLEN] = {0};
+                if (GetIpFromS6Address(addr, ndm->ndm_family, gateway,
+                    DHCP_INET6_ADDRSTRLEN) != 0) {
+                    WIFI_LOGE("inet_ntop routeAddr failed.");
+                    return;
+                }
+                onIpv6RouteAddEvent(gateway, dst, ndm->ndm_ifindex);
+                WIFI_LOGI("getIpv6RouteAddr: %{private}s\n", gateway);
+                break;
+            }
+            rta = RTA_NEXT(rta, rtl);
+        }
+    }
+}
+
+void DhcpIpv6Client::fillRouteData(char* buff, int &len)
+{
+    if (!buff) {
+        return;
+    }
+    struct nlmsghdr *nlh = (struct nlmsghdr *)buff;
+    nlh->nlmsg_len = NLMSG_SPACE(sizeof(struct ndmsg));
+    nlh->nlmsg_type = RTM_GETNEIGH;
+    nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
+    nlh->nlmsg_seq = 1;
+    nlh->nlmsg_pid = getpid();
+    len = nlh->nlmsg_len;
+}
+
 void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
 {
     if (!data) {
@@ -146,6 +194,8 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             parseNdUserOptMessage((void*)ndmsg, optsize);
         } else if (nlh->nlmsg_type == RTM_NEWROUTE) {
             parseNDRouteMessage((void*)nlh);
+        } else if (nlh->nlmsg_type == RTM_NEWNEIGH) {
+            parseNewneighMessage((void*)nlh);
         }
         nlh = NLMSG_NEXT(nlh, len);
     }
