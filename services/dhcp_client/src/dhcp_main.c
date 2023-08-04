@@ -286,7 +286,7 @@ static int InitSpecifiedClientCfg(int argc, char *argv[])
         return DHCP_OPT_FAILED;
     }
 
-    LOGI("InitSpecifiedClientCfg: "
+    LOGD("InitSpecifiedClientCfg: "
         "g_cltCfg->workDir:%{public}s,confFile:%{public}s,pidFile:%{public}s,resultFile:%{public}s,getMode:%{public}d",
         g_cltCfg->workDir, g_cltCfg->confFile, g_cltCfg->pidFile, g_cltCfg->resultFile, g_cltCfg->getMode);
 
@@ -298,9 +298,9 @@ static int ExecClientProAction(const char *action)
     /* Stop the specified network interface service. */
     if (strncasecmp(action, "stop", NUMBER_FOUR) == 0) {
         if (StopProcess(g_cltCfg->pidFile) != DHCP_OPT_SUCCESS) {
-            LOGI("ExecClientProAction() StopProcess pidFile:%{public}s not success.", g_cltCfg->pidFile);
+            LOGD("ExecClientProAction() StopProcess pidFile:%{public}s not success.", g_cltCfg->pidFile);
         } else {
-            LOGI("ExecClientProAction() StopProcess pidFile:%{public}s success.", g_cltCfg->pidFile);
+            LOGD("ExecClientProAction() StopProcess pidFile:%{public}s success.", g_cltCfg->pidFile);
         }
         return 1;
     }
@@ -352,7 +352,7 @@ static int GetClientNetworkInfo(void)
         return DHCP_OPT_FAILED;
     }
     MacChConToMacStr(g_cltCfg->ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
-    LOGI("GetClientNetworkInfo() g_cltCfg->ifaceName:%{public}s -> ifaceIndex:%{private}d,ifaceMac:%{private}s.",
+    LOGD("GetClientNetworkInfo() g_cltCfg->ifaceName:%{public}s -> ifaceIndex:%{private}d,ifaceMac:%{private}s.",
         g_cltCfg->ifaceName, g_cltCfg->ifaceIndex, macAddr);
 
     if (GetLocalIp(g_cltCfg->ifaceName, &g_cltCfg->ifaceIpv4) != DHCP_OPT_SUCCESS) {
@@ -364,7 +364,7 @@ static int GetClientNetworkInfo(void)
         LOGE("GetClientNetworkInfo() Ip4IntConToStr g_cltCfg->ifaceIpv4 failed!");
         return DHCP_OPT_FAILED;
     }
-    LOGI("GetClientNetworkInfo() GetLocalIp ifaceName:%{public}s -> ifaceIpv4:%{private}u - %{private}s.",
+    LOGD("GetClientNetworkInfo() GetLocalIp ifaceName:%{public}s -> ifaceIpv4:%{private}u - %{private}s.",
         g_cltCfg->ifaceName, g_cltCfg->ifaceIpv4, cIp);
     free(cIp);
     cIp = NULL;

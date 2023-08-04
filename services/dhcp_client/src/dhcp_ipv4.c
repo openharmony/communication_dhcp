@@ -268,7 +268,7 @@ static void InitSelecting(time_t timestamp)
     g_dhcp4State = DHCP_STATE_SELECTING;
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << g_sentPacketNum;
     g_timeoutTimestamp = timestamp + uTimeoutSec;
-    LOGI("InitSelecting() DhcpDiscover g_sentPacketNum:%{public}u,timeoutSec:%{public}u,timestamp:%{public}u.",
+    LOGD("InitSelecting() DhcpDiscover g_sentPacketNum:%{public}u,timeoutSec:%{public}u,timestamp:%{public}u.",
         g_sentPacketNum,
         uTimeoutSec,
         g_timeoutTimestamp);
@@ -384,7 +384,7 @@ static int DhcpReboot(uint32_t transid, uint32_t reqip)
     /* Begin broadcast dhcp request packet. */
     char *pReqIp = Ip4IntConToStr(reqip, false);
     if (pReqIp != NULL) {
-        LOGI("DhcpReboot() broadcast req packet, reqip: host %{private}u->%{private}s.", ntohl(reqip), pReqIp);
+        LOGD("DhcpReboot() broadcast req packet, reqip: host %{private}u->%{private}s.", ntohl(reqip), pReqIp);
         free(pReqIp);
         pReqIp = NULL;
     }
@@ -437,7 +437,7 @@ static void Reboot(time_t timestamp)
             leaseTime -= interval;
             renewalTime = leaseTime * RENEWAL_SEC_MULTIPLE;
             rebindTime = leaseTime * REBIND_SEC_MULTIPLE;
-            LOGI("Reboot read lease file leaseTime:%{public}u, renewalTime:%{public}u, rebindTime:%{public}u",
+            LOGD("Reboot read lease file leaseTime:%{public}u, renewalTime:%{public}u, rebindTime:%{public}u",
                 leaseTime, renewalTime, rebindTime);
         }
     } else {
@@ -593,7 +593,7 @@ static void DhcpOfferPacketHandle(uint8_t type, const struct DhcpPacket *packet,
 
     char *pReqIp = Ip4IntConToStr(g_requestedIp4, false);
     if (pReqIp != NULL) {
-        LOGI(
+        LOGD(
             "DhcpOfferPacketHandle() receive DHCP_OFFER, xid:%{public}u, requestIp: host %{private}u->%{private}s.",
             g_transID,
             ntohl(g_requestedIp4),
@@ -603,7 +603,7 @@ static void DhcpOfferPacketHandle(uint8_t type, const struct DhcpPacket *packet,
     }
     char *pSerIp = Ip4IntConToStr(g_serverIp4, false);
     if (pSerIp != NULL) {
-        LOGI("DhcpOfferPacketHandle() receive DHCP_OFFER, serverIp: host %{private}u->%{private}s.",
+        LOGD("DhcpOfferPacketHandle() receive DHCP_OFFER, serverIp: host %{private}u->%{private}s.",
             ntohl(g_serverIp4),
             pSerIp);
         free(pSerIp);
@@ -660,7 +660,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
 
     char *pReqIp = Ip4IntConToStr(g_requestedIp4, false);
     if (pReqIp != NULL) {
-        LOGI("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{private}s.", ntohl(g_requestedIp4), pReqIp);
+        LOGD("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{private}s.", ntohl(g_requestedIp4), pReqIp);
         if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, pReqIp, INET_ADDRSTRLEN - 1) != EOK) {
             LOGI("ParseNetworkInfo() strncpy_s failed!");
             free(pReqIp);
@@ -675,7 +675,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
     if (GetDhcpOptionUint32(packet, SUBNET_MASK_OPTION, &u32Data)) {
         char *pSubIp = Ip4IntConToStr(u32Data, true);
         if (pSubIp != NULL) {
-            LOGI("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.", u32Data, pSubIp);
+            LOGD("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.", u32Data, pSubIp);
             if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp, INET_ADDRSTRLEN - 1) != EOK) {
                 free(pSubIp);
                 pSubIp = NULL;
@@ -691,7 +691,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
     if (GetDhcpOptionUint32n(packet, ROUTER_OPTION, &u32Data, &u32Data2)) {
         char *pRouterIp = Ip4IntConToStr(u32Data, true);
         if (pRouterIp != NULL) {
-            LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router1: %{private}u->%{private}s.", u32Data, pRouterIp);
+            LOGD("ParseNetworkInfo() recv DHCP_ACK 3, router1: %{private}u->%{private}s.", u32Data, pRouterIp);
             if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
                 free(pRouterIp);
                 pRouterIp = NULL;
@@ -701,7 +701,7 @@ static void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpResult 
             pRouterIp = NULL;
         }
         if ((u32Data2 > 0) && ((pRouterIp = Ip4IntConToStr(u32Data2, true)) != NULL)) {
-            LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router2: %{private}u->%{private}s.", u32Data2, pRouterIp);
+            LOGD("ParseNetworkInfo() recv DHCP_ACK 3, router2: %{private}u->%{private}s.", u32Data2, pRouterIp);
             if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
                 free(pRouterIp);
                 pRouterIp = NULL;
@@ -775,7 +775,7 @@ static int WriteDhcpResult(struct DhcpResult *result)
     FormatString(result);
 
     uint32_t curTime = (uint32_t)time(NULL);
-    LOGI("WriteDhcpResult() "
+    LOGD("WriteDhcpResult() "
          "result->strYiaddr:%{private}s,strOptServerId:%{private}s,strOptSubnet:%{private}s,uOptLeasetime:%{public}u,"
          " curTime:%{public}u.",
         result->strYiaddr, result->strOptServerId, result->strOptSubnet, result->uOptLeasetime, curTime);
@@ -896,7 +896,7 @@ static void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp
         g_serverIp4 = htonl(u32Data);
         char *pSerIp = Ip4IntConToStr(g_serverIp4, false);
         if (pSerIp != NULL) {
-            LOGI("ParseDhcpAckPacket() recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
+            LOGD("ParseDhcpAckPacket() recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
             if (strncpy_s(dhcpResult.strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
                 free(pSerIp);
                 pSerIp = NULL;
@@ -1212,7 +1212,7 @@ int GetPacketCommonInfo(struct DhcpPacket *packet)
 /* Broadcast dhcp discover packet, discover dhcp servers that can provide ip address. */
 int DhcpDiscover(uint32_t transid, uint32_t requestip)
 {
-    LOGI("DhcpDiscover() enter, transid:%{public}u,requestip:%{private}u.", transid, requestip);
+    LOGD("DhcpDiscover() enter, transid:%{public}u,requestip:%{private}u.", transid, requestip);
 
     struct DhcpPacket packet;
     if (memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) != EOK) {
@@ -1233,7 +1233,7 @@ int DhcpDiscover(uint32_t transid, uint32_t requestip)
     AddParamaterRequestList(&packet);
 
     /* Begin broadcast dhcp discover packet. */
-    LOGI("DhcpDiscover() discover, begin broadcast discover packet...");
+    LOGD("DhcpDiscover() discover, begin broadcast discover packet...");
     return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, g_cltCnf->ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
 }
 
@@ -1262,13 +1262,13 @@ int DhcpRequest(uint32_t transid, uint32_t reqip, uint32_t servip)
     /* Begin broadcast dhcp request packet. */
     char *pReqIp = Ip4IntConToStr(reqip, false);
     if (pReqIp != NULL) {
-        LOGI("DhcpRequest() broadcast req packet, reqip: host %{private}u->%{private}s.", ntohl(reqip), pReqIp);
+        LOGD("DhcpRequest() broadcast req packet, reqip: host %{private}u->%{private}s.", ntohl(reqip), pReqIp);
         free(pReqIp);
         pReqIp = NULL;
     }
     char *pSerIp = Ip4IntConToStr(servip, false);
     if (pSerIp != NULL) {
-        LOGI("DhcpRequest() broadcast req packet, servIp: host %{private}u->%{private}s.", ntohl(servip), pSerIp);
+        LOGD("DhcpRequest() broadcast req packet, servIp: host %{private}u->%{private}s.", ntohl(servip), pSerIp);
         free(pSerIp);
         pSerIp = NULL;
     }
@@ -1375,10 +1375,10 @@ int StartIpv4(void)
         FD_SET(g_sigSockFds[0], &exceptfds);
 
         if (timeout.tv_sec <= 0) {
-            LOGI("StartIpv4() already timed out, need send or resend packet...");
+            LOGD("StartIpv4() already timed out, need send or resend packet...");
             nRet = 0;
         } else {
-            LOGI("StartIpv4() waiting on select...");
+            LOGD("StartIpv4() waiting on select...");
             nMaxFds = (g_sigSockFds[0] > g_sockFd) ? g_sigSockFds[0] : g_sockFd;
             nRet = select(nMaxFds + 1, &exceptfds, NULL, NULL, &timeout);
         }
