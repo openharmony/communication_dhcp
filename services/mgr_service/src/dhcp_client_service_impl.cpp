@@ -598,7 +598,7 @@ int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &
     }
 
     DhcpResult result;
-    result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
+    result.uAddTime = atoi(splits[DHCP_NUM_ONE].c_str());
     result.iptype = 0;
     std::string ifname = splits[DHCP_NUM_ZERO];
     if (CheckDhcpResultExist(ifname, result)) {
@@ -619,7 +619,7 @@ int DhcpClientServiceImpl::GetSuccessIpv4Result(const std::vector<std::string> &
 
     result.isOptSuc     = true;
     result.strYourCli   = splits[DHCP_NUM_TWO];
-    result.uLeaseTime   = std::stoi(splits[DHCP_NUM_THREE]);
+    result.uLeaseTime   = atoi(splits[DHCP_NUM_THREE].c_str());
     result.strServer    = splits[DHCP_NUM_FOUR];
     result.strSubnet    = splits[DHCP_NUM_FIVE];
     result.strDns1      = splits[DHCP_NUM_SIX];
@@ -665,7 +665,7 @@ int DhcpClientServiceImpl::GetDhcpEventIpv4Result(const int code, const std::vec
         DhcpResult result;
         result.iptype = 0;
         result.isOptSuc = false;
-        result.uAddTime = std::stoi(splits[DHCP_NUM_ONE]);
+        result.uAddTime = atoi(splits[DHCP_NUM_ONE].c_str());
         PushDhcpResult(ifname, result);
         WIFI_LOGI("GetDhcpEventIpv4Result() ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
         return DHCP_OPT_SUCCESS;
