@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <vector>
+#include <sys/wait.h>
 
 #include "securec.h"
 #include "wifi_logger.h"
@@ -29,6 +30,9 @@
 namespace OHOS {
 namespace Wifi {
 DEFINE_WIFILOG_DHCP_LABEL("DhcpFunc");
+
+const int MAX_RETEY_WAIT_COUNT = 60;
+const int WAIT_SLEEP_50MS = 50;
 
 bool DhcpFunc::Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool bHost)
 {
@@ -698,6 +702,24 @@ bool DhcpFunc::SplitString(
     WIFI_LOGI("SplitString() %{private}s success, delim:%{public}s, count:%{public}d, splits.size():%{public}d.",
         src.c_str(), delim.c_str(), count, (int)splits.size());
     return true;
+}
+
+int DhcpFunc::WaitProcessExit(const pid_t& serverPid)
+{
+    int retryCount = 0;
+    while (retryCount < MAX_RETEY_WAIT_COUNT) {
+        pid_t ret = waitpid(serverPid, nullptr, WNOHANG);
+        if (ret == -1) {
+            WIFI_LOGE("WaitProcessExit() waitpid [%{public}d] failed, errno:%{public}d!", serverPid, errno);
+            return -1;
+        } else if (ret == 0) {
+            retryCount++;
+            usleep(WAIT_SLEEP_50MS);
+        }
+        return 0;
+    }
+    WIFI_LOGE("WaitProcessExit() timeout waitpid [%{public}d] failed!", serverPid);
+    return -1;
 }
 
 #ifndef OHOS_ARCH_LITE

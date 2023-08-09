@@ -538,7 +538,7 @@ int DhcpServerService::StopServer(const pid_t &serverPid)
         WIFI_LOGE("StopServer() kill [%{public}d] failed, errno:%{public}d!", serverPid, errno);
         return DHCP_OPT_FAILED;
     }
-    if (waitpid(serverPid, nullptr, 0) == -1) {
+    if (DhcpFunc::WaitProcessExit(serverPid) == -1) {
         WIFI_LOGE("StopServer() waitpid [%{public}d] failed, errno:%{public}d!", serverPid, errno);
         return DHCP_OPT_FAILED;
     }
