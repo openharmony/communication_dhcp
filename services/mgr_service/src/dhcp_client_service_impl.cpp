@@ -858,8 +858,8 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
         /* Parent process */
         WIFI_LOGI("StartDhcpClient() vfork %{public}d success, parent:%{public}d, begin waitpid...", pid, getpid());
         int ret = ForkExecParentProcess(ifname, bIpv6, true, pid);
-        pid_t pidRet = waitpid(pid, nullptr, 0);
-        if (pidRet == pid) {
+        int pidRet = DhcpFunc::WaitProcessExit(pid);
+        if (pidRet == 0) {
             WIFI_LOGI("StartDhcpClient() waitpid child:%{public}d success.", pid);
         } else {
             WIFI_LOGE("StartDhcpClient() waitpid child:%{public}d failed, pidRet:%{public}d!", pid, pidRet);
@@ -906,8 +906,8 @@ int DhcpClientServiceImpl::StopDhcpClient(const std::string &ifname, bool bIpv6)
     } else {
         /* Parent process */
         WIFI_LOGI("StopDhcpClient() vfork %{public}d success, parent:%{public}d, begin waitpid...", pid, getpid());
-        pid_t pidRet = waitpid(pid, nullptr, 0);
-        if (pidRet == pid) {
+        int pidRet = DhcpFunc::WaitProcessExit(pid);
+        if (pidRet == 0) {
             WIFI_LOGI("StopDhcpClient() waitpid child:%{public}d success.", pid);
         } else {
             WIFI_LOGE("StopDhcpClient() waitpid child:%{public}d failed, pidRet:%{public}d!", pid, pidRet);

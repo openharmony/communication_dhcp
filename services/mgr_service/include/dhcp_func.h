@@ -63,6 +63,7 @@ public:
     static int CreateDirs(const std::string dirs, int mode = DIR_DEFAULT_MODE);
     static bool SplitString(
         const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
+    static int WaitProcessExit(const pid_t& serverPid);
 #ifdef OHOS_ARCH_LITE
     static int GetDhcpPacketResult(const std::string& filename, struct DhcpPacketResult &result);
 #else
