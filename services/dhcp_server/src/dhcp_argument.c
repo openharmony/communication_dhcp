@@ -128,7 +128,7 @@ static void ShowUsage(const DhcpUsage *usage)
         return;
     }
     if (usage->opt->val) {
-        printf("-%d,--%s ", usage->opt->val, usage->opt->name);
+        printf("-%c,--%s ", (char)usage->opt->val, usage->opt->name);
     } else {
         printf("   --%s ", usage->opt->name);
     }
