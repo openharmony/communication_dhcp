@@ -55,6 +55,7 @@ struct ArpPacket {
 static int g_dhcp4State = DHCP_STATE_INIT;
 static int g_sockFd = -1;
 static int g_sigSockFds[NUMBER_TWO];
+static int g_ResendTimer = 0;
 static uint32_t g_sentPacketNum = 0;
 static uint32_t g_timeoutTimestamp = 0;
 static uint32_t g_renewalTimestamp = 0;
@@ -919,6 +920,7 @@ static void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp
 
     /* Receive dhcp ack packet finished, g_leaseTime * T1 later enter renewing state. */
     g_dhcp4State = DHCP_STATE_BOUND;
+    g_ResendTimer = 0;
     SetSocketMode(SOCKET_MODE_INVALID);
     g_timeoutTimestamp = timestamp + g_renewalSec;
 }
@@ -950,7 +952,16 @@ static void DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpPacket *packet, ti
 
         /* Avoid excessive network traffic. */
         LOGI("DhcpAckOrNakPacketHandle() receive DHCP_NAK 53, avoid excessive network traffic, need sleep!");
-        sleep(NUMBER_THREE);
+        if (g_ResendTimer == 0) {
+            g_ResendTimer = FIRST_TIMEOUT_SEC;
+        } else {
+            sleep(g_ResendTimer);
+
+            g_ResendTimer *= DOUBLE_TIME;
+            if (g_ResendTimer > MAX_TIMEOUT_SEC) {
+                g_ResendTimer = MAX_TIMEOUT_SEC;
+            }
+        }
         return;
     }
 
@@ -1337,6 +1348,7 @@ static void DhcpInit(void)
 
     /* Init dhcp ipv4 state. */
     g_dhcp4State = DHCP_STATE_INIT;
+    g_ResendTimer = 0;
     SetSocketMode(SOCKET_MODE_RAW);
 
     InitSocketFd();
