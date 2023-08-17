@@ -32,6 +32,10 @@ extern "C" {
 #define NUMBER_FOUR             4
 #define NUMBER_FIVE             5
 
+#define FIRST_TIMEOUT_SEC       1
+#define MAX_TIMEOUT_SEC         6
+#define DOUBLE_TIME             2
+
 #define RENEWAL_SEC_MULTIPLE    0.5
 #define REBIND_SEC_MULTIPLE     0.875
 #define TIME_INTERVAL_MAX       1
