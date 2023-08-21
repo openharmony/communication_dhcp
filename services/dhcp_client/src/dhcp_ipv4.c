@@ -66,6 +66,7 @@ static uint32_t g_requestedIp4 = 0;
 static uint32_t g_serverIp4 = 0;
 static uint32_t g_socketMode = SOCKET_MODE_INVALID;
 static uint32_t g_transID = 0;
+static uint32_t USECOND_CONVERT = 1000;
 
 static struct DhcpClientCfg *g_cltCnf;
 
@@ -226,21 +227,21 @@ static void InitSocketFd(void)
 }
 
 /* Obtains a random number as the trans id. */
-static uint32_t GetTransId(void)
+static uint32_t GetRandomId(void)
 {
     static bool bSranded = false;
     if (!bSranded) {
         unsigned int uSeed = 0;
         int nFd = -1;
         if ((nFd = open("/dev/urandom", 0)) == -1) {
-            LOGE("GetTransId() open /dev/urandom failed, error:%{public}d!", errno);
+            LOGE("GetRandomId() open /dev/urandom failed, error:%{public}d!", errno);
             uSeed = time(NULL);
         } else {
             if (read(nFd, &uSeed, sizeof(uSeed)) == -1) {
-                LOGE("GetTransId() read /dev/urandom failed, error:%{public}d!", errno);
+                LOGE("GetRandomId() read /dev/urandom failed, error:%{public}d!", errno);
                 uSeed = time(NULL);
             }
-            LOGI("GetTransId() read /dev/urandom uSeed:%{public}u.", uSeed);
+            LOGI("GetRandomId() read /dev/urandom uSeed:%{public}u.", uSeed);
             close(nFd);
         }
         srandom(uSeed);
@@ -261,14 +262,18 @@ static void InitSelecting(time_t timestamp)
     }
 
     if (g_sentPacketNum == 0) {
-        g_transID = GetTransId();
+        g_transID = GetRandomId();
     }
 
     /* Broadcast dhcp discover packet. */
     DhcpDiscover(g_transID, g_requestedIp4);
     g_dhcp4State = DHCP_STATE_SELECTING;
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << g_sentPacketNum;
+    if (uTimeoutSec > MAX_WAIT_TIMES) {
+        uTimeoutSec = MAX_WAIT_TIMES;
+    }
     g_timeoutTimestamp = timestamp + uTimeoutSec;
+
     LOGD("InitSelecting() DhcpDiscover g_sentPacketNum:%{public}u,timeoutSec:%{public}u,timestamp:%{public}u.",
         g_sentPacketNum,
         uTimeoutSec,
@@ -403,7 +408,7 @@ void SendReboot(struct DhcpPacket *p, time_t timestamp)
     free(p);
     p = NULL;
 
-    g_transID = GetTransId();
+    g_transID = GetRandomId();
     g_dhcp4State = DHCP_STATE_INITREBOOT;
     g_sentPacketNum = 0;
 
@@ -475,6 +480,9 @@ static void Requesting(time_t timestamp)
     }
 
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << g_sentPacketNum;
+    if (uTimeoutSec > MAX_WAIT_TIMES) {
+        uTimeoutSec = MAX_WAIT_TIMES;
+    }
     g_timeoutTimestamp = timestamp + uTimeoutSec;
     LOGI("Requesting() DhcpRequest g_sentPacketNum:%{public}u,timeoutSec:%{public}u,g_timeoutTimestamp:%{public}u.",
         g_sentPacketNum,
@@ -1333,7 +1341,7 @@ int DhcpRelease(uint32_t clientip, uint32_t serverip)
     }
 
     /* Get packet not common info. */
-    packet.xid = GetTransId();
+    packet.xid = GetRandomId();
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, clientip);
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, serverip);
 
@@ -1377,8 +1385,8 @@ int StartIpv4(void)
 
         FD_ZERO(&exceptfds);
         timeout.tv_sec = g_timeoutTimestamp - time(NULL);
-        timeout.tv_usec = 0;
-
+        timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
+        
         InitSocketFd();
 
         if (g_sockFd >= 0) {
