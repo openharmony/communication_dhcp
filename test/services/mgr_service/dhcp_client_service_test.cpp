@@ -61,10 +61,10 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test2, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::Atleast(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::Atleast(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::Atleast(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::AtLeast(0));
 
     std::string ifname = "wlan0";
     std::string strFile4 = DHCP_WORK_DIR + ifname + DHCP_RESULT_FILETYPE;
@@ -104,10 +104,10 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
         .WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::Atleast(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::Atleast(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::Atleast(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::AtLeast(0));
 
     std::string ifname = "wlan0";
     EXPECT_EQ(0, pClientService->GetDhcpClientProPid(""));
