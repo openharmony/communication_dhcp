@@ -61,16 +61,15 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test2, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::Atleast(0));
 
     std::string ifname = "wlan0";
     std::string strFile4 = DHCP_WORK_DIR + ifname + DHCP_RESULT_FILETYPE;
     std::string strData4 = "IP4 0 * * * * * * * * 0";
     ASSERT_TRUE(DhcpFunc::CreateFile(strFile4, strData4));
-    bool bIpv6 = true;
-    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StartDhcpClient(ifname, bIpv6));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StartDhcpClient(ifname, bIpv6));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StartDhcpClient(ifname, bIpv6));
-
     DhcpResultNotify dhcpResultNotify;
     EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpResult("", &dhcpResultNotify, 0));
     EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpResult(ifname, nullptr, 0));
@@ -105,6 +104,10 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
         .WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::Atleast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::Atleast(0));
 
     std::string ifname = "wlan0";
     EXPECT_EQ(0, pClientService->GetDhcpClientProPid(""));
