@@ -192,5 +192,59 @@ HWTEST_F(DhcpIpv4Test, PublishDhcpResultEvent_Fail5, TestSize.Level1)
     char ifname[] = "testcode//";
     EXPECT_EQ(DHCP_OPT_SUCCESS, PublishDhcpResultEvent(ifname, PUBLISH_CODE_FAILED, &result));
 }
+
+HWTEST_F(DhcpIpv4Test, SetSocketModeTest, TestSize.Level1)
+{
+    LOGE("SetSocketModeTest enter!");
+    SetSocketMode(1);
+}
+
+HWTEST_F(DhcpIpv4Test, InitSignalHandleTest, TestSize.Level1)
+{
+    LOGE("InitSignalHandleTest enter!");
+    int result = InitSignalHandle();
+    LOGE("InitSignalHandleTest result(%{public}d)", result);
+    EXPECT_EQ(result, DHCP_OPT_SUCCESS);
+}
+
+HWTEST_F(DhcpIpv4Test, DhcpReleaseTest, TestSize.Level1)
+{
+    LOGE("DhcpReleaseTest enter!");
+    int result = DhcpRelease(1, 1);
+    LOGE("DhcpReleaseTest result(%{public}d)", result);
+    EXPECT_EQ(result, DHCP_OPT_FAILED);
+}
+
+HWTEST_F(DhcpIpv4Test, StartIpv4Test, TestSize.Level1)
+{
+    LOGE("StartIpv4Test enter!");
+    int result = StartIpv4();
+    LOGE("StartIpv4Test result(%{public}d)", result);
+    EXPECT_EQ(result, DHCP_OPT_SUCCESS);
+}
+
+HWTEST_F(DhcpIpv4Test, SendRebootTest, TestSize.Level1)
+{
+    LOGE("SendRebootTest enter!");
+    SendReboot(nullptr, 1);
+}
+
+HWTEST_F(DhcpIpv4Test, GetPacketReadSockFdTest, TestSize.Level1)
+{
+    LOGE("GetPacketReadSockFdTest enter!");
+    GetPacketReadSockFd();
+}
+
+HWTEST_F(DhcpIpv4Test, GetSigReadSockFdTest, TestSize.Level1)
+{
+    LOGE("GetSigReadSockFdTest enter!");
+    GetSigReadSockFd();
+}
+
+HWTEST_F(DhcpIpv4Test, GetDhcpTransIDTest, TestSize.Level1)
+{
+    LOGE("GetDhcpTransIDTest enter!");
+    GetDhcpTransID();
+}
 }
 }
