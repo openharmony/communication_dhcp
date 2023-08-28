@@ -328,6 +328,8 @@ private:
     std::string currIfName;
     DhcpIpv6Client ipv6Client;
     std::thread *pDhcpIpv6ClientThread;
+
+    std::mutex m_dhcpIpv6Mutex;
 };
 }  // namespace Wifi
 }  // namespace OHOS

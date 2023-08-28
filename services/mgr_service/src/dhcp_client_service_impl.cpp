@@ -100,6 +100,8 @@ void DhcpClientServiceImpl::ExitDhcpMgrThread()
         pDhcpResultHandleThread = nullptr;
     }
     ipv6Client.DhcpIPV6Stop();
+
+    std::unique_lock<std::mutex> lock(m_dhcpIpv6Mutex);
     if (pDhcpIpv6ClientThread != nullptr) {
         pDhcpIpv6ClientThread->join();
         delete pDhcpIpv6ClientThread;
@@ -820,10 +822,7 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
     WIFI_LOGI("enter StartDhcpClient()...ifname:%{public}s, bIpv6:%{public}d.", ifname.c_str(), bIpv6);
     if (bIpv6) {
         ipv6Client.Reset();
-        if (!ipv6Client.IsRunning() && pDhcpIpv6ClientThread) {
-            delete pDhcpIpv6ClientThread;
-            pDhcpIpv6ClientThread = NULL;
-        }
+        std::unique_lock<std::mutex> lock(m_dhcpIpv6Mutex);
         if (!pDhcpIpv6ClientThread) {
             pDhcpIpv6ClientThread = new std::thread(&DhcpClientServiceImpl::RunIpv6ThreadFunc, this);
             if (pDhcpIpv6ClientThread == nullptr) {
