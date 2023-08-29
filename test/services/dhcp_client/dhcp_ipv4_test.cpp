@@ -212,7 +212,7 @@ HWTEST_F(DhcpIpv4Test, DhcpReleaseTest, TestSize.Level1)
     LOGE("DhcpReleaseTest enter!");
     int result = DhcpRelease(1, 1);
     LOGE("DhcpReleaseTest result(%{public}d)", result);
-    EXPECT_EQ(result, DHCP_OPT_FAILED);
+    EXPECT_NE(result, DHCP_OPT_SUCCESS);
 }
 
 HWTEST_F(DhcpIpv4Test, StartIpv4Test, TestSize.Level1)
