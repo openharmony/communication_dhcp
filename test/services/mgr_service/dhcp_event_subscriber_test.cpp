@@ -46,20 +46,25 @@ public:
     {}
     virtual void SetUp()
     {
+        EventFwk::MatchingSkills matchingSkills;
+        matchingSkills.AddEvent("testcode");
+        EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
+        dhcpSubscriber = std::make_unique<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
     }
     virtual void TearDown()
     {
+        if (dhcpSubscriber != nullptr) {
+            dhcpSubscriber.reset(nullptr);
+        }
     }
+public:
+    std::unique_ptr<DhcpEventSubscriber> dhcpSubscriber;
 };
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsNull, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsNull enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("");
@@ -68,12 +73,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsNull, TestSize.Level1
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("ipv4:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
@@ -82,12 +83,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4, TestSize.Level1
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_1, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_1 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_FAILED_CODE);
     commonData.SetData("ipv4:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
@@ -96,12 +93,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_1, TestSize.Leve
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_2, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_2 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("ipv4:");
@@ -110,12 +103,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_2, TestSize.Leve
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_3, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_3 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("ipv4:ifname");
@@ -126,12 +115,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_3, TestSize.Leve
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_4, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_4 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("ipv4:ifname,time,*,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
@@ -143,12 +128,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_4, TestSize.Leve
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_5, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_5 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("ipv4:,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
@@ -161,12 +142,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_5, TestSize.Leve
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv6, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv6 enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("ipv6:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
@@ -175,12 +152,8 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv6, TestSize.Level1
 
 HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsOther, TestSize.Level1)
 {
+    ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsOther enter!");
-    EventFwk::MatchingSkills matchingSkills;
-    matchingSkills.AddEvent("testcode");
-    EventFwk::CommonEventSubscribeInfo subInfo(matchingSkills);
-    auto dhcpSubscriber = std::make_shared<OHOS::Wifi::DhcpEventSubscriber>(subInfo);
-   
     OHOS::EventFwk::CommonEventData commonData;
     commonData.SetCode(PUBLISH_UCCESS_CODE);
     commonData.SetData("testcode");

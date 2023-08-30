@@ -98,6 +98,10 @@ ohos_unittest("dhcp_manage_unittest") {
     "eventhandler:libeventhandler",
     "hilog:libhilog",
   ]
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
   configs = [ ":module_private_config" ]
 
   part_name = "dhcp"
