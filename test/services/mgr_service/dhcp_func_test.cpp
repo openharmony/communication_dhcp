@@ -24,6 +24,7 @@ using namespace OHOS;
 using namespace OHOS::Wifi;
 namespace OHOS {
 namespace Wifi {
+constexpr int DHCP_FAILED_CODE = -1;
 class DhcpFuncTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -247,6 +248,17 @@ HWTEST_F(DhcpFuncTest, CreateDirs_TEST, TestSize.Level1)
 {
     std::string strDir;
     EXPECT_EQ(DhcpFunc::CreateDirs(strDir), DHCP_OPT_FAILED);
+}
+
+HWTEST_F(DhcpFuncTest, CheckProRunningTest, TestSize.Level1)
+{
+    std::string proName;
+    pid_t proPid = 0;
+    EXPECT_EQ(DhcpFunc::CheckProRunning(proPid, proName), DHCP_FAILED_CODE);
+    proPid = 1234;
+    EXPECT_EQ(DhcpFunc::CheckProRunning(proPid, proName), DHCP_FAILED_CODE);
+    proName = "testcode";
+    EXPECT_EQ(DhcpFunc::CheckProRunning(proPid, proName), DHCP_OPT_SUCCESS);
 }
 }
 }

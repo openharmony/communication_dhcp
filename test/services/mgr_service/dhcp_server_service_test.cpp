@@ -229,7 +229,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname2));   //start vfork parent success
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname2));   //restart start vfork parent success
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StopDhcpServer(ifname2));
-
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(""));
     MockSystemFunc::SetMockFlag(false);
 }
 
@@ -315,6 +315,33 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
     std::vector<std::string> vecLeases;
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->GetLeases(ifname, vecLeases));
     ASSERT_TRUE(DhcpFunc::RemoveFile(strFile));
+}
+
+HWTEST_F(DhcpServerServiceTest, SigChildHandlerTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pServerService != nullptr);
+    int signum = 0;
+    pServerService->SigChildHandler(signum);
+    signum = SIGCHLD;
+    pServerService->SigChildHandler(signum);
+}
+
+HWTEST_F(DhcpServerServiceTest, SetDhcpServerInfoTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pServerService != nullptr);
+    std::string ifname;
+    int status = SERVICE_STATUS_INVALID;
+    pid_t serverPid = 1234;
+    EXPECT_EQ(DHCP_OPT_ERROR, pServerService->SetDhcpServerInfo(ifname, status, serverPid));
+
+    ifname = "wlan0";
+    EXPECT_EQ(DHCP_OPT_ERROR, pServerService->SetDhcpServerInfo(ifname, status, serverPid));
+
+    status = SERVICE_STATUS_START;
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpServerInfo(ifname, status, serverPid));
+
+    status = SERVICE_STATUS_STOP;
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpServerInfo(ifname, status, serverPid));
 }
 }
 }
