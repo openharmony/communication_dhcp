@@ -36,7 +36,7 @@ using ::testing::ext::TestSize;
 
 namespace OHOS {
 namespace Wifi {
-constexpr int PUBLISH_UCCESS_CODE = 0;
+constexpr int PUBLISH_SUCCESS_CODE = 0;
 constexpr int PUBLISH_FAILED_CODE = -1;
 class DhcpEventSubscriberTest : public testing::Test {
 public:
@@ -66,7 +66,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsNull, TestSize.Level1
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsNull enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("");
     dhcpSubscriber->OnReceiveEvent(commonData);
 }
@@ -76,7 +76,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4, TestSize.Level1
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4 enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("ipv4:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
     dhcpSubscriber->OnReceiveEvent(commonData);
 }
@@ -96,7 +96,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_2, TestSize.Leve
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_2 enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("ipv4:");
     dhcpSubscriber->OnReceiveEvent(commonData);
 }
@@ -106,7 +106,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_3, TestSize.Leve
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_3 enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("ipv4:ifname");
     dhcpSubscriber->OnReceiveEvent(commonData);
     commonData.SetData("ipv4:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1");
@@ -118,7 +118,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_4, TestSize.Leve
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_4 enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("ipv4:ifname,time,*,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
     dhcpSubscriber->OnReceiveEvent(commonData);
     commonData.SetCode(PUBLISH_FAILED_CODE);
@@ -131,7 +131,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv4_5, TestSize.Leve
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv4_5 enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("ipv4:,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
     dhcpSubscriber->OnReceiveEvent(commonData);
     commonData.SetData("ipv4:ifname,,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
@@ -145,7 +145,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsIpv6, TestSize.Level1
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsIpv6 enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("ipv6:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor");
     dhcpSubscriber->OnReceiveEvent(commonData);
 }
@@ -155,7 +155,7 @@ HWTEST_F(DhcpEventSubscriberTest, OnReceiveEventTest_DataIsOther, TestSize.Level
     ASSERT_TRUE(dhcpSubscriber != nullptr);
     LOGE("OnReceiveEventTest_DataIsOther enter!");
     OHOS::EventFwk::CommonEventData commonData;
-    commonData.SetCode(PUBLISH_UCCESS_CODE);
+    commonData.SetCode(PUBLISH_SUCCESS_CODE);
     commonData.SetData("testcode");
     dhcpSubscriber->OnReceiveEvent(commonData);
 }

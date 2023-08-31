@@ -132,5 +132,14 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
 
     MockSystemFunc::SetMockFlag(false);
 }
+
+HWTEST_F(DhcpClientServiceTest, UnsubscribeDhcpEventTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pClientService != nullptr);
+    std::string strAction;
+    EXPECT_EQ(DHCP_OPT_ERROR, pClientService->UnsubscribeDhcpEvent(strAction));
+    strAction = "action";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->UnsubscribeDhcpEvent(strAction));
+}
 }
 }
