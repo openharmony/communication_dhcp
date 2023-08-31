@@ -56,6 +56,7 @@ HWTEST_F(DhcpSocketTest, CreateKernelSocket_SUCCESS, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
     int fd = -1;
+    EXPECT_EQ(CreateKernelSocket(nullptr), SOCKET_OPT_FAILED);
     EXPECT_EQ(CreateKernelSocket(&fd), SOCKET_OPT_FAILED);
     EXPECT_EQ(CreateKernelSocket(&fd), SOCKET_OPT_SUCCESS);
 
@@ -231,6 +232,17 @@ HWTEST_F(DhcpSocketTest, GetDhcpKernelPacket_SUCCESS, TestSize.Level1)
     packet.cookie = htonl(MAGIC_COOKIE);
     EXPECT_GT(GetDhcpKernelPacket(&packet, 1), 0);
 
+    MockSystemFunc::SetMockFlag(false);
+}
+
+HWTEST_F(DhcpSocketTest, GetDhcpRawPacket_FAILED, TestSize.Level1)
+{
+    EXPECT_EQ(GetDhcpRawPacket(NULL, 1), SOCKET_OPT_FAILED);
+    MockSystemFunc::SetMockFlag(true);
+    EXPECT_CALL(MockSystemFunc::GetInstance(), read(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
+
+    struct DhcpPacket packet;
+    EXPECT_EQ(GetDhcpRawPacket(&packet, 1), SOCKET_OPT_ERROR);
     MockSystemFunc::SetMockFlag(false);
 }
 }  // namespace OHOS
