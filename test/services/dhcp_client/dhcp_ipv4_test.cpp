@@ -54,7 +54,8 @@ HWTEST_F(DhcpIpv4Test, ExecDhcpRenew_SUCCESS, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ExecDhcpRenew());
     SetIpv4State(DHCP_STATE_RENEWING);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ExecDhcpRenew());
-
+    SetIpv4State(DHCP_STATE_INITREBOOT);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ExecDhcpRenew());
     MockSystemFunc::SetMockFlag(false);
 }
 
@@ -72,6 +73,8 @@ HWTEST_F(DhcpIpv4Test, ExecDhcpRelease_SUCCESS, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), write(_, _, _)).WillRepeatedly(Return(1));
 
     SetIpv4State(DHCP_STATE_BOUND);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ExecDhcpRelease());
+    SetIpv4State(DHCP_STATE_REBINDING);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ExecDhcpRelease());
 
     MockSystemFunc::SetMockFlag(false);

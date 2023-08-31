@@ -48,6 +48,7 @@ HWTEST_F(DhcpOptionsTest, GetDhcpOptionDataLen_FAILED, TestSize.Level1)
     EXPECT_EQ(GetDhcpOptionDataLen(PAD_OPTION), 0);
     EXPECT_EQ(GetDhcpOptionDataLen(CLIENT_IDENTIFIER_OPTION), 0);
     EXPECT_EQ(GetDhcpOptionDataLen(DOMAIN_NAME_SERVER_OPTION), 0);
+    EXPECT_EQ(GetDhcpOptionDataLen(DOMAIN_NAME_OPTION), 0);
 }
 
 HWTEST_F(DhcpOptionsTest, GetDhcpOption_SUCCESS, TestSize.Level1)
