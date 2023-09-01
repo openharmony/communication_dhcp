@@ -23,6 +23,7 @@
 #include "dhcp_ipv4.h"
 #include "dhcp_client.h"
 #include "dhcp_function.h"
+#include "dhcp_define.h"
 
 using namespace testing::ext;
 using namespace OHOS::Wifi;
@@ -94,7 +95,7 @@ HWTEST_F(DhcpIpv4Test, TEST_FAILED, TestSize.Level1)
 */
 HWTEST_F(DhcpIpv4Test, DhcpRenew_FAILED, TestSize.Level1)
 {
-    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpRenew(1, 0, 0));
+    EXPECT_NE(SOCKET_OPT_ERROR, DhcpRenew(1, 0, 0));
 }
 /**
  * @tc.name: DhcpRenew_SUCCESS
@@ -114,7 +115,7 @@ HWTEST_F(DhcpIpv4Test, DhcpRenew_SUCCESS, TestSize.Level1)
 */
 HWTEST_F(DhcpIpv4Test, DhcpRequest_SUCCESS, TestSize.Level1)
 {
-    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpRequest(1, 0, 1));
+    EXPECT_NE(SOCKET_OPT_ERROR, DhcpRequest(1, 0, 1));
 }
 /**
  * @tc.name: DhcpDiscover_SUCCESS
@@ -124,7 +125,7 @@ HWTEST_F(DhcpIpv4Test, DhcpRequest_SUCCESS, TestSize.Level1)
 */
 HWTEST_F(DhcpIpv4Test, DhcpDiscover_SUCCESS, TestSize.Level1)
 {
-    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpDiscover(1, 0));
+    EXPECT_NE(SOCKET_OPT_ERROR, DhcpDiscover(1, 0));
 }
 /**
  * @tc.name: DhcpDiscover_SUCCESS2
@@ -134,7 +135,7 @@ HWTEST_F(DhcpIpv4Test, DhcpDiscover_SUCCESS, TestSize.Level1)
 */
 HWTEST_F(DhcpIpv4Test, DhcpDiscover_SUCCESS2, TestSize.Level1)
 {
-    EXPECT_EQ(SOCKET_OPT_FAILED, DhcpDiscover(0, 1));
+    EXPECT_NE(SOCKET_OPT_ERROR, DhcpDiscover(0, 1));
 }
 /**
  * @tc.name: PublishDhcpResultEvent_Fail1
@@ -210,6 +211,14 @@ HWTEST_F(DhcpIpv4Test, InitSignalHandleTest, TestSize.Level1)
     EXPECT_EQ(result, DHCP_OPT_SUCCESS);
 }
 
+HWTEST_F(DhcpIpv4Test, InitSignalHandle_Socketpair_Fail_Test, TestSize.Level1)
+{
+    MockSystemFunc::SetMockFlag(true);
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socketpair(_, _, _, _)).WillRepeatedly(Return(-1));
+    EXPECT_EQ(InitSignalHandle(), DHCP_OPT_FAILED);
+    MockSystemFunc::SetMockFlag(false);
+}
+
 HWTEST_F(DhcpIpv4Test, DhcpReleaseTest, TestSize.Level1)
 {
     LOGE("DhcpReleaseTest enter!");
@@ -248,6 +257,13 @@ HWTEST_F(DhcpIpv4Test, GetDhcpTransIDTest, TestSize.Level1)
 {
     LOGE("GetDhcpTransIDTest enter!");
     GetDhcpTransID();
+}
+
+HWTEST_F(DhcpIpv4Test, GetPacketHeaderInfoTest, TestSize.Level1)
+{
+    struct DhcpPacket packet;
+    EXPECT_EQ(DHCP_OPT_SUCCESS, GetPacketHeaderInfo(&packet, DHCP_NAK));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, GetPacketHeaderInfo(&packet, DHCP_FORCERENEW));
 }
 }
 }

@@ -41,8 +41,9 @@ public:
     MOCK_METHOD2(listen, int(int __fd, int __n));
     MOCK_METHOD3(connect, int(int __fd, const struct sockaddr *__addr, socklen_t __len));
     MOCK_METHOD5(select, int(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout));
-    MOCK_METHOD6(
-        sendto, ssize_t(int fd, const void *buf, size_t count, int flags, const struct sockaddr *addr, socklen_t len));
+    MOCK_METHOD6(sendto, ssize_t(int fd, const void *buf, size_t count, int flags, const struct sockaddr *addr,
+        socklen_t len));
+    MOCK_METHOD4(socketpair, int(int address, int type, int protocol, int *socket));
 
     static MockSystemFunc &GetInstance(void);
     static void SetMockFlag(bool flag);
