@@ -179,4 +179,14 @@ ssize_t __wrap_sendto(int fd, const void *buf, size_t count, int flags, const st
         return __real_sendto(fd, buf, count, flags, addr, len);
     }
 }
+
+int __real_socketpair(int address, int type, int protocol, int *socket);
+int __wrap_socketpair(int address, int type, int protocol, int *socket)
+{
+    if (g_mockTag) {
+        return MockSystemFunc::GetInstance().socketpair(address, type, protocol, socket);
+    } else {
+        return __real_socketpair(address, type, protocol, socket);
+    }
+}
 }

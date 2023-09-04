@@ -78,6 +78,7 @@ ohos_unittest("dhcp_client_unittest") {
     "-Wl,--wrap=connect",
     "-Wl,--wrap=select",
     "-Wl,--wrap=sendto",
+    "-Wl,--wrap=socketpair",
     "-Wl,--wrap=GetDhcpRawPacket",
     "-Wl,--wrap=GetDhcpKernelPacket",
     "-Wl,--wrap=GetSelectRet",
