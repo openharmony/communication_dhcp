@@ -36,12 +36,8 @@ namespace OHOS {
 namespace Wifi {
 class DhcpEventSubscriber : public OHOS::EventFwk::CommonEventSubscriber {
 public:
-    explicit DhcpEventSubscriber(const OHOS::EventFwk::CommonEventSubscribeInfo &subscribeInfo)
-        : CommonEventSubscriber(subscribeInfo)
-    {}
-
-    ~DhcpEventSubscriber()
-    {}
+    explicit DhcpEventSubscriber(const OHOS::EventFwk::CommonEventSubscribeInfo &subscribeInfo);
+    ~DhcpEventSubscriber();
     void OnReceiveEvent(const OHOS::EventFwk::CommonEventData &data) override;
 
 private:

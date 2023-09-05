@@ -28,6 +28,17 @@ namespace OHOS {
 namespace Wifi {
 DEFINE_WIFILOG_DHCP_LABEL("DhcpEventSubscriber");
 
+DhcpEventSubscriber::DhcpEventSubscriber(const OHOS::EventFwk::CommonEventSubscribeInfo &subscribeInfo)
+    : CommonEventSubscriber(subscribeInfo)
+{
+    WIFI_LOGI("DhcpEventSubscriber enter");
+}
+
+DhcpEventSubscriber::~DhcpEventSubscriber()
+{
+    WIFI_LOGI("~DhcpEventSubscriber enter");
+}
+
 void DhcpEventSubscriber::OnReceiveEvent(const OHOS::EventFwk::CommonEventData &data)
 {
     std::lock_guard<std::mutex> lock(onReceivedLock_);
