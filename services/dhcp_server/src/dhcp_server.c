@@ -937,8 +937,7 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
         return REPLY_NONE;
     }
     if (reqIp != 0 && reqIp != binding->ipAddress) {
-        LOGE("error request message.");
-        return REPLY_NAK;
+        LOGW("Discover package reqIp:%{public}x, binging ip:%{public}x.", reqIp, binding->ipAddress);
     }
     AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     if (!lease) {
@@ -1635,6 +1634,9 @@ static int InitServerContext(DhcpConfig *config, DhcpServerContext *ctx)
         return RET_FAILED;
     }
     InitLeaseFile(&srvIns->addressPool);
+    srvIns->addressPool.leaseTime = config->leaseTime;
+    srvIns->addressPool.renewalTime = config->renewalTime;
+    srvIns->addressPool.rebindingTime = config->rebindingTime;
     return RET_SUCCESS;
 }
 

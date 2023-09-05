@@ -185,6 +185,14 @@ public:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     virtual int GetDhcpSerProExit(const std::string& ifname, IDhcpResultNotify *pResultNotify) = 0;
+    
+    /**
+     * @Description : Update default config file.
+     *
+     * @param strFile - config file name [in]
+     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
+     */
+    virtual int UpdateDefaultConfigFile(const std::string leaseTime) = 0;
 };
 }  // namespace Wifi
 }  // namespace OHOS

@@ -138,6 +138,14 @@ public:
     int ReloadConfig(const std::string& ifname) override;
 
     /**
+     * @Description : Update default config file dhcpd.conf.
+     *
+     * @param strFile - config file name [in]
+     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
+     */
+    int UpdateDefaultConfigFile(const std::string strFile, const std::string leaseTime) override;
+
+    /**
      * @Description : Check and update dhcp server config of specified interface.
      *
      * @param ifname - interface name, eg:wlan0 [in]
@@ -272,7 +280,7 @@ private:
     std::map<std::string, std::list<DhcpRange>> m_mapInfDhcpRange;  /* dhcp server using ip range */
     std::map<std::string, IDhcpResultNotify *> m_mapDhcpSerExitNotify;
     static std::map<std::string, DhcpServerInfo> m_mapDhcpServer;
-
+    static int m_leaseTime;
     bool bDhcpSerProExitThread;
     std::thread *pDhcpSerProExitThread;
 };

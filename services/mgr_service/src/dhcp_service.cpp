@@ -256,5 +256,15 @@ bool DhcpService::CheckIfaceValid(const std::string& ifname)
     WIFI_LOGE("invalid interface: %{public}s", ifname.c_str());
     return false;
 }
+
+int DhcpService::UpdateDefaultConfigFile(const std::string leaseTime)
+{
+    if (InitServerService() != DHCP_OPT_SUCCESS) {
+        WIFI_LOGE("DhcpService::UpdateDefaultConfigFile() tag InitServerService failed!");
+        return DHCP_OPT_FAILED;
+    }
+
+    return m_pServerService->UpdateDefaultConfigFile(DHCP_SERVER_CONFIG_FILE, leaseTime);
+}
 }  // namespace Wifi
 }  // namespace OHOS

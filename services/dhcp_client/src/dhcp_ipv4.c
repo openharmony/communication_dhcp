@@ -432,6 +432,7 @@ static void Reboot(time_t timestamp)
         leaseTime = ~0U;
     }
 
+    LOGD("Reboot read lease file leaseTime: %{public}u", leaseTime);
     if (leaseTime != ~0U && stat(g_cltCnf->leaseFile, &st) == 0) {
         if (timestamp == (time_t)-1 || timestamp < st.st_mtime || (time_t)leaseTime < timestamp - st.st_mtime) {
             LOGI("Reboot read lease file leaseTime expire");
@@ -928,6 +929,7 @@ static void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp
 
     /* Receive dhcp ack packet finished, g_leaseTime * T1 later enter renewing state. */
     g_dhcp4State = DHCP_STATE_BOUND;
+    g_sentPacketNum = 0;
     g_resendTimer = 0;
     SetSocketMode(SOCKET_MODE_INVALID);
     g_timeoutTimestamp = timestamp + g_renewalSec;
@@ -1246,9 +1248,6 @@ int DhcpDiscover(uint32_t transid, uint32_t requestip)
 
     /* Get packet not common info. */
     packet.xid = transid;
-    if (requestip > 0) {
-        AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, requestip);
-    }
     AddParamaterRequestList(&packet);
 
     /* Begin broadcast dhcp discover packet. */
