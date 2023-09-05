@@ -32,12 +32,10 @@ public:
     {}
     virtual void SetUp()
     {
-        printf("DhcpServiceTest SetUp()...\n");
         pDhcpService = std::make_unique<DhcpService>();
     }
     virtual void TearDown()
     {
-        printf("DhcpServiceTest TearDown()...\n");
         if (pDhcpService != nullptr) {
             pDhcpService.reset(nullptr);
         }

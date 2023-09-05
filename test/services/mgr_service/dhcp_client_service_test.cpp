@@ -26,6 +26,7 @@ using namespace OHOS;
 using namespace OHOS::Wifi;
 namespace OHOS {
 namespace Wifi {
+constexpr int ADDRESS_ARRAY_SIZE = 12;
 class DhcpClientServiceTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -34,12 +35,10 @@ public:
     {}
     virtual void SetUp()
     {
-        printf("DhcpClientServiceTest SetUp()...\n");
         pClientService = std::make_unique<DhcpClientServiceImpl>();
     }
     virtual void TearDown()
     {
-        printf("DhcpClientServiceTest TearDown()...\n");
         if (pClientService != nullptr) {
             pClientService.reset(nullptr);
         }
@@ -109,7 +108,14 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::AtLeast(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::AtLeast(0));
 
-    std::string ifname = "wlan0";
+    std::string ifname;
+    DhcpServiceInfo dhcp;
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->RenewDhcpClient(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->ReleaseDhcpClient(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpInfo(ifname, dhcp));
+
+    ifname = "wlan0";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->GetDhcpInfo(ifname, dhcp));
     EXPECT_EQ(0, pClientService->GetDhcpClientProPid(""));
     EXPECT_EQ(0, pClientService->GetDhcpClientProPid(ifname));
 
@@ -140,6 +146,60 @@ HWTEST_F(DhcpClientServiceTest, UnsubscribeDhcpEventTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_ERROR, pClientService->UnsubscribeDhcpEvent(strAction));
     strAction = "action";
     EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->UnsubscribeDhcpEvent(strAction));
+}
+
+HWTEST_F(DhcpClientServiceTest, RemoveDhcpResultTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pClientService != nullptr);
+    IDhcpResultNotify *pResultNotify = nullptr;
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->RemoveDhcpResult(pResultNotify));
+}
+
+HWTEST_F(DhcpClientServiceTest, OnAddressChangedCallbackTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pClientService != nullptr);
+    std::string ifname;
+    DhcpIpv6Info info;
+    pClientService->OnAddressChangedCallback(ifname, info);
+
+    ASSERT_TRUE(strncpy_s(info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, " 192.168.1.10", ADDRESS_ARRAY_SIZE) == EOK);
+    ASSERT_TRUE(strncpy_s(info.routeAddr, DHCP_INET6_ADDRSTRLEN, " 192.168.1.1", ADDRESS_ARRAY_SIZE) == EOK);
+    pClientService->OnAddressChangedCallback(ifname, info);
+}
+
+HWTEST_F(DhcpClientServiceTest, GetDhcpEventIpv4ResultTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pClientService != nullptr);
+    std::vector<std::string> splits;
+    splits.push_back("wlan0");
+    splits.push_back("12");
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(-1, splits));
+    splits.push_back("*");
+    splits.push_back("wlan4");
+    splits.push_back("wlan5");
+    splits.push_back("wlan6");
+    splits.push_back("wlan7");
+    splits.push_back("wlan8");
+    splits.push_back("wlan9");
+    splits.push_back("wlan10");
+    splits.push_back("wlan11");
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->GetDhcpEventIpv4Result(-1, splits));
+    splits[2] = "wlan3";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->GetDhcpEventIpv4Result(0, splits));
+    splits[0] = "";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(0, splits));
+    splits[0] = "wlan0";
+    splits[1] = "";
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpEventIpv4Result(0, splits));
+}
+
+HWTEST_F(DhcpClientServiceTest, CheckDhcpClientRunningTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pClientService != nullptr);
+    std::string ifname;
+    EXPECT_EQ(DHCP_OPT_ERROR, pClientService->CheckDhcpClientRunning(ifname));
+    ifname = "wlan0";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->CheckDhcpClientRunning(ifname));
 }
 }
 }
