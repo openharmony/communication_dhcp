@@ -33,11 +33,9 @@ public:
     {}
     virtual void SetUp()
     {
-        printf("DhcpFuncTest SetUp()...\n");
     }
     virtual void TearDown()
     {
-        printf("DhcpFuncTest TearDown()...\n");
     }
 };
 
