@@ -131,7 +131,7 @@ void DhcpClientServiceImpl::CheckTimeout()
     uint32_t curTime = (uint32_t)time(NULL);
     for (auto &itemNotify : m_mapDhcpResultNotify) {
         std::string ifname = itemNotify.first;
-        WIFI_LOGI("CheckTimeout() ifname:%{public}s, notify1 second size:%{public}d.",
+        WIFI_LOGD("CheckTimeout() ifname:%{public}s, notify1 second size:%{public}d.",
             ifname.c_str(),
             (int)itemNotify.second.size());
         auto iterReq = itemNotify.second.begin();
@@ -176,7 +176,7 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
         std::string ifname = iterNotify->first;
         if (iterNotify->second.size() <= 0) {
             iterNotify = m_mapDhcpResultNotify.erase(iterNotify);
-            WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, dhcp result notify size:0, erase!", ifname.c_str());
+            WIFI_LOGD("DhcpResultHandle() ifname:%{public}s, dhcp result notify size:0, erase!", ifname.c_str());
             continue;
         }
         /* Check dhcp result */
@@ -226,7 +226,7 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
         ++iterNotify;
     }
 
-    WIFI_LOGI("DhcpResultHandle() dhcp result notify finished.");
+    WIFI_LOGD("DhcpResultHandle() dhcp result notify finished.");
     second = SLEEP_TIME_500_MS;
 }
 
