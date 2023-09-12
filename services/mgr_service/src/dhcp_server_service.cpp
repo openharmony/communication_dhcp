@@ -693,6 +693,23 @@ int DhcpServerService::CreateDefaultConfigFile(const std::string strFile)
     return DHCP_OPT_SUCCESS;
 }
 
+int DhcpServerService::UpdateDefaultConfigFile(const std::string strFile, const std::string strLeaseTime)
+{
+    if (strFile.empty()) {
+        WIFI_LOGE("UpdateDefaultConfigFile param error, strFile is empty!");
+        return DHCP_OPT_ERROR;
+    }
+
+    std::string strData = "leaseTime=" + strLeaseTime + "\n";
+    if (!DhcpFunc::IsExistFile(strFile)) {
+        DhcpFunc::CreateFile(strFile, strData);
+    } else {
+        DhcpFunc::RemoveFile(strFile);
+        DhcpFunc::CreateFile(strFile, strData);
+    }
+    return DHCP_OPT_SUCCESS;
+}
+
 void DhcpServerService::RunDhcpSerProExitThreadFunc()
 {
     for (;;) {

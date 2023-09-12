@@ -132,6 +132,14 @@ public:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     virtual int ReloadConfig(const std::string& ifname) = 0;
+    
+    /**
+     * @Description : Update default config file dhcpd.conf.
+     *
+     * @param strFile - config file name [in]
+     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
+     */
+    virtual int UpdateDefaultConfigFile(const std::string strFile, const std::string leaseTime) = 0;
 };
 }  // namespace Wifi
 }  // namespace OHOS

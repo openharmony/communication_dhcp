@@ -187,6 +187,14 @@ public:
      */
     int GetDhcpSerProExit(const std::string& ifname, IDhcpResultNotify *pResultNotify) override;
 
+    /**
+     * @Description : Update default config file dhcpd.conf.
+     *
+     * @param strFile - config file name [in]
+     * @Return : success - DHCP_OPT_SUCCESS, failed - others.
+     */
+    int UpdateDefaultConfigFile(const std::string leaseTime) override;
+
 private:
     int InitServerService(void);
     bool CheckIfaceValid(const std::string& ifname);
