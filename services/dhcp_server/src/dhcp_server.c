@@ -1441,7 +1441,7 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         return RET_FAILED;
     }
 
-    struct sockaddr_in *destAddrIn = DestinationAddrIn();
+    struct sockaddr_in *destAddrIn = BroadcastAddrIn();
     int ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)destAddrIn,
         sizeof(*destAddrIn));
     if (!ret) {
