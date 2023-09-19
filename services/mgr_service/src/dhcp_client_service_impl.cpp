@@ -184,7 +184,7 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
         std::map<std::string, std::vector<DhcpResult>>::iterator dhcpRlt =
             DhcpClientServiceImpl::m_mapDhcpResult.find(ifname);
         if (dhcpRlt == DhcpClientServiceImpl::m_mapDhcpResult.end()) {
-            WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, dhcp result is getting...", ifname.c_str());
+            WIFI_LOGD("DhcpResultHandle() ifname:%{public}s, dhcp result is getting...", ifname.c_str());
             ++iterNotify;
             pthread_mutex_unlock(&m_DhcpResultInfoMutex);
             continue;
