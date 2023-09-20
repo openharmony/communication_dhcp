@@ -118,7 +118,7 @@ bool Ip6StrConToChar(const char *strIp, uint8_t chIp[], size_t chlen)
     }
 
     LOGI("Ip6StrConToChar strIp:%{private}s -> ", strIp);
-    for (size_t i = 0; i < chlen; i++) {
+    for (size_t i = 0; (i < chlen) && (i < sizeof(addr6.s6_addr)); i++) {
         LOGI("Ip6StrConToChar addr6.s6_addr: %{private}zu - %{private}02x", i, addr6.s6_addr[i]);
         chIp[i] = addr6.s6_addr[i];
     }
@@ -395,6 +395,10 @@ pid_t GetPID(const char *pidFile)
     lseek(fd, 0, SEEK_SET);
 
     char buf[PID_MAX_LEN] = {0};
+    if (sb.st_size > PID_MAX_LEN) {
+        LOGE("GetPID() invalid length, size:%{public}d", (int)sb.st_size);
+        return -1;
+    }
     ssize_t bytes;
     if ((bytes = read(fd, buf, sb.st_size)) < 0) {
         LOGE("GetPID() failed, read pidFile:%{public}s error, bytes:%{public}zd!", pidFile, bytes);

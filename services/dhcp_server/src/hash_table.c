@@ -292,8 +292,11 @@ HashNode *HashCreateNode(HashTable *table, uintptr_t key, uintptr_t value, HashN
     int flag = 0;
     do {
         node->key = (uintptr_t)calloc(table->keySize, sizeof(char));
+        if (node->key == 0) {
+            break;
+        }
         node->value = (uintptr_t)calloc(table->valueSize, sizeof(char));
-        if (node->key == 0 || node->value == 0) {
+        if (node->value == 0) {
             break;
         }
         if (memcpy_s((void *)node->key, table->keySize, (void *)key, table->keySize) != EOK ||
