@@ -493,7 +493,6 @@ int DhcpClientServiceImpl::DealParentProcessStop(const std::string& ifname, bool
         /* not start */
         DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientRunStatus = 0;
         DhcpClientServiceImpl::m_mapDhcpInfo[ifname].clientProPid = 0;
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
 #ifdef OHOS_ARCH_LITE
         std::unique_lock<std::mutex> lock(mRecvMsgThreadMutex);
         auto iterRecvMsgThreadMap = m_mapDhcpRecvMsgThread.find(ifname);
@@ -510,9 +509,15 @@ int DhcpClientServiceImpl::DealParentProcessStop(const std::string& ifname, bool
         WIFI_LOGI("ForkExecParentProcess() m_mapDhcpRecvMsgThread erase ifname:%{public}s.", ifname.c_str());
         m_mapDhcpRecvMsgThread.erase(iterRecvMsgThreadMap);
 #endif
-    } else {
-        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
     }
+    /* UnSubscribe dhcp event. */
+    std::string strAction = OHOS::Wifi::COMMON_EVENT_DHCP_GET_IPV4 + "." + ifname;
+    if (UnsubscribeDhcpEvent(strAction) != DHCP_OPT_SUCCESS) {
+        pthread_mutex_unlock(&m_DhcpResultInfoMutex);
+        return DHCP_OPT_FAILED;
+    }
+
+    pthread_mutex_unlock(&m_DhcpResultInfoMutex);
     return DHCP_OPT_SUCCESS;
 }
 

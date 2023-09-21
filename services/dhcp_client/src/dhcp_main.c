@@ -65,6 +65,8 @@ static int Usage(void)
 
 static int RunChildProcess(void)
 {
+    LOGI("RunChildProcess() enter, pid: %{public}d, ppid(): %{public}d.",
+        getpid(), getppid());
     if (setpgrp() == -1) {
         LOGE("RunChildProcess() can not change process group, return!");
         return DHCP_OPT_FAILED;
@@ -137,7 +139,7 @@ static int CreateDaemon(void)
     }
 
     /* We have forked, setpgrp, forked once more, from now on, we are a daemon process. */
-    LOGI("CreateDaemon() grandchild continue run, pid:%{public}d,getpid():%{public}d,getppid():%{public}d.",
+    LOGI("CreateDaemon() grandchild continue run, pid:%{public}d, getpid():%{public}d, getppid():%{public}d.",
         pid, getpid(), getppid());
     umask(DEFAULT_UMASK);
     return DHCP_OPT_SUCCESS;

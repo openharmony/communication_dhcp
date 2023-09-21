@@ -21,6 +21,7 @@
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "securec.h"
 #include "dhcp_function.h"
@@ -64,7 +65,7 @@ int StartProcess(void)
 
 int StopProcess(const char *pidFile)
 {
-    LOGI("StopProcess() begin, pidFile:%{public}s.", pidFile);
+    LOGI("StopProcess() begin, current pid: %{public}d, pidFile:%{public}s.", getpid(), pidFile);
     pid_t pid = GetPID(pidFile);
     if (pid <= 0) {
         LOGW("StopProcess() GetPID pidFile:%{public}s, pid == -1!", pidFile);

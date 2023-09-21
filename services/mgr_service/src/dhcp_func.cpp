@@ -32,7 +32,7 @@ namespace Wifi {
 DEFINE_WIFILOG_DHCP_LABEL("DhcpFunc");
 
 const int MAX_RETEY_WAIT_COUNT = 60;
-const int WAIT_SLEEP_50MS = 50;
+const int WAIT_SLEEP_50MS = 1000 * 50;
 
 bool DhcpFunc::Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool bHost)
 {
@@ -715,8 +715,11 @@ int DhcpFunc::WaitProcessExit(const pid_t& serverPid)
         } else if (ret == 0) {
             retryCount++;
             usleep(WAIT_SLEEP_50MS);
+            continue;
+        } else if (ret > 0) {
+            WIFI_LOGI("WaitProcessExit() waitpid [%{public}d] success!.", serverPid);
+            return 0;
         }
-        return 0;
     }
     WIFI_LOGE("WaitProcessExit() timeout waitpid [%{public}d] failed!", serverPid);
     return -1;
