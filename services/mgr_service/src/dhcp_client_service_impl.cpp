@@ -498,6 +498,7 @@ int DhcpClientServiceImpl::DealParentProcessStop(const std::string& ifname, bool
         auto iterRecvMsgThreadMap = m_mapDhcpRecvMsgThread.find(ifname);
         if (iterRecvMsgThreadMap == m_mapDhcpRecvMsgThread.end()) {
             WIFI_LOGI("ForkExecParentProcess() RecvMsgThread already del ifname:%{public}s.", ifname.c_str());
+            pthread_mutex_unlock(&m_DhcpResultInfoMutex);
             return DHCP_OPT_SUCCESS;
         }
         if (iterRecvMsgThreadMap->second != nullptr) {
