@@ -217,8 +217,8 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname2, tagName));
     std::string ipRange;
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->GetUsingIpRange(ifname2, ipRange));
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname2));   //start vfork parent success
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname2));   //restart start vfork parent success
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname2));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname2));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StopDhcpServer(ifname2));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(""));
     MockSystemFunc::SetMockFlag(false);
