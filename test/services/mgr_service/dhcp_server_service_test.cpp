@@ -140,7 +140,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test003, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillRepeatedly(Return(1));
+        .WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _))
         .WillOnce(Return(-1)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
