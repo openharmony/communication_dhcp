@@ -18,6 +18,7 @@
 #include "dhcp_service.h"
 #include "dhcp_result_notify.h"
 #include "dhcp_func.h"
+#include "mock_system_func.h"
 
 using namespace testing::ext;
 using namespace OHOS;
@@ -48,6 +49,9 @@ HWTEST_F(DhcpServiceTest, DhcpClientService_Test1, TestSize.Level1)
 {
     ASSERT_TRUE(pDhcpService != nullptr);
 
+    MockSystemFunc::SetMockFlag(true);
+    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
+        .WillRepeatedly(Return(-1));
     std::string ifname = "";
     DhcpResultNotify dhcpResultNotify;
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->GetDhcpResult(ifname, &dhcpResultNotify, 0));
@@ -63,12 +67,16 @@ HWTEST_F(DhcpServiceTest, DhcpClientService_Test1, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->RenewDhcpClient(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->ReleaseDhcpClient(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->StopDhcpClient(ifname, bIpv6));
+    MockSystemFunc::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpServiceTest, DhcpServerService_Test1, TestSize.Level1)
 {
     ASSERT_TRUE(pDhcpService != nullptr);
 
+    MockSystemFunc::SetMockFlag(true);
+    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
+        .WillRepeatedly(Return(-1));
     std::string ifname = "";
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->StartDhcpServer(ifname));
     EXPECT_EQ(0, pDhcpService->GetServerStatus());
@@ -88,6 +96,7 @@ HWTEST_F(DhcpServiceTest, DhcpServerService_Test1, TestSize.Level1)
     DhcpResultNotify dhcpResultNotify;
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->GetDhcpSerProExit(ifname, &dhcpResultNotify));
     EXPECT_EQ(DHCP_OPT_FAILED, pDhcpService->StopDhcpServer(ifname));
+    MockSystemFunc::SetMockFlag(false);
 }
 }
 }

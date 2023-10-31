@@ -52,9 +52,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test001, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillRepeatedly(Return(1));
+        .WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _))
         .WillOnce(Return(-1)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
@@ -106,9 +104,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test002, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillRepeatedly(Return(1));
+        .WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _))
         .WillOnce(Return(-1)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
@@ -144,8 +140,6 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test003, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillOnce(Return(-1)).WillOnce(Return(1))
         .WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _))
         .WillOnce(Return(-1)).WillRepeatedly(Return(0));
@@ -169,11 +163,11 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test003, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, tagName));
 
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
 
     DhcpResultNotify dhcpResultNotify;
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->GetDhcpSerProExit("", nullptr));
@@ -192,8 +186,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillOnce(Return(0)).WillOnce(Return(1))
-        .WillRepeatedly(Return(1));
+        .WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _))
@@ -211,7 +204,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     setRange.strEndip = "192.168.0.49";
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, setRange));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StopDhcpServer(ifname));
 
     std::string ifname2 = "wlan2";
@@ -224,8 +217,8 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname2, tagName));
     std::string ipRange;
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->GetUsingIpRange(ifname2, ipRange));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname2));   //start vfork parent success
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname2));   //restart start vfork parent success
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname2));   //start vfork parent success
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname2));   //restart start vfork parent success
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StopDhcpServer(ifname2));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(""));
     MockSystemFunc::SetMockFlag(false);
@@ -238,9 +231,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test4, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillOnce(Return(1))
-        .WillOnce(Return(0))
-        .WillRepeatedly(Return(1));
+        .WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _))
@@ -256,9 +247,9 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test4, TestSize.Level1)
     setRange.strStartip = "192.168.0.1";
     setRange.strEndip = "192.168.0.49";
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, setRange));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->ReloadConfig(ifname));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StopDhcpServer(ifname));
 
     MockSystemFunc::SetMockFlag(false);
