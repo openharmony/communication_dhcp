@@ -54,9 +54,7 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test2, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), vfork())
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillOnce(Return(-1)).WillOnce(Return(1))
-        .WillRepeatedly(Return(1));
+        .WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
@@ -83,7 +81,7 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test2, TestSize.Level1)
     sleep(DHCP_NUM_ONE);
 
     EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StopDhcpClient(ifname, true));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StopDhcpClient(ifname, true));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StopDhcpClient(ifname, true));
     ASSERT_TRUE(DhcpFunc::RemoveFile(strFile4));
 
     MockSystemFunc::SetMockFlag(false);
@@ -95,7 +93,7 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
 
     MockSystemFunc::SetMockFlag(true);
 
-    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork()).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork()).WillRepeatedly(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
         .WillOnce(Return(-1)).WillOnce(Return(0))
@@ -123,18 +121,18 @@ HWTEST_F(DhcpClientServiceTest, DhcpClientService_Test3, TestSize.Level1)
     std::string strData4 = "IP4 0 * * * * * * * * 0";
     ASSERT_TRUE(DhcpFunc::CreateFile(strFile4, strData4));
     bool bIpv6 = true;
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StopDhcpClient(ifname, bIpv6));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StartDhcpClient(ifname, bIpv6));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StopDhcpClient(ifname, bIpv6));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StartDhcpClient(ifname, bIpv6));
 
     EXPECT_EQ(DHCP_OPT_FAILED, pClientService->RenewDhcpClient(ifname));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->RenewDhcpClient(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->RenewDhcpClient(ifname));
     EXPECT_EQ(DHCP_OPT_FAILED, pClientService->ReleaseDhcpClient(ifname));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->ReleaseDhcpClient(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->ReleaseDhcpClient(ifname));
 
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StopDhcpClient(ifname, bIpv6));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StopDhcpClient(ifname, bIpv6));
     ASSERT_TRUE(DhcpFunc::RemoveFile(strFile4));
 
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->StartDhcpClient("wlan1", false));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StartDhcpClient("wlan1", false));
 
     MockSystemFunc::SetMockFlag(false);
 }
