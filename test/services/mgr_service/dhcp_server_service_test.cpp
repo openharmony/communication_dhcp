@@ -202,8 +202,8 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test3, TestSize.Level1)
     setRange.iptype = 0;
     setRange.strStartip = "192.168.0.1";
     setRange.strEndip = "192.168.0.49";
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->SetDhcpRange(ifname, setRange));
+    EXPECT_EQ(DHCP_OPT_FAILED, pServerService->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_OPT_FAILED, pServerService->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerService->StopDhcpServer(ifname));
 
