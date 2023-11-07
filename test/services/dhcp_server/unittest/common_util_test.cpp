@@ -93,7 +93,7 @@ HWTEST(CommonUtilTest, RemoveSpaceCharactersTest, TestSize.Level1)
     char buf[] = "0";
     size_t bufSize = 0;
     int result = RemoveSpaceCharacters(buf, bufSize);
-    EXPECT_EQ(0, remove(testPath));
+    EXPECT_EQ(0, result);
 }
 }
 }
