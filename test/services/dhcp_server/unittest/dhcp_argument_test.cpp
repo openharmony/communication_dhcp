@@ -94,6 +94,8 @@ HWTEST(DhcpArgumentTest, HasArgumentTest, TestSize.Level1)
     EXPECT_TRUE(HasArgument(name) == 0);
     name = "lease";
     EXPECT_TRUE(HasArgument(name) == 1);
+    name = nullptr;
+    EXPECT_TRUE(HasArgument(name) == 0);
     FreeArguments();
 }
 }

@@ -151,6 +151,7 @@ HWTEST_F(DhcpIpv6ClientTest, GetIpFromS6AddressTest, TestSize.Level1)
     char buf[BUF_LEN] = {0};
     EXPECT_EQ(ipv6Client->GetIpFromS6Address(addr, 1, buf, BUF_LEN), IPV6_OPT_FAILED);
     EXPECT_EQ(ipv6Client->GetIpFromS6Address(addr, 1, buf, BUF_LEN_2), IPV6_OPT_FAILED);
+    EXPECT_EQ(ipv6Client->GetIpFromS6Address(addr, 1, buf, BUF_LEN), 0);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, onIpv6AddressAddEventTest, TestSize.Level1)
@@ -267,6 +268,14 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(nullptr, 0);
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    LOGE("StartIpv6Test enter!");
+    char *ifname = nullptr;
+    EXPECT_EQ(-1, ipv6Client->StartIpv6(ifname));
 }
 }
 }

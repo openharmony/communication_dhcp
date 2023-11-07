@@ -232,6 +232,9 @@ HWTEST(AddressUtilsTest, ParseStrMacTest, TestSize.Level1)
 {
     uint8_t testMac[DHCP_HWADDR_LENGTH] = {0, 0xae, 0xdc, 0xcc, 0x9f, 0x43, 0};
     EXPECT_STREQ("00:ae:dc:cc:9f:43", ParseStrMac(testMac, MAC_ADDR_LENGTH));
+    uint8_t* testMac1 = nullptr;
+    char* result = ParseStrMac(testMac1, MAC_ADDR_LENGTH);
+    ASSERT_TRUE(result == 0);
 }
 
 HWTEST(AddressUtilsTest, HostToNetworkTest, TestSize.Level1)
@@ -259,6 +262,9 @@ HWTEST(AddressUtilsTest, ParseLogMacTest, TestSize.Level1)
 {
     uint8_t testMac[DHCP_HWADDR_LENGTH] = {0, 0xae, 0xdc, 0xcc, 0x9f, 0x43, 0};
     EXPECT_STREQ("??:ae:??:??:9f:43", ParseLogMac(testMac));
+    uint8_t* testMac1 = nullptr;
+    char* result = ParseLogMac(testMac1);
+    ASSERT_TRUE(result == 0);
 }
 
 HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level1)
