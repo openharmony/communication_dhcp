@@ -74,6 +74,9 @@ HWTEST(CommonUtilTest, GetLeaseFileTest, TestSize.Level1)
     EXPECT_TRUE(GetLeaseFile(leaseFile, NULL) == NULL);
     EXPECT_TRUE(GetLeaseFile(NULL, NULL) == NULL);
     EXPECT_STREQ("/etc/dhcp/dhcp_server.lease.test_if0", GetLeaseFile(leaseFile, ifname));
+    const char *leaseFile1 = "";
+    const char *ifname1 = "";
+    EXPECT_EQ(0, GetLeaseFile(leaseFile1, ifname1));
 }
 
 HWTEST(CommonUtilTest, CreatePathTest, TestSize.Level1)
@@ -82,6 +85,14 @@ HWTEST(CommonUtilTest, CreatePathTest, TestSize.Level1)
     ASSERT_EQ(RET_FAILED, CreatePath(NULL));
     ASSERT_EQ(RET_FAILED, CreatePath(""));
     ASSERT_EQ(RET_SUCCESS, CreatePath(testPath));
+    EXPECT_EQ(0, remove(testPath));
+}
+
+HWTEST(CommonUtilTest, RemoveSpaceCharactersTest, TestSize.Level1)
+{
+    char buf[] = "0";
+    size_t bufSize = 0;
+    int result = RemoveSpaceCharacters(buf, bufSize);
     EXPECT_EQ(0, remove(testPath));
 }
 }

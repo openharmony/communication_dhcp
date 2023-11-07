@@ -636,6 +636,8 @@ HWTEST_F(DhcpServerTest, InitServerByIfaceTest, TestSize.Level1)
     EXPECT_EQ(-1, InitServer(ifaceName));
     EXPECT_EQ(-1, InitServer(ifaceName));
     EXPECT_EQ(1, InitServer(ifaceName));
+    const char* ifaceName1 = nullptr;
+    EXPECT_EQ(-1, InitServer(ifaceName1));
 }
 
 HWTEST_F(DhcpServerTest, StartServerTest, TestSize.Level1)

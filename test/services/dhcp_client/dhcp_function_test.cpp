@@ -158,6 +158,16 @@ HWTEST_F(DhcpFunctionTest, InitPidfile_SUCCESS, TestSize.Level1)
     usleep(SLEEP_TIME_200_MS);
 }
 
+HWTEST_F(DhcpFunctionTest, InitPidfile_FAILED, TestSize.Level1)
+{
+    char *workDir = nullptr;
+    char *pidFile = nullptr;
+
+    EXPECT_EQ(DHCP_OPT_FAILED, InitPidfile(workDir, pidFile, getpid()));
+    unlink(pidFile);
+    usleep(SLEEP_TIME_200_MS);
+}
+
 HWTEST_F(DhcpFunctionTest, GetPID_SUCCESS, TestSize.Level1)
 {
     char workDir[DIR_MAX_LEN] = "./";
