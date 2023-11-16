@@ -91,7 +91,7 @@ const std::string DHCP_SERVER_CFG_IPV4("#ipv4");
 const std::string DHCP_SERVER_CFG_IPV6("#ipv6");
 const std::string COMMON_EVENT_DHCP_GET_IPV4 = "usual.event.wifi.dhcp.GET_IPV4";
 const std::string IP_V4_MASK("255.255.255.0");
-const std::string IP_V4_DEFAULT("192.168.62.2");
+const std::string IP_V4_DEFAULT("192.168.62.1");
 
 typedef enum EnumErrCode {
     /* success */
