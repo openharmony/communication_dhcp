@@ -100,8 +100,12 @@ typedef enum EnumErrCode {
     DHCP_OPT_FAILED,
     /* null pointer */
     DHCP_OPT_NULL,
-    /* timeout */
+    /* get ip timeout */
     DHCP_OPT_TIMEOUT,
+    /* renew failed */
+    DHCP_OPT_RENEW_FAILED,
+    /* renew timeout */
+    DHCP_OPT_RENEW_TIMEOUT,
     /* error */
     DHCP_OPT_ERROR,
 } DhcpErrCode;

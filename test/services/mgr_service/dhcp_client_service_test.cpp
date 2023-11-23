@@ -199,5 +199,36 @@ HWTEST_F(DhcpClientServiceTest, CheckDhcpClientRunningTest, TestSize.Level1)
     ifname = "wlan0";
     EXPECT_EQ(DHCP_OPT_SUCCESS, pClientService->CheckDhcpClientRunning(ifname));
 }
+
+HWTEST_F(DhcpClientServiceTest, RenewDhcpTest, TestSize.Level1)
+{
+    ASSERT_TRUE(pClientService != nullptr);
+    MockSystemFunc::SetMockFlag(true);
+
+    EXPECT_CALL(MockSystemFunc::GetInstance(), vfork()).WillRepeatedly(Return(-1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), waitpid(_, _, _)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), kill(_, _))
+        .WillOnce(Return(-1)).WillOnce(Return(0))
+        .WillOnce(Return(-1)).WillOnce(Return(0))
+        .WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), open(_, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), select(_, _, _, _, _)).Times(testing::AtLeast(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).Times(testing::AtLeast(0));
+
+    std::string ifname = "wlan0";
+    bool bIpv6 = true;
+    DhcpServiceInfo dhcp;
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StartDhcpClient(ifname, bIpv6));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpInfo(ifname, dhcp));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->StopDhcpClient(ifname, bIpv6));
+
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->RenewDhcpClient(ifname));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->GetDhcpInfo(ifname, dhcp));
+    EXPECT_EQ(DHCP_OPT_FAILED, pClientService->ReleaseDhcpClient(ifname));
+    MockSystemFunc::SetMockFlag(false);
+}
 }
 }
