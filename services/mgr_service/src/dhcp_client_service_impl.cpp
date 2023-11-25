@@ -36,6 +36,7 @@ DhcpClientServiceImpl::DhcpClientServiceImpl()
 {
     pthread_mutex_init(&m_DhcpResultInfoMutex, NULL);
     isExitDhcpResultHandleThread = false;
+    isRenewAction = false;
     pDhcpResultHandleThread = nullptr;
     pDhcpIpv6ClientThread = nullptr;
 #ifdef OHOS_ARCH_LITE
@@ -144,12 +145,16 @@ void DhcpClientServiceImpl::CheckTimeout()
             if (tempTime <= curTime && ((*iterReq)->status & DHCP_IPV4_GETTED) == 0) {
                 /* get dhcp result timeout */
                 WIFI_LOGW("CheckTimeout() ifname:%{public}s get timeout, getTime:%{public}u,timeout:%{public}d, "
-                          "curTime:%{public}u!",
+                          "curTime:%{public}u isRenewAction:%{public}d",
                     ifname.c_str(),
                     (*iterReq)->getTimestamp,
                     (*iterReq)->timeouts,
-                    curTime);
-                (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_TIMEOUT, ifname, "get dhcp result timeout!");
+                    curTime,
+                    isRenewAction);
+                isRenewAction ? ((*iterReq)->pResultNotify->OnFailed(DHCP_OPT_RENEW_TIMEOUT, ifname,
+                    "get dhcp renew result timeout!")) :
+                ((*iterReq)->pResultNotify->OnFailed(DHCP_OPT_TIMEOUT, ifname, "get dhcp ip result timeout!"));
+                isRenewAction = false;
                 delete *iterReq;
                 *iterReq = nullptr;
                 iterReq = itemNotify.second.erase(iterReq);
@@ -204,16 +209,20 @@ void DhcpClientServiceImpl::DhcpResultHandle(uint32_t &second)
                 }
 
                 /* Handle dhcp result notify */
-                WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, isOptSuc:%{public}d.",
-                    ifname.c_str(), isOptSuc);
+                WIFI_LOGI("DhcpResultHandle() ifname:%{public}s, isOptSuc:%{public}d.", ifname.c_str(), isOptSuc);
                 if (isOptSuc) {
                     /* get dhcp result success */
-                    WIFI_LOGI("DhcpResultHandle() ifname:%{public}s get dhcp result success!", ifname.c_str());
+                    WIFI_LOGI("DhcpResultHandle() ifname:%{public}s get dhcp result success!, isRenewAction:%{public}d",
+                        ifname.c_str(), isRenewAction);
                     (*iterReq)->pResultNotify->OnSuccess(DHCP_OPT_SUCCESS, ifname, dhcpResult);
                 } else {
                     /* get dhcp result failed */
-                    WIFI_LOGE("DhcpResultHandle() ifname:%{public}s get dhcp result failed!", ifname.c_str());
-                    (*iterReq)->pResultNotify->OnFailed(DHCP_OPT_FAILED, ifname, "get dhcp result failed!");
+                    WIFI_LOGE("DhcpResultHandle() ifname:%{public}s get dhcp result failed!, isRenewAction:%{public}d",
+                        ifname.c_str(), isRenewAction);
+                    isRenewAction ? ((*iterReq)->pResultNotify->OnFailed(DHCP_OPT_RENEW_FAILED, ifname,
+                        "get dhcp renew result failed!")) :
+                    ((*iterReq)->pResultNotify->OnFailed(DHCP_OPT_FAILED, ifname, "get dhcp ip result failed!"));
+                    isRenewAction = false;
                 }
                 if (dhcpResult.iptype == 0) {
                     (*iterReq)->status |= DHCP_IPV4_GETTED;
@@ -877,6 +886,7 @@ int DhcpClientServiceImpl::StartDhcpClient(const std::string &ifname, bool bIpv6
 
 int DhcpClientServiceImpl::StopDhcpClient(const std::string &ifname, bool bIpv6)
 {
+    isRenewAction = false;
     if (ifname.empty()) {
         WIFI_LOGE("DhcpClientServiceImpl::StopDhcpClient() error, ifname is empty!");
         return DHCP_OPT_FAILED;
@@ -976,6 +986,7 @@ int DhcpClientServiceImpl::GetDhcpResult(const std::string &ifname, IDhcpResultN
 
 int DhcpClientServiceImpl::RemoveDhcpResult(IDhcpResultNotify *pResultNotify)
 {
+    isRenewAction = false;
     if (pResultNotify == nullptr) {
         WIFI_LOGE("RemoveDhcpResult error, pResultNotify is nullptr!");
         return DHCP_OPT_FAILED;
@@ -1021,13 +1032,14 @@ int DhcpClientServiceImpl::GetDhcpInfo(const std::string &ifname, DhcpServiceInf
 
 int DhcpClientServiceImpl::RenewDhcpClient(const std::string &ifname)
 {
-    WIFI_LOGI("enter DhcpClientServiceImpl::RenewDhcpClient()...ifname:%{public}s.", ifname.c_str());
+    WIFI_LOGI("enter DhcpClientServiceImpl::RenewDhcpClient(), ifname:%{public}s isRenewAction:%{public}d.",
+        ifname.c_str(), isRenewAction);
     int nStatus = GetDhcpStatus(ifname);
     if (nStatus != 1) {
         WIFI_LOGW("RenewDhcpClient() dhcp client service not started, now start ifname:%{public}s.", ifname.c_str());
-
         /* Start dhcp client service */
         pthread_mutex_lock(&m_DhcpResultInfoMutex);
+        isRenewAction = true;
         bool enableIPv6 = DhcpClientServiceImpl::m_mapDhcpInfo[ifname].enableIPv6;
         pthread_mutex_unlock(&m_DhcpResultInfoMutex);
         return StartDhcpClient(ifname, enableIPv6);
@@ -1046,6 +1058,7 @@ int DhcpClientServiceImpl::RenewDhcpClient(const std::string &ifname)
             pid, errno, ifname.c_str());
         return DHCP_OPT_FAILED;
     }
+    isRenewAction = true;
     WIFI_LOGI("RenewDhcpClient() kill [%{public}d] success, ifname:%{public}s.", pid, ifname.c_str());
     return DHCP_OPT_SUCCESS;
 }

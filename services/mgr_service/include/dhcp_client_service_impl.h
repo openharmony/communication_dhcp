@@ -315,6 +315,7 @@ private:
 private:
     std::mutex mResultNotifyMutex;
     bool isExitDhcpResultHandleThread;
+    bool isRenewAction;
     std::thread *pDhcpResultHandleThread;
 #ifdef OHOS_ARCH_LITE
     std::mutex mRecvMsgThreadMutex;
