@@ -14,14 +14,17 @@
  */
 #include <gtest/gtest.h>
 
-#include "wifi_log.h"
+#include "dhcp_logger.h"
 #include "dhcp_options.h"
-#include "dhcp_client.h"
+#include "dhcp_client_def.h"
+#include "dhcp_s_define.h"
 #include "securec.h"
 
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpOptionsTest");
 
 using namespace testing::ext;
 
@@ -40,6 +43,7 @@ public:
 
 HWTEST_F(DhcpOptionsTest, GetDhcpOptionDataLen_SUCCESS, TestSize.Level1)
 {
+    DHCP_LOGE("enter GetDhcpOptionDataLen_SUCCESS");
     EXPECT_GT(GetDhcpOptionDataLen(DHCP_MESSAGE_TYPE_OPTION), 0);
 }
 

@@ -17,6 +17,9 @@
 #include <cstdint>
 #include <cstdbool>
 #include "hash_table.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("HashTableTest");
 
 using namespace testing::ext;
 namespace OHOS {
@@ -45,6 +48,7 @@ public:
 
 HWTEST_F(HashTableTest, InitializedTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter InitializedTest");
     HashTable testTable = {0};
     EXPECT_EQ(0, Initialized(&testTable));
     EXPECT_EQ(0, Initialized(0));
@@ -173,20 +177,6 @@ HWTEST_F(HashTableTest, ResizeTest, TestSize.Level1)
     EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY * 2);
     EXPECT_EQ(HASH_SUCCESS, Resize(&testTable, HASH_MINI_CAPACITY / 2));
     EXPECT_EQ(HASH_SUCCESS, DestroyHashTable(&testTable));
-}
-
-extern "C" int CapExtend(HashTable *table, size_t miniCapacity);
-HWTEST_F(HashTableTest, CapExtendTest, TestSize.Level1)
-{
-    HashTable testTable;
-    EXPECT_EQ(HASH_SUCCESS, CreateHashTable(&testTable, sizeof(uint32_t),
-        sizeof(uint32_t), HASH_MINI_CAPACITY));
-    EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY);
-    EXPECT_EQ(HASH_SUCCESS, CapExtend(&testTable, HASH_MINI_CAPACITY * 5));
-    EXPECT_EQ(HASH_ERROR, CapExtend(0, HASH_MINI_CAPACITY));
-    EXPECT_TRUE(testTable.capacity == HASH_MINI_CAPACITY);
-    EXPECT_EQ(HASH_SUCCESS, DestroyHashTable(&testTable));
-    EXPECT_EQ(HASH_ERROR, ClearAll(0));
 }
 /**
  * @tc.name: AtTest

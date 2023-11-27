@@ -18,21 +18,20 @@
 #include "system_func_mock.h"
 #include "address_utils.h"
 #include "dhcp_define.h"
-#include "dhcp_ipv4.h"
+#include "dhcp_server_ipv4.h"
 #include "dhcp_logger.h"
 #include "dhcp_message.h"
 #include "dhcp_message_sim.h"
 #include "dhcp_option.h"
 #include "securec.h"
 
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerSystemFuncMock");
+
 using namespace OHOS::Wifi;
 
 #define MAGIC_COOKIE_LENGTH 4
 #define OPT_HEADER_LENGTH 2
 #define TIME_SEC_TO_USEC (1000 * 1000)
-
-#undef LOG_TAG
-#define LOG_TAG "DhcpServerSystemFuncMock"
 
 static bool g_mockTag = false;
 static int TIME_MSEC_TO_USEC = 1000;
@@ -71,12 +70,12 @@ struct sockaddr_in {
 int __real_socket(int __domain, int __type, int __protocol);
 int __wrap_socket(int __domain, int __type, int __protocol)
 {
-    LOGD("==>socket.");
+    DHCP_LOGD("==>socket.");
     if (g_mockTag) {
-        LOGD(" ==>mock enable.");
+        DHCP_LOGD(" ==>mock enable.");
         return SystemFuncMock::GetInstance().socket(__domain, __type, __protocol);
     } else {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
     }
     return __real_socket(__domain, __type, __protocol);
 }
@@ -84,12 +83,12 @@ int __wrap_socket(int __domain, int __type, int __protocol)
 int __real_setsockopt(int __fd, int __level, int __optname, const void *__optval, socklen_t __optlen);
 int __wrap_setsockopt(int __fd, int __level, int __optname, const void *__optval, socklen_t __optlen)
 {
-    LOGD("==>setsockopt.");
+    DHCP_LOGD("==>setsockopt.");
     if (g_mockTag) {
-        LOGD(" ==>mock enable.");
+        DHCP_LOGD(" ==>mock enable.");
         return SystemFuncMock::GetInstance().setsockopt(__fd, __level, __optname, __optval, __optlen);
     } else {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
     }
     return __real_setsockopt(__fd, __level, __optname, __optval, __optlen);
 }
@@ -98,10 +97,10 @@ int __real_select(int __nfds, fd_set *__readfds, fd_set *__writefds, fd_set *__e
 int __wrap_select(int __nfds, fd_set *__readfds, fd_set *__writefds, fd_set *__exceptfds, struct timeval *__timeout)
 {
     const unsigned int SLEEP_TIEM = 300000;
-    LOGD("==>select.");
+    DHCP_LOGD("==>select.");
     if (g_mockTag) {
-        LOGD(" ==>mock enable.");
-        LOGD("message queue total: %d.", DhcpMsgManager::GetInstance().SendTotal());
+        DHCP_LOGD(" ==>mock enable.");
+        DHCP_LOGD("message queue total: %d.", DhcpMsgManager::GetInstance().SendTotal());
         if (DhcpMsgManager::GetInstance().SendTotal() > 0) {
             FD_CLR(__nfds, __readfds);
             usleep(SLEEP_TIEM);
@@ -111,12 +110,12 @@ int __wrap_select(int __nfds, fd_set *__readfds, fd_set *__writefds, fd_set *__e
         if (retval == 0) {
             if (__timeout != nullptr) {
                 usleep(DHCP_SEL_WAIT_TIMEOUTS * TIME_MSEC_TO_USEC);
-                LOGD("select time out.");
+                DHCP_LOGD("select time out.");
             }
         }
         return retval;
     } else {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
     }
     return __real_select(__nfds, __readfds, __writefds, __exceptfds, __timeout);
 }
@@ -124,12 +123,12 @@ int __wrap_select(int __nfds, fd_set *__readfds, fd_set *__writefds, fd_set *__e
 int __real_bind(int __fd, struct sockaddr *__addr, socklen_t __len);
 int __wrap_bind(int __fd, struct sockaddr *__addr, socklen_t __len)
 {
-    LOGD("==>bind.");
+    DHCP_LOGD("==>bind.");
     if (g_mockTag) {
-        LOGD(" ==>mock enable.");
+        DHCP_LOGD(" ==>mock enable.");
         return SystemFuncMock::GetInstance().bind(__fd, __addr, __len);
     } else {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
     }
     return __real_bind(__fd, __addr, __len);
 }
@@ -137,26 +136,26 @@ int __wrap_bind(int __fd, struct sockaddr *__addr, socklen_t __len)
 int __real_close(int _fileno);
 int __wrap_close(int _fileno)
 {
-    LOGD("==>close.");
+    DHCP_LOGD("==>close.");
     if (g_mockTag) {
-        LOGD(" ==>mock enable.");
+        DHCP_LOGD(" ==>mock enable.");
         return SystemFuncMock::GetInstance().close(_fileno);
     } else {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
     }
     return __real_close(_fileno);
 }
 
 ssize_t recvfrom(int __fd, void *__buf, size_t __n, int __flags, struct sockaddr *__addr, socklen_t *__addr_len)
 {
-    LOGD("==>recvfrom.");
+    DHCP_LOGD("==>recvfrom.");
     if (!g_mockTag) {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
         return SystemFuncMock::GetInstance().recvfrom(__fd, __buf, __n, __flags, __addr, __addr_len);
     }
-    LOGD(" ==>mock enable.");
+    DHCP_LOGD(" ==>mock enable.");
     if (DhcpMsgManager::GetInstance().SendTotal() > 0 && __buf) {
-        LOGD("== new message received.");
+        DHCP_LOGD("== new message received.");
         DhcpMessage msg = { 0 };
         if (DhcpMsgManager::GetInstance().FrontSendMsg(&msg)) {
             (void)memcpy_s(__buf, __n, &msg, sizeof(DhcpMessage));
@@ -176,22 +175,22 @@ ssize_t recvfrom(int __fd, void *__buf, size_t __n, int __flags, struct sockaddr
 int ParseMockOptions(DhcpMessage *packet)
 {
     if (packet == nullptr) {
-        LOGD("dhcp message pointer is null.");
+        DHCP_LOGD("dhcp message pointer is null.");
         return RET_FAILED;
     }
     DhcpMsgInfo reply;
     if (memset_s(&reply, sizeof(DhcpMsgInfo), 0, sizeof(DhcpMsgInfo)) != EOK) {
-        LOGD("failed to reset dhcp message info.");
+        DHCP_LOGD("failed to reset dhcp message info.");
         return RET_FAILED;
     }
     int retval = RET_FAILED;
     if (memcpy_s(&reply.packet, sizeof(reply.packet), packet, sizeof(DhcpMessage)) != EOK) {
-        LOGD("failed to fill dhcp message.");
+        DHCP_LOGD("failed to fill dhcp message.");
         return RET_FAILED;
     }
     reply.length = sizeof(DhcpMessage);
     if (InitOptionList(&reply.options) != RET_SUCCESS) {
-        LOGD("failed to init dhcp option list.");
+        DHCP_LOGD("failed to init dhcp option list.");
         return retval;
     }
     FreeOptionList(&reply.options);
@@ -200,14 +199,14 @@ int ParseMockOptions(DhcpMessage *packet)
 
 ssize_t sendto(int __fd, const void *__buf, size_t __n, int __flags, struct sockaddr *__addr, socklen_t __addr_len)
 {
-    LOGD("==>sendto.");
+    DHCP_LOGD("==>sendto.");
     if (g_mockTag) {
-        LOGD(" ==>mock enable.");
+        DHCP_LOGD(" ==>mock enable.");
         if (__buf == nullptr) {
             return SystemFuncMock::GetInstance().sendto(__fd, __buf, __n, __flags, __addr, __addr_len);
         }
     } else {
-        LOGD(" ==>mock disable.");
+        DHCP_LOGD(" ==>mock disable.");
     }
     return SystemFuncMock::GetInstance().sendto(__fd, __buf, __n, __flags, __addr, __addr_len);
 }

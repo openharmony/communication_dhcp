@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 #include "dhcp_address_pool.h"
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
 #include "dhcp_option.h"
 
 #ifdef __cplusplus

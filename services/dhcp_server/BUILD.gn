@@ -19,38 +19,56 @@ if (defined(ohos_lite)) {
   import("//foundation/communication/dhcp/dhcp.gni")
 }
 
-local_base_sources = [
-  "src/address_utils.c",
-  "src/common_util.c",
-  "src/dhcp_address_pool.c",
-  "src/dhcp_argument.c",
-  "src/dhcp_binding.c",
-  "src/dhcp_config.c",
-  "src/dhcp_dhcpd.c",
-  "src/dhcp_option.c",
-  "src/dhcp_server.c",
-  "src/hash_table.c",
-]
-
+################################################################################
 local_base_include_dirs = [
-  "include",
-  "include/common",
+  "$DHCP_ROOT_DIR/services",
+  "$DHCP_ROOT_DIR/services/dhcp_server/include",
+  "$DHCP_ROOT_DIR/interfaces",
+  "$DHCP_ROOT_DIR/interfaces/kits/c",
+  "$DHCP_ROOT_DIR/interfaces/inner_api",
+  "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+  "$DHCP_ROOT_DIR/frameworks/native/include",
+  "$DHCP_ROOT_DIR/frameworks/native/interfaces",
+  "$DHCP_ROOT_DIR/frameworks/native/src",
+  "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
   "$DHCP_ROOT_DIR/services/dhcp_client/include",
 ]
 
-dhcp_hilog_enable = true
-
 if (defined(ohos_lite)) {
-  executable("dhcp_server") {
-    sources = local_base_sources
+  dhcp_hilog_enable = true
+  shared_library("dhcp_server") {
+    sources = [
+      "src/address_utils.cpp",
+      "src/common_util.cpp",
+      "src/dhcp_address_pool.cpp",
+      "src/dhcp_argument.cpp",
+      "src/dhcp_binding.cpp",
+      "src/dhcp_config.cpp",
+      "src/dhcp_dhcpd.cpp",
+      "src/dhcp_function.cpp",
+      "src/dhcp_option.cpp",
+      "src/dhcp_s_server.cpp",
+      "src/dhcp_server_callback_proxy_lite.cpp",
+      "src/dhcp_server_feature_lite.cpp",
+      "src/dhcp_server_service_impl.cpp",
+      "src/dhcp_server_stub_lite.cpp",
+      "src/dhcp_start_server_sa.cpp",
+      "src/hash_table.cpp",
+    ]
 
     include_dirs = local_base_include_dirs
     include_dirs += [
       "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
       "//third_party/bounds_checking_function/include",
+      "//foundation/systemabilitymgr/samgr_lite/interfaces/innerkits/registry",
+      "//foundation/systemabilitymgr/samgr_lite/interfaces/innerkits/samgr",
     ]
 
-    deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+    deps = [
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+      "//third_party/bounds_checking_function:libsec_shared",
+    ]
 
     cflags_cc = [ "-fno-rtti" ]
 
@@ -64,26 +82,70 @@ if (defined(ohos_lite)) {
     }
   }
 } else {
-  ohos_executable("dhcp_server") {
-    branch_protector_ret = "pac_ret"
+  local_base_sources = [
+    "src/address_utils.cpp",
+    "src/common_util.cpp",
+    "src/dhcp_address_pool.cpp",
+    "src/dhcp_argument.cpp",
+    "src/dhcp_binding.cpp",
+    "src/dhcp_config.cpp",
+    "src/dhcp_dhcpd.cpp",
+    "src/dhcp_function.cpp",
+    "src/dhcp_option.cpp",
+    "src/dhcp_s_server.cpp",
+    "src/dhcp_server_death_recipient.cpp",
+    "src/dhcp_server_service_impl.cpp",
+    "src/hash_table.cpp",
+  ]
+  config("dhcp_manager_service_header") {
+    visibility = [ ":*" ]
+    include_dirs = local_base_include_dirs
+  }
 
+  ohos_shared_library("dhcp_server") {
+    sanitize = {
+      cfi = true
+      boundary_sanitize = true
+      cfi_cross_dso = true
+      debug = false
+    }
     install_enable = true
     sources = local_base_sources
+    sources += [
+      "src/dhcp_server_callback_proxy.cpp",
+      "src/dhcp_server_stub.cpp",
+      "src/dhcp_start_server_sa.cpp",
+    ]
 
     include_dirs = local_base_include_dirs
-    include_dirs += [ "//commonlibrary/c_utils/base/include" ]
 
-    external_deps = [ "c_utils:utils" ]
+    external_deps = [
+      "access_token:libaccesstoken_sdk",
+      "access_token:libtokenid_sdk",
+      "bundle_framework:appexecfwk_base",
+      "c_utils:utils",
+      "common_event_service:cesfwk_innerkits",
+      "eventhandler:libeventhandler",
+      "hilog:libhilog",
+      "huks:libhukssdk",
+      "ipc:ipc_single",
+      "safwk:system_ability_fwk",
+      "samgr:samgr_proxy",
+    ]
 
-    cflags_cc = [ "-fno-rtti" ]
-
-    defines = []
-    if (dhcp_hilog_enable) {
-      external_deps += [ "hilog:libhilog" ]
-      defines += [ "DHCP_HILOG_ENABLE" ]
-    }
-
+    cflags = [
+      "-std=c++17",
+      "-fno-rtti",
+    ]
+    ldflags = [
+      "-fPIC",
+      "-Wl,-E",
+    ]
+    shlib_type = "sa"
+    version_script = "libdhcp_server.map"
+    public_configs = [ ":dhcp_manager_service_header" ]
     part_name = "dhcp"
     subsystem_name = "communication"
+    innerapi_tags = [ "platformsdk" ]
   }
 }

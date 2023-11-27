@@ -16,14 +16,17 @@
 #include <gtest/gtest.h>
 #include <cstdint>
 #include <cstdbool>
-#include "dhcp_define.h"
-#include "dhcp_ipv4.h"
+#include "dhcp_s_define.h"
+#include "dhcp_server_ipv4.h"
 #include "dhcp_message.h"
 #include "dhcp_option.h"
 #include "dhcp_address_pool.h"
 #include "address_utils.h"
 #include "common_util.h"
+#include "dhcp_logger.h"
 #include "securec.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpAddressPoolTest");
 
 using namespace testing::ext;
 namespace OHOS {
@@ -80,6 +83,7 @@ public:
 
 HWTEST_F(DhcpAddressPoolTest, AddBindingTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter AddBindingTest");
     AddressBinding bind = {0};
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
@@ -424,116 +428,6 @@ HWTEST_F(DhcpAddressPoolTest, LoadBindingRecodersTest, TestSize.Level1)
     EXPECT_EQ(HASH_SUCCESS, ClearAll(&testPool.leaseTable));
 }
 
-
-extern "C" int CheckRangeAvailability(
-    DhcpAddressPool *pool, uint8_t macAddr[DHCP_HWADDR_LENGTH], uint32_t distIp, int *outOfRange);
-
-HWTEST_F(DhcpAddressPoolTest, CheckRangeAvailabilityTest, TestSize.Level1)
-{
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
-    uint8_t testMac3[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3b, 0x0b, 0};
-    uint8_t testMac4[DHCP_HWADDR_LENGTH] = {0};
-    
-    uint32_t testIp1 = ParseIpAddr("192.168.100.101");
-    uint32_t testIp2 = ParseIpAddr("192.168.100.102");
-    uint32_t testIp3 = ParseIpAddr("192.168.100.3");
-
-    int outOfRange = 0;
-    EXPECT_EQ(RET_ERROR, CheckRangeAvailability(NULL, testMac1, testIp1, &outOfRange));
-    EXPECT_EQ(RET_ERROR, CheckRangeAvailability(&testPool, testMac1, testIp1, &outOfRange));
-    EXPECT_TRUE(SamplePoolConfig());
-    EXPECT_EQ(RET_ERROR, CheckRangeAvailability(&testPool, testMac4, testIp1, &outOfRange));
-    EXPECT_EQ(0, outOfRange);
-    EXPECT_EQ(RET_SUCCESS, CheckRangeAvailability(&testPool, testMac1, testIp1, &outOfRange));
-    EXPECT_EQ(0, outOfRange);
-    EXPECT_EQ(RET_SUCCESS, CheckRangeAvailability(&testPool, testMac2, testIp2, &outOfRange));
-    EXPECT_EQ(0, outOfRange);
-    EXPECT_EQ(RET_FAILED, CheckRangeAvailability(&testPool, testMac3, testIp3, &outOfRange));
-    EXPECT_EQ(1, outOfRange);
-}
-
-extern "C" int CheckIpAvailability(DhcpAddressPool *pool, uint8_t macAddr[DHCP_HWADDR_LENGTH], uint32_t distIp);
-HWTEST_F(DhcpAddressPoolTest, CheckIpAvailabilityTest, TestSize.Level1)
-{
-    AddressBinding lease = {0};
-    lease.bindingMode = BIND_MODE_DYNAMIC;
-    lease.bindingStatus = BIND_ASSOCIATED;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x0d, 0x0a, 0x3c, 0x65, 0x3a, 0x09, 0};
-    uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x0d, 0x0a, 0x3d, 0x65, 0x3a, 0x0a, 0};
-    uint8_t testMac3[DHCP_HWADDR_LENGTH] = {0x0d, 0x0a, 0x3d, 0x65, 0x3a, 0x0b, 0};
-    uint32_t testIp1 = ParseIpAddr("192.168.100.101");
-    uint32_t testIp2 = ParseIpAddr("192.168.100.102");
-    uint32_t testIp3 = ParseIpAddr("192.168.150.103");
-    ASSERT_TRUE(testIp1 != 0);
-    ASSERT_TRUE(testIp2 != 0);
-    ASSERT_TRUE(testIp3 != 0);
-    lease.ipAddress = testIp1;
-    lease.leaseTime = DHCP_LEASE_TIME;
-    lease.pendingTime = 1631240659;
-    lease.bindingTime = 1631240659;
-    for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
-        lease.chaddr[i] = testMac1[i];
-    }
-    lease.bindingMode = BIND_MODE_DYNAMIC;
-    lease.bindingStatus = BIND_ASSOCIATED;
-    EXPECT_EQ(RET_SUCCESS, AddBinding(&lease));
-    ASSERT_EQ(RET_SUCCESS, AddLease(&testPool, &lease));
-    EXPECT_EQ(DHCP_TRUE, CheckIpAvailability(&testPool, testMac1, testIp1));
-    AddressBinding *pLease = GetLease(&testPool, testIp1);
-    ASSERT_TRUE(pLease != NULL);
-    pLease->bindingMode = BIND_MODE_STATIC;
-    EXPECT_EQ(DHCP_FALSE, CheckIpAvailability(&testPool, testMac2, testIp1));
-    pLease->bindingMode = BIND_MODE_DYNAMIC;
-
-    for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
-        lease.chaddr[i] = testMac2[i];
-    }
-    lease.ipAddress = testIp2;
-    lease.bindingMode = BIND_MODE_RESERVED;
-    EXPECT_EQ(RET_SUCCESS, AddBinding(&lease));
-    EXPECT_EQ(RET_SUCCESS, AddLease(&testPool, &lease));
-    EXPECT_EQ(DHCP_FALSE, CheckIpAvailability(&testPool, testMac2, testIp2));
-
-    EXPECT_TRUE(SamplePoolConfig());
-    EXPECT_EQ(DHCP_FALSE, CheckIpAvailability(NULL, testMac1, testIp1));
-    EXPECT_EQ(DHCP_FALSE, CheckIpAvailability(&testPool, testMac3, testIp1));
-
-    pLease->pendingTime = Tmspsec() - DHCP_LEASE_TIME - 2600;
-    pLease->bindingTime = pLease->pendingTime;
-    EXPECT_EQ(DHCP_TRUE, CheckIpAvailability(&testPool, testMac3, testIp1));
-}
-
-
-extern "C" AddressBinding *GetBindingByMac(HashTable *bindTable, uint8_t macAddr[DHCP_HWADDR_LENGTH]);
-
-HWTEST_F(DhcpAddressPoolTest, GetBindingByMacTest, TestSize.Level1)
-{
-    AddressBinding lease = {0};
-    uint32_t testIp1 = ParseIpAddr("192.168.100.101");
-    ASSERT_TRUE(testIp1 != 0);
-    lease.bindingMode = BIND_MODE_DYNAMIC;
-    lease.bindingStatus = BIND_ASSOCIATED;
-    lease.pendingTime = 1631260680;
-    lease.bindingTime = 1631260680;
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    lease.ipAddress = testIp1;
-    for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
-        lease.chaddr[i] = testMac1[i];
-    }
-    ASSERT_EQ(RET_SUCCESS, AddBinding(&lease));
-    AddressBinding *binding = QueryBinding(testMac1, 0);
-    ASSERT_TRUE(binding != NULL);
-    HashTable tempTable = {0};
-    EXPECT_TRUE(GetBindingByMac(NULL, testMac1) == NULL);
-    EXPECT_TRUE(GetBindingByMac(&tempTable, testMac1) == NULL);
-    EXPECT_EQ(lease.ipAddress, binding->ipAddress);
-    EXPECT_EQ(lease.leaseTime, binding->leaseTime);
-    EXPECT_EQ(lease.bindingMode, binding->bindingMode);
-    EXPECT_EQ(lease.bindingStatus, binding->bindingStatus);
-    EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac1));
-}
-
 HWTEST_F(DhcpAddressPoolTest, GetBindingByIpTest, TestSize.Level1)
 {
     AddressBinding lease = {0};
@@ -570,18 +464,6 @@ HWTEST_F(DhcpAddressPoolTest, InitAddressPoolTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, InitAddressPool(&tempPool, "test_if2", NULL));
     FreeAddressPool(NULL);
     FreeAddressPool(&tempPool);
-}
-
-extern "C" uint32_t NextIpOffset(uint32_t netmask);
-HWTEST_F(DhcpAddressPoolTest, NextIpOffsetTest, TestSize.Level1)
-{
-    uint32_t netmask = ParseIpAddr("255.255.255.0");
-    ASSERT_TRUE(netmask != 0);
-    SetDistributeMode(0);
-    EXPECT_TRUE(NextIpOffset(netmask) == 0);
-    SetDistributeMode(1);
-    usleep(10);
-    SetDistributeMode(0);
 }
 
 HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)

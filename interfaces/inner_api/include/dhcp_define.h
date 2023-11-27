@@ -69,6 +69,9 @@ const std::string EVENT_DATA_DELIMITER(",");
 const std::string EVENT_DATA_IPV4("ipv4");
 const std::string EVENT_DATA_IPV6("ipv6");
 
+#define DHCP_CLIENT_ABILITY_ID  1126
+#define DHCP_SERVER_ABILITY_ID  1127
+
 #ifdef OHOS_EUPDATER
 const std::string DHCP_WORK_DIR("/tmp/service/el1/public/dhcp/");
 #else
@@ -91,7 +94,7 @@ const std::string DHCP_SERVER_CFG_IPV4("#ipv4");
 const std::string DHCP_SERVER_CFG_IPV6("#ipv6");
 const std::string COMMON_EVENT_DHCP_GET_IPV4 = "usual.event.wifi.dhcp.GET_IPV4";
 const std::string IP_V4_MASK("255.255.255.0");
-const std::string IP_V4_DEFAULT("192.168.62.1");
+const std::string IP_V4_DEFAULT("192.168.62.2");
 
 typedef enum EnumErrCode {
     /* success */
@@ -100,23 +103,16 @@ typedef enum EnumErrCode {
     DHCP_OPT_FAILED,
     /* null pointer */
     DHCP_OPT_NULL,
-    /* get ip timeout */
+    /* timeout */
     DHCP_OPT_TIMEOUT,
-    /* renew failed */
-    DHCP_OPT_RENEW_FAILED,
-    /* renew timeout */
-    DHCP_OPT_RENEW_TIMEOUT,
     /* error */
     DHCP_OPT_ERROR,
 } DhcpErrCode;
 
-/* publish event code */
-typedef enum EnumPublishEventCode {
-    /* success */
-    PUBLISH_CODE_SUCCESS = 0,
-    /* failed */
-    PUBLISH_CODE_FAILED = -1
-} DhcpEventCode;
+enum DhcpServerState {
+    DHCP_SERVER_OFF = 0,
+    DHCP_SERVER_ON,
+};
 
 typedef enum EnumServiceStatus {
     SERVICE_STATUS_INVALID  = 0,
@@ -125,8 +121,8 @@ typedef enum EnumServiceStatus {
 } DhcpServiceStatus;
 
 struct DhcpResult {
-    int iptype;             /* 0-ipv4,1-ipv6 */
     bool isOptSuc;          /* get result */
+    int iptype;             /* 0-ipv4,1-ipv6 */
     std::string strYourCli; /* your (client) IP */
     std::string strServer;  /* dhcp server IP */
     std::string strSubnet;  /* your (client) subnet mask */
@@ -136,7 +132,7 @@ struct DhcpResult {
     std::string strRouter2; /* your (client) router2 */
     std::string strVendor;  /* your (client) vendor */
     uint32_t uLeaseTime;    /* your (client) IP lease time (s) */
-    uint32_t uAddTime;      /* dhcp result add time */
+    uint32_t  uAddTime;      /* dhcp result add time */
     uint32_t uGetTime;      /* dhcp result get time */
 
     DhcpResult()

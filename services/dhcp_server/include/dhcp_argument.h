@@ -13,6 +13,7 @@
  * limitations under the License.
  */
 
+#include <string>
 
 #ifndef OHOS_DHCP_ARGUMENT_H
 #define OHOS_DHCP_ARGUMENT_H
@@ -26,7 +27,7 @@
 #define OPTIONAL_ARG 2
 
 #define USAGE_DESC_MAX_LENGTH 32
-
+const std::string IP_V4_DEFAULT("192.168.62.2");
 
 #ifdef __cplusplus
 extern "C" {
@@ -54,7 +55,7 @@ int HasArgument(const char *argument);
 ArgumentInfo *GetArgument(const char *name);
 int PutArgument(const char *argument, const char *val);
 
-int ParseArguments(int argc, char *argv[]);
+int ParseArguments(const std::string& ifName, const std::string& netMask, const std::string& ipRange);
 
 void FreeArguments(void);
 

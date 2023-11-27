@@ -15,11 +15,13 @@
 
 #include <gtest/gtest.h>
 
-#include "wifi_log.h"
+#include "dhcp_logger.h"
 #include "dhcp_socket.h"
 #include "dhcp_function.h"
 #include "securec.h"
 #include "mock_system_func.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpSocketTest");
 
 using namespace testing::ext;
 using namespace OHOS::Wifi;
@@ -39,6 +41,7 @@ public:
 
 HWTEST_F(DhcpSocketTest, CreateRawSocket_SUCCESS, TestSize.Level1)
 {
+    DHCP_LOGE("enter CreateRawSocket_SUCCESS");
     MockSystemFunc::SetMockFlag(true);
 
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));

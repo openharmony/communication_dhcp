@@ -13,7 +13,7 @@
  * limitations under the License.
  */
 #include "mock_custom_func.h"
-#include "dhcp_ipv4.h"
+#include "dhcp_client_state_machine.h"
 #include "dhcp_options.h"
 #include "dhcp_function.h"
 #include "securec.h"
@@ -64,6 +64,7 @@ static int AddOptDoubleValueToOpts(uint8_t *pOpts, uint8_t code, uint32_t value1
 int __real_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd);
 int __wrap_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
 {
+    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> testMachine;
     if (g_mockTag) {
         int nLen = MockCustomFunc::GetInstance().GetDhcpRawPacket(getPacket, rawFd);
         char cliIp[INET_ADDRSTRLEN] = "192.77.2.231";
@@ -72,17 +73,17 @@ int __wrap_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
         uint32_t uSerIp = 0;
         Ip4StrConToInt(cliIp, &uCliIp, false);
         Ip4StrConToInt(serIp, &uSerIp, false);
-        getPacket->xid = GetDhcpTransID();
+        getPacket->xid = testMachine->GetDhcpTransID();
         getPacket->yiaddr = uCliIp;
         if (nLen == 1) {
-            GetPacketHeaderInfo(getPacket, DHCP_OFFER);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_OFFER);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
         } else if (nLen == NUM_TWO) {
-            GetPacketHeaderInfo(getPacket, DHCP_ACK);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_ACK);
         } else if (nLen == NUM_THREE) {
-            GetPacketHeaderInfo(getPacket, DHCP_NAK);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_NAK);
         } else if (nLen == NUM_FOUR) {
-            GetPacketHeaderInfo(getPacket, DHCP_ACK);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_ACK);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
             AddOptValueToOpts(getPacket->options, SUBNET_MASK_OPTION, 0);
             AddOptValueToOpts(getPacket->options, IP_ADDRESS_LEASE_TIME_OPTION, htonl(NUM_TEN));
@@ -98,6 +99,7 @@ int __wrap_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
 int __real_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd);
 int __wrap_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd)
 {
+    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> testMachine;
     if (g_mockTag) {
         int nLen = MockCustomFunc::GetInstance().GetDhcpKernelPacket(getPacket, sockFd);
         char cliIp[INET_ADDRSTRLEN] = "192.77.3.231";
@@ -106,20 +108,20 @@ int __wrap_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd)
         uint32_t uSerIp = 0;
         Ip4StrConToInt(cliIp, &uCliIp, false);
         Ip4StrConToInt(serIp, &uSerIp, false);
-        getPacket->xid = GetDhcpTransID();
+        getPacket->xid = testMachine->GetDhcpTransID();
         getPacket->yiaddr = uCliIp;
         if (nLen == 1) {
-            GetPacketHeaderInfo(getPacket, DHCP_OFFER);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_OFFER);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
         } else if (nLen == NUM_TWO) {
-            GetPacketHeaderInfo(getPacket, DHCP_ACK);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_ACK);
             AddOptValueToOpts(getPacket->options, SERVER_IDENTIFIER_OPTION, uSerIp);
             AddOptValueToOpts(getPacket->options, SUBNET_MASK_OPTION, 0);
             AddOptValueToOpts(getPacket->options, IP_ADDRESS_LEASE_TIME_OPTION, htonl(NUM_FOUR));
             AddOptDoubleValueToOpts(getPacket->options, ROUTER_OPTION, uSerIp, uCliIp);
             AddOptDoubleValueToOpts(getPacket->options, DOMAIN_NAME_SERVER_OPTION, uSerIp, uCliIp);
         } else if (nLen == NUM_THREE) {
-            GetPacketHeaderInfo(getPacket, DHCP_NAK);
+            testMachine->GetPacketHeaderInfo(getPacket, DHCP_NAK);
         }
         return nLen;
     } else {

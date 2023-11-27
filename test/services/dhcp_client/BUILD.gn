@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (C) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -14,45 +14,55 @@
 import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
 
-################################################################################
-
 module_output_path = "dhcp/dhcp_client_test"
 
 config("module_private_config") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "//commonlibrary/c_utils/base/include",
-    "$DHCP_ROOT_DIR/services/dhcp_client/include",
-  ]
+  include_dirs = [ "$DHCP_ROOT_DIR/services/dhcp_client/include" ]
 }
 
 ohos_unittest("dhcp_client_unittest") {
   module_out_path = module_output_path
   sources = [
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_api.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client.c",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.c",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv4.c",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.c",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.c",
-    "dhcp_api_test.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_start_client_sa.cpp",
+    "dhcp_client_callback_proxy_test.cpp",
+    "dhcp_client_death_recipient_test.cpp",
+    "dhcp_client_service_impl_test.cpp",
+    "dhcp_client_state_machine_test.cpp",
+    "dhcp_client_stub_test.cpp",
     "dhcp_client_test.cpp",
     "dhcp_function_test.cpp",
-    "dhcp_ipv4_test.cpp",
     "dhcp_options_test.cpp",
     "dhcp_socket_test.cpp",
+    "dhcp_start_client_sa_test.cpp",
     "mock_custom_func.cpp",
     "mock_system_func.cpp",
   ]
 
   include_dirs = [
-    "//third_party/googletest/googlemock/include",
-    "$DHCP_ROOT_DIR/services/dhcp_client/test",
-    "$DHCP_ROOT_DIR/services/dhcp_client/include",
-    "$WIFI_ROOT_DIR/services/wifi_standard/wifi_framework/wifi_toolkit/log",
-    "//commonlibrary/c_utils/base/include",
-    "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
     "//third_party/openssl/include",
+    "$DHCP_ROOT_DIR/frameworks/native/include",
+    "$DHCP_ROOT_DIR/frameworks/native/interfaces",
+    "$DHCP_ROOT_DIR/frameworks/native/src",
+    "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
+    "$DHCP_ROOT_DIR/interfaces",
+    "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+    "$DHCP_ROOT_DIR/interfaces/kits/c",
+    "$DHCP_ROOT_DIR/services",
+    "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_server/include",
   ]
 
   deps = [
@@ -86,13 +96,24 @@ ohos_unittest("dhcp_client_unittest") {
 
   external_deps = [
     "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "bundle_framework:appexecfwk_base",
     "c_utils:utils",
     "common_event_service:cesfwk_innerkits",
     "eventhandler:libeventhandler",
     "hilog:libhilog",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
+
   configs = [ ":module_private_config" ]
+
+  defines = [
+    "private = public",
+    "protected = public",
+  ]
 
   part_name = "dhcp"
   subsystem_name = "communication"

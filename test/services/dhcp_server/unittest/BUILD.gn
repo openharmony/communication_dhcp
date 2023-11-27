@@ -1,4 +1,4 @@
-# Copyright (C) 2021-2022 Huawei Device Co., Ltd.
+# Copyright (C) 2021-2023 Huawei Device Co., Ltd.
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -18,25 +18,29 @@ module_output_path = "dhcp/dhcp_server_test"
 
 config("module_private_config") {
   visibility = [ ":*" ]
-  include_dirs = [
-    "//commonlibrary/c_utils/base/include",
-    "$DHCP_ROOT_DIR/services/dhcp_server/include",
-  ]
+  include_dirs = [ "$DHCP_ROOT_DIR/services/dhcp_server/include" ]
 }
 
 ohos_unittest("dhcp_server_unittest") {
   module_out_path = module_output_path
   dhcp_hilog_enable = true
   sources = [
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/address_utils.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/common_util.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_address_pool.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_argument.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_binding.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_config.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_option.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server.c",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/hash_table.c",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/address_utils.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/common_util.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_address_pool.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_argument.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_binding.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_config.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_dhcpd.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_function.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_option.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_s_server.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_death_recipient.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_service_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_stub.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_start_server_sa.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/hash_table.cpp",
     "address_utils_test.cpp",
     "common_util_test.cpp",
     "dhcp_address_pool_test.cpp",
@@ -45,15 +49,28 @@ ohos_unittest("dhcp_server_unittest") {
     "dhcp_config_test.cpp",
     "dhcp_message_sim.cpp",
     "dhcp_option_test.cpp",
-    "dhcp_server_test.cpp",
+    "dhcp_s_server_test.cpp",
+    "dhcp_server_callback_proxy_test.cpp",
+    "dhcp_server_death_recipient_test.cpp",
+    "dhcp_server_service_impl_test.cpp",
+    "dhcp_server_stub_test.cpp",
+    "dhcp_start_server_sa_test.cpp",
     "hash_table_test.cpp",
     "system_func_mock.cpp",
   ]
 
   include_dirs = [
-    "//commonlibrary/c_utils/base/include",
     "//third_party/googletest/googlemock/include",
-    "//base/hiviewdfx/hilog/interfaces/native/innerkits/include",
+    "$DHCP_ROOT_DIR/frameworks/native/include",
+    "$DHCP_ROOT_DIR/frameworks/native/interfaces",
+    "$DHCP_ROOT_DIR/frameworks/native/src",
+    "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
+    "$DHCP_ROOT_DIR/interfaces",
+    "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+    "$DHCP_ROOT_DIR/interfaces/kits/c",
+    "$DHCP_ROOT_DIR/interfaces/services",
+    "$DHCP_ROOT_DIR/services",
     "$DHCP_ROOT_DIR/services/dhcp_server/include",
   ]
 
@@ -64,7 +81,19 @@ ohos_unittest("dhcp_server_unittest") {
     "//third_party/googletest:gtest_main",
   ]
 
-  external_deps = [ "c_utils:utils" ]
+  external_deps = [
+    "ability_base:want",
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "bundle_framework:appexecfwk_base",
+    "c_utils:utils",
+    "common_event_service:cesfwk_innerkits",
+    "eventhandler:libeventhandler",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
 
   ldflags = [
     "-fPIC",
@@ -79,7 +108,11 @@ ohos_unittest("dhcp_server_unittest") {
 
   configs = [ ":module_private_config" ]
 
-  defines = [ "DHCP_SEL_WAIT_TIMEOUTS=1" ]
+  defines = [
+    "DHCP_SEL_WAIT_TIMEOUTS=1",
+    "private = public",
+    "protected = public",
+  ]
 
   if (dhcp_hilog_enable) {
     external_deps += [ "hilog:libhilog" ]

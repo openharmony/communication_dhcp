@@ -1,0 +1,13 @@
+{
+    "process":"wifi_manager_service",
+        "systemability":[
+            {
+                "name":1127,
+                "libpath":"libdhcp_server.z.so",
+                "run-on-create":false,
+                "auto-restart":true,
+                "distributed":false,
+                "dump-level":1
+            }
+        ]
+}

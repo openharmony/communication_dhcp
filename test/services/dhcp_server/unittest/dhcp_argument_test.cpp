@@ -19,7 +19,10 @@
 #include <cstdlib>
 #include <cstdio>
 #include "dhcp_argument.h"
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpArgumentTest");
 
 using namespace testing::ext;
 
@@ -28,32 +31,6 @@ namespace Wifi {
 HWTEST(DhcpArgumentTest, InitArgumentsTest, TestSize.Level1)
 {
     EXPECT_TRUE(InitArguments() == RET_SUCCESS);
-}
-
-HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
-{
-    PrintRequiredArguments();
-    ShowHelp(2);
-    char *argv[ARGUMENT_VALUE_SIZE] = {
-                                        const_cast<char *>(""),
-                                        const_cast<char *>("--dns=192.168.1.1,192.168.1.2"),
-                                        const_cast<char *>("--ifname=eth0"),
-                                        const_cast<char *>("--gateway=192.168.1.1"),
-                                        const_cast<char *>("--pool=192.168.1.100,192.168.1.150"),
-                                        const_cast<char *>("--version"),
-                                        const_cast<char *>("--help"),
-                                        const_cast<char *>("--unknown"),
-                                        };
-
-    EXPECT_TRUE(ParseArguments(8, argv) == RET_SUCCESS);
-    ArgumentInfo *arg = GetArgument("dns");
-    EXPECT_TRUE(arg);
-    EXPECT_EQ(strncmp(arg->name, "dns", strlen("dns")), 0);
-    EXPECT_EQ(strncmp(arg->value, "192.168.1.1,192.168.1.2", strlen("192.168.1.1,192.168.1.2")), 0);
-    arg = GetArgument("ifname");
-    EXPECT_TRUE(arg);
-    EXPECT_EQ(strncmp(arg->name, "ifname", strlen("ifname")), 0);
-    EXPECT_EQ(strncmp(arg->value, "eth0", strlen("eth0")), 0);
 }
 
 HWTEST(DhcpArgumentTest, PutArgumentTest, TestSize.Level1)
@@ -77,6 +54,7 @@ HWTEST(DhcpArgumentTest, PutArgumentTest, TestSize.Level1)
 
 HWTEST(DhcpArgumentTest, GetArgumentTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter GetArgumentTest");
     ArgumentInfo *arg = GetArgument("lease");
     EXPECT_TRUE(arg);
     EXPECT_EQ(0, strncmp(arg->name, "lease", strlen("lease")));
