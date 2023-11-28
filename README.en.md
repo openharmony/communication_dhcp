@@ -18,7 +18,6 @@ As shown in the figure below, the DhcpService class provides an interface for ex
 1. Call the class DhcpServiceAPI to get the IDhcpService instance;
 2. Start DHCP function (Client/Server) through IDhcpService instance;
 3. The client registers the callback of the DhcpResultNotify class through GetDhcpResult;
-4. The server side obtains the notification of the DHCP server exit abnormally through GetDhcpSerProExit.
 
 #### Related project
 

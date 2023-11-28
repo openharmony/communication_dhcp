@@ -23,13 +23,13 @@
 #include <fcntl.h>
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
-#include "dhcp_ipv4.h"
+#include "dhcp_server_ipv4.h"
 #include "address_utils.h"
 #include "securec.h"
 #include "common_util.h"
 
-#undef LOG_TAG
-#define LOG_TAG "DhcpMessageSimulator"
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpMessageSimulator");
+
 using namespace OHOS::Wifi;
 
 constexpr int OPT_MESSAGE_TYPE_LEGTH = 1;
@@ -140,32 +140,32 @@ int FillHwAddr(uint8_t *dst, size_t dsize, uint8_t *src, size_t ssize)
 
 DhcpClientContext *InitialDhcpClient(DhcpClientConfig *config)
 {
-    LOGD("init dhcp client.");
+    DHCP_LOGD("init dhcp client.");
     if (!config) {
         return nullptr;
     }
     DhcpClientContext *context = reinterpret_cast<DhcpClientContext *>(calloc(1, sizeof(DhcpClientContext)));
     if (context == nullptr) {
-        LOGE("failed to calloc client context.");
+        DHCP_LOGE("failed to calloc client context.");
         return nullptr;
     }
     if (memset_s(context, sizeof(DhcpClientContext), 0, sizeof(DhcpClientContext)) != EOK) {
-        LOGE("failed to reset client context.");
+        DHCP_LOGE("failed to reset client context.");
         free(context);
         return nullptr;
     }
     if (memset_s(context->config.ifname, IFACE_NAME_SIZE, '\0', IFACE_NAME_SIZE) != EOK) {
-        LOGE("failed to reset interface name.");
+        DHCP_LOGE("failed to reset interface name.");
         free(context);
         return nullptr;
     }
     if (strncpy_s(context->config.ifname, IFACE_NAME_SIZE, config->ifname, strlen(config->ifname)) != EOK) {
-        LOGE("failed to set interface name.");
+        DHCP_LOGE("failed to set interface name.");
         free(context);
         return nullptr;
     }
     if (!FillHwAddr(context->config.chaddr, DHCP_HWADDR_LENGTH, config->chaddr, MAC_ADDR_LENGTH)) {
-        LOGE("failed to set chaddr.");
+        DHCP_LOGE("failed to set chaddr.");
         free(context);
         return nullptr;
     }
@@ -183,7 +183,7 @@ static int ParseDhcpOptions(PDhcpMsgInfo msg)
     uint8_t *current = msg->packet.options, olen = MAGIC_COOKIE_LENGTH;
     uint32_t cookie = htonl(DHCP_MAGIC_COOKIE);
     if (memcpy_s(current, olen, &cookie, olen) != EOK) {
-        LOGE("memcpy cookie out of options buffer!");
+        DHCP_LOGE("memcpy cookie out of options buffer!");
         return RET_FAILED;
     }
     replyOptsLength += olen;
@@ -196,7 +196,7 @@ static int ParseDhcpOptions(PDhcpMsgInfo msg)
             olen = OPT_HEADER_LENGTH + pNode->option.length;
         }
         if (memcpy_s(current, olen, &pNode->option, olen) != EOK) {
-            LOGE("memcpy current option out of options buffer!");
+            DHCP_LOGE("memcpy current option out of options buffer!");
             ret = RET_FAILED;
             break;
         }
@@ -207,7 +207,7 @@ static int ParseDhcpOptions(PDhcpMsgInfo msg)
         }
         pNode = pNode->next;
         if (replyOptsLength >= DHCP_OPTIONS_SIZE) {
-            LOGE("current option out of options buffer!");
+            DHCP_LOGE("current option out of options buffer!");
             ret = RET_FAILED;
             break;
         }
@@ -219,11 +219,11 @@ static int ParseDhcpOptions(PDhcpMsgInfo msg)
 int SendDhcpMessage(const DhcpClientContext *ctx, PDhcpMsgInfo msg)
 {
     if (!ctx || !msg) {
-        LOGE("client context or message pointer is null.");
+        DHCP_LOGE("client context or message pointer is null.");
         return RET_FAILED;
     }
     if (ParseDhcpOptions(msg) != RET_SUCCESS) {
-        LOGE("failed to parse dhcp message info.");
+        DHCP_LOGE("failed to parse dhcp message info.");
         return RET_FAILED;
     }
     DhcpMsgManager::GetInstance().PushSendMsg(msg->packet);
@@ -241,21 +241,21 @@ static uint32_t GetXid(int update)
 
 int InitMessage(DhcpClientContext *ctx, PDhcpMsgInfo msg, uint8_t msgType)
 {
-    LOGD("init dhcp message...");
+    DHCP_LOGD("init dhcp message...");
     if (!ctx) {
-        LOGD("client context pointer is null.");
+        DHCP_LOGD("client context pointer is null.");
         return DHCP_FALSE;
     }
     if (!msg) {
-        LOGD("dhcp message pointer is null.");
+        DHCP_LOGD("dhcp message pointer is null.");
         return DHCP_FALSE;
     }
     if (memset_s(msg, sizeof(DhcpMsgInfo), 0, sizeof(DhcpMsgInfo)) != EOK) {
-        LOGD("message info pointer is null.");
+        DHCP_LOGD("message info pointer is null.");
         return DHCP_FALSE;
     }
     if (InitOptionList(&msg->options) != RET_SUCCESS) {
-        LOGD("failed to initialize dhcp client options.");
+        DHCP_LOGD("failed to initialize dhcp client options.");
         return DHCP_FALSE;
     }
     if (!FillHwAddr(msg->packet.chaddr, DHCP_HWADDR_LENGTH, ctx->config.chaddr, MAC_ADDR_LENGTH)) {
@@ -294,14 +294,14 @@ int DhcpDiscover(DhcpClientContext *ctx)
     }
     DhcpMsgInfo msgInfo;
     if (!InitMessage(ctx, &msgInfo, DHCPDISCOVER)) {
-        LOGD("failed to init dhcp message.");
+        DHCP_LOGD("failed to init dhcp message.");
         return RET_FAILED;
     }
     if (SendDhcpMessage(ctx, &msgInfo) != RET_SUCCESS) {
-        LOGD("failed to send dhcp message.");
+        DHCP_LOGD("failed to send dhcp message.");
         return RET_FAILED;
     }
-    LOGD("send dhcp discover...");
+    DHCP_LOGD("send dhcp discover...");
     return RET_SUCCESS;
 }
 
@@ -312,14 +312,14 @@ int DhcpRequest(DhcpClientContext *ctx)
     }
     DhcpMsgInfo msgInfo;
     if (!InitMessage(ctx, &msgInfo, DHCPREQUEST)) {
-        LOGD("failed to init dhcp message.");
+        DHCP_LOGD("failed to init dhcp message.");
         return RET_FAILED;
     }
     if (SendDhcpMessage(ctx, &msgInfo) != RET_SUCCESS) {
-        LOGD("failed to send dhcp message.");
+        DHCP_LOGD("failed to send dhcp message.");
         return RET_FAILED;
     }
-    LOGD("send dhcp request...");
+    DHCP_LOGD("send dhcp request...");
     return RET_SUCCESS;
 }
 
@@ -330,14 +330,14 @@ int DhcpInform(DhcpClientContext *ctx)
     }
     DhcpMsgInfo msgInfo;
     if (!InitMessage(ctx, &msgInfo, DHCPINFORM)) {
-        LOGD("failed to init dhcp message.");
+        DHCP_LOGD("failed to init dhcp message.");
         return RET_FAILED;
     }
     if (SendDhcpMessage(ctx, &msgInfo) != RET_SUCCESS) {
-        LOGD("failed to send dhcp message.");
+        DHCP_LOGD("failed to send dhcp message.");
         return RET_FAILED;
     }
-    LOGD("send dhcp inform...");
+    DHCP_LOGD("send dhcp inform...");
     return RET_SUCCESS;
 }
 
@@ -348,14 +348,14 @@ int DhcpDecline(DhcpClientContext *ctx)
     }
     DhcpMsgInfo msgInfo;
     if (!InitMessage(ctx, &msgInfo, DHCPDECLINE)) {
-        LOGD("failed to init dhcp message.");
+        DHCP_LOGD("failed to init dhcp message.");
         return RET_FAILED;
     }
     if (SendDhcpMessage(ctx, &msgInfo) != RET_SUCCESS) {
-        LOGD("failed to send dhcp message.");
+        DHCP_LOGD("failed to send dhcp message.");
         return RET_FAILED;
     }
-    LOGD("send dhcp decline...");
+    DHCP_LOGD("send dhcp decline...");
     return RET_SUCCESS;
 }
 
@@ -366,13 +366,13 @@ int DhcpRelease(DhcpClientContext *ctx)
     }
     DhcpMsgInfo msgInfo;
     if (!InitMessage(ctx, &msgInfo, DHCPRELEASE)) {
-        LOGD("failed to init dhcp message.");
+        DHCP_LOGD("failed to init dhcp message.");
         return RET_FAILED;
     }
     if (SendDhcpMessage(ctx, &msgInfo) != RET_SUCCESS) {
-        LOGD("failed to send dhcp message.");
+        DHCP_LOGD("failed to send dhcp message.");
         return RET_FAILED;
     }
-    LOGD("send dhcp release...");
+    DHCP_LOGD("send dhcp release...");
     return RET_SUCCESS;
 }

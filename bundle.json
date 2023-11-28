@@ -54,7 +54,19 @@
                 "c_utils",
                 "common_event_service",
                 "eventhandler",
-                "hilog"
+                "hilog",
+                "hiviewdfx_hilog_native",
+                "huks",
+                "ipc",
+                "safwk",
+                "ability_runtime",
+                "access_token",
+                "certificate_manager",
+                "drivers_interface_wlan",
+                "efficiency_manager",
+                "hisysevent",
+                "netmanager_base",
+                "samgr"
             ],
             "third_party": [
                 "bounds_checking_function",
@@ -64,33 +76,38 @@
         "build": {
             "group_type": {
                 "base_group": [
-                    "//foundation/communication/dhcp/services/mgr_service:dhcp_manager_service",
-                    "//foundation/communication/dhcp/services/dhcp_client:dhcp_client_service",
+                    "//foundation/communication/dhcp/frameworks/native:dhcp_sdk",
+                    "//foundation/communication/dhcp/services/dhcp_client:dhcp_client",
                     "//foundation/communication/dhcp/services/dhcp_server:dhcp_server",
-                    "//foundation/communication/dhcp/services/dhcp_client:dhcp_updater_client",
-                    "//foundation/communication/dhcp/services/mgr_service:dhcp_updater_manager"
+                    "//foundation/communication/dhcp/services:dhcp_system_ability"
                 ],
                 "fwk_group": [],
                 "service_group": []
             },
             "inner_api": [
-                {
-                    "header": {
-                        "header_base": "//foundation/communication/dhcp/interfaces/inner_api",
-                        "header_files": [
-                            "include/dhcp_define.h",
-                            "include/dhcp_service_api.h",
-                            "interfaces/i_dhcp_client_service.h",
-                            "interfaces/i_dhcp_result_notify.h",
-                            "interfaces/i_dhcp_server_service.h",
-                            "interfaces/i_dhcp_service.h"
-                        ]
+	    	{
+                    "header" : {
+                        "header_base": "//foundation/communication/dhcp/interfaces/",
+                        "header_files": [ ]
                     },
-                    "name": "//foundation/communication/dhcp/services/mgr_service:dhcp_manager_service"
+                    "name" : "//foundation/communication/dhcp/frameworks/native:dhcp_sdk"
+                },
+                {
+                    "header" : {
+                        "header_base": "//foundation/communication/dhcp/interfaces/kits/c",
+                        "header_files": [ "dhcp_start_sa_api.h" ]
+                    },
+                    "name" : "//foundation/communication/dhcp/services/dhcp_client:dhcp_client"
+                },
+                {
+                    "header" : {
+                        "header_base": "//foundation/communication/dhcp/interfaces/kits/c",
+                        "header_files": [ "dhcp_start_sa_api.h" ]
+                    },
+                    "name" : "//foundation/communication/dhcp/services/dhcp_server:dhcp_server"
                 }
             ],
             "test": [
-                "//foundation/communication/dhcp/test/services/mgr_service:unittest",
                 "//foundation/communication/dhcp/test/services/dhcp_client:unittest",
                 "//foundation/communication/dhcp/test/services/dhcp_server/unittest:unittest"
             ]

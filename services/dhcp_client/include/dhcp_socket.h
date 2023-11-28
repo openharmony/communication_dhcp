@@ -15,8 +15,7 @@
 #ifndef OHOS_SOCKET_H
 #define OHOS_SOCKET_H
 
-
-#include "dhcp_define.h"
+#include "dhcp_client_def.h"
 
 #ifdef __cplusplus
 extern "C" {

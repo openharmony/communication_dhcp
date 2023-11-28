@@ -15,8 +15,11 @@
 
 #include <gtest/gtest.h>
 #include <cstdint>
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
 #include "address_utils.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("AddressUtilsTest");
 
 using namespace testing::ext;
 namespace OHOS {
@@ -34,6 +37,7 @@ const uint8_t netmask27[] =  {255, 255, 255, 224};
 */
 HWTEST(AddressUtilsTest, ParseIpAddrTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter ParseIpAddrTest");
     uint8_t ipData[] = {192, 168, 100, 1};
     uint32_t testIp = ParseIp(ipData);
     ASSERT_TRUE(testIp != 0);

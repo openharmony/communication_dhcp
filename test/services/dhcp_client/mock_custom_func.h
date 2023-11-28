@@ -19,7 +19,7 @@
 #include <gmock/gmock.h>
 #include <dlfcn.h>
 
-#include "dhcp_define.h"
+#include "dhcp_client_def.h"
 
 namespace OHOS {
 class MockCustomFunc {

@@ -16,11 +16,14 @@
 #include <gtest/gtest.h>
 #include <cstdint>
 #include <cstdbool>
-#include "dhcp_define.h"
-#include "dhcp_ipv4.h"
+#include "dhcp_s_define.h"
+#include "dhcp_server_ipv4.h"
 #include "dhcp_message.h"
 #include "dhcp_option.h"
 #include "address_utils.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpOptionTest");
 
 using namespace testing::ext;
 namespace OHOS {
@@ -47,6 +50,7 @@ public:
 
 HWTEST_F(DhcpOptionTest, InitOptionListTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter InitOptionListTest");
     DhcpOptionList testOpts = {0};
     EXPECT_EQ(RET_SUCCESS, InitOptionList(&testOpts));
     FreeOptionList(&testOpts);

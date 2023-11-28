@@ -17,7 +17,7 @@
 
 #include <queue>
 #include <mutex>
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
 #include "dhcp_message.h"
 
 using DhcpClientConfig = struct DhcpClientConfig;

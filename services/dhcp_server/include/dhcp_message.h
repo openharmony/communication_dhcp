@@ -17,7 +17,7 @@
 #define OHOS_DHCP_MESSAGE_H
 
 #include <stdint.h>
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
 #include "dhcp_option.h"
 
 #define BOOTREQUEST 1

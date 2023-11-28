@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 #include <stddef.h>
-#include <dhcp_define.h>
+#include <dhcp_s_define.h>
 
 #define MAC_ADDR_LENGTH 6
 

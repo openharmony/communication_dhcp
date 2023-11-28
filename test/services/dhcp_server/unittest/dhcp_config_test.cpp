@@ -16,6 +16,9 @@
 #include <string>
 #include <securec.h>
 #include "dhcp_config.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpConfigTest");
 
 using namespace testing::ext;
 namespace OHOS {
@@ -75,6 +78,7 @@ private:
 
 HWTEST(DhcpConfigTest, LoadConfigTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter LoadConfigTest");
     EXPECT_TRUE(LoadConfig(nullptr, nullptr, nullptr) == RET_FAILED);
     std::string configFile;
     EXPECT_TRUE(LoadConfig(configFile.c_str(), nullptr, nullptr) == RET_FAILED);

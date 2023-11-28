@@ -17,14 +17,18 @@
 #include <string>
 #include <securec.h>
 #include "dhcp_binding.h"
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
 #include "common_util.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpBindingTest");
 
 using namespace testing::ext;
 namespace OHOS {
 namespace Wifi {
 HWTEST(DhcpBindingTest, NextPendingIntervalTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter NextPendingIntervalTest");
     uint64_t pendingInterval = 0;
     EXPECT_TRUE(NextPendingInterval(pendingInterval) == pendingInterval + 1);
     pendingInterval = 2;

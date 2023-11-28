@@ -20,34 +20,45 @@ if (defined(ohos_lite)) {
 }
 
 ################################################################################
-
-local_base_sources = [
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_api.cpp",
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client.c",
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.c",
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv4.c",
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_main.c",
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.c",
-  "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.c",
-]
-
 local_base_include_dirs = [
+  "$DHCP_ROOT_DIR/interfaces",
+  "$DHCP_ROOT_DIR/interfaces/kits/c",
+  "$DHCP_ROOT_DIR/interfaces/inner_api",
+  "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+  "$DHCP_ROOT_DIR/frameworks/native/include",
+  "$DHCP_ROOT_DIR/frameworks/native/interfaces",
+  "$DHCP_ROOT_DIR/frameworks/native/src",
+  "$DHCP_ROOT_DIR/services",
   "$DHCP_ROOT_DIR/services/dhcp_client/include",
-  "$WIFI_ROOT_DIR/services/wifi_standard/wifi_framework/wifi_toolkit/log",
+  "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
 ]
-
 if (defined(ohos_lite)) {
-  executable("dhcp_client_service") {
-    sources = local_base_sources
+  shared_library("dhcp_client") {
+    sources = [
+      "src/dhcp_client_callback_proxy_lite.cpp",
+      "src/dhcp_client_service_impl.cpp",
+      "src/dhcp_client_state_machine.cpp",
+      "src/dhcp_client_stub_lite.cpp",
+      "src/dhcp_function.cpp",
+      "src/dhcp_ipv6_client.cpp",
+      "src/dhcp_ipv6_event.cpp",
+      "src/dhcp_options.cpp",
+      "src/dhcp_result.cpp",
+      "src/dhcp_socket.cpp",
+      "src/dhcp_start_client_sa.cpp",
+    ]
 
     include_dirs = local_base_include_dirs
     include_dirs += [
       "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits",
       "//third_party/bounds_checking_function/include",
+      "//foundation/systemabilitymgr/samgr_lite/interfaces/innerkits/registry",
+      "//foundation/systemabilitymgr/samgr_lite/interfaces/innerkits/samgr",
     ]
 
     deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
+      "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
       "//third_party/bounds_checking_function:libsec_shared",
     ]
     defines = [
@@ -56,68 +67,62 @@ if (defined(ohos_lite)) {
     ]
   }
 } else {
-  ohos_executable("dhcp_client_service") {
-    branch_protector_ret = "pac_ret"
-
+  local_base_sources = [
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_start_client_sa.cpp",
+  ]
+  config("dhcp_manager_service_header") {
+    visibility = [ ":*" ]
+    include_dirs = local_base_include_dirs
+  }
+  ohos_shared_library("dhcp_client") {
+    sanitize = {
+      cfi = true
+      boundary_sanitize = true
+      cfi_cross_dso = true
+      debug = false
+    }
     install_enable = true
     sources = local_base_sources
-
     include_dirs = local_base_include_dirs
-    include_dirs += [
-      "//commonlibrary/c_utils/base/include",
-      "//foundation/communication/ipc/interfaces/innerkits/ipc_core/include",
-      "//third_party/openssl/include",
-    ]
-
-    deps = [ "//third_party/openssl:libcrypto_shared" ]
-
-    cflags_cc = [ "-fno-rtti" ]
 
     external_deps = [
-      "ability_base:want",
+      "access_token:libaccesstoken_sdk",
+      "access_token:libtokenid_sdk",
       "bundle_framework:appexecfwk_base",
       "c_utils:utils",
       "common_event_service:cesfwk_innerkits",
       "eventhandler:libeventhandler",
       "hilog:libhilog",
+      "huks:libhukssdk",
+      "ipc:ipc_single",
+      "safwk:system_ability_fwk",
+      "samgr:samgr_proxy",
     ]
-    defines = []
 
+    cflags = [
+      "-std=c++17",
+      "-fno-rtti",
+    ]
+    ldflags = [
+      "-fPIC",
+      "-Wl,-E",
+    ]
+    shlib_type = "sa"
+    version_script = "libdhcp_client.map"
+    public_configs = [ ":dhcp_manager_service_header" ]
     part_name = "dhcp"
     subsystem_name = "communication"
-  }
-
-  ohos_executable("dhcp_updater_client") {
-    branch_protector_ret = "pac_ret"
-
-    install_enable = true
-    sources = local_base_sources
-
-    include_dirs = local_base_include_dirs
-    include_dirs += [
-      "//commonlibrary/c_utils/base/include",
-      "//third_party/openssl/include",
-      "//third_party/bounds_checking_function/include",
-    ]
-
-    deps = [
-      "//third_party/bounds_checking_function:libsec_shared",
-      "//third_party/openssl:libcrypto_static",
-    ]
-
-    cflags_cc = [ "-fno-rtti" ]
-
-    external_deps = [
-      "c_utils:utils",
-      "hilog:libhilog",
-    ]
-    defines = [
-      "OHOS_ARCH_LITE",
-      "OHOS_EUPDATER",
-    ]
-    symlink_target_name = [ "dhcp_client_service" ]
-    install_images = [ "updater" ]
-    part_name = "dhcp"
-    subsystem_name = "communication"
+    innerapi_tags = [ "platformsdk" ]
   }
 }

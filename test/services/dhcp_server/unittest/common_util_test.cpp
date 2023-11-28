@@ -14,26 +14,18 @@
  */
 
 #include <gtest/gtest.h>
-#include "dhcp_define.h"
+#include "dhcp_s_define.h"
 #include "common_util.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("CommonUtilTest");
 
 using namespace testing::ext;
 namespace OHOS {
 namespace Wifi {
-HWTEST(CommonUtilTest, LogTimeTest, TestSize.Level1)
-{
-    LogTime();
-    uint64_t begin = Tmspsec();
-    EXPECT_TRUE(begin > 0);
-    sleep(1);
-    uint64_t curr = Tmspsec();
-    EXPECT_TRUE(curr > begin);
-    begin = Tmspusec();
-    EXPECT_TRUE(begin > 0);
-}
-
 HWTEST(CommonUtilTest, LeftTirmTest, TestSize.Level1)
 {
+    DHCP_LOGE("enter LeftTirmTest");
     char src1[] = " aabbccdd";
     LeftTrim(src1);
     EXPECT_STREQ("aabbccdd", src1);

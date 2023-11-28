@@ -14,8 +14,7 @@
  */
 
 #include "mock_system_func.h"
-#include "dhcp_ipv4.h"
-#include "dhcp_client.h"
+#include "dhcp_client_state_machine.h"
 
 using namespace OHOS::Wifi;
 
@@ -147,22 +146,21 @@ int __wrap_connect(int __fd, const struct sockaddr *__addr, socklen_t __len)
 int __real_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
 {
+    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> testMachine;
     if (g_mockTag) {
         int nRet = MockSystemFunc::GetInstance().select(nfds, readfds, writefds, exceptfds, timeout);
         FD_ZERO(readfds);
         if (nRet == 1) {
-            FD_SET(GetPacketReadSockFd(), readfds);
+            FD_SET(testMachine->GetPacketReadSockFd(), readfds);
         } else if (nRet == NUM_TWO) {
-            FD_SET(GetSigReadSockFd(), readfds);
-            struct DhcpClientCfg *pCfg = GetDhcpClientCfg();
-            pCfg->timeoutExit = true;
+            FD_SET(testMachine->GetSigReadSockFd(), readfds);
         } else if (nRet == NUM_THREE) {
             struct DhcpPacket *dhcp = reinterpret_cast<struct DhcpPacket *>(calloc(1, sizeof(*dhcp)));
             if (dhcp != nullptr) {
-                SendReboot(dhcp, time(nullptr));
+                testMachine->SendReboot(dhcp, time(nullptr));
             }
         } else if (nRet == NUM_FOUR) {
-            FD_SET(GetSigReadSockFd(), readfds);
+            FD_SET(testMachine->GetSigReadSockFd(), readfds);
         }
         return nRet;
     } else {

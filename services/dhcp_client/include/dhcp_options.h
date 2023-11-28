@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#ifndef OHOS_OPTIONS_H
-#define OHOS_OPTIONS_H
+#ifndef OHOS_DHCP_OPTIONS_H
+#define OHOS_DHCP_OPTIONS_H
 
 
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "dhcp_define.h"
+#include "dhcp_client_def.h"
 
 #ifdef __cplusplus
 extern "C" {

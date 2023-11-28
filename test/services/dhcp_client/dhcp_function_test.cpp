@@ -14,10 +14,12 @@
  */
 #include <gtest/gtest.h>
 
-#include "wifi_log.h"
+#include "dhcp_logger.h"
 #include "dhcp_function.h"
-#include "dhcp_client.h"
+#include "dhcp_client_def.h"
 #include "mock_system_func.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpFunctionTest");
 
 using namespace testing::ext;
 using namespace OHOS::Wifi;
@@ -37,6 +39,7 @@ public:
 
 HWTEST_F(DhcpFunctionTest, Ip4StrConToInt_SUCCESS, TestSize.Level1)
 {
+    DHCP_LOGE("enter Ip4StrConToInt_SUCCESS");
     char serIp[INET_ADDRSTRLEN] = "192.77.1.231";
     uint32_t uSerIp = 0;
     EXPECT_EQ(true, Ip4StrConToInt(serIp, &uSerIp, true));
