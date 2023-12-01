@@ -17,7 +17,9 @@
 
 #include "i_dhcp_client_callback.h"
 #ifdef OHOS_ARCH_LITE
-#include "serializer.h"
+    #ifndef  OHOS_EUPDATER
+        #include "serializer.h"
+    #endif
 #else
 #include "iremote_proxy.h"
 #endif
@@ -29,7 +31,9 @@ namespace Wifi {
 #ifdef OHOS_ARCH_LITE
 class DhcpClientCallbackProxy : public IDhcpClientCallBack {
 public:
+    #ifndef  OHOS_EUPDATER
     explicit DhcpClientCallbackProxy(SvcIdentity *sid);
+    #endif
     virtual ~DhcpClientCallbackProxy();
 #else
 class DhcpClientCallbackProxy : public IRemoteProxy<IDhcpClientCallBack> {
@@ -42,7 +46,9 @@ public:
     void OnIpFailChanged(int status, const std::string& ifname, const std::string& reason) override;
 private:
 #ifdef OHOS_ARCH_LITE
+    #ifndef  OHOS_EUPDATER
     SvcIdentity sid_;
+    #endif
     static const int DEFAULT_IPC_SIZE = 256;
 #else
     static inline BrokerDelegator<DhcpClientCallbackProxy> g_delegator;

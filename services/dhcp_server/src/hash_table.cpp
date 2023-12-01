@@ -213,10 +213,12 @@ int Empty(const HashTable *table)
 }
 
 int Initialized(const HashTable *table)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     if (table && table->capacity && table->keySize && table->valueSize && table->hash && table->compare) {
         return HASH_TRUE;
-    }DHCP_LOGI("start %{public}s %{public}d   return false", __func__, __LINE__);
+    }
+    DHCP_LOGI("start %{public}s %{public}d   return false", __func__, __LINE__);
     return HASH_FALSE;
 }
 

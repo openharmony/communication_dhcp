@@ -18,7 +18,9 @@
 
 #include <map>
 #include "i_dhcp_client.h"
+#ifndef  OHOS_EUPDATER
 #include "serializer.h"
+#endif
 
 namespace OHOS {
 namespace Wifi {
@@ -26,10 +28,9 @@ class DhcpClientStub : public IDhcpClient {
 public:
     DhcpClientStub();
     virtual ~DhcpClientStub();
-
+#ifndef OHOS_EUPDATER
     using handleFunc = int (DhcpClientStub::*)(uint32_t code, IpcIo *req, IpcIo *reply);
     using HandleFuncMap = std::map<int, handleFunc>;
-        
     virtual int OnRemoteRequest(uint32_t code, IpcIo *req, IpcIo *reply);
 private:
     void InitHandleMap(void);
@@ -40,6 +41,7 @@ private:
     int OnRenewDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply);
 private:
     HandleFuncMap handleFuncMap;
+#endif
 };
 }  // namespace Wifi
 }  // namespace OHOS

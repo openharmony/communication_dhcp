@@ -45,7 +45,6 @@ if (defined(ohos_lite)) {
       "src/dhcp_options.cpp",
       "src/dhcp_result.cpp",
       "src/dhcp_socket.cpp",
-      "src/dhcp_start_client_sa.cpp",
     ]
 
     include_dirs = local_base_include_dirs
@@ -79,7 +78,6 @@ if (defined(ohos_lite)) {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_start_client_sa.cpp",
   ]
   config("dhcp_manager_service_header") {
     visibility = [ ":*" ]
@@ -99,12 +97,8 @@ if (defined(ohos_lite)) {
     external_deps = [
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",
-      "bundle_framework:appexecfwk_base",
       "c_utils:utils",
-      "common_event_service:cesfwk_innerkits",
-      "eventhandler:libeventhandler",
       "hilog:libhilog",
-      "huks:libhukssdk",
       "ipc:ipc_single",
       "safwk:system_ability_fwk",
       "samgr:samgr_proxy",
@@ -124,5 +118,55 @@ if (defined(ohos_lite)) {
     part_name = "dhcp"
     subsystem_name = "communication"
     innerapi_tags = [ "platformsdk" ]
+  }
+
+  ohos_shared_library("dhcp_updater_client") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true
+      boundary_sanitize = true
+      cfi_cross_dso = true
+    }
+    install_enable = true
+    sources = [
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub_lite.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_client.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    ]
+    include_dirs = local_base_include_dirs
+    include_dirs += [
+      "//commonlibrary/c_utils/base/include",
+      "//third_party/bounds_checking_function/include",
+    ]
+
+    cflags_cc = [
+      "-std=c++17",
+      "-Wall",
+    ]
+
+    defines = [
+      "OHOS_ARCH_LITE",
+      "OHOS_EUPDATER",
+    ]
+
+    deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+
+    external_deps = [
+      "c_utils:utils",
+      "hilog:libhilog",
+    ]
+    ldflags = [
+      "-fPIC",
+      "-Wl,-E",
+    ]
+    install_images = [ "updater" ]
+    part_name = "dhcp"
+    subsystem_name = "communication"
   }
 }

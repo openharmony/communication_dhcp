@@ -25,7 +25,7 @@ extern "C" {
 int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &splits);
 int DhcpEventResultHandle(const int code, const std::string &data);
 bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname);
-bool SplitString(const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
+bool SplitStr(const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
 #ifdef __cplusplus
 }
 #endif

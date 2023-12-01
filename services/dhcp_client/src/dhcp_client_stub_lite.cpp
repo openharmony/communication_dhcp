@@ -16,23 +16,30 @@
 #include "dhcp_client_callback_proxy.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
 #include "dhcp_sdk_define.h"
+#ifndef  OHOS_EUPDATER
 #include "ipc_skeleton.h"
 #include "rpc_errno.h"
+#endif
 #include "dhcp_client_state_machine.h"
 #include "dhcp_logger.h"
 #include "dhcp_errcode.h"
 
+#ifndef OHOS_EUPDATER
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientStub");
+#endif
 namespace OHOS {
 namespace Wifi {
 DhcpClientStub::DhcpClientStub()
 {
+#ifndef OHOS_EUPDATER
     InitHandleMap();
+#endif
 }
 
 DhcpClientStub::~DhcpClientStub()
 {}
 
+#ifndef OHOS_EUPDATER
 void DhcpClientStub::InitHandleMap()
 {
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK)] = &DhcpClientStub::OnRegisterCallBack;
@@ -177,5 +184,6 @@ int DhcpClientStub::OnRenewDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     (void)WriteInt32(reply, ret);
     return DHCP_OPT_SUCCESS;
 }
+#endif
 }
 }

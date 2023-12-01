@@ -22,12 +22,16 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientCallbackProxyLite");
 namespace OHOS {
 namespace Wifi {
+#ifndef OHOS_EUPDATER
 DhcpClientCallbackProxy::DhcpClientCallbackProxy(SvcIdentity *sid) : sid_(*sid)
 {}
+#endif
 
 DhcpClientCallbackProxy::~DhcpClientCallbackProxy()
 {
+#ifndef OHOS_EUPDATER
     ReleaseSvc(sid_);
+#endif
 }
 
 void DhcpClientCallbackProxy::OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result)
@@ -61,12 +65,14 @@ void DhcpClientCallbackProxy::OnIpSuccessChanged(int status, const std::string& 
     MessageOption option;
     MessageOptionInit(&option);
     option.flags = TF_OP_ASYNC;
+#ifndef OHOS_EUPDATER
     int ret = SendRequest(sid_, static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_SUCCESS_CHANGE), &data, &reply,
         option, nullptr);
     if (ret != ERR_NONE) {
         DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
             static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_SUCCESS_CHANGE), ret);
     }
+#endif
     DHCP_LOGI("OnIpSuccessChanged request success");
     return;
 }
@@ -90,12 +96,14 @@ void DhcpClientCallbackProxy::OnIpFailChanged(int status, const std::string& ifn
     MessageOption option;
     MessageOptionInit(&option);
     option.flags = TF_OP_ASYNC;
+#ifndef OHOS_EUPDATER
     int ret = SendRequest(sid_, static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_FAIL_CHANGE), &data, &reply,
         option, nullptr);
     if (ret != ERR_NONE) {
         DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
             static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_FAIL_CHANGE), ret);
     }
+#endif
     DHCP_LOGI("DhcpClientCallbackProxy OnIpFailChanged send client request success");
     return;
 }

@@ -86,17 +86,29 @@ DhcpServerServiceImpl::~DhcpServerServiceImpl()
 
 void DhcpServerServiceImpl::OnStart()
 {
-    DHCP_LOGI("OnStart");
+    DHCP_LOGI("enter Server OnStart");
+    if (mState == ServerServiceRunningState::STATE_RUNNING) {
+        DHCP_LOGW("Service has already started.");
+        return;
+    }
+    if (!Init()) {
+        DHCP_LOGE("Failed to init dhcp server service");
+        OnStop();
+        return;
+    }
+    mState = ServerServiceRunningState::STATE_RUNNING;
+    DHCP_LOGI("Server Service has started.");
 }
 
 void DhcpServerServiceImpl::OnStop()
 {
-    DHCP_LOGI("OnStop!");
+    mPublishFlag = false;
+    DHCP_LOGI("OnStop dhcp server service!");
 }
 
 bool DhcpServerServiceImpl::Init()
 {
-    DHCP_LOGI("DhcpServerServiceImpl::Init");
+    DHCP_LOGI("enter server Init");
     if (!mPublishFlag) {
 #ifdef OHOS_ARCH_LITE
         bool ret = true;
@@ -227,7 +239,7 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
     }
     DHCP_LOGD("localIp:%{public}s netmask:%{public}s  ipRange:%{public}s.", localIp.c_str(), netmask.c_str(),
         ipRange.c_str());
-    int ret = StartDhcpServerMain(ifname, netmask, ipRange);
+    int ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -440,6 +452,7 @@ ErrCode DhcpServerServiceImpl::SetDhcpRange(const std::string& ifname, const Dhc
 
     return DHCP_E_SUCCESS;
 }
+
 ErrCode DhcpServerServiceImpl::SetDhcpName(const std::string& ifname, const std::string& tagName)
 {
     if (!IsNativeProcess()) {

@@ -344,7 +344,8 @@ static int InitializeDhcpConfig(const char *ifname, DhcpConfig *config)
     if (LoadConfig(configFile, ifname, config) != RET_SUCCESS) {
         DHCP_LOGE("failed to load configure file.");
         //return RET_FAILED;
-    }DHCP_LOGI("init config by argument.");
+    }
+    DHCP_LOGI("init config by argument.");
     if (InitConfigByArguments(config) != RET_SUCCESS) {
         DHCP_LOGE("failed to parse arguments.");
         return RET_FAILED;
@@ -368,18 +369,8 @@ void FreeSeverResources(void)
     }
 }
 
-static void BeforeExit(void)
-{
-    if (g_dhcpServer) {
-        DHCP_LOGD("saving lease recoder...");
-        if (SaveLease(g_dhcpServer) != RET_SUCCESS) {
-            DHCP_LOGD("failed to save lease recoder.");
-        }
-    }
-    FreeSeverResources();
-}
-
-int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, const std::string& ipRange)
+int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, const std::string& ipRange,
+    const std::string& localIp)
 {
     DHCP_LOGI("StartDhcpServerMain.");
 
@@ -387,7 +378,7 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
         DHCP_LOGE("failed to init arguments table.");
         return 1;
     }
-    int ret = ParseArguments(ifName, netMask, ipRange);
+    int ret = ParseArguments(ifName, netMask, ipRange, localIp);
     if (ret != RET_SUCCESS) {DHCP_LOGE("error ParseArguments.");
         FreeArguments();
         return 1;
@@ -415,9 +406,7 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
         FreeSeverResources();DHCP_LOGI("register singal handle failed");
         return 1;
     }
-    if (atexit(BeforeExit) != 0) {
-        DHCP_LOGW("failed to register exit process function.");
-    }
+
     RegisterDhcpCallback(g_dhcpServer, ServerActionCallback);
     if (StartDhcpServer(g_dhcpServer) != RET_SUCCESS) {
         FreeSeverResources();
