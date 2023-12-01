@@ -1089,6 +1089,32 @@ int DhcpClientStateMachine::SyncDhcpResult(const struct DhcpPacket *packet, stru
     char *pVendor = GetDhcpOptionString(packet, VENDOR_SPECIFIC_INFO_OPTION);
     if (pVendor == NULL) {
         DHCP_LOGW("SyncDhcpResult() recv DHCP_ACK 43, pVendor is NULL!");
+        /* Try get Server Host Name(sname) in DHCP ACK packet. */
+        const uint8_t *p = packet->sname;
+        char *pSname = ((p == NULL) || (*p == '\0')) ? NULL : (char*)p;
+        if (pSname == NULL) {
+            DHCP_LOGW("SyncDhcpResult() recv DHCP_ACK sname, pSname is NULL!");
+        } else {
+            DHCP_LOGI("SyncDhcpResult() recv DHCP_ACK sname, original pSname is %{public}s.", pSname);
+            char *pHostName = "hostname:";
+            if (strncpy_s(result->strOptVendor, DHCP_FILE_MAX_BYTES, pHostName, DHCP_FILE_MAX_BYTES - 1) != EOK) {
+                DHCP_LOGE("SyncDhcpResult() error, strncpy_s pHostName failed!");
+                pHostName = NULL;
+                return DHCP_OPT_FAILED;
+            } else {
+                DHCP_LOGI("SyncDhcpResult() recv DHCP_ACK sname, save ""hostname:"" only, \
+                result->strOptVendor is %{public}s.", result->strOptVendor);
+                if (strncat_s(result->strOptVendor, DHCP_FILE_MAX_BYTES, pSname, DHCP_FILE_MAX_BYTES - 10) != EOK) {
+                    pHostName = NULL;
+                    return DHCP_OPT_FAILED;
+                } else {
+                    DHCP_LOGI("SyncDhcpResult() recv DHCP_ACK sname, add pSname, \
+                    result->strOptVendor is %{public}s.", result->strOptVendor);
+                }
+                pHostName = NULL;
+            }
+        }
+    /* Get option43 success. */
     } else {
         DHCP_LOGI("SyncDhcpResult() recv DHCP_ACK 43, pVendor is %{public}s.", pVendor);
         if (strncpy_s(result->strOptVendor, DHCP_FILE_MAX_BYTES, pVendor, DHCP_FILE_MAX_BYTES - 1) != EOK) {

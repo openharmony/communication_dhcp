@@ -1188,6 +1188,9 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     if (srvIns->addressPool.gateway) {
         AddAddressOption(reply, ROUTER_OPTION, srvIns->addressPool.gateway);
     }
+    /* Add option43 as "OPEN_HARMONY". */
+    DhcpOption optVendorInfo = {VENDOR_SPECIFIC_INFO_OPTION, strlen("OPEN_HARMONY"), "OPEN_HARMONY"};
+    PushBackOption(&reply->options, &optVendorInfo);
     reply->packet.yiaddr = bindingIp;
     return REPLY_ACK;
 }
