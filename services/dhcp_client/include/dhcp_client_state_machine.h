@@ -42,6 +42,7 @@ private:
     int DhcpDiscover(uint32_t transid, uint32_t requestip);
     int DhcpRequest(uint32_t transid, uint32_t reqip, uint32_t servip);
     int DhcpReboot(uint32_t transid, uint32_t reqip );
+    int GetDHCPServerHostName(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     int SyncDhcpResult(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     int GetPacketReadSockFd(void);
     int GetSigReadSockFd(void);
