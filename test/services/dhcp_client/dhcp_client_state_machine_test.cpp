@@ -236,6 +236,7 @@ HWTEST_F(DhcpIpv4Test, SyncDhcpResult_Fail3, TestSize.Level1)
     DhcpIpResult *result = nullptr;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(packet, result));
 }
+
 /**
  * @tc.name: GetDHCPServerHostName_Fail1
  * @tc.desc: GetDHCPServerHostName()
@@ -248,6 +249,7 @@ HWTEST_F(DhcpIpv4Test, GetDHCPServerHostName_Fail1, TestSize.Level1)
     DhcpIpResult result;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->GetDHCPServerHostName(packet, &result));
 }
+
 /**
  * @tc.name: GetDHCPServerHostName_Fail2
  * @tc.desc: GetDHCPServerHostName()
@@ -260,6 +262,7 @@ HWTEST_F(DhcpIpv4Test, GetDHCPServerHostName_Fail2, TestSize.Level1)
     DhcpIpResult *result = nullptr;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->GetDHCPServerHostName(&packet, result));
 }
+
 /**
  * @tc.name: GetDHCPServerHostName_Fail3
  * @tc.desc: GetDHCPServerHostName()
