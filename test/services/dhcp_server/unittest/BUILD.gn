@@ -13,7 +13,7 @@
 
 import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
-
+1
 module_output_path = "dhcp/dhcp_server_test"
 
 config("module_private_config") {

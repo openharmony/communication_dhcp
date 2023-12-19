@@ -25,7 +25,7 @@
 using socklen_t = unsigned int;
 using ::testing::_;
 using ::testing::Return;
-
+1
 namespace OHOS {
 namespace Wifi {
 class SystemFuncMock {

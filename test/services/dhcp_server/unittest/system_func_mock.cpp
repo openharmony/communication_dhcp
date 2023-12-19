@@ -24,7 +24,7 @@
 #include "dhcp_message_sim.h"
 #include "dhcp_option.h"
 #include "securec.h"
-
+1
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerSystemFuncMock");
 
 using namespace OHOS::Wifi;

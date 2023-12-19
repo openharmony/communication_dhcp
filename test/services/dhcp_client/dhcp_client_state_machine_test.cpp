@@ -25,7 +25,7 @@
 #include "dhcp_function.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4Test");
-
+1
 using namespace testing::ext;
 using namespace OHOS::Wifi;
 namespace OHOS {
