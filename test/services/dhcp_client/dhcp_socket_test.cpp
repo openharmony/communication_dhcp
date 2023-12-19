@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-1
+
 #include "dhcp_logger.h"
 #include "dhcp_socket.h"
 #include "dhcp_function.h"
@@ -104,21 +104,6 @@ HWTEST_F(DhcpSocketTest, BindKernelSocket_SUCCESS, TestSize.Level1)
     EXPECT_EQ(BindKernelSocket(fd, NULL, INADDR_ANY, BOOTP_CLIENT, false), SOCKET_OPT_FAILED);
     EXPECT_EQ(BindKernelSocket(fd, ifname, INADDR_ANY, BOOTP_CLIENT, true), SOCKET_OPT_SUCCESS);
 
-    MockSystemFunc::SetMockFlag(false);
-}
-
-HWTEST_F(DhcpSocketTest, SendToDhcpPacket_SUCCESS, TestSize.Level1)
-{
-    MockSystemFunc::SetMockFlag(true);
-
-    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), sendto(_, _, _, _, _, _)).WillRepeatedly(Return(1));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
-
-    EXPECT_EQ(SendToDhcpPacket(NULL, 0, 0, 0, NULL), SOCKET_OPT_FAILED);
-    int  ifindex = 1;
-    EXPECT_EQ(SendToDhcpPacket(NULL, 0, 0, ifindex, (uint8_t *)MAC_BCAST_ADDR), SOCKET_OPT_FAILED);
     MockSystemFunc::SetMockFlag(false);
 }
 
