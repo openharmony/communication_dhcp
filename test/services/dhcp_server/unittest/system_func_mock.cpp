@@ -67,6 +67,36 @@ struct sockaddr_in {
     unsigned char sin_zero[8];
 };
 
+int __real_open(const char *__file, int __oflag);
+int __wrap_open(const char *__file, int __oflag)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().open(__file, __oflag);
+    } else {
+        return __real_open(__file, __oflag);
+    }
+}
+
+ssize_t __real_write(int fd, const void *buf, size_t count);
+ssize_t __wrap_write(int fd, const void *buf, size_t count)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().write(fd, buf, count);
+    } else {
+        return __real_write(fd, buf, count);
+    }
+}
+
+ssize_t __real_read(int fd, void *buf, size_t count);
+ssize_t __wrap_read(int fd, void *buf, size_t count)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().read(fd, buf, count);
+    } else {
+        return __real_read(fd, buf, count);
+    }
+}
+
 int __real_socket(int __domain, int __type, int __protocol);
 int __wrap_socket(int __domain, int __type, int __protocol)
 {
@@ -118,6 +148,87 @@ int __wrap_select(int __nfds, fd_set *__readfds, fd_set *__writefds, fd_set *__e
         DHCP_LOGD(" ==>mock disable.");
     }
     return __real_select(__nfds, __readfds, __writefds, __exceptfds, __timeout);
+}
+
+int __real_ioctl(int __fd, unsigned long __request, struct sockaddr *__ifreq);
+int __wrap_ioctl(int __fd, unsigned long __request, struct sockaddr *__ifreq)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().ioctl(__fd, __request, __ifreq);
+    } else {
+        return __real_ioctl(__fd, __request, __ifreq);
+    }
+}
+
+int __real_listen(int __fd, int __n);
+int __wrap_listen(int __fd, int __n)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().listen(__fd, __n);
+    } else {
+        return __real_listen(__fd, __n);
+    }
+}
+
+int __real_connect(int __fd, const struct sockaddr *__addr, socklen_t __len);
+int __wrap_connect(int __fd, const struct sockaddr *__addr, socklen_t __len)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().connect(__fd, __addr, __len);
+    } else {
+        return __real_connect(__fd, __addr, __len);
+    }
+}
+
+pid_t __real_vfork();
+pid_t __wrap_vfork()
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().vfork();
+    } else {
+        return __real_vfork();
+    }
+}
+
+int __real_execv(const char *__path, char *const *__argv);
+int __wrap_execv(const char *__path, char *const *__argv)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().execv(__path, __argv);
+    } else {
+        return __real_execv(__path, __argv);
+    }
+}
+
+void __real__exit(int status);
+void __wrap__exit(int status)
+{
+    if (g_mockTag) {
+        SystemFuncMock::GetInstance()._exit(status);
+    } else {
+        __real__exit(status);
+    }
+    return;
+}
+
+pid_t __real_waitpid(pid_t pid, int *status, int options);
+pid_t __wrap_waitpid(pid_t pid, int *status, int options)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().waitpid(pid, status, options);
+    } else {
+        return __real_waitpid(pid, status, options);
+    }
+}
+
+int __real_kill(pid_t pid, int sig);
+int __wrap_kill(pid_t pid, int sig)
+{
+    if (g_mockTag) {
+        return SystemFuncMock::GetInstance().kill(pid, sig);
+    } else {
+        return __real_kill(pid, sig);
+    }
 }
 
 int __real_bind(int __fd, struct sockaddr *__addr, socklen_t __len);
