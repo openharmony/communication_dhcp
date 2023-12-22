@@ -193,11 +193,12 @@ void ShowHelp(int argc)
 }
 
 int InitArguments(void)
-{DHCP_LOGI("start InitArguments.");
+{
+    DHCP_LOGI("start InitArguments.");
     if (CreateHashTable(&g_argumentsTable, ARGUMENT_NAME_SIZE, sizeof(ArgumentInfo), INIT_ARGS_SIZE) != HASH_SUCCESS) {
         return RET_FAILED;
     }
-DHCP_LOGI("end InitArguments.");
+    DHCP_LOGI("end InitArguments.");
     return RET_SUCCESS;
 }
 
@@ -277,11 +278,12 @@ int FindIndex(int c)
     return -1;
 }
 
-int ParseArguments(const std::string& ifName, const std::string& netMask, const std::string& ipRange)
+int ParseArguments(const std::string& ifName, const std::string& netMask, const std::string& ipRange,
+    const std::string& localIp)
 {
     DHCP_LOGI("start ParseArguments.");
     PutArgument("ifname", ifName.c_str());
-    PutIpArgument("server", IP_V4_DEFAULT.c_str());
+    PutIpArgument("server", localIp.c_str());
     PutIpArgument("netmask", netMask.c_str());
     PutPoolArgument("pool", ipRange.c_str());
     return 0;

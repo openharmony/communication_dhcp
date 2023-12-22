@@ -31,7 +31,7 @@
 
 namespace OHOS {
 namespace Wifi {
-
+enum ClientServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 #ifdef OHOS_ARCH_LITE
 class DhcpClientServiceImpl : public DhcpClientStub {
 #else
@@ -97,6 +97,7 @@ private:
     bool IsNativeProcess();
     bool mPublishFlag;
     static std::mutex g_instanceLock;
+    ClientServiceRunningState mState;
 #ifdef OHOS_ARCH_LITE
     static std::shared_ptr<DhcpClientServiceImpl> g_instance;
 #else

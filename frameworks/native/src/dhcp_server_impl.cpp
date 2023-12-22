@@ -15,6 +15,7 @@
 #include "dhcp_server_impl.h"
 #include "dhcp_server_proxy.h"
 #ifndef OHOS_ARCH_LITE
+#include "dhcp_sa_manager.h"
 #include "i_dhcp_server.h"
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -71,6 +72,7 @@ bool DhcpServerImpl::GetDhcpServerProxy()
 #ifdef OHOS_ARCH_LITE
     return (client_ != nullptr);
 #else
+    DhcpSaLoadManager::GetInstance().LoadWifiSa(systemAbilityId_);
     if (IsRemoteDied() == false) {
         DHCP_LOGE("remote died false, %{public}d", systemAbilityId_);
         return true;

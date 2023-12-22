@@ -26,13 +26,6 @@
 
 #include "dhcp_define.h"
 
-#ifndef OHOS_ARCH_LITE
-#include "common_event_subscriber.h"
-#include "common_event.h"
-#include "common_event_data.h"
-#include "common_event_manager.h"
-#endif
-
 namespace OHOS {
 namespace Wifi {
 class DhcpFunction {

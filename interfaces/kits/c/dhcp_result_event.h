@@ -31,19 +31,19 @@ extern "C" {
 #define DHCP_LEASE_DATA_MAX_LEN 128
 
 typedef struct{
-    int iptype;                             /* 0-ipv4,1-ipv6 */
-    bool isOptSuc;                          /* get result */
-    char strOptClientId[INET_ADDRSTRLEN];   /* your (client) IP */
-    char strOptServerId[INET_ADDRSTRLEN];   /* dhcp server IP */
-    char strOptSubnet[INET_ADDRSTRLEN];     /* your (client) subnet mask */
-    char strOptDns1[INET_ADDRSTRLEN];       /* your (client) DNS server1 */
-    char strOptDns2[INET_ADDRSTRLEN];       /* your (client) DNS server2 */
-    char strOptRouter1[INET_ADDRSTRLEN];    /* your (client) router1 */
-    char strOptRouter2[INET_ADDRSTRLEN];    /* your (client) router2 */
-    char strOptVendor[DHCP_MAX_FILE_BYTES]; /* your (client) vendor */
-    uint32_t uOptLeasetime;                 /* your (client) IP lease time (s) */
-    uint32_t uAddTime;                      /* dhcp result add time */
-    uint32_t uGetTime;                      /* dhcp result get time */
+    int iptype;                                /* 0-ipv4,1-ipv6 */
+    bool isOptSuc;                              /* get result */
+    char strOptClientId[DHCP_MAX_FILE_BYTES];   /* your (client) IP */
+    char strOptServerId[DHCP_MAX_FILE_BYTES];   /* dhcp server IP */
+    char strOptSubnet[DHCP_MAX_FILE_BYTES];     /* your (client) subnet mask */
+    char strOptDns1[DHCP_MAX_FILE_BYTES];       /* your (client) DNS server1 */
+    char strOptDns2[DHCP_MAX_FILE_BYTES];       /* your (client) DNS server2 */
+    char strOptRouter1[DHCP_MAX_FILE_BYTES];    /* your (client) router1 */
+    char strOptRouter2[DHCP_MAX_FILE_BYTES];    /* your (client) router2 */
+    char strOptVendor[DHCP_MAX_FILE_BYTES];     /* your (client) vendor */
+    uint32_t uOptLeasetime;                     /* your (client) IP lease time (s) */
+    uint32_t uAddTime;                          /* dhcp result add time */
+    uint32_t uGetTime;                          /* dhcp result get time */
 }DhcpResult;
 
 typedef struct DhcpRange{

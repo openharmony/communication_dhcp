@@ -74,7 +74,8 @@ sptr<DhcpClientServiceImpl> DhcpClientServiceImpl::GetInstance()
 
 DhcpClientServiceImpl::DhcpClientServiceImpl()
 #ifndef OHOS_ARCH_LITE
-    : SystemAbility(DHCP_CLIENT_ABILITY_ID, true), mPublishFlag(false)
+    : SystemAbility(DHCP_CLIENT_ABILITY_ID, true), mPublishFlag(false),
+    mState(ClientServiceRunningState::STATE_NOT_START)
 #endif
 {
     DHCP_LOGI("enter DhcpClientServiceImpl()");
@@ -103,17 +104,29 @@ DhcpClientServiceImpl::~DhcpClientServiceImpl()
 
 void DhcpClientServiceImpl::OnStart()
 {
-    DHCP_LOGI("enter OnStart()");
+    DHCP_LOGI("enter Client OnStart");
+    if (mState == ClientServiceRunningState::STATE_RUNNING) {
+        DHCP_LOGW("Service has already started.");
+        return;
+    }
+    if (!Init()) {
+        DHCP_LOGE("Failed to init dhcp client service");
+        OnStop();
+        return;
+    }
+    mState = ClientServiceRunningState::STATE_RUNNING;
+    DHCP_LOGI("Client Service has started.");
 }
 
 void DhcpClientServiceImpl::OnStop()
 {
-    DHCP_LOGI("enter OnStop()");
+    mPublishFlag = false;
+    DHCP_LOGI("OnStop dhcp client service!");
 }
 
 bool DhcpClientServiceImpl::Init()
 {
-    DHCP_LOGI("enter Init()");
+    DHCP_LOGI("enter client Init");
     if (!mPublishFlag) {
 #ifdef OHOS_ARCH_LITE
         bool ret = true;
@@ -194,7 +207,7 @@ ErrCode DhcpClientServiceImpl::RegisterDhcpClientCallBack(const std::string& ifn
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter != m_mapClientCallBack.end()) {
         (iter->second) = clientCallback;
-        DHCP_LOGI("RegisterDhcpClientCallBack find ifnam update clientCallback, ifname:%{public}s", ifname.c_str());
+        DHCP_LOGI("RegisterDhcpClientCallBack find ifname update clientCallback, ifname:%{public}s", ifname.c_str());
     } else {
 #ifdef OHOS_ARCH_LITE
         std::shared_ptr<IDhcpClientCallBack> mclientCallback = clientCallback;
@@ -202,7 +215,7 @@ ErrCode DhcpClientServiceImpl::RegisterDhcpClientCallBack(const std::string& ifn
         sptr<IDhcpClientCallBack> mclientCallback = clientCallback;
 #endif
         m_mapClientCallBack.emplace(std::make_pair(ifname, mclientCallback));
-        DHCP_LOGI("RegisterDhcpClientCallBack add ifnam and mclientCallback, ifname:%{public}s", ifname.c_str());
+        DHCP_LOGI("RegisterDhcpClientCallBack add ifname and mclientCallback, ifname:%{public}s", ifname.c_str());
     }
     return DHCP_E_SUCCESS;
 }
@@ -234,7 +247,16 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
     if (bIpv6) {
         if (dhcpClient.pipv6Client == nullptr) {
             DHCP_LOGE("StartOldClient pipv6Client is null!");
-            return DHCP_E_FAILED;
+            DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
+            if (pipv6Client == nullptr) {
+                DHCP_LOGE("StartOldClient new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
+                return DHCP_E_FAILED;
+            }
+            dhcpClient.pipv6Client = pipv6Client;
+            DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+            pipv6Client->Reset();
+            pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
+            std::placeholders::_1, std::placeholders::_2));
         }
         dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
     }
@@ -405,8 +427,17 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
         DHCP_LOGE("DhcpIpv4ResultFail mclientCallback == nullptr!");
         return OHOS::Wifi::DHCP_OPT_FAILED;
     }
-    (iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname, "get dhcp result failed!");
-    DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!");
+    
+    ActionMode action = ACTION_INVALID;
+    auto iterlient = m_mapClientService.find(ifname);
+    if (iterlient != m_mapClientService.end() && ((iterlient->second).pStaStateMachine != nullptr)) {
+        action = (iterlient->second).pStaStateMachine->GetAction();
+    }
+    
+    (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_FAILED, ifname.c_str(),
+        "get dhcp renew result failed!")) :
+        ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
+    DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!, action:%{public}d", action);
     return OHOS::Wifi::DHCP_OPT_SUCCESS;
 }
 
@@ -423,8 +454,16 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         DHCP_LOGE("DhcpIpv4ResultTimeOut mclientCallback == nullptr!");
         return OHOS::Wifi::DHCP_OPT_FAILED;
     }
-    (iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!");
-    DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!");
+    ActionMode action = ACTION_INVALID;
+    auto iterlient = m_mapClientService.find(ifname);
+    if (iterlient != m_mapClientService.end() && ((iterlient->second).pStaStateMachine != nullptr)) {
+        action = (iterlient->second).pStaStateMachine->GetAction();
+    }
+    
+    (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_TIMEOUT, ifname.c_str(),
+        "get dhcp renew result timeout!")) :
+        ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
+    DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!, action:%{public}d", action);
     return OHOS::Wifi::DHCP_OPT_SUCCESS;
 }
 

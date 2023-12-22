@@ -112,10 +112,12 @@ static int ParseReplyOptions(PDhcpMsgInfo reply);
 struct sockaddr_in *BroadcastAddrIn(void);
 
 static struct ServerContext *GetServerInstance(const DhcpServerContext *ctx)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     if (!ctx || !ctx->instance) {
         return nullptr;
-    }DHCP_LOGI("RETRUN NOT nullptr");
+    }
+    DHCP_LOGI("RETRUN NOT nullptr");
     return (struct ServerContext *)ctx->instance;
 }
 
@@ -132,7 +134,8 @@ typedef struct ifreq ifreq;
 typedef struct sockaddr sockaddr;
 
 int BindNetInterface(int fd, const char *ifname)
-{DHCP_LOGI("start %{public}s %{public}d   ifname = %{public}s ", __func__, __LINE__, ifname);
+{
+    DHCP_LOGI("start %{public}s %{public}d   ifname = %{public}s ", __func__, __LINE__, ifname);
     if (!fd || !ifname) {
         return RET_FAILED;
     }
@@ -148,7 +151,8 @@ int BindNetInterface(int fd, const char *ifname)
     if (setsockopt(fd, SOL_SOCKET, SO_BINDTODEVICE, (char *)&iface, sizeof(iface)) == -1) {
         DHCP_LOGE("failed to bind network device interface[%s].", ifname);
         return RET_FAILED;
-    }DHCP_LOGI("start %{public}s %{public}d   success ", __func__, __LINE__);
+    }
+    DHCP_LOGI("start %{public}s %{public}d   success ", __func__, __LINE__);
     return RET_SUCCESS;
 }
 
@@ -191,7 +195,8 @@ int InitServer(const char *ifname)
         DHCP_LOGE("failed to bind server  %{public}d!", ret);
         close(fd);
         return -1;
-    }DHCP_LOGI("start %{public}s %{public}d   SUCCESSs ", __func__, __LINE__);
+    }
+    DHCP_LOGI("start %{public}s %{public}d   SUCCESSs ", __func__, __LINE__);
     return fd;
 }
 
@@ -267,11 +272,13 @@ int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
     if (ret == 0) {
         DHCP_LOGE("select time out.");
         return RET_SELECT_TIME_OUT;
-    }DHCP_LOGI("start   over");
+    }
+    DHCP_LOGI("start   over");
     if (!FD_ISSET(sock, &recvFd)) {
         DHCP_LOGE("failed to select isset.");
         return RET_ERROR;
-    }DHCP_LOGI("go head");
+    }
+    DHCP_LOGI("go head");
     socklen_t ssize = sizeof(sockaddr_in);
     struct sockaddr_in *srcAddrIn = ResetSourceAddr();
     srcAddrIn->sin_addr.s_addr = INADDR_ANY;
@@ -284,7 +291,8 @@ int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
     if (rsize > (int)sizeof(DhcpMessage) || rsize < DHCP_MSG_HEADER_SIZE) {
         DHCP_LOGW("message length error, received %d bytes.", rsize);
         return RET_FAILED;
-    }DHCP_LOGI("recv over");
+    }
+    DHCP_LOGI("recv over");
     msgInfo->length = rsize;
     if (memcpy_s(&msgInfo->packet, sizeof(DhcpMessage), recvBuffer, rsize) != EOK) {
         return RET_FAILED;
@@ -304,7 +312,8 @@ int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
     if (IsReserved(msgInfo->packet.chaddr)) {
         DHCP_LOGD("ignore client, %s", ParseLogMac(msgInfo->packet.chaddr));
         return RET_FAILED;
-    }DHCP_LOGI("start %{public}s %{public}d  return success", __func__, __LINE__);
+    }
+    DHCP_LOGI("start %{public}s %{public}d  return success", __func__, __LINE__);
     return RET_SUCCESS;
 }
 
@@ -335,7 +344,8 @@ void InitReply(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply
 }
 
 void OnUpdateServerConfig(PDhcpServerContext ctx)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     DHCP_LOGI("OnUpdateServerConfig ...");
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
@@ -348,8 +358,8 @@ void OnUpdateServerConfig(PDhcpServerContext ctx)
 }
 
 static void OnServerStoping(PDhcpServerContext ctx)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
-    DHCP_LOGI("server stopping ...");
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
         DHCP_LOGE("dhcp server context pointer is null.");
@@ -469,7 +479,8 @@ int SaveLease(PDhcpServerContext ctx)
 }
 
 static int OnLooperStateChanged(PDhcpServerContext ctx)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
         DHCP_LOGE("dhcp server context pointer is null.");
@@ -487,7 +498,8 @@ static int OnLooperStateChanged(PDhcpServerContext ctx)
 }
 
 static int ContinueReceive(PDhcpMsgInfo from, int recvRet)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     if (!from) {
         return DHCP_TRUE;
     }
@@ -531,7 +543,8 @@ static void *BeginLooper(void *argc)
         if (OnLooperStateChanged(ctx) != RET_SUCCESS) {
             DHCP_LOGI("OnLooperStateChanged");
             break;
-        }DHCP_LOGI("start clear");
+        }
+        DHCP_LOGI("start clear");
         ClearOptions(&from.options);
         ClearOptions(&reply.options);
         int recvRet = ReceiveDhcpMessage(ctx->instance->serverFd, &from);
@@ -1473,7 +1486,8 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
 }
 
 static int ParseMessageOptions(PDhcpMsgInfo msg)
-{DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     if (msg->length < (DHCP_MSG_HEADER_SIZE + MAGIC_COOKIE_LENGTH)) {
         return RET_FAILED;
     }
@@ -1692,7 +1706,8 @@ int InitServerFixedOptions(DhcpConfig *config, DhcpServerContext *ctx)
 }
 
 PDhcpServerContext InitializeServer(DhcpConfig *config)
-{DHCP_LOGI("start %{public}s   %{public}d.", __func__, __LINE__);
+{
+    DHCP_LOGI("start %{public}s   %{public}d.", __func__, __LINE__);
     DhcpServerContext *context = nullptr;
     if (!config) {
         DHCP_LOGE("dhcp server config pointer is null.");

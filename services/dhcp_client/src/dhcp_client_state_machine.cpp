@@ -61,6 +61,9 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_renewThreadIsRun(false),
     m_pthread(nullptr)
 {
+#ifndef OHOS_ARCH_LITE
+    getIpTimerId = 0;
+#endif
     m_cltCnf.ifaceIndex = 0;
     m_cltCnf.timeoutExit = false;
     m_cltCnf.ifaceIpv4 = 0;
@@ -100,7 +103,7 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
     m_ifName = ifname;
     m_action = action;
 #ifndef OHOS_ARCH_LITE
-     StartGetIpTimer(); // statr get ip timer
+    StartGetIpTimer(); // statr get ip timer
 #endif
     if(m_action == ACTION_START_NEW && !m_cltCnf.timeoutExit) {  // first, thread is exit
         DHCP_LOGI("StartIpv4 start new InitStartIpv4Thread");
@@ -356,6 +359,11 @@ int DhcpClientStateMachine::StopIpv4(void)
         }
     }
     return DHCP_OPT_SUCCESS;
+}
+
+ActionMode DhcpClientStateMachine::GetAction(void)
+{
+    return m_action;
 }
 
 void DhcpClientStateMachine::DhcpInit(void)
@@ -1079,7 +1087,6 @@ void DhcpClientStateMachine::FormatString(struct DhcpIpResult *result)
     }
 }
 
-/* Try get Server Host Name(sname) in DHCP ACK packet. */
 int DhcpClientStateMachine::GetDHCPServerHostName(const struct DhcpPacket *packet, struct DhcpIpResult *result)
 {
     if ((packet == NULL) || (result == NULL)) {
@@ -1122,6 +1129,7 @@ int DhcpClientStateMachine::SyncDhcpResult(const struct DhcpPacket *packet, stru
         DHCP_LOGE("SyncDhcpResult() error, packet == NULL or result == NULL!");
         return DHCP_OPT_FAILED;
     }
+
     char *pVendor = GetDhcpOptionString(packet, VENDOR_SPECIFIC_INFO_OPTION);
     if (pVendor == NULL) {
         DHCP_LOGW("SyncDhcpResult() recv DHCP_ACK 43, pVendor is NULL!");
@@ -1151,7 +1159,6 @@ int DhcpClientStateMachine::SyncDhcpResult(const struct DhcpPacket *packet, stru
 
      /* Format dhcp result. */
     FormatString(result);
-
 #ifndef OHOS_ARCH_LITE
     StopGetIpTimer(); //stop get ip timer
 #endif
@@ -1640,9 +1647,7 @@ void DhcpClientStateMachine::StopGetIpTimer()
     getIpTimerId = 0;
     return;
 }
-#endif
 
-#ifndef OHOS_ARCH_LITE
 void DhcpClientStateMachine::DhcpTimer::SetClientStateMachine(DhcpClientStateMachine *dhcpClientStateMachine)
 {
     m_dhcpClientStateMachine = dhcpClientStateMachine;

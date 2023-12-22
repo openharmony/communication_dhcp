@@ -88,25 +88,25 @@ public:
     int ExecDhcpRenew(void);
     int ExitIpv4(void);
     int StopIpv4(void);
-
+    ActionMode GetAction(void);
 #ifndef OHOS_ARCH_LITE
-class DhcpTimer {
-public:
-    static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
-    using TimerCallback = std::function<void()>;
-    static DhcpTimer *GetInstance(void);
+    class DhcpTimer {
+    public:
+        static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
+        using TimerCallback = std::function<void()>;
+        static DhcpTimer *GetInstance(void);
 
-    DhcpTimer();
-    ~DhcpTimer();
-
-    EnumErrCode Register(const TimerCallback &callback, uint32_t &outTimerId, uint32_t interval = DEFAULT_TIMEROUT,
-        bool once = true);
-    void UnRegister(uint32_t timerId);
-    void SetClientStateMachine(DhcpClientStateMachine *dhcpClientStateMachine);
-public:
-    std::unique_ptr<Utils::Timer> timer_{nullptr};
-    DhcpClientStateMachine *m_dhcpClientStateMachine;
-};
+        DhcpTimer();
+        ~DhcpTimer();
+        
+        EnumErrCode Register(const TimerCallback &callback, uint32_t &outTimerId, uint32_t interval = DEFAULT_TIMEROUT,
+            bool once = true);
+        void UnRegister(uint32_t timerId);
+        void SetClientStateMachine(DhcpClientStateMachine *dhcpClientStateMachine);
+    public:
+        std::unique_ptr<Utils::Timer> timer_{nullptr};
+        DhcpClientStateMachine *m_dhcpClientStateMachine;
+    };
 #endif
 private:
     int m_dhcp4State;

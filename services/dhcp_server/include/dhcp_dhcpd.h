@@ -18,7 +18,8 @@
 
 #include <string>
 
-int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, const std::string& ipRange);
+int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, const std::string& ipRange,
+    const std::string& localIp);
 
 int StopDhcpServerMain();
 

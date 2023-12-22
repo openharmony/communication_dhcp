@@ -84,7 +84,7 @@ int DhcpEventResultHandle(const int code, const std::string &data)
     DHCP_LOGI("DhcpEventResultHandle() flag:%{public}s, result:%{private}s", strFlag.c_str(), strResult.c_str());
     if (strFlag == OHOS::Wifi::EVENT_DATA_IPV4) {
         std::vector<std::string> vecSplits;
-        if (!SplitString(strResult, OHOS::Wifi::EVENT_DATA_DELIMITER, OHOS::Wifi::EVENT_DATA_NUM, vecSplits)) {
+        if (!SplitStr(strResult, OHOS::Wifi::EVENT_DATA_DELIMITER, OHOS::Wifi::EVENT_DATA_NUM, vecSplits)) {
             DHCP_LOGE("DhcpEventResultHandle() SplitString strResult:%{public}s failed!", strResult.c_str());
             return OHOS::Wifi::DHCP_OPT_FAILED;
         }
@@ -131,7 +131,7 @@ int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &split
     return OHOS::Wifi::DHCP_OPT_SUCCESS;
 }
 
-bool SplitString(const std::string src, const std::string delim, const int count, std::vector<std::string> &splits)
+bool SplitStr(const std::string src, const std::string delim, const int count, std::vector<std::string> &splits)
 {
     if (src.empty() || delim.empty()) {
         DHCP_LOGE("SplitString() error, src or delim is empty!");

@@ -28,6 +28,7 @@ DhcpClientCallBack::~DhcpClientCallBack()
 }
 
 void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::Wifi::DhcpResult& result)
+    __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGI("DhcpClientCallBack OnIpSuccessChanged status:%{public}d,ifname:%{public}s", status, ifname.c_str());
     if (callbackEvent) {
@@ -37,28 +38,28 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
         dhcpResult.uOptLeasetime = result.uLeaseTime;
         dhcpResult.uAddTime = result.uAddTime;
         dhcpResult.uGetTime = result.uGetTime;
-        if (strcpy_s(dhcpResult.strOptClientId, INET_ADDRSTRLEN, result.strYourCli.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptClientId, DHCP_MAX_FILE_BYTES, result.strYourCli.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptClientId strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptServerId, INET_ADDRSTRLEN, result.strServer.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptServerId, DHCP_MAX_FILE_BYTES, result.strServer.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptServerId strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptSubnet, INET_ADDRSTRLEN, result.strSubnet.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptSubnet, DHCP_MAX_FILE_BYTES, result.strSubnet.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptSubnet strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptDns1, INET_ADDRSTRLEN, result.strDns1.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptDns1, DHCP_MAX_FILE_BYTES, result.strDns1.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptDns1 strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptDns2, INET_ADDRSTRLEN, result.strDns2.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptDns2, DHCP_MAX_FILE_BYTES, result.strDns2.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptDns2 strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptRouter1, INET_ADDRSTRLEN, result.strRouter1.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptRouter1, DHCP_MAX_FILE_BYTES, result.strRouter1.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptRouter1 strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptRouter2, INET_ADDRSTRLEN, result.strRouter2.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptRouter2, DHCP_MAX_FILE_BYTES, result.strRouter2.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptRouter2 strcpy_s failed!");
         }
-        if (strcpy_s(dhcpResult.strOptVendor, INET_ADDRSTRLEN, result.strVendor.c_str()) != EOK) {
+        if (strcpy_s(dhcpResult.strOptVendor, DHCP_MAX_FILE_BYTES, result.strVendor.c_str()) != EOK) {
             DHCP_LOGE("OnIpSuccessChanged strOptVendor strcpy_s failed!");
         }
         DHCP_LOGI("OnIpSuccessChanged callbackEvent status:%{public}d", status);
@@ -66,7 +67,8 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
     }
 }
 
-void DhcpClientCallBack::OnIpFailChanged(int status, const std::string& ifname, const std::string& reason) 
+void DhcpClientCallBack::OnIpFailChanged(int status, const std::string& ifname, const std::string& reason)
+    __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGI("DhcpClientCallBack OnIpFailChanged status:%{public}d, ifname:%{public}s, reason:%{public}s", status,
         ifname.c_str(), reason.c_str());
