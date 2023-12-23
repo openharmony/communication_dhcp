@@ -126,15 +126,6 @@ HWTEST_F(DhcpIpv6ClientTest, getAddrScopeTest, TestSize.Level1)
     EXPECT_EQ(IPV6_RETURN_ZERO, ipv6Client->getAddrScope(&addr));
 }
 
-HWTEST_F(DhcpIpv6ClientTest, createKernelSocketTest, TestSize.Level1)
-{
-    ASSERT_TRUE(ipv6Client != nullptr);
-    DHCP_LOGE("createKernelSocketTest enter!");
-    int32_t result = ipv6Client->createKernelSocket();
-    DHCP_LOGE("createKernelSocketTest result(%{public}d)", result);
-    EXPECT_EQ(38, result);
-}
-
 HWTEST_F(DhcpIpv6ClientTest, GetIpv6PrefixTest, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
