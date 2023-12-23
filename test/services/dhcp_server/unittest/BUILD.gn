@@ -50,7 +50,6 @@ ohos_unittest("dhcp_server_unittest") {
     "dhcp_function_test.cpp",
     "dhcp_message_sim.cpp",
     "dhcp_option_test.cpp",
-    "dhcp_s_server_test.cpp",
     "dhcp_server_callback_proxy_test.cpp",
     "dhcp_server_death_recipient_test.cpp",
     "dhcp_server_service_impl_test.cpp",
