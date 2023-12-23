@@ -469,10 +469,6 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
             tmpsize);
         for (int i = 0; i < tmpsize; i++) {
             std::string str = reply.ReadString();
-            // str += " ";
-            // str += reply.ReadString();
-            // str += " ";
-            // str += reply.ReadString();
             dhcpClientInfo.push_back(str);
         }
     }
