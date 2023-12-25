@@ -50,7 +50,8 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
     std::string ifName = "wlan0";
     std::string netMask = "192.77.1.232";
     std::string ipRange;
-    EXPECT_EQ(0, StartDhcpServerMain(ifName, netMask, ipRange));
+    std::string localIp = "192.168.62.1"
+    EXPECT_EQ(0, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
 }
 
 HWTEST_F(DhcpDhcpdTest, StopDhcpServerMainTest, TestSize.Level1)
