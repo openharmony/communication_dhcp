@@ -12,7 +12,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-1
+
 #include <gtest/gtest.h>
 
 #include "dhcp_logger.h"
@@ -105,6 +105,34 @@ HWTEST_F(DhcpSocketTest, BindKernelSocket_SUCCESS, TestSize.Level1)
     EXPECT_EQ(BindKernelSocket(fd, ifname, INADDR_ANY, BOOTP_CLIENT, true), SOCKET_OPT_SUCCESS);
 
     MockSystemFunc::SetMockFlag(false);
+}
+
+HWTEST_F(DhcpSocketTest, SendToDhcpPacket_SUCCESS, TestSize.Level1)
+{
+    uint32_t srcIp = 3226272232;
+    uint32_t destIp = 3226272232;
+    int destIndex = 1;
+    uint8_t destHwaddr[6] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+
+    struct DhcpPacket packet;
+    ASSERT_TRUE(memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) == EOK);
+
+    int endIndex = 0;
+    uint8_t *pOption = packet.options;
+    pOption[endIndex + DHCP_OPT_CODE_INDEX] = PAD_OPTION;
+    endIndex += DHCP_OPT_CODE_BYTES;
+
+    pOption[endIndex + DHCP_OPT_CODE_INDEX] = SUBNET_MASK_OPTION;
+    pOption[endIndex + DHCP_OPT_LEN_INDEX] = DHCP_UINT32_BYTES;
+    uint32_t u32Data = 3226272231;
+    ASSERT_TRUE(
+        memcpy_s(pOption + endIndex + DHCP_OPT_DATA_INDEX, DHCP_UINT32_BYTES, &u32Data, DHCP_UINT32_BYTES) == EOK);
+    endIndex += DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + pOption[endIndex + DHCP_OPT_LEN_INDEX];
+
+    pOption[endIndex + DHCP_OPT_CODE_INDEX] = END_OPTION;
+
+    int result = SendToDhcpPacket(&packet, srcIp, destIp, destIndex, destHwaddr);
+    EXPECT_EQ(result, 0);
 }
 
 HWTEST_F(DhcpSocketTest, SendDhcpPacket_SUCCESS, TestSize.Level1)
