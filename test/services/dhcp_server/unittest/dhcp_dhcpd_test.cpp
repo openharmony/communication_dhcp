@@ -35,11 +35,9 @@ public:
     {}
     virtual void SetUp()
     {
-
     }
     virtual void TearDown()
     {
-
     }
 private:
     DhcpServerContext *m_pServerCtx = nullptr;
