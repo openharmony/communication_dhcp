@@ -136,7 +136,75 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail5, TestSize.Leve
     char ifname[] = "testcode//";
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->PublishDhcpResultEvent(ifname, PUBLISH_CODE_FAILED, &result));
 }
+/**
+ * @tc.name: SyncDhcpResult_Fail1
+ * @tc.desc: SyncDhcpResult()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail1, TestSize.Level1)
+{
+    struct DhcpPacket *packet = nullptr;
+    DhcpIpResult result;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(packet, &result));
+}
+/**
+ * @tc.name: SyncDhcpResult_Fail2
+ * @tc.desc: SyncDhcpResult()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail2, TestSize.Level1)
+{
+    struct DhcpPacket packet;
+    DhcpIpResult *result = nullptr;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, result));
+}
+/**
+ * @tc.name: SyncDhcpResult_Fail3
+ * @tc.desc: SyncDhcpResult()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail3, TestSize.Level1)
+{
+    struct DhcpPacket *packet = nullptr;
+    DhcpIpResult *result = nullptr;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(packet, result));
+}
 
+/**
+ * @tc.name: GetDHCPServerHostName_Fail1
+ * @tc.desc: GetDHCPServerHostName()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail1, TestSize.Level1)
+{
+    struct DhcpPacket *packet = nullptr;
+    DhcpIpResult result;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->GetDHCPServerHostName(packet, &result));
+}
+
+/**
+ * @tc.name: GetDHCPServerHostName_Fail2
+ * @tc.desc: GetDHCPServerHostName()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail2, TestSize.Level1)
+{
+    struct DhcpPacket packet;
+    DhcpIpResult *result = nullptr;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->GetDHCPServerHostName(&packet, result));
+}
+
+/**
+ * @tc.name: GetDHCPServerHostName_Fail3
+ * @tc.desc: GetDHCPServerHostName()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
 HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail3, TestSize.Level1)
 {
     struct DhcpPacket *packet = nullptr;
