@@ -334,7 +334,10 @@ static int InitializeDhcpConfig(const char *ifname, DhcpConfig *config)
     if (HasArgument("conf")) {
         ArgumentInfo *configArg = GetArgument("conf");
         if (configArg) {
-            memcpy(configFile, configArg->value, strlen(configArg->value));
+            if (memcpy_s(configFile, ARGUMENT_VALUE_SIZE, configArg->value, strlen(configArg->value)) != EOK) {
+                DHCP_LOGE("conf memcpy_s failed.");
+                return RET_FAILED;
+            }
         } else {
             DHCP_LOGE("failed to get config file name.");
             return RET_FAILED;
@@ -343,7 +346,7 @@ static int InitializeDhcpConfig(const char *ifname, DhcpConfig *config)
     DHCP_LOGI("load local dhcp config file:%{public}s", configFile);
     if (LoadConfig(configFile, ifname, config) != RET_SUCCESS) {
         DHCP_LOGE("failed to load configure file.");
-        //return RET_FAILED;
+        return RET_FAILED;
     }
     DHCP_LOGI("init config by argument.");
     if (InitConfigByArguments(config) != RET_SUCCESS) {
