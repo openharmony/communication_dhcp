@@ -91,14 +91,6 @@ if (defined(ohos_lite)) {
     }
   }
   ohos_source_set("dhcp_client_proxy_impl") {
-    branch_protector_ret = "pac_ret"
-
-    sanitize = {
-      cfi = true
-      boundary_sanitize = true
-      cfi_cross_dso = true
-      debug = false
-    }
     part_name = "dhcp"
     sources = [
       "src/dhcp_client_impl.cpp",
@@ -117,14 +109,6 @@ if (defined(ohos_lite)) {
   }
 
   ohos_source_set("dhcp_server_proxy_impl") {
-    branch_protector_ret = "pac_ret"
-
-    sanitize = {
-      cfi = true
-      boundary_sanitize = true
-      cfi_cross_dso = true
-      debug = false
-    }
     part_name = "dhcp"
     sources = [
       "src/dhcp_server_impl.cpp",
@@ -143,8 +127,6 @@ if (defined(ohos_lite)) {
   }
 
   ohos_shared_library("dhcp_sdk") {
-    branch_protector_ret = "pac_ret"
-
     sanitize = {
       cfi = true
       boundary_sanitize = true
