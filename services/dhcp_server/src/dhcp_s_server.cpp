@@ -650,11 +650,6 @@ void InitLeaseFile(DhcpAddressPool *pool)
     InitBindingRecoders(pool);
 }
 
-static void ExitProcess(void)
-{
-    DHCP_LOGD("dhcp server stopped.");
-}
-
 int StartDhcpServer(PDhcpServerContext ctx)
 {
     DHCP_LOGI("%{public}s  %{public}d  start", __func__, __LINE__);
@@ -672,9 +667,7 @@ int StartDhcpServer(PDhcpServerContext ctx)
         DHCP_LOGE("dhcp server context instance pointer is null.");
         return RET_FAILED;
     }
-    if (atexit(ExitProcess) != 0) {
-        DHCP_LOGW("failed to regiester exit process function.");
-    }
+
     if (!srvIns->initialized) {
         DHCP_LOGE("dhcp server no initialized.");
         return RET_FAILED;

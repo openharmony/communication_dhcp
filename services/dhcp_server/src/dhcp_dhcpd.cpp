@@ -293,10 +293,10 @@ int ServerActionCallback(int state, int code, const char *ifname)
 
 static void SignalHandler(int signal)
 {
+    DHCP_LOGI("enter %{public}s, %{public}d, signal:%{public}d", __func__, __LINE__, signal);
     switch (signal) {
-        case SIGTERM: {
-            exit(0);
-        }
+        case SIGTERM:
+            break;
         case SIGUSR1:
             break;
         default:
