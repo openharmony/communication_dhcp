@@ -267,18 +267,6 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
 {
     DHCP_LOGI("StartNewClient ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
     DhcpClient client;
-    DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
-    if (pStaState == nullptr) {
-        DHCP_LOGE("StartNewClient new DhcpClientStateMachine failed!, ifname:%{public}s", ifname.c_str());
-        return DHCP_E_FAILED;
-    }
-    client.ifName = ifname;
-    client.isIpv6 = bIpv6;
-    client.pStaStateMachine = pStaState;
-    m_mapClientService.emplace(std::make_pair(ifname, client));
-    DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
-    pStaState->StartIpv4Type(ifname, bIpv6, ACTION_START_NEW);
-
     if (bIpv6) {
         DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
         if (pipv6Client == nullptr) {
@@ -292,6 +280,17 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
             std::placeholders::_2));
         pipv6Client->StartIpv6Thread(ifname, bIpv6);
     }
+    DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
+    if (pStaState == nullptr) {
+        DHCP_LOGE("StartNewClient new DhcpClientStateMachine failed!, ifname:%{public}s", ifname.c_str());
+        return DHCP_E_FAILED;
+    }
+    client.ifName = ifname;
+    client.isIpv6 = bIpv6;
+    client.pStaStateMachine = pStaState;
+    m_mapClientService.emplace(std::make_pair(ifname, client));
+    DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    pStaState->StartIpv4Type(ifname, bIpv6, ACTION_START_NEW);
     return DHCP_E_SUCCESS;
 }
 

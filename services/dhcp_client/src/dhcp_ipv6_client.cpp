@@ -68,6 +68,7 @@ const int MASK_FILTER = 0x7;
 const int KERNEL_BUFF_SIZE = (8 * 1024);
 const int ND_OPT_MIN_LEN = 3;
 const int ROUTE_BUFF_SIZE = 1024;
+const int IPV6_TIMEOUT_USEC = 500000;
 
 #define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
 #define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
@@ -116,13 +117,16 @@ void DhcpIpv6Client::RunIpv6ThreadFunc()
 int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
 {
     DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6, runFlag);
-    if (!pthread) {
+    if (!runFlag) {
+        interfaceName = ifname;
         pthread = new std::thread(&DhcpIpv6Client::RunIpv6ThreadFunc, this);
         if (pthread == nullptr) {
             DHCP_LOGE("StartIpv6Thread RunIpv6ThreadFunc failed!");
             return -1;
         }
-        DHCP_LOGE("StartIpv6Thread RunIpv6ThreadFunc ok!");
+        DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc ok!");
+    } else {
+        DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc!");
     }
     return 0;
 }
@@ -435,8 +439,8 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
     }
     struct timeval timeout = {0};
     fd_set rSet;
-    timeout.tv_sec = 1;
-    timeout.tv_usec = 0;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = IPV6_TIMEOUT_USEC;
     while (runFlag) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0, KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
@@ -446,17 +450,14 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
             DHCP_LOGE("StartIpv6 select failed.");
             break;
         } else if (iRet == 0) {
-            DHCP_LOGE("StartIpv6 iRet == 0 continue.");
             continue;
         }
         if (!FD_ISSET(ipv6SocketFd, &rSet)) {
-            DHCP_LOGE("StartIpv6 !FD_ISSET continue.");
             continue;
         }
         int32_t len = recv(ipv6SocketFd, buff, 8 *1024, 0);
         if (len < 0) {
             if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK) {
-                DHCP_LOGE("StartIpv6 errno == EAGAIN continue.");
                 continue;
             }
             DHCP_LOGE("StartIpv6 recv kernel socket failed %{public}d.", errno);
@@ -485,7 +486,7 @@ void *DhcpIpv6Client::DhcpIpv6Start(const char* param)
         DHCP_LOGE("DhcpIpv6Start failed, param invalid.");
         return NULL;
     }
-    int result = StartIpv6((char*)param);
+    int result = StartIpv6(param);
     if (result < 0) {
         DHCP_LOGE("dhcp6 run failed.");
     }
@@ -494,7 +495,8 @@ void *DhcpIpv6Client::DhcpIpv6Start(const char* param)
 
 void DhcpIpv6Client::DhcpIPV6Stop(void)
 {
-    DHCP_LOGI("DhcpIPV6Stop enter, runFlag:%{public}d", runFlag);
+    DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag);
+    runFlag = false;
 }
 }  // namespace Wifi
 }  // namespace OHOS
