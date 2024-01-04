@@ -31,7 +31,7 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
     __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGI("DhcpClientCallBack OnIpSuccessChanged status:%{public}d,ifname:%{public}s", status, ifname.c_str());
-    if (callbackEvent) {
+    if ((callbackEvent != nullptr) && (callbackEvent->OnIpSuccessChanged != nullptr)) {
         DhcpResult dhcpResult;
         dhcpResult.iptype = result.iptype;
         dhcpResult.isOptSuc = result.isOptSuc;
@@ -64,6 +64,8 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
         }
         DHCP_LOGI("OnIpSuccessChanged callbackEvent status:%{public}d", status);
         callbackEvent->OnIpSuccessChanged(status, ifname.c_str(), &dhcpResult);
+    } else {
+        DHCP_LOGE("callbackEvent or OnIpSuccessChanged is null!");
     }
 }
 
@@ -72,9 +74,11 @@ void DhcpClientCallBack::OnIpFailChanged(int status, const std::string& ifname, 
 {
     DHCP_LOGI("DhcpClientCallBack OnIpFailChanged status:%{public}d, ifname:%{public}s, reason:%{public}s", status,
         ifname.c_str(), reason.c_str());
-    if (callbackEvent) {
-        DHCP_LOGI("OnIpSuccessChanged OnIpFailChanged ok");
+    if ((callbackEvent != nullptr) && (callbackEvent->OnIpFailChanged != nullptr)) {
+        DHCP_LOGI("OnIpFailChanged callbackEvent status:%{public}d", status);
         callbackEvent->OnIpFailChanged(status, ifname.c_str(), reason.c_str());
+    } else {
+        DHCP_LOGE("callbackEvent or OnIpFailChanged is null!");
     }
 }
 #ifndef OHOS_ARCH_LITE
