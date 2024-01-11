@@ -132,7 +132,7 @@ HWTEST_F(DhcpIpv6ClientTest, createKernelSocketTest, TestSize.Level1)
     DHCP_LOGE("createKernelSocketTest enter!");
     int32_t result = ipv6Client->createKernelSocket();
     DHCP_LOGE("createKernelSocketTest result(%{public}d)", result);
-    EXPECT_EQ(48, result);
+    EXPECT_EQ(result + 1, ipv6Client->createKernelSocket());
 }
 
 HWTEST_F(DhcpIpv6ClientTest, GetIpv6PrefixTest, TestSize.Level1)

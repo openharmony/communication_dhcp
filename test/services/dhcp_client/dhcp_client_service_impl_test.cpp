@@ -105,5 +105,6 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultTimeOutTest, TestSize.Level1)
     ifname = "wlan0";
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultTimeOut(ifname));
 }
+1
 }
 }

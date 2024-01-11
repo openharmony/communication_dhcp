@@ -248,5 +248,6 @@ HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_NAK));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_FORCERENEW));
 }
+1
 }
 }

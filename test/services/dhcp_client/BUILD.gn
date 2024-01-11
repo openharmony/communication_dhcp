@@ -44,6 +44,7 @@ ohos_unittest("dhcp_client_unittest") {
     "dhcp_function_test.cpp",
     "dhcp_ipv6_client_test.cpp",
     "dhcp_options_test.cpp",
+    "dhcp_result_test.cpp",
     "dhcp_socket_test.cpp",
     "mock_custom_func.cpp",
     "mock_system_func.cpp",
