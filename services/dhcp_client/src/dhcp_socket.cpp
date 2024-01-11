@@ -284,8 +284,6 @@ int CheckReadBytes(const int count, const int totLen)
     if (count < 0) {
         DHCP_LOGE("CheckReadBytes() couldn't read on raw listening socket, count:%{public}d, error:%{public}d!",
             count, errno);
-        /* The specified network interface service may be down. */
-        sleep(NUMBER_ONE);
         return SOCKET_OPT_ERROR;
     }
 
