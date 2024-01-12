@@ -14,7 +14,7 @@
  */
 
 #include <gtest/gtest.h>
-1
+
 #include "dhcp_server_service_impl.h"
 #include "dhcp_errcode.h"
 #include "system_func_mock.h"
@@ -84,6 +84,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
     std::string ipRange;
     EXPECT_EQ(DHCP_OPT_ERROR, pServerServiceImpl->GetUsingIpRange("", ipRange));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetUsingIpRange("ww", ipRange));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetUsingIpRange("wlan0", ipRange));
 
     DhcpRange checkRange;
     EXPECT_EQ(false, pServerServiceImpl->CheckIpAddrRange(checkRange));
@@ -149,6 +150,63 @@ HWTEST_F(DhcpServerServiceTest, CreateDefaultConfigFileTest, TestSize.Level1)
 
     strFile = "";
     EXPECT_EQ(DHCP_OPT_ERROR, pServerServiceImpl->CreateDefaultConfigFile(strFile));
+    strFile = "wlan0";
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerServiceImpl->CreateDefaultConfigFile(strFile));
+}
+
+HWTEST_F(DhcpServerServiceTest, OnStartTest, TestSize.Level1)
+{
+    DHCP_LOGE("enter OnStartTest");
+    pServerServiceImpl->OnStart();
+}
+
+HWTEST_F(DhcpServerServiceTest, OnStopTest, TestSize.Level1)
+{
+    DHCP_LOGE("enter OnStopTest");
+    pServerServiceImpl->OnStop();
+}
+
+HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
+{
+    DHCP_LOGE("enter IsRemoteDiedTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+
+    EXPECT_EQ(true, pServerServiceImpl->IsRemoteDied());
+}
+
+HWTEST_F(DhcpServerServiceTest, GetDhcpServerPidTest, TestSize.Level1)
+{
+    DHCP_LOGE("enter GetDhcpServerPidTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+    std::string ifname;
+    EXPECT_EQ(0, pServerServiceImpl->GetDhcpServerPid(ifname));
+
+    ifname = "xxx";
+    EXPECT_EQ(0, pServerServiceImpl->GetDhcpServerPid(ifname));
+
+    ifname = "wlan0";
+    EXPECT_EQ(1234, pServerServiceImpl->GetDhcpServerPid(ifname));
+}
+
+HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter StartServiceAbilityTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+    int sleeps = 1;
+    pServerServiceImpl->StartServiceAbility(sleeps);
+    sleeps = 0;
+    pServerServiceImpl->StartServiceAbility(sleeps);
+    sleeps = -1;
+    pServerServiceImpl->StartServiceAbility(sleeps);
+}
+
+HWTEST_F(DhcpServerServiceTest, StopServerTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter StopServerTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+
+    pid_t serverPid = 1234;
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerServiceImpl->StopServer(serverPid));
 }
 }
 }
