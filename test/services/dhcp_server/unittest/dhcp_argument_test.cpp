@@ -28,6 +28,18 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace Wifi {
+HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
+{
+    PrintRequiredArguments();
+    ShowHelp(2);
+    std::string ifname = "eth0";
+    std::string netMask = "192.168.1.2";
+    std::string ipRange = "192.168.1.1 , 192.168.1.100";
+    std::string localIp = "192.168.62.1";
+    int result = ParseArguments(ifname, netMask, ipRange, localIp);
+    EXPECT_EQ(result, RET_SUCCESS);
+}
+
 HWTEST(DhcpArgumentTest, InitArgumentsTest, TestSize.Level1)
 {
     EXPECT_TRUE(InitArguments() == RET_SUCCESS);

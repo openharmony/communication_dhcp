@@ -248,5 +248,62 @@ HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_NAK));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_FORCERENEW));
 }
+
+HWTEST_F(DhcpClientStateMachineTest, ParseOtherNetworkInfoTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseOtherNetworkInfoTest enter!");
+    struct DhcpPacket packet;
+    struct DhcpIpResult result;
+    dhcpClient->ParseOtherNetworkInfo(&packet, &result);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, StartGetIpTimerTest, TestSize.Level1)
+{
+    DHCP_LOGI("StartGetIpTimerTest enter!");
+    dhcpClient->StartGetIpTimer();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, StopGetIpTimerTest, TestSize.Level1)
+{
+    DHCP_LOGI("StopGetIpTimerTest enter!");
+    dhcpClient->StopGetIpTimer();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, InitStartIpv4ThreadTest, TestSize.Level1)
+{
+    DHCP_LOGI("InitStartIpv4ThreadTest enter!");
+    std::string ifname;
+    bool isIpv6 = true;
+    dhcpClient->InitStartIpv4Thread(ifname, isIpv6);
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->InitStartIpv4Thread(ifname, isIpv6));
+    ifname = "ipv4";
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->InitStartIpv4Thread(ifname, isIpv6));
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ExitIpv4Test, TestSize.Level1)
+{
+    DHCP_LOGI("ExitIpv4Test enter!");
+    dhcpClient->ExitIpv4();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->ExitIpv4());
+}
+
+HWTEST_F(DhcpClientStateMachineTest, StopIpv4Test, TestSize.Level1)
+{
+    DHCP_LOGI("StopIpv4Test enter!");
+    dhcpClient->StopIpv4();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->StopIpv4());
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpInitTest enter!");
+    dhcpClient->DhcpInit();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpStopTest enter!");
+    dhcpClient->DhcpStop();
+}
 }
 }
