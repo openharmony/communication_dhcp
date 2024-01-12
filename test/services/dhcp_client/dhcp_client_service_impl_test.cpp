@@ -15,7 +15,7 @@
 
 #include <gtest/gtest.h>
 #include <string>
-#include "errno.h"
+#include "cerrno"
 
 #include "dhcp_logger.h"
 #include "dhcp_client_service_impl.h"
