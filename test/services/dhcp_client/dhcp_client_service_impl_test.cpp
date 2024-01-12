@@ -14,13 +14,12 @@
  */
 
 #include <gtest/gtest.h>
-#include <string>
-#include "cerrno"
 
 #include "dhcp_logger.h"
 #include "dhcp_client_service_impl.h"
 #include "dhcp_client_state_machine.h"
 #include "dhcp_define.h"
+#include "securec.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImplTest");
 
