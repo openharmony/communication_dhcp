@@ -254,11 +254,8 @@ HWTEST_F(DhcpSocketTest, GetDhcpKernelPacket_SUCCESS, TestSize.Level1)
 HWTEST_F(DhcpSocketTest, GetDhcpRawPacket_FAILED, TestSize.Level1)
 {
     EXPECT_EQ(GetDhcpRawPacket(NULL, 1), SOCKET_OPT_FAILED);
-    MockSystemFunc::SetMockFlag(true);
-    EXPECT_CALL(MockSystemFunc::GetInstance(), read(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
 
     struct DhcpPacket packet;
     EXPECT_EQ(GetDhcpRawPacket(&packet, 1), SOCKET_OPT_ERROR);
-    MockSystemFunc::SetMockFlag(false);
 }
 }  // namespace OHOS
