@@ -148,7 +148,7 @@ bool SplitStr(const std::string src, const std::string delim, const int count, s
         pTok = strtok_r(NULL, delim.c_str(), &pSave);
     }
 
-    if (nDelim != count) {
+    if (nDelim < count) {
         DHCP_LOGI("SplitString() %{public}s failed, nDelim:%{public}d,count:%{public}d!", src.c_str(), nDelim, count);
         return false;
     }
