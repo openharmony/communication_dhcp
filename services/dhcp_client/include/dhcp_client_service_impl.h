@@ -95,6 +95,7 @@ public:
 private:
     bool Init();
     bool IsNativeProcess();
+    bool IsGlobalIPv6Address(std::string ipAddress);
     bool mPublishFlag;
     static std::mutex g_instanceLock;
     ClientServiceRunningState mState;

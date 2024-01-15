@@ -468,7 +468,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
 {
-    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0) {
+    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || !IsGlobalIPv6Address(info.globalIpv6Addr)) {
         DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s",
             info.globalIpv6Addr, info.routeAddr);
         return;
@@ -575,5 +575,17 @@ bool DhcpClientServiceImpl::IsNativeProcess()
     return true;
 #endif
 }
+
+bool DhcpClientServiceImpl::IsGlobalIPv6Address(std::string ipAddress)
+{
+    const char* ipAddr = ipAddress.c_str();
+    int first = ipAddr[0]-'0';
+    DHCP_LOGI("first = %{public}d", first);
+    if (first == NUMBER_TWO || first == NUMBER_THREE) {
+        return true;
+    }
+    return false;
+}
+
 }
 }
