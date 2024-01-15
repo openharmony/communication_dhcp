@@ -77,7 +77,7 @@ private:
     uint32_t GetDhcpTransID(void);
 public:
 #ifndef OHOS_ARCH_LITE
-    static void GetIpTimerCallback();
+    void GetIpTimerCallback();
     void StartGetIpTimer(void);
     void StopGetIpTimer(void);
 #endif
@@ -102,10 +102,8 @@ public:
         EnumErrCode Register(const TimerCallback &callback, uint32_t &outTimerId, uint32_t interval = DEFAULT_TIMEROUT,
             bool once = true);
         void UnRegister(uint32_t timerId);
-        void SetClientStateMachine(DhcpClientStateMachine *dhcpClientStateMachine);
     public:
         std::unique_ptr<Utils::Timer> timer_{nullptr};
-        DhcpClientStateMachine *m_dhcpClientStateMachine;
     };
 #endif
 private:
