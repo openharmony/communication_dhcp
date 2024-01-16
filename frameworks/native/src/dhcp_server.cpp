@@ -32,7 +32,7 @@ NO_SANITIZE("cfi") std::shared_ptr<DhcpServer> DhcpServer::GetInstance(int syste
     return nullptr;
 }
 
-DhcpServer::~DhcpServer()
+NO_SANITIZE("cfi") DhcpServer::~DhcpServer()
 {
     DelayedSingleton<DhcpServerImpl>::DestroyInstance();
 }
