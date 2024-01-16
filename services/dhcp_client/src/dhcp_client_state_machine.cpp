@@ -1619,20 +1619,22 @@ int DhcpClientStateMachine::DhcpRelease(uint32_t clientip, uint32_t serverip)
 using TimeOutCallback = std::function<void()>;
 void DhcpClientStateMachine::GetIpTimerCallback()
 {
-    DHCP_LOGI("GetIpTimerCallback getIpTimerId:%{public}u",
-        DhcpTimer::GetInstance()->m_dhcpClientStateMachine->getIpTimerId);
-    DhcpTimer::GetInstance()->m_dhcpClientStateMachine->StopGetIpTimer();
-    PublishDhcpIpv4ResultEvent(PUBLISH_CODE_TIMEOUT, "get dhcp result timeout!",
-        DhcpTimer::GetInstance()->m_dhcpClientStateMachine->m_cltCnf.ifaceName);
+    DHCP_LOGI("enter GetIpTimerCallback, getIpTimerId:%{public}u timeoutExit:%{public}d", getIpTimerId,
+        m_cltCnf.timeoutExit);
+    if (m_cltCnf.timeoutExit) {
+        DHCP_LOGE("GetIpTimerCallback return!");
+        return;
+    }
+    StopGetIpTimer();
+    PublishDhcpIpv4ResultEvent(PUBLISH_CODE_TIMEOUT, "get dhcp result timeout!", m_ifName.c_str());
 }
 
 void DhcpClientStateMachine::StartGetIpTimer()
 {
     DHCP_LOGI("StartGetIpTimer getIpTimerId:%{public}u", getIpTimerId);
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
-    DhcpTimer::GetInstance()->SetClientStateMachine(this);
     if (getIpTimerId == 0) {
-        TimeOutCallback timeoutCallback = std::bind(DhcpClientStateMachine::GetIpTimerCallback);
+        TimeOutCallback timeoutCallback = std::bind(&DhcpClientStateMachine::GetIpTimerCallback, this);
         DhcpTimer::GetInstance()->Register(timeoutCallback, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT);
         DHCP_LOGI("StartGetIpTimer success! getIpTimerId:%{public}u", getIpTimerId);
     }
@@ -1648,19 +1650,13 @@ void DhcpClientStateMachine::StopGetIpTimer()
     return;
 }
 
-void DhcpClientStateMachine::DhcpTimer::SetClientStateMachine(DhcpClientStateMachine *dhcpClientStateMachine)
-{
-    m_dhcpClientStateMachine = dhcpClientStateMachine;
-}
-
 DhcpClientStateMachine::DhcpTimer * DhcpClientStateMachine::DhcpTimer::GetInstance()
 {
     static DhcpTimer instance;
     return &instance;
 }
 
-DhcpClientStateMachine::DhcpTimer::DhcpTimer() : timer_(std::make_unique<Utils::Timer>("DhcpGetIpTimer")),
-    m_dhcpClientStateMachine(nullptr)
+DhcpClientStateMachine::DhcpTimer::DhcpTimer() : timer_(std::make_unique<Utils::Timer>("DhcpGetIpTimer"))
 {
     timer_->Setup();
 }

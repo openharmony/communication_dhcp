@@ -38,7 +38,7 @@ bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *if
     std::shared_ptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
 #endif
     if (code == PUBLISH_CODE_TIMEOUT) { // timeout
-        if (clientImpl->DhcpIpv4ResultTimeOut(strIfName) != OHOS::Wifi::DHCP_OPT_SUCCESS) {
+        if ((clientImpl != nullptr) && (clientImpl->DhcpIpv4ResultTimeOut(strIfName) != OHOS::Wifi::DHCP_OPT_SUCCESS)) {
             DHCP_LOGE("PublishDhcpIpv4ResultEvent DhcpIpv4ResultTimeOut failed!");
             return false;
         }

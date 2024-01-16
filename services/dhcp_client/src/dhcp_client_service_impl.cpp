@@ -308,6 +308,9 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
                 bIpv6);
             (iter2->second).pStaStateMachine->StopIpv4();
+#ifndef OHOS_ARCH_LITE
+            (iter2->second).pStaStateMachine->StopGetIpTimer();
+#endif
         }
         if ((iter2->second).pipv6Client != nullptr && bIpv6) {
             DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
