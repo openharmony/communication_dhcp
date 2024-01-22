@@ -519,7 +519,7 @@ static int ContinueReceive(PDhcpMsgInfo from, int recvRet)
     return DHCP_FALSE;
 }
 
-static void *BeginLooper(void *argc)
+static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
 {
     PDhcpServerContext ctx = (PDhcpServerContext)argc;
     DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
