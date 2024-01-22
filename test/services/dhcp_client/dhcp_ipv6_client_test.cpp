@@ -97,7 +97,7 @@ HWTEST_F(DhcpIpv6ClientTest, DhcpIpv6StartTest_IsNull, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("DhcpIpv6StartTest_IsNull enter!");
-    EXPECT_EQ(nullptr, ipv6Client->DhcpIpv6Start(nullptr));
+    EXPECT_EQ(nullptr, ipv6Client->DhcpIpv6Start());
 }
 
 HWTEST_F(DhcpIpv6ClientTest, DhcpIPV6StopTest, TestSize.Level1)
@@ -343,8 +343,7 @@ HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("StartIpv6Test enter!");
-    const char *ifname = nullptr;
-    EXPECT_EQ(-1, ipv6Client->StartIpv6(ifname));
+    EXPECT_EQ(-1, ipv6Client->StartIpv6());
 }
 }
 }

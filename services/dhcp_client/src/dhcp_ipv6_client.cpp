@@ -111,7 +111,7 @@ void DhcpIpv6Client::SetCallback(std::function<void(const std::string ifname, Dh
 
 void DhcpIpv6Client::RunIpv6ThreadFunc()
 {
-    DhcpIpv6Start(interfaceName.c_str());
+    DhcpIpv6Start();
 }
 
 int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
@@ -414,13 +414,9 @@ void DhcpIpv6Client::getIpv6RouteAddr()
     DHCP_LOGE("getIpv6RouteAddr send info ok");
 }
 
-int DhcpIpv6Client::StartIpv6(const char *ifname)
+int DhcpIpv6Client::StartIpv6()
 {
-    if (!ifname) {
-        DHCP_LOGE("StartIpv6 failed, ifname invalid.");
-        return -1;
-    }
-    DHCP_LOGI("StartIpv6 enter. %{public}s", ifname);
+    DHCP_LOGI("StartIpv6 enter. %{public}s", interfaceName.c_str());
     (void)memset_s(&dhcpIpv6Info, sizeof(dhcpIpv6Info), 0, sizeof(dhcpIpv6Info));
     runFlag = true;
     ipv6SocketFd = createKernelSocket();
@@ -476,17 +472,13 @@ int DhcpIpv6Client::StartIpv6(const char *ifname)
     return 0;
 }
 
-void *DhcpIpv6Client::DhcpIpv6Start(const char* param)
+void *DhcpIpv6Client::DhcpIpv6Start()
 {
     if (runFlag) {
         DHCP_LOGI("DhcpIpv6Client already started.");
         return NULL;
     }
-    if (!param) {
-        DHCP_LOGE("DhcpIpv6Start failed, param invalid.");
-        return NULL;
-    }
-    int result = StartIpv6(param);
+    int result = StartIpv6();
     if (result < 0) {
         DHCP_LOGE("dhcp6 run failed.");
     }
