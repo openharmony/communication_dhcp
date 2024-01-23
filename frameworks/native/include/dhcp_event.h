@@ -21,6 +21,7 @@
 #include "iremote_object.h"
 #include "iservice_registry.h"
 #endif
+#include <map>
 #include "securec.h"
 #include "dhcp_errcode.h"
 #include "../../../interfaces/kits/c/dhcp_result_event.h"
@@ -39,7 +40,7 @@ public:
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif
     void RegisterCallBack(const std::string& ifname, const ClientCallBack *event);
-    const ClientCallBack *callbackEvent;
+    std::map<std::string, const ClientCallBack *> mapClientCallBack;
 };
 
 class DhcpServerCallBack : public OHOS::Wifi::IDhcpServerCallBack {
@@ -54,6 +55,6 @@ public:
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif
     void RegisterCallBack(const std::string& ifname, const ServerCallBack *event);
-    const ServerCallBack *callbackEvent;
+    std::map<std::string, const ServerCallBack *> mapServerCallBack;
 };
 #endif
