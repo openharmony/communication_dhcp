@@ -41,7 +41,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerServiceImpl");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 std::mutex DhcpServerServiceImpl::g_instanceLock;
 #ifdef OHOS_ARCH_LITE
@@ -144,8 +144,8 @@ void DhcpServerServiceImpl::StartServiceAbility(int sleepS)
             DHCP_LOGE("DhcpServerServiceImpl serviceManager is  nullptr, continue");
             continue;
         }
-        OHOS::sptr<OHOS::Wifi::DhcpServerServiceImpl> serverServiceImpl =
-            OHOS::Wifi::DhcpServerServiceImpl::GetInstance();
+        OHOS::sptr<OHOS::DHCP::DhcpServerServiceImpl> serverServiceImpl =
+            OHOS::DHCP::DhcpServerServiceImpl::GetInstance();
         int result = serviceManager->AddSystemAbility(DHCP_SERVER_ABILITY_ID, serverServiceImpl);
         if (result != 0) {
             DHCP_LOGE("DhcpServerServiceImpl AddSystemAbility error:%{public}d", result);

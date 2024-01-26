@@ -24,7 +24,7 @@ using DhcpClientConfig = struct DhcpClientConfig;
 using DhcpClientContext = struct DhcpClientContext;
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpMsgManager {
 public:
     static DhcpMsgManager &GetInstance(void);
@@ -53,7 +53,7 @@ private:
     std::queue<DhcpMessage> m_sendMessages;
     uint32_t m_clientIpAddress = 0;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 
 struct DhcpClientConfig {

@@ -22,7 +22,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSaLoadManager");
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 static constexpr int32_t DHCP_LOADSA_TIMEOUT_MS = 1000;
 DhcpSaLoadManager& DhcpSaLoadManager::GetInstance()
 {
@@ -126,5 +126,5 @@ void DhcpSaLoadCallback::OnLoadSystemAbilityFail(int32_t systemAbilityId)
     DHCP_LOGI("DhcpSaLoadManager Load SA failed, systemAbilityId = [%{public}d]", systemAbilityId);
     DhcpSaLoadManager::GetInstance().LoadSystemAbilityFail();
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

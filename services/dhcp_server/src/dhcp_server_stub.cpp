@@ -21,7 +21,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerStub");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpServerStub::DhcpServerStub() : mSingleCallback(false)
 {
     InitHandleMap();

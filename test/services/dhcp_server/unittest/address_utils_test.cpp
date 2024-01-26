@@ -23,7 +23,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("AddressUtilsTest");
 
 using namespace testing::ext;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 const uint8_t netmask24[] =  {255, 255, 255, 0};
 const uint8_t netmask25[] =  {255, 255, 255, 128};
 const uint8_t netmask26[] =  {255, 255, 255, 192};

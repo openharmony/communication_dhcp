@@ -21,11 +21,11 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     virtual void OnRemoteDied(const wptr<IRemoteObject>& remoteObject);
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

@@ -20,7 +20,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerCallbackProxy");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpServerCallbackProxy::DhcpServerCallbackProxy(const sptr<IRemoteObject> &impl) :
     IRemoteProxy<IDhcpServerCallBack>(impl)
 {}
@@ -68,5 +68,5 @@ void DhcpServerCallbackProxy::OnServerSerExitChanged(const std::string& ifname)
     return;
 }
 
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

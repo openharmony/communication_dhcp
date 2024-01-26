@@ -27,7 +27,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpArgumentTest");
 using namespace testing::ext;
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
 {
     PrintRequiredArguments();

@@ -24,7 +24,7 @@
 #include "../../../interfaces/inner_api/include/dhcp_define.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifdef OHOS_ARCH_LITE
 class IDhcpServerCallBack {
 #else
@@ -40,6 +40,6 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.wifi.IDhcpServerCallBack");
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

@@ -25,9 +25,9 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerServiceTest");
 
 using namespace testing::ext;
 using namespace OHOS;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpServerServiceTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -36,7 +36,7 @@ public:
     {}
     virtual void SetUp()
     {
-        pServerServiceImpl = std::make_unique<OHOS::Wifi::DhcpServerServiceImpl>();
+        pServerServiceImpl = std::make_unique<OHOS::DHCP::DhcpServerServiceImpl>();
     }
     virtual void TearDown()
     {
@@ -45,7 +45,7 @@ public:
         }
     }
 public:
-    std::unique_ptr<OHOS::Wifi::DhcpServerServiceImpl> pServerServiceImpl;
+    std::unique_ptr<OHOS::DHCP::DhcpServerServiceImpl> pServerServiceImpl;
 };
 
 HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)

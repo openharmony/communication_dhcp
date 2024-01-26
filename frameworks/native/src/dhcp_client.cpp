@@ -20,7 +20,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClient");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 NO_SANITIZE("cfi") std::shared_ptr<DhcpClient> DhcpClient::GetInstance(int systemAbilityId)
 {
     std::shared_ptr<DhcpClientImpl> pImpl = DelayedSingleton<DhcpClientImpl>::GetInstance();
@@ -36,5 +36,5 @@ DhcpClient::~DhcpClient()
 {
     DelayedSingleton<DhcpClientImpl>::DestroyInstance();
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

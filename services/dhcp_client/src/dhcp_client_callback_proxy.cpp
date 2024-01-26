@@ -19,7 +19,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientCallbackProxy");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpClientCallbackProxy::DhcpClientCallbackProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy<IDhcpClientCallBack>(impl)
 {}
 
@@ -97,5 +97,5 @@ void DhcpClientCallbackProxy::OnIpFailChanged(int status, const std::string& ifn
     return;
 }
 
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

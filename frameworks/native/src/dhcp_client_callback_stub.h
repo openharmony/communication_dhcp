@@ -22,7 +22,7 @@
 #include "dhcp_errcode.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientCallBackStub : public IRemoteStub<IDhcpClientCallBack> {
 public:
     DhcpClientCallBackStub();
@@ -42,6 +42,6 @@ private:
     sptr<IDhcpClientCallBack> callback_;
     bool mRemoteDied;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 const int DHCP_INET6_ADDRSTRLEN = 128;
 
 struct DhcpIpv6Info {
@@ -74,7 +74,7 @@ private:
     std::thread *pthread;
     bool runFlag;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 
 #endif

@@ -21,7 +21,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientCallbackProxyLite");
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifndef OHOS_EUPDATER
 DhcpClientCallbackProxy::DhcpClientCallbackProxy(SvcIdentity *sid) : sid_(*sid)
 {}
@@ -107,5 +107,5 @@ void DhcpClientCallbackProxy::OnIpFailChanged(int status, const std::string& ifn
     DHCP_LOGI("DhcpClientCallbackProxy OnIpFailChanged send client request success");
     return;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

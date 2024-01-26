@@ -22,7 +22,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerProxy");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 static sptr<DhcpServreCallBackStub> g_dhcpServerCallBackStub =
     sptr<DhcpServreCallBackStub>(new (std::nothrow)DhcpServreCallBackStub());
 
@@ -475,5 +475,5 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
     DHCP_LOGI("DhcpServerProxy GetDhcpClientInfos 1");
     return DHCP_E_SUCCESS;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

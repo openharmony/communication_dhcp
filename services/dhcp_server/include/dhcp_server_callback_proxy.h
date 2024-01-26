@@ -23,7 +23,7 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 #ifdef OHOS_ARCH_LITE
 class DhcpServerCallbackProxy : public IDhcpServerCallBack {
@@ -48,6 +48,6 @@ private:
     static inline BrokerDelegator<DhcpServerCallbackProxy> g_delegator;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

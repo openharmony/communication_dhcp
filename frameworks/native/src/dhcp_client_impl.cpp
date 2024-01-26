@@ -26,7 +26,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientImpl");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #define RETURN_IF_FAIL(cond)                          \
     do {                                              \
         if (!(cond)) {                                \
@@ -90,7 +90,7 @@ bool DhcpClientImpl::GetDhcpClientProxy()
         return false;
     }
 
-    client_ = iface_cast<OHOS::Wifi::IDhcpClient>(object);
+    client_ = iface_cast<OHOS::DHCP::IDhcpClient>(object);
     if (client_ == nullptr) {
         DHCP_LOGI("DhcpClientImpl new DhcpClientProxy");
         client_ = new (std::nothrow)DhcpClientProxy(object);
@@ -143,5 +143,5 @@ ErrCode DhcpClientImpl::RenewDhcpClient(const std::string& ifname)
     RETURN_IF_FAIL(GetDhcpClientProxy());
     return client_->RenewDhcpClient(ifname);
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

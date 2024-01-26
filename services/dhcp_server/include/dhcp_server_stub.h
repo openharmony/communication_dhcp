@@ -26,7 +26,7 @@
 #include "i_dhcp_server.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpServerStub : public IRemoteStub<IDhcpServer> {
 public:
     using handleFunc = int (DhcpServerStub::*)(
@@ -68,6 +68,6 @@ private:
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     bool mSingleCallback;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

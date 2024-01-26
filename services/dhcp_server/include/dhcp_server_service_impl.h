@@ -29,7 +29,7 @@
 #include <string>
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr int MAXRETRYTIMEOUT = 10;
 
 enum ServerServiceRunningState { STATE_NOT_START, STATE_RUNNING };
@@ -124,6 +124,6 @@ private:
     static std::map<std::string, DhcpServerInfo> m_mapDhcpServer;
 
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

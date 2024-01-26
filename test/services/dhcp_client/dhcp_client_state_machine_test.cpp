@@ -27,9 +27,9 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientStateMachineTest");
 
 using namespace testing::ext;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientStateMachineTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -39,7 +39,7 @@ public:
     virtual void SetUp()
     {
         std::string ifnametest = "wlan0";
-        dhcpClient = std::make_unique<OHOS::Wifi::DhcpClientStateMachine>(ifnametest);
+        dhcpClient = std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(ifnametest);
     }
     virtual void TearDown()
     {
@@ -48,7 +48,7 @@ public:
         }
     }
 public:
-    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient;
+    std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient;
 };
 
 HWTEST_F(DhcpClientStateMachineTest, ExecDhcpRenew_SUCCESS, TestSize.Level1)

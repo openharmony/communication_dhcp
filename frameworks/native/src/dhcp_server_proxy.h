@@ -26,7 +26,7 @@
 #include "../../../interfaces/inner_api/dhcp_server.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifdef OHOS_ARCH_LITE
 class DhcpServerProxy : public IDhcpServer {
 public:
@@ -88,6 +88,6 @@ private:
     sptr<IRemoteObject::DeathRecipient> deathRecipient_ = nullptr;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

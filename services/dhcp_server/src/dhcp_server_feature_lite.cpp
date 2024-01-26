@@ -25,7 +25,7 @@
 #include "dhcp_server_service_impl.h"
 #include "dhcp_logger.h"
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerFeature");
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 static std::shared_ptr<DhcpServerServiceImpl> g_dhcpServerServiceImpl = DhcpServerServiceImpl::GetInstance();
 

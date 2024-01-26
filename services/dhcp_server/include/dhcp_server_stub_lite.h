@@ -20,7 +20,7 @@
 #include "i_dhcp_server.h"
 #include "serializer.h"
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
     
 #define MAX_READ_EVENT_SIZE     512
 
@@ -51,6 +51,6 @@ private:
 private:
     //sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

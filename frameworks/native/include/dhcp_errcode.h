@@ -16,7 +16,7 @@
 #define OHOS_DHCP_ERRCODE_H
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 enum ErrCode {
     DHCP_E_SUCCESS = 0,           /* successfully */
     DHCP_E_FAILED,                /* failed */
@@ -26,6 +26,6 @@ enum ErrCode {
     DHCP_E_INVALID_CONFIG,        /* invalid config */
     DHCP_E_UNKNOWN
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

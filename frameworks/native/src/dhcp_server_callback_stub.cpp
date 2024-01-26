@@ -19,7 +19,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStub");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpServreCallBackStub::DhcpServreCallBackStub() : callback_(nullptr), mRemoteDied(false)
 {
     DHCP_LOGI("DhcpServreCallBackStub Enter DhcpServreCallBackStub");
@@ -135,5 +135,5 @@ int DhcpServreCallBackStub::RemoteOnServerSerExitChanged(uint32_t code, MessageP
     return 0;
 }
 
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

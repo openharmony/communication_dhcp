@@ -17,7 +17,7 @@
 
 using namespace testing::ext;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 
 }

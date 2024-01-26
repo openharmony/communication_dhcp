@@ -28,7 +28,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientStub");
 #endif
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpClientStub::DhcpClientStub()
 {
 #ifndef OHOS_EUPDATER

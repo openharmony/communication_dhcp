@@ -26,7 +26,7 @@
 #include "dhcp_errcode.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifdef OHOS_ARCH_LITE
 class DhcpServreCallBackStub : public IDhcpServerCallBack {
 #else
@@ -64,6 +64,6 @@ private:
 #endif
     bool mRemoteDied;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

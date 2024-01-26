@@ -22,7 +22,7 @@
 #include "dhcp_errcode.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpSaLoadCallback : public SystemAbilityLoadCallbackStub {
 public:
     void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject>& remoteObject) override;
@@ -46,6 +46,6 @@ private:
     std::mutex locatorMutex_;
     bool state_ = false;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

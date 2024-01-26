@@ -26,7 +26,7 @@
 #include "dhcp_define.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 #ifdef OHOS_ARCH_LITE
 class DhcpClientCallbackProxy : public IDhcpClientCallBack {
@@ -54,6 +54,6 @@ private:
     static inline BrokerDelegator<DhcpClientCallbackProxy> g_delegator;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

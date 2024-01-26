@@ -21,9 +21,9 @@
 
 using namespace testing::ext;
 using namespace OHOS;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr int DHCP_FAILED_CODE = -1;
 class DhcpFunctionTest : public testing::Test {
 public:

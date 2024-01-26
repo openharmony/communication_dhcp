@@ -23,7 +23,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerProxyLite");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 static SvcIdentity g_sid;
 static IpcObjectStub g_objStub;
@@ -558,5 +558,5 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
     }
     return ErrCode(owner.retCode);
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

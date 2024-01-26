@@ -19,7 +19,7 @@
 #include "dhcp_logger.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("WifiDhcpIpv6Event");
 
 const int KERNEL_SOCKET_FAMILY = 16;
@@ -200,5 +200,5 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
         nlh = NLMSG_NEXT(nlh, len);
     }
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

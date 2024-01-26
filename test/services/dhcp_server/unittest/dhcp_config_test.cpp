@@ -22,7 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpConfigTest");
 
 using namespace testing::ext;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpConfigTest : public testing::Test {
 public:
     static void SetUpTestCase()

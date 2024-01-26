@@ -22,7 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("CommonUtilTest");
 
 using namespace testing::ext;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 HWTEST(CommonUtilTest, LeftTirmTest, TestSize.Level1)
 {
     DHCP_LOGE("enter LeftTirmTest");

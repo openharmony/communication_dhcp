@@ -39,7 +39,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImpl");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 std::mutex DhcpClientServiceImpl::g_instanceLock;
 
 #ifdef OHOS_ARCH_LITE
@@ -160,8 +160,8 @@ void DhcpClientServiceImpl::StartServiceAbility(int sleepS)
             DHCP_LOGI("serviceManager is nullptr, continue");
             continue;
         }
-        OHOS::sptr<OHOS::Wifi::DhcpClientServiceImpl> clientServiceImpl =
-            OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+        OHOS::sptr<OHOS::DHCP::DhcpClientServiceImpl> clientServiceImpl =
+            OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
         int result = serviceManager->AddSystemAbility(DHCP_CLIENT_ABILITY_ID, clientServiceImpl);
         if (result != 0) {
             DHCP_LOGE("AddSystemAbility AddSystemAbility error:%{public}d", result);
@@ -356,21 +356,21 @@ ErrCode DhcpClientServiceImpl::RenewDhcpClient(const std::string& ifname)
 int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> &splits)
 {
     /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    std::string ifname = splits[OHOS::Wifi::DHCP_NUM_ZERO];
-    OHOS::Wifi::DhcpResult result;
+    std::string ifname = splits[OHOS::DHCP::DHCP_NUM_ZERO];
+    OHOS::DHCP::DhcpResult result;
     result.iptype = 0;
     result.isOptSuc = true;
     result.uGetTime = (uint32_t)time(NULL);
-    result.uAddTime = atoi(splits[OHOS::Wifi::DHCP_NUM_ONE].c_str());
-    result.strYourCli   = splits[OHOS::Wifi::DHCP_NUM_TWO];
-    result.uLeaseTime   = atoi(splits[OHOS::Wifi::DHCP_NUM_THREE].c_str());
-    result.strServer    = splits[OHOS::Wifi::DHCP_NUM_FOUR];
-    result.strSubnet    = splits[OHOS::Wifi::DHCP_NUM_FIVE];
-    result.strDns1      = splits[OHOS::Wifi::DHCP_NUM_SIX];
-    result.strDns2      = splits[OHOS::Wifi::DHCP_NUM_SEVEN];
-    result.strRouter1   = splits[OHOS::Wifi::DHCP_NUM_EIGHT];
-    result.strRouter2   = splits[OHOS::Wifi::DHCP_NUM_NINE];
-    result.strVendor    = splits[OHOS::Wifi::DHCP_NUM_TEN];
+    result.uAddTime = atoi(splits[OHOS::DHCP::DHCP_NUM_ONE].c_str());
+    result.strYourCli   = splits[OHOS::DHCP::DHCP_NUM_TWO];
+    result.uLeaseTime   = atoi(splits[OHOS::DHCP::DHCP_NUM_THREE].c_str());
+    result.strServer    = splits[OHOS::DHCP::DHCP_NUM_FOUR];
+    result.strSubnet    = splits[OHOS::DHCP::DHCP_NUM_FIVE];
+    result.strDns1      = splits[OHOS::DHCP::DHCP_NUM_SIX];
+    result.strDns2      = splits[OHOS::DHCP::DHCP_NUM_SEVEN];
+    result.strRouter1   = splits[OHOS::DHCP::DHCP_NUM_EIGHT];
+    result.strRouter2   = splits[OHOS::DHCP::DHCP_NUM_NINE];
+    result.strVendor    = splits[OHOS::DHCP::DHCP_NUM_TEN];
     DHCP_LOGI("DhcpIpv4ResultSuccess %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
         "Subnet:%{private}s, Dns1:%{private}s, Dns2:%{private}s, Router1:%{private}s, Router2:%{private}s, "
         "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
@@ -382,39 +382,39 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> 
     if (CheckDhcpResultExist(ifname, result)) {
         DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s equal new addtime %{public}u, no need update.",
         ifname.c_str(), result.uAddTime);
-        return OHOS::Wifi::DHCP_OPT_SUCCESS;
+        return OHOS::DHCP::DHCP_OPT_SUCCESS;
     }
     DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s no equal new addtime %{public}u, need update...",
         ifname.c_str(), result.uAddTime);
 #ifdef OHOS_ARCH_LITE
-    std::shared_ptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+    std::shared_ptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #else
-    OHOS::sptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+    OHOS::sptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #endif
     PushDhcpResult(ifname, result);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultSuccess m_mapClientCallBack not find callback!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
 
     if ((iter->second) == nullptr) {
         DHCP_LOGE("DhcpIpv4ResultSuccess  mclientCallback is nullptr!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv4ResultSuccess OnIpSuccessChanged!");
-    return OHOS::Wifi::DHCP_OPT_SUCCESS;
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
 int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &splits)
 {
-    std::string ifname = splits[OHOS::Wifi::DHCP_NUM_ZERO];
-    OHOS::Wifi::DhcpResult result;
+    std::string ifname = splits[OHOS::DHCP::DHCP_NUM_ZERO];
+    OHOS::DHCP::DhcpResult result;
     result.iptype = 0;
     result.isOptSuc = false;
     result.uGetTime = (uint32_t)time(NULL);
-    result.uAddTime = atoi(splits[OHOS::Wifi::DHCP_NUM_ONE].c_str());
+    result.uAddTime = atoi(splits[OHOS::DHCP::DHCP_NUM_ONE].c_str());
 
     std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     PushDhcpResult(ifname, result);
@@ -423,11 +423,11 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultFail m_mapClientCallBack not find callback!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     if ((iter->second) == nullptr) {
         DHCP_LOGE("DhcpIpv4ResultFail mclientCallback == nullptr!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     
     ActionMode action = ACTION_INVALID;
@@ -440,7 +440,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
         "get dhcp renew result failed!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
     DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!, action:%{public}d", action);
-    return OHOS::Wifi::DHCP_OPT_SUCCESS;
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
 int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
@@ -450,11 +450,11 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultTimeOut m_mapClientCallBack not find callback!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     if ((iter->second) == nullptr) {
         DHCP_LOGE("DhcpIpv4ResultTimeOut mclientCallback == nullptr!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     ActionMode action = ACTION_INVALID;
     auto iterlient = m_mapClientService.find(ifname);
@@ -466,7 +466,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         "get dhcp renew result timeout!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
     DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!, action:%{public}d", action);
-    return OHOS::Wifi::DHCP_OPT_SUCCESS;
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
@@ -476,7 +476,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
             info.globalIpv6Addr, info.routeAddr);
         return;
     }
-    OHOS::Wifi::DhcpResult result;
+    OHOS::DHCP::DhcpResult result;
     result.uAddTime = (uint32_t)time(NULL);
     result.iptype = 1;
     result.isOptSuc     = true;
@@ -510,7 +510,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     DHCP_LOGI("DhcpIpv6ResulCallback OnIpSuccessChanged");
 }
 
-void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::Wifi::DhcpResult &result)
+void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
 {
     auto iterResult = m_mapDhcpResult.find(ifname);
     if (iterResult != m_mapDhcpResult.end()) {
@@ -532,14 +532,14 @@ void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::Wifi
         DHCP_LOGI("PushDhcpResult ifname add new result, ifname:%{public}s", ifname.c_str());
         iterResult->second.push_back(result);
     } else {
-        std::vector<OHOS::Wifi::DhcpResult> results;
+        std::vector<OHOS::DHCP::DhcpResult> results;
         results.push_back(result);
         m_mapDhcpResult.emplace(std::make_pair(ifname, results));
         DHCP_LOGI("PushDhcpResult add new ifname result, ifname:%{public}s", ifname.c_str());
     }
 }
 
-bool DhcpClientServiceImpl::CheckDhcpResultExist(const std::string &ifname, OHOS::Wifi::DhcpResult &result)
+bool DhcpClientServiceImpl::CheckDhcpResultExist(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
 {
     bool exist = false;
     auto iterResult = m_mapDhcpResult.find(ifname);

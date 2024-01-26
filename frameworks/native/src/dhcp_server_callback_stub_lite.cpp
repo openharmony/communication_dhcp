@@ -20,7 +20,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStubLite");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 DhcpServreCallBackStub::DhcpServreCallBackStub() : userCallback_(nullptr), mRemoteDied(false)
 {
@@ -142,5 +142,5 @@ int DhcpServreCallBackStub::RemoteOnServerSerExitChanged(uint32_t code, IpcIo *d
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

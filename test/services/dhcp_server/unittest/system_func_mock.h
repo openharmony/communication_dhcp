@@ -26,7 +26,7 @@ using socklen_t = unsigned int;
 using ::testing::_;
 using ::testing::Return;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class SystemFuncMock {
 public:
     MOCK_METHOD2(open, int(const char *__file, int __oflag));
@@ -57,6 +57,6 @@ private:
     SystemFuncMock();
     ~SystemFuncMock();
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

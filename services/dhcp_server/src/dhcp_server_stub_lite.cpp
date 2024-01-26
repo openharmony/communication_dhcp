@@ -23,7 +23,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerStubLite");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpServerStub::DhcpServerStub()
 {
 }

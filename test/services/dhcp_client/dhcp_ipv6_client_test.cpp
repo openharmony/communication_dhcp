@@ -40,7 +40,7 @@ using ::testing::TypedEq;
 using ::testing::ext::TestSize;
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr unsigned int IPV6_SCOPE_NODELOCAL = 0x01;
 constexpr unsigned int IPV6_SCOPE_LINKLOCAL = 0x02;
 constexpr unsigned int IPV6_SCOPE_SITELOCAL = 0x05;
@@ -72,7 +72,7 @@ public:
     virtual void SetUp()
     {
         std::string ifname = "wlan0";
-        ipv6Client = std::make_unique<OHOS::Wifi::DhcpIpv6Client>(ifname);
+        ipv6Client = std::make_unique<OHOS::DHCP::DhcpIpv6Client>(ifname);
     }
     virtual void TearDown()
     {
@@ -81,7 +81,7 @@ public:
         }
     }
 public:
-    std::unique_ptr<OHOS::Wifi::DhcpIpv6Client> ipv6Client;
+    std::unique_ptr<OHOS::DHCP::DhcpIpv6Client> ipv6Client;
 };
 
 HWTEST_F(DhcpIpv6ClientTest, DhcpIpv6StartTest_IsNull, TestSize.Level1)

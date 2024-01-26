@@ -26,7 +26,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImplTest");
 using namespace testing::ext;
 using namespace ::testing;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr int ADDRESS_ARRAY_SIZE = 12;
 class DhcpClientServiceImplTest : public testing::Test {
 public:
@@ -36,7 +36,7 @@ public:
     {}
     virtual void SetUp()
     {
-        dhcpClientImpl = std::make_unique<OHOS::Wifi::DhcpClientServiceImpl>();
+        dhcpClientImpl = std::make_unique<OHOS::DHCP::DhcpClientServiceImpl>();
     }
     virtual void TearDown()
     {
@@ -45,7 +45,7 @@ public:
         }
     }
 public:
-    std::unique_ptr<OHOS::Wifi::DhcpClientServiceImpl> dhcpClientImpl;
+    std::unique_ptr<OHOS::DHCP::DhcpClientServiceImpl> dhcpClientImpl;
 };
 
 HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
@@ -173,7 +173,7 @@ HWTEST_F(DhcpClientServiceImplTest, PushDhcpResultTest, TestSize.Level1)
     DHCP_LOGE("enter PushDhcpResultTest");
     ASSERT_TRUE(dhcpClientImpl != nullptr);
     std::string ifname;
-    OHOS::Wifi::DhcpResult result;
+    OHOS::DHCP::DhcpResult result;
     result.iptype = 1;
     result.isOptSuc = true;
     dhcpClientImpl->PushDhcpResult(ifname, result);
@@ -187,7 +187,7 @@ HWTEST_F(DhcpClientServiceImplTest, CheckDhcpResultExistTest, TestSize.Level1)
     DHCP_LOGE("enter CheckDhcpResultExistTest");
     ASSERT_TRUE(dhcpClientImpl != nullptr);
     std::string ifname;
-    OHOS::Wifi::DhcpResult result;
+    OHOS::DHCP::DhcpResult result;
     result.iptype = 1;
     result.isOptSuc = true;
     dhcpClientImpl->CheckDhcpResultExist(ifname, result);

@@ -28,7 +28,7 @@
 
 using namespace testing::ext;
 using namespace std;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerTest");
 
@@ -43,7 +43,7 @@ struct ServerContext {
 };
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpServerTest : public testing::Test {
 public:
     static void SetUpTestCase()

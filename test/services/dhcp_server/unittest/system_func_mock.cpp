@@ -27,7 +27,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerSystemFuncMock");
 
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 #define MAGIC_COOKIE_LENGTH 4
 #define OPT_HEADER_LENGTH 2

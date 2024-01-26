@@ -26,7 +26,7 @@
 #include "dhcp_errcode.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifdef OHOS_ARCH_LITE
 class IDhcpClient {
 #else
@@ -50,6 +50,6 @@ public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.wifi.IDhcpClient");
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

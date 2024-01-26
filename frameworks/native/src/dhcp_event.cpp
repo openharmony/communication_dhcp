@@ -27,7 +27,7 @@ DhcpClientCallBack::~DhcpClientCallBack()
     DHCP_LOGI("~DhcpClientCallBack");
 }
 
-void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::Wifi::DhcpResult& result)
+void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result)
     __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGI("OnIpSuccessChanged status:%{public}d,ifname:%{public}s", status, ifname.c_str());

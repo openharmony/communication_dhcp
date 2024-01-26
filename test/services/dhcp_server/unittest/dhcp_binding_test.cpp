@@ -25,7 +25,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpBindingTest");
 
 using namespace testing::ext;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 HWTEST(DhcpBindingTest, NextPendingIntervalTest, TestSize.Level1)
 {
     DHCP_LOGE("enter NextPendingIntervalTest");
