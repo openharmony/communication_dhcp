@@ -33,6 +33,9 @@ namespace DHCP {
 constexpr int MAXRETRYTIMEOUT = 10;
 
 enum ServerServiceRunningState { STATE_NOT_START, STATE_RUNNING };
+
+void GDealServerSuccess(const char* ifname);
+
 class DhcpServerServiceImpl :
 #ifndef OHOS_ARCH_LITE
 public SystemAbility, 
@@ -86,6 +89,7 @@ public:
 
     int DelSpecifiedInterface(const std::string& ifname);
 
+    void DealServerSuccess(const std::string& ifname);
 
 private:
     bool Init();
@@ -98,6 +102,7 @@ private:
     int StopServer(const pid_t& serverPid);
     void UnregisterSignal() const;
     bool IsNativeProcess();
+    void ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos);
 
     static int SetDhcpServerInfo(const std::string &ifname, int status, const pid_t& serverPid);
 

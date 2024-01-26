@@ -103,6 +103,14 @@ void DhcpServreCallBackStub::OnServerLeasesChanged(const std::string& ifname, st
     }
 }
 
+void DhcpServreCallBackStub::OnServerSuccess(const std::string &ifname, std::vector<DhcpStationInfo> &stationInfos)
+{
+    DHCP_LOGI("DhcpServreCallBackStub::OnServerSuccess, ifname:%{public}s", ifname.c_str());
+    if (callback_) {
+        callback_->OnServerSuccess(ifname.c_str(), stationInfos);
+    }
+}
+
 void DhcpServreCallBackStub::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServreCallBackStub::OnWifiWpsStateChanged, ifname:%{public}s", ifname.c_str());
@@ -117,6 +125,13 @@ int DhcpServreCallBackStub::RemoteOnServerStatusChanged(uint32_t code, MessagePa
     // callback OnServerStatusChanged
     int state = data.ReadInt32();
     OnServerStatusChanged(state);
+    reply.WriteInt32(0);
+    return 0;
+}
+
+int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
+{
+    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     reply.WriteInt32(0);
     return 0;
 }

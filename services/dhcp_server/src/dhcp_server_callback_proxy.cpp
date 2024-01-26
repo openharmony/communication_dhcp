@@ -62,6 +62,41 @@ void DhcpServerCallbackProxy::OnServerLeasesChanged(const std::string& ifname, s
     DHCP_LOGI("DhcpServerCallbackProxy::OnServerLeasesChanged");
     return;
 }
+
+void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("DhcpServerCallbackProxy::OnServerSuccess");
+    MessageOption option;
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        DHCP_LOGE("Write interface token error: %{public}s", __func__);
+        return;
+    }
+    data.WriteInt32(0);
+    data.WriteInt32(stationInfos.size());
+    for(auto stationInfo: stationInfos) {
+        data.WriteString(stationInfo.deviceName);
+        data.WriteString(stationInfo.macAddr);
+        data.WriteString(stationInfo.ipAddr);
+    }
+    DHCP_LOGI("start server requeset");
+    int error = Remote()->SendRequest(
+        static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_CBK_SERVER_SUCCESS), data, reply, option);
+    if (error != ERR_NONE) {
+        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
+            static_cast<int32_t>(DhcpServerInterfaceCode::DHCP_SERVER_CBK_SERVER_SUCCESS), error);
+        return;
+    }
+    int exception = reply.ReadInt32();
+    if (exception) {
+        DHCP_LOGE("notify wifi state change failed!");
+    }
+    DHCP_LOGI("send server request success");
+
+    return;
+}
+
 void DhcpServerCallbackProxy::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");

@@ -53,12 +53,6 @@ public:
     int OnGetDhcpClientInfos(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnUpdateLeasesTime(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnPutDhcpRange(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
-public:
-    const int MAC_ADDR_MAX_LEN = 17;
-    const int DHCP_LEASE_FORMAT_SIZE = 5;
-    const int DHCP_LEASE_MAC_ADDR_POS = 0;
-    const int DHCP_LEASE_IP_ADDR_POS = 1;
-    const int DHCP_LEASE_HOSTNAME_POS = 2;
 
 private:
     void InitHandleMap(void);

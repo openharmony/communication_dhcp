@@ -22,7 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerStub");
 
 namespace OHOS {
 namespace DHCP {
-DhcpServerStub::DhcpServerStub() : mSingleCallback(false)
+DhcpServerStub::DhcpServerStub() : mSingleCallback(false), callback_(nullptr)
 {
     InitHandleMap();
 }
@@ -95,7 +95,7 @@ int DhcpServerStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
         DHCP_LOGE("Failed to ReadRemoteObject!");
         return DHCP_OPT_FAILED;
     }
-    sptr<IDhcpServerCallBack> callback_ = iface_cast<IDhcpServerCallBack>(remote);
+    callback_ = iface_cast<IDhcpServerCallBack>(remote);
     if (callback_ == nullptr) {
         callback_ = new (std::nothrow) DhcpServerCallbackProxy(remote);
         DHCP_LOGI("create new DhcpServerCallbackProxy!");

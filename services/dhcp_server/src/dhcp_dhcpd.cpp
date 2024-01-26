@@ -38,6 +38,7 @@ static DhcpConfig g_dhcpConfig;
 
 static PDhcpServerContext g_dhcpServer = 0;
 
+static LeasesChangeFunc leasesChangeFunc;
 enum SignalEvent {
     EXIT = 0,
     RELOAD,
@@ -410,6 +411,7 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
     }
 
     RegisterDhcpCallback(g_dhcpServer, ServerActionCallback);
+    RegisterLeasesChangedCallback(g_dhcpServer, leasesChangeFunc);
     if (StartDhcpServer(g_dhcpServer) != RET_SUCCESS) {
         FreeSeverResources();
         return 1;
@@ -427,3 +429,8 @@ int StopDhcpServerMain()
     return 0;
 }
 
+int RegisterLeaseInfoCbks(DhcpLeasesChangeFunc func)
+{
+    leasesChangeFunc = func;
+    return 0;
+}

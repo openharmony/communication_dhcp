@@ -37,6 +37,7 @@
 #include "tokenid_kit.h"
 #include "accesstoken_kit.h"
 #endif
+#include <sstream>
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerServiceImpl");
 
@@ -239,7 +240,9 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
     }
     DHCP_LOGD("localIp:%{public}s netmask:%{public}s  ipRange:%{public}s.", localIp.c_str(), netmask.c_str(),
         ipRange.c_str());
-    int ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
+
+    int ret = RegisterLeaseInfoCbks(GDealServerSuccess);
+    ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -251,6 +254,48 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
         }
     }
     return ErrCode(ret);
+}
+
+void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
+{   
+    DHCP_LOGI("DealServerSuccess ifname:%{public}s.", ifname.c_str());
+    std::vector<std::string> leases;
+    std::vector<DhcpStationInfo> stationInfos;
+    GetDhcpClientInfos(ifname, leases);
+    ConvertLeasesToStationInfos(leases, stationInfos);
+    auto iter = m_mapServerCallBack.find(ifname);
+    if (iter != m_mapServerCallBack.end()) {
+        if ((iter->second) != nullptr) {
+            (iter->second)->OnServerSuccess(ifname, stationInfos);
+            return;
+        } else {
+            DHCP_LOGE("callbackFunc is null, ifname:%{public}s.", ifname.c_str());
+            return;
+        }
+    } else {
+        DHCP_LOGE("can't find ifname:%{public}s.", ifname.c_str());
+        return;
+    }
+}
+
+void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("ConvertLeasesToStationInfos");
+    for (const std::string& lease : leases) {
+        DhcpStationInfo info;
+        std::istringstream iss(lease);
+        if (!(iss >> info.macAddr >> info.ipAddr >> info.deviceName)) {
+            continue;
+        }
+        stationInfos.push_back(info);
+    }
+}
+
+void GDealServerSuccess(const char* ifname)
+{
+    DHCP_LOGI("GDealServerSuccess ifname:%{public}s.", ifname);
+    auto instance = DhcpServerServiceImpl::GetInstance();
+    instance->DealServerSuccess(ifname);
 }
 
 ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)

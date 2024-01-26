@@ -50,16 +50,19 @@ public:
     virtual void OnServerStatusChanged(int status) override;
     virtual void OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) override;
     virtual void OnServerSerExitChanged(const std::string& ifname) override;
+    virtual void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) override;
 private:
 #ifdef OHOS_ARCH_LITE
     int RemoteOnServerStatusChanged(uint32_t code, IpcIo *data);
     int RemoteOnServerLeasesChanged(uint32_t code, IpcIo *data);
     int RemoteOnServerSerExitChanged(uint32_t code, IpcIo *data);
+    int RemoteOnOnServerSuccess(uint32_t code, IpcIo *data);
     std::shared_ptr<IDhcpServerCallBack> callback_;
 #else
     int RemoteOnServerStatusChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int RemoteOnServerLeasesChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int RemoteOnServerSerExitChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    int RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply);
     sptr<IDhcpServerCallBack> callback_;
 #endif
     bool mRemoteDied;

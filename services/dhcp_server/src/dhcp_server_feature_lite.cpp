@@ -98,12 +98,12 @@ static DhcpServerFeature g_serverFeature = {
 static void Init(void)
 {
     DHCP_LOGI("[DhcpServerFeature] Init start.");
-    BOOL ret = SAMGR_GetInstance()->RegisterFeature(WIFI_SERVICE_LITE, (Feature *)&g_serverFeature);
+    BOOL ret = SAMGR_GetInstance()->RegisterFeature(DHCP_SERVICE_LITE, (Feature *)&g_serverFeature);
     if (ret == FALSE) {
         DHCP_LOGE("[DhcpServerFeature] register feature fail.");
         return;
     }
-    ret = SAMGR_GetInstance()->RegisterFeatureApi(WIFI_SERVICE_LITE,
+    ret = SAMGR_GetInstance()->RegisterFeatureApi(DHCP_SERVICE_LITE,
         DHCP_FEATRUE_SERVER, GET_IUNKNOWN(g_serverFeature));
     if (ret == FALSE) {
         DHCP_LOGE("[DhcpServerFeature] register feature api fail.");

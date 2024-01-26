@@ -51,6 +51,7 @@ public:
     void OnServerStatusChanged(int status) override;
     void OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) override;
     void OnServerSerExitChanged(const std::string& ifname) override;
+    void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) override;
 #ifndef OHOS_ARCH_LITE
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif
