@@ -33,13 +33,18 @@ DhcpSaLoadManager& DhcpSaLoadManager::GetInstance()
 ErrCode DhcpSaLoadManager::LoadWifiSa(int32_t systemAbilityId)
 {
     DHCP_LOGI("DhcpSaLoadManager %{public}s enter, systemAbilityId = [%{public}d] loading", __func__, systemAbilityId);
-    InitLoadState();
     sptr<ISystemAbilityManager> samgr =
         SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
     if (samgr == nullptr) {
         DHCP_LOGE("%{public}s: get system ability manager failed!", __func__);
         return DHCP_E_FAILED;
     }
+    auto object = samgr->CheckSystemAbility(systemAbilityId);
+    if (object != nullptr) {
+        DHCP_LOGI("check system ability %{public}d manager success!", systemAbilityId);
+        return DHCP_E_SUCCESS;
+    }
+    InitLoadState();
     sptr<DhcpSaLoadCallback> loadCallback = new (std::nothrow)DhcpSaLoadCallback();
     if (loadCallback == nullptr) {
         DHCP_LOGE("%{public}s: dhcp sa load callback failed!", __func__);
