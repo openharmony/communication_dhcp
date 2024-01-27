@@ -24,6 +24,7 @@
 #include "dhcp_client_state_machine.h"
 #include "dhcp_client_def.h"
 #include "dhcp_function.h"
+#include "securec.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientStateMachineTest");
 
