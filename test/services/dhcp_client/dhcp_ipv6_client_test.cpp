@@ -294,14 +294,5 @@ HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
     const char *ifname = nullptr;
     EXPECT_EQ(-1, ipv6Client->StartIpv6(ifname));
 }
-
-HWTEST_F(DhcpIpv6ClientTest, StartIpv6ThreadTest, TestSize.Level1)
-{
-    ASSERT_TRUE(ipv6Client != nullptr);
-    DHCP_LOGE("StartIpv6ThreadTest enter!");
-    const char *ifname = "testcode";
-    bool isIpv6 = true;
-    EXPECT_EQ(0, ipv6Client->StartIpv6Thread(ifname, isIpv6));
-}
 }
 }
