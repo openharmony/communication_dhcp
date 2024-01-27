@@ -305,5 +305,6 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
     DHCP_LOGI("DhcpStopTest enter!");
     dhcpClient->DhcpStop();
 }
+1
 }
 }

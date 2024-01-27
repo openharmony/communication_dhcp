@@ -272,5 +272,6 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
 }
+1
 }
 }
