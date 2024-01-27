@@ -29,7 +29,7 @@ const unsigned int LOG_ID_DHCP = 0xD001560;
 const unsigned int LOG_ID_DHCP_DHCP = LOG_ID_DHCP | 0x05;
 
 #define DEFINE_DHCPLOG_DHCP_LABEL(name) \
-    static constexpr OHOS::HiviewDFX::HiLogLabel DHCP_LOG_LABEL = {LOG_CORE, OHOS::DHCP::LOG_ID_DHCP_DHCP, name};
+    static constexpr OHOS::HiviewDFX::HiLogLabel DHCP_LOG_LABEL = {LOG_CORE, OHOS::DHCP::LOG_ID_DHCP_DHCP, name}
 
 #define DHCP_LOGF(...) (void)OHOS::HiviewDFX::HiLog::Fatal(DHCP_LOG_LABEL, ##__VA_ARGS__)
 #define DHCP_LOGE(...) (void)OHOS::HiviewDFX::HiLog::Error(DHCP_LOG_LABEL, ##__VA_ARGS__)

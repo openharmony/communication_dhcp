@@ -109,7 +109,7 @@ int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &split
     || ((code == PUBLISH_CODE_FAILED) && (splits[OHOS::DHCP::DHCP_NUM_TWO] !=
         OHOS::DHCP::INVALID_STRING))) {
         DHCP_LOGE("GetDhcpEventIpv4Result() code:%{public}d,%{public}s error!", code,
-        splits[OHOS::DHCP::DHCP_NUM_TWO].c_str());
+            splits[OHOS::DHCP::DHCP_NUM_TWO].c_str());
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
 

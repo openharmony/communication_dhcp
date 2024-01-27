@@ -257,7 +257,7 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
 }
 
 void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
-{   
+{
     DHCP_LOGI("DealServerSuccess ifname:%{public}s.", ifname.c_str());
     std::vector<std::string> leases;
     std::vector<DhcpStationInfo> stationInfos;

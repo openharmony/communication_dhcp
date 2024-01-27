@@ -61,6 +61,7 @@ private:
     HandleFuncMap handleFuncMap;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
     bool mSingleCallback;
+    sptr<IDhcpServerCallBack> callback_;
 };
 }  // namespace DHCP
 }  // namespace OHOS
