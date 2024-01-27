@@ -14,6 +14,7 @@
  */
 
 #include <gtest/gtest.h>
+#include <cstring>
 #include <sys/stat.h>
 #include <fcntl.h>
 
