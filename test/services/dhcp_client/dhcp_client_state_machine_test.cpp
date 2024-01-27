@@ -174,6 +174,20 @@ HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail3, TestSize.Level1)
 }
 
 /**
+ * @tc.name: SyncDhcpResult_Fail4
+ * @tc.desc: SyncDhcpResult()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail4, TestSize.Level1)
+{
+    struct DhcpPacket packet;
+    struct DhcpIpResult result;
+    strcpy_s((char*)packet.sname, sizeof(packet.sname), "testcode");
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, &result));
+}
+
+/**
  * @tc.name: GetDHCPServerHostName_Fail1
  * @tc.desc: GetDHCPServerHostName()
  * @tc.type: FUNC
@@ -212,6 +226,20 @@ HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail3, TestSize.Level
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->GetDHCPServerHostName(packet, result));
 }
 
+/**
+ * @tc.name: GetDHCPServerHostName_Success
+ * @tc.desc: GetDHCPServerHostName()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Success, TestSize.Level1)
+{
+    struct DhcpPacket packet;
+    struct DhcpIpResult result;
+    strcpy_s((char*)packet.sname, sizeof(packet.sname), "testcode");
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetDHCPServerHostName(&packet, &result));
+}
+
 HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level1)
 {
     DHCP_LOGE("SetSocketModeTest enter!");
@@ -247,14 +275,6 @@ HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level1)
     struct DhcpPacket packet;
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_NAK));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_FORCERENEW));
-}
-
-HWTEST_F(DhcpClientStateMachineTest, ParseOtherNetworkInfoTest, TestSize.Level1)
-{
-    DHCP_LOGI("ParseOtherNetworkInfoTest enter!");
-    struct DhcpPacket packet;
-    struct DhcpIpResult result;
-    dhcpClient->ParseOtherNetworkInfo(&packet, &result);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, StartGetIpTimerTest, TestSize.Level1)
@@ -305,6 +325,174 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
     DHCP_LOGI("DhcpStopTest enter!");
     dhcpClient->DhcpStop();
 }
-1
+
+HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
+{
+    DHCP_LOGI("RenewingTest enter!");
+    time_t curTimestamp = time(NULL);
+    dhcpClient->Renewing(curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level1)
+{
+    DHCP_LOGI("RebindingTest enter!");
+    time_t curTimestamp = time(NULL);
+    dhcpClient->Rebinding(curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpRequestHandleTest enter!");
+    time_t curTimestamp = time(NULL);
+    dhcpClient->SetIpv4State(DHCP_STATE_INITREBOOT);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpResponseHandleTest enter!");
+    time_t curTimestamp = time(NULL);
+    dhcpClient->SetIpv4State(DHCP_STATE_SELECTING);
+    dhcpClient->DhcpResponseHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_INITREBOOT);
+    dhcpClient->DhcpResponseHandle(curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpAckOrNakPacketHandleTest enter!");
+    struct DhcpPacket *packet = nullptr;
+    uint8_t type = DHCP_REQUEST;
+    time_t curTimestamp = time(NULL);
+    dhcpClient->DhcpAckOrNakPacketHandle(type, packet, curTimestamp);
+
+    type = DHCP_NAK;
+    dhcpClient->DhcpAckOrNakPacketHandle(type, packet, curTimestamp);
+
+    DhcpPacket packet1;
+    dhcpClient->DhcpAckOrNakPacketHandle(type, &packet1, curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseDhcpAckPacketTest enter!");
+    struct DhcpPacket *packet = nullptr;
+    time_t curTimestamp = time(NULL);
+    dhcpClient->ParseDhcpAckPacket(packet, curTimestamp);
+
+    DhcpPacket packet1;
+    dhcpClient->ParseDhcpAckPacket(&packet1, curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseNetworkInfoTest enter!");
+    struct DhcpPacket *packet = nullptr;
+    struct DhcpIpResult *result = nullptr;
+    dhcpClient->ParseNetworkInfo(packet, result);
+
+    DhcpPacket packet1;
+    DhcpIpResult result1;
+    dhcpClient->ParseNetworkInfo(&packet1, &result1);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ParseOtherNetworkInfoTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseOtherNetworkInfoTest enter!");
+    struct DhcpPacket *packet = nullptr;
+    struct DhcpIpResult *result = nullptr;
+    dhcpClient->ParseOtherNetworkInfo(packet, result);
+
+    DhcpPacket packet1;
+    DhcpIpResult result1;
+    dhcpClient->ParseOtherNetworkInfo(&packet1, &result1);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpOfferPacketHandleTest enter!");
+    struct DhcpPacket *packet = nullptr;
+    uint8_t type = DHCP_REQUEST;
+    time_t curTimestamp = time(NULL);
+    dhcpClient->DhcpOfferPacketHandle(type, packet, curTimestamp);
+
+    type = DHCP_OFFER;
+    dhcpClient->DhcpOfferPacketHandle(type, packet, curTimestamp);
+
+    DhcpPacket packet1;
+    dhcpClient->DhcpOfferPacketHandle(type, &packet1, curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level1)
+{
+    DHCP_LOGE("DhcpRebootTest enter!");
+    EXPECT_EQ(SOCKET_OPT_FAILED, dhcpClient->DhcpReboot(1, 1));
+}
+
+HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
+{
+    DHCP_LOGI("StartIpv4TypeTest enter!");
+    std::string ifname;
+    bool isIpv6 = true;
+    ActionMode action = ACTION_START_NEW;
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->StartIpv4Type(ifname, isIpv6, action));
+}
+
+HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
+{
+    DHCP_LOGI("GetIpTimerCallbackTest enter!");
+    dhcpClient->GetIpTimerCallback();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, WriteLeaseTest, TestSize.Level1)
+{
+    DHCP_LOGI("WriteLeaseTest enter!");
+    struct DhcpPacket *pkt = nullptr;
+    EXPECT_EQ(-1, dhcpClient->WriteLease(pkt));
+
+    DhcpPacket pkt1;
+    pkt1.cookie = 1;
+    dhcpClient->WriteLease(&pkt1);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
+{
+    DHCP_LOGI("FormatStringTest enter!");
+    struct DhcpIpResult *result = nullptr;
+    dhcpClient->FormatString(result);
+
+    DhcpIpResult result1;
+    strcpy_s(result1.strYiaddr, sizeof(result1.strYiaddr), "");
+    dhcpClient->FormatString(&result1);
+
+    DhcpIpResult result2;
+    strcpy_s(result2.strOptServerId, sizeof(result2.strOptServerId), "");
+    dhcpClient->FormatString(&result2);
+
+    DhcpIpResult result3;
+    strcpy_s(result3.strOptSubnet, sizeof(result3.strOptSubnet), "");
+    dhcpClient->FormatString(&result3);
+
+    DhcpIpResult result4;
+    strcpy_s(result4.strOptDns1, sizeof(result2.strOptDns1), "");
+    dhcpClient->FormatString(&result4);
+
+    DhcpIpResult result5;
+    strcpy_s(result5.strOptDns2, sizeof(result5.strOptDns2), "");
+    dhcpClient->FormatString(&result5);
+
+    DhcpIpResult result6;
+    strcpy_s(result6.strOptRouter1, sizeof(result6.strOptRouter1), "");
+    dhcpClient->FormatString(&result6);
+
+    DhcpIpResult result7;
+    strcpy_s(result7.strOptRouter2, sizeof(result7.strOptRouter2), "");
+    dhcpClient->FormatString(&result7);
+
+    DhcpIpResult result8;
+    strcpy_s(result8.strOptVendor, sizeof(result8.strOptVendor), "");
+    dhcpClient->FormatString(&result8);
+}
 }
 }
