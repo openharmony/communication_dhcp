@@ -70,5 +70,11 @@ void DhcpServerCallbackProxy::OnServerSerExitChanged(const std::string& ifname)
     DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");
     return;
 }
+void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");
+    return;
+}
+
 }  // namespace DHCP
 }  // namespace OHOS

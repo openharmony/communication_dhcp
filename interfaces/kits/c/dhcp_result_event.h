@@ -70,7 +70,7 @@ typedef struct {
     void (*OnServerStatusChanged)(int status);
     void (*OnServerLeasesChanged)(const char *ifname, const char *leases);
     void (*OnSerExitChanged)(const char *ifname);
-    void (*OnServerSuccess)(const char *ifname, DhcpStationInfo *stationInfo);
+    void (*OnServerSuccess)(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos);
 }ServerCallBack;
 
 #ifdef __cplusplus

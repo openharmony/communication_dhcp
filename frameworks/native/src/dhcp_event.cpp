@@ -131,7 +131,9 @@ void DhcpServerCallBack::OnServerSerExitChanged(const std::string& ifname)
 void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
 {
     DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s", ifname.c_str());
+    mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), stationInfos);
 }
+
 #ifndef OHOS_ARCH_LITE
 OHOS::sptr<OHOS::IRemoteObject> DhcpServerCallBack::AsObject() 
 {
