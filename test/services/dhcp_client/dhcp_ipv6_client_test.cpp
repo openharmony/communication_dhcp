@@ -84,6 +84,13 @@ public:
     std::unique_ptr<OHOS::Wifi::DhcpIpv6Client> ipv6Client;
 };
 
+HWTEST_F(DhcpIpv6ClientTest, IsRunningTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("IsRunningTest enter!");
+    ipv6Client->IsRunning();
+}
+
 HWTEST_F(DhcpIpv6ClientTest, DhcpIpv6StartTest_IsNull, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
@@ -96,6 +103,13 @@ HWTEST_F(DhcpIpv6ClientTest, DhcpIPV6StopTest, TestSize.Level1)
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("DhcpIPV6StopTest enter!");
     ipv6Client->DhcpIPV6Stop();
+}
+
+HWTEST_F(DhcpIpv6ClientTest, ResetTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ResetTest enter!");
+    ipv6Client->Reset();
 }
 
 HWTEST_F(DhcpIpv6ClientTest, ipv6AddrScope2TypeTest, TestSize.Level1)
@@ -271,6 +285,14 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(nullptr, 0);
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("StartIpv6Test enter!");
+    const char *ifname = nullptr;
+    EXPECT_EQ(-1, ipv6Client->StartIpv6(ifname));
 }
 }
 }
