@@ -131,7 +131,17 @@ void DhcpServerCallBack::OnServerSerExitChanged(const std::string& ifname)
 void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
 {
     DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s", ifname.c_str());
-    mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), stationInfos);
+    if (mapServerCallBack[ifname]) {
+        size_t  size = stationInfos.size();
+        DhcpStationInfo* infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
+        for (size_t i = 0; i < size; i++) {
+            strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr);
+            strcpy_s(infos[i].macAddr, sizeof(infos[i].macAddr), stationInfos[i].macAddr);
+            strcpy_s(infos[i].deviceName, sizeof(infos[i].deviceName), stationInfos[i].deviceName);
+        }
+        mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
+        free(infos);
+    }
 }
 
 #ifndef OHOS_ARCH_LITE
