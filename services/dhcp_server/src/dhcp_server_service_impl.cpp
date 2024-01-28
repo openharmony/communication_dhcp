@@ -280,13 +280,15 @@ void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
 
 void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos)
 {
-    DHCP_LOGI("ConvertLeasesToStationInfos");
+    DHCP_LOGI("ConvertLeasesToStationInfos ");
     for (const std::string& lease : leases) {
         DhcpStationInfo info;
         std::istringstream iss(lease);
         if (!(iss >> info.macAddr >> info.ipAddr >> info.deviceName)) {
             continue;
         }
+        DHCP_LOGI("leases:%s ", lease.c_str());
+        DHCP_LOGI("stationInfos:%s, %s, %s ", info.macAddr, info.ipAddr, info.deviceName);
         stationInfos.push_back(info);
     }
 }

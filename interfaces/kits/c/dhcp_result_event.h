@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 #define DHCP_MAX_FILE_BYTES 128
-#define MAC_ADDR_MAX_LEN 17         //old MAC_ADDR_MAX_LEN 18
+#define MAC_ADDR_MAX_LEN 18
 #define DHCP_LEASE_FORMAT_SIZE 5
 #define DHCP_LEASE_MAC_ADDR_POS 0
 #define DHCP_LEASE_IP_ADDR_POS 1

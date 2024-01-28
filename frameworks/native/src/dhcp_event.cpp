@@ -138,6 +138,8 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
             strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr);
             strcpy_s(infos[i].macAddr, sizeof(infos[i].macAddr), stationInfos[i].macAddr);
             strcpy_s(infos[i].deviceName, sizeof(infos[i].deviceName), stationInfos[i].deviceName);
+            DHCP_LOGI("stationInfos[%zu] %s, %s, %s", i, stationInfos[i].macAddr, stationInfos[i].ipAddr, stationInfos[i].deviceName);
+            DHCP_LOGI("infos[%zu] %s, %s, %s", i, infos[i].macAddr, infos[i].ipAddr, infos[i].deviceName);
         }
         mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
         free(infos);
