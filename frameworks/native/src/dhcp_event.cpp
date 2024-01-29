@@ -132,7 +132,11 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
 {
     DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s", ifname.c_str());
     if (mapServerCallBack[ifname]) {
-        size_t  size = stationInfos.size();
+        size_t size = stationInfos.size();
+        if (size <= 0) {
+             DHCP_LOGE("stationInfos size = %zu", size);
+             return;
+        }
         DhcpStationInfo* infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
         for (size_t i = 0; i < size; i++) {
             strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr);
