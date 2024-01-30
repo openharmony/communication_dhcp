@@ -50,7 +50,7 @@ public:
     virtual void OnServerStatusChanged(int status) override;
     virtual void OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) override;
     virtual void OnServerSerExitChanged(const std::string& ifname) override;
-    virtual void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) override;
+    void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) override;
 private:
 #ifdef OHOS_ARCH_LITE
     int RemoteOnServerStatusChanged(uint32_t code, IpcIo *data);

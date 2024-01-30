@@ -278,7 +278,8 @@ void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
     }
 }
 
-void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos)
+void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string> &leases,
+    std::vector<DhcpStationInfo>& stationInfos)
 {
     DHCP_LOGI("ConvertLeasesToStationInfos ");
     for (const std::string& lease : leases) {
