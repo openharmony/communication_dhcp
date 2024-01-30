@@ -540,7 +540,6 @@ static void *BeginLooper(void *argc)
     InitOptionList(&reply.options);
     srvIns->looperState = LS_RUNNING;
     while (srvIns->looperState) {
-        DHCP_LOGI("start into looper111");
         if (OnLooperStateChanged(ctx) != RET_SUCCESS) {
             DHCP_LOGI("OnLooperStateChanged");
             break;
@@ -562,16 +561,7 @@ static void *BeginLooper(void *argc)
         if (replyType && SendDhcpReply(ctx, replyType, &reply) != RET_SUCCESS) {
             DHCP_LOGE("failed to send reply message.");
         }
-        if (replyType == REPLY_ACK || replyType == REPLY_OFFER) {
-            int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
-            if (saveRet != RET_SUCCESS && saveRet != RET_WAIT_SAVE) {
-                DHCP_LOGW("failed to save lease recoders.");
-            }
-            if (replyType == REPLY_ACK && srvIns->leasesfunc != NULL) {
-                DHCP_LOGI("REPLY_ACK trigger OnServerSuccess");
-                srvIns->leasesfunc(ctx->ifname);
-            }
-        }
+        CheckAndNotifyServerSuccess(replyType, ctx);
     }
     FreeOptionList(&from.options);
     FreeOptionList(&reply.options);
@@ -580,6 +570,22 @@ static void *BeginLooper(void *argc)
     ctx->instance->serverFd = -1;
     srvIns->looperState = LS_STOPED;
     return nullptr;
+}
+
+void CheckAndNotifyServerSuccess(int replyType, PDhcpServerContext ctx)
+{
+    ServerContext *srvIns = GetServerInstance(ctx);
+    if (replyType == REPLY_ACK || replyType == REPLY_OFFER) {
+        int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
+        if (saveRet != RET_SUCCESS && saveRet != RET_WAIT_SAVE) {
+            DHCP_LOGW("failed to save lease recoders.");
+        }
+        if (replyType == REPLY_ACK && srvIns->leasesfunc != NULL) {
+            DHCP_LOGI("REPLY_ACK trigger OnServerSuccess");
+            srvIns->leasesfunc(ctx->ifname);
+        }
+    }
+    return;
 }
 
 static int CheckAddressRange(DhcpAddressPool *pool)

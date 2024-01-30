@@ -43,6 +43,7 @@ void RegisterLeasesChangedCallback(PDhcpServerContext ctx,
 int FreeServerContext(PDhcpServerContext *ctx);
 int SaveLease(PDhcpServerContext ctx);
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo);
+void CheckAndNotifyServerSuccess(int replyType, PDhcpServerContext ctx);
 #ifdef __cplusplus
 }
 #endif
