@@ -138,6 +138,10 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
             return;
         }
         DhcpStationInfo* infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
+        if (infos == nullptr) {
+            DHCP_LOGE("malloc failed");
+            return;
+        }
         for (size_t i = 0; i < size; i++) {
             strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr);
             strcpy_s(infos[i].macAddr, sizeof(infos[i].macAddr), stationInfos[i].macAddr);
