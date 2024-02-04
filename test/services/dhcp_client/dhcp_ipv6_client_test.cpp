@@ -307,10 +307,10 @@ HWTEST_F(DhcpIpv6ClientTest, ParseNewneighMessage_Test, TestSize.Level1)
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("ParseNewneighMessage_Test enter!");
     void* msg = new char[sizeof(nlmsghdr) + sizeof(ndmsg) + sizeof(rtattr) + sizeof(in6_addr)];
-    nlmsghdr* nlh = (nlmsghdr*)msg;
-    ndmsg* ndm = (ndmsg*)((char*)msg + sizeof(nlmsghdr));
-    rtattr* rta = (rtattr*)((char*)msg + sizeof(nlmsghdr) + sizeof(ndmsg));
-    in6_addr* addr = (in6_addr*)((char*)msg + sizeof(nlmsghdr) + sizeof(ndmsg) + sizeof(rtattr));
+    nlmsghdr* nlh = reinterpret_cast<nlmsghdr*>(msg);
+    ndmsg* ndm = reinterpret_cast<ndmsg*>((char*)msg + sizeof(nlmsghdr));
+    rtattr* rta = reinterpret_cast<rtattr*>((char*)msg + sizeof(nlmsghdr) + sizeof(ndmsg));
+    in6_addr* addr = reinterpret_cast<in6_addr*>((char*)msg + sizeof(nlmsghdr) + sizeof(ndmsg) + sizeof(rtattr));
     nlh->nlmsg_type = RTM_NEWNEIGH;
     ndm->ndm_family = KERNEL_SOCKET_IFA_FAMILY;
     ndm->ndm_state = NUD_REACHABLE;
