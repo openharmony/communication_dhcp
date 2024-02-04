@@ -48,6 +48,8 @@ public:
         if (dhcpClient != nullptr) {
             dhcpClient.reset(nullptr);
         }
+        MockCustomFunc::GetInstance().SetMockFlag(false);
+        MockSystemFunc::GetInstance().SetMockFlag(false);
     }
 public:
     std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient;
@@ -186,6 +188,40 @@ HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail4, TestSize.Level1)
     struct DhcpPacket packet;
     struct DhcpIpResult result;
     strcpy_s((char*)packet.sname, sizeof(packet.sname), "testcode");
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, &result));
+}
+
+/**
+ * @tc.name: SyncDhcpResult_Fail5
+ * @tc.desc: SyncDhcpResult()
+ * @tc.type: FUNC
+ * @tc.require: issue
+*/
+HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail5, TestSize.Level1)
+{
+    char buf[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
+    ASSERT_TRUE(snprintf_s(buf,
+                    VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX,
+                    VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX - 1,
+                    "%s-%s",
+                    DHCPC_NAME,
+                    DHCPC_VERSION) >= 0);
+
+    struct DhcpPacket packet;
+    ASSERT_TRUE(memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) == EOK);
+
+    uint8_t *pOption = packet.options;
+    pOption[DHCP_OPT_CODE_INDEX] = VENDOR_SPECIFIC_INFO_OPTION;
+    pOption[DHCP_OPT_LEN_INDEX] = strlen(buf);
+    ASSERT_TRUE(memcpy_s(pOption + DHCP_OPT_DATA_INDEX,
+                    VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES,
+                    buf,
+                    strlen(buf)) == EOK);
+
+    int endIndex = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + pOption[DHCP_OPT_LEN_INDEX];
+    pOption[endIndex] = END_OPTION;
+
+    struct DhcpIpResult result;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, &result));
 }
 
@@ -346,18 +382,34 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpRequestHandleTest enter!");
     time_t curTimestamp = time(NULL);
+    
+    dhcpClient->SetIpv4State(DHCP_STATE_BOUND);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
     dhcpClient->SetIpv4State(DHCP_STATE_INITREBOOT);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_RELEASED);
     dhcpClient->DhcpRequestHandle(curTimestamp);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpResponseHandleTest enter!");
+    MockCustomFunc::SetMockFlag(true);
+    EXPECT_CALL(MockCustomFunc::GetInstance(), GetDhcpRawPacket(_, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockCustomFunc::GetInstance(), GetDhcpKernelPacket(_, _)).WillRepeatedly(Return(1));
+
     time_t curTimestamp = time(NULL);
     dhcpClient->SetIpv4State(DHCP_STATE_SELECTING);
     dhcpClient->DhcpResponseHandle(curTimestamp);
 
-    dhcpClient->SetIpv4State(DHCP_STATE_INITREBOOT);
+    dhcpClient->SetIpv4State(DHCP_STATE_RELEASED);
+    dhcpClient->DhcpResponseHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_RENEWED);
+    struct DhcpPacket packet;
+    packet.xid = 0;
     dhcpClient->DhcpResponseHandle(curTimestamp);
 }
 
@@ -370,10 +422,17 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Leve
     dhcpClient->DhcpAckOrNakPacketHandle(type, packet, curTimestamp);
 
     type = DHCP_NAK;
-    dhcpClient->DhcpAckOrNakPacketHandle(type, packet, curTimestamp);
-
     DhcpPacket packet1;
     dhcpClient->DhcpAckOrNakPacketHandle(type, &packet1, curTimestamp);
+
+    type = DHCP_ACK;
+    DhcpPacket packet2;
+    dhcpClient->SetIpv4State(DHCP_STATE_BOUND);
+    dhcpClient->DhcpAckOrNakPacketHandle(type, &packet2, curTimestamp);
+
+    DhcpPacket packet3;
+    type = DHCP_REQUEST;
+    dhcpClient->DhcpAckOrNakPacketHandle(type, &packet3, curTimestamp);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level1)
@@ -394,9 +453,17 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
     struct DhcpIpResult *result = nullptr;
     dhcpClient->ParseNetworkInfo(packet, result);
 
-    DhcpPacket packet1;
+    DhcpPacket *packet1 = nullptr;
     DhcpIpResult result1;
-    dhcpClient->ParseNetworkInfo(&packet1, &result1);
+    dhcpClient->ParseNetworkInfo(packet1, &result1);
+
+    DhcpPacket packet2;
+    DhcpIpResult *result2 = nullptr;
+    dhcpClient->ParseNetworkInfo(&packet2, result2);
+
+    DhcpPacket packet3;
+    DhcpIpResult result3;
+    dhcpClient->ParseNetworkInfo(&packet3, &result3);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseOtherNetworkInfoTest, TestSize.Level1)
@@ -406,9 +473,17 @@ HWTEST_F(DhcpClientStateMachineTest, ParseOtherNetworkInfoTest, TestSize.Level1)
     struct DhcpIpResult *result = nullptr;
     dhcpClient->ParseOtherNetworkInfo(packet, result);
 
-    DhcpPacket packet1;
+    DhcpPacket *packet1 = nullptr;
     DhcpIpResult result1;
-    dhcpClient->ParseOtherNetworkInfo(&packet1, &result1);
+    dhcpClient->ParseOtherNetworkInfo(packet1, &result1);
+
+    DhcpPacket packet2;
+    DhcpIpResult *result2 = nullptr;
+    dhcpClient->ParseOtherNetworkInfo(&packet2, result2);
+
+    DhcpPacket packet3;
+    DhcpIpResult result3;
+    dhcpClient->ParseOtherNetworkInfo(&packet3, &result3);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
@@ -423,6 +498,9 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
     dhcpClient->DhcpOfferPacketHandle(type, packet, curTimestamp);
 
     DhcpPacket packet1;
+    dhcpClient->DhcpOfferPacketHandle(type, &packet1, curTimestamp);
+
+    packet1.yiaddr = 3226272232;
     dhcpClient->DhcpOfferPacketHandle(type, &packet1, curTimestamp);
 }
 
@@ -468,33 +546,86 @@ HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
     strcpy_s(result1.strYiaddr, sizeof(result1.strYiaddr), "");
     dhcpClient->FormatString(&result1);
 
+    strcpy_s(result1.strYiaddr, sizeof(result1.strYiaddr), "192.168.0.1");
+    dhcpClient->FormatString(&result1);
+
     DhcpIpResult result2;
     strcpy_s(result2.strOptServerId, sizeof(result2.strOptServerId), "");
+    dhcpClient->FormatString(&result2);
+
+    strcpy_s(result2.strYiaddr, sizeof(result2.strYiaddr), "192.168.0.2");
     dhcpClient->FormatString(&result2);
 
     DhcpIpResult result3;
     strcpy_s(result3.strOptSubnet, sizeof(result3.strOptSubnet), "");
     dhcpClient->FormatString(&result3);
 
+    strcpy_s(result3.strYiaddr, sizeof(result3.strYiaddr), "192.168.0.3");
+    dhcpClient->FormatString(&result3);
+
     DhcpIpResult result4;
-    strcpy_s(result4.strOptDns1, sizeof(result2.strOptDns1), "");
+    strcpy_s(result4.strOptDns1, sizeof(result4.strOptDns1), "");
+    dhcpClient->FormatString(&result4);
+
+    strcpy_s(result4.strYiaddr, sizeof(result4.strYiaddr), "192.168.0.");
     dhcpClient->FormatString(&result4);
 
     DhcpIpResult result5;
     strcpy_s(result5.strOptDns2, sizeof(result5.strOptDns2), "");
     dhcpClient->FormatString(&result5);
 
+    strcpy_s(result5.strYiaddr, sizeof(result5.strYiaddr), "192.168.0.5");
+    dhcpClient->FormatString(&result5);
+
     DhcpIpResult result6;
     strcpy_s(result6.strOptRouter1, sizeof(result6.strOptRouter1), "");
+    dhcpClient->FormatString(&result6);
+
+    strcpy_s(result6.strYiaddr, sizeof(result6.strYiaddr), "192.168.0.6");
     dhcpClient->FormatString(&result6);
 
     DhcpIpResult result7;
     strcpy_s(result7.strOptRouter2, sizeof(result7.strOptRouter2), "");
     dhcpClient->FormatString(&result7);
 
+    strcpy_s(result7.strYiaddr, sizeof(result7.strYiaddr), "192.168.0.7");
+    dhcpClient->FormatString(&result7);
+
     DhcpIpResult result8;
     strcpy_s(result8.strOptVendor, sizeof(result8.strOptVendor), "");
     dhcpClient->FormatString(&result8);
+
+    strcpy_s(result8.strYiaddr, sizeof(result8.strYiaddr), "192.168.0.8");
+    dhcpClient->FormatString(&result8);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
+{
+    DHCP_LOGI("RunGetIPThreadFuncTest enter!");
+    DhcpClientCfg m_cltCnf;
+    m_cltCnf.getMode = DHCP_IP_TYPE_ALL;
+    dhcpClient->RunGetIPThreadFunc();
+
+    m_cltCnf.getMode = DHCP_IP_TYPE_V4;
+    dhcpClient->RunGetIPThreadFunc();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
+{
+    DHCP_LOGI("RequestingTest enter!");
+    time_t curTimestamp = time(NULL);
+    dhcpClient->m_sentPacketNum = 16;
+    dhcpClient->SetIpv4State(DHCP_STATE_RENEWED);
+    dhcpClient->Requesting(curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, UnRegisterTest, TestSize.Level1)
+{
+    DHCP_LOGI("UnRegisterTest enter!");
+    DhcpClientStateMachine::DhcpTimer dhcpTimer;
+    std::unique_ptr<Utils::Timer> timer_{nullptr};
+    uint32_t timerId = 1;
+    dhcpTimer.UnRegister(timerId);
 }
 }
 }

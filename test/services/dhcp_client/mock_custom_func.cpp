@@ -108,7 +108,7 @@ int __wrap_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd)
         uint32_t uSerIp = 0;
         Ip4StrConToInt(cliIp, &uCliIp, false);
         Ip4StrConToInt(serIp, &uSerIp, false);
-        getPacket->xid = testMachine->GetDhcpTransID();
+        getPacket->xid = 1;
         getPacket->yiaddr = uCliIp;
         if (nLen == 1) {
             testMachine->GetPacketHeaderInfo(getPacket, DHCP_OFFER);
