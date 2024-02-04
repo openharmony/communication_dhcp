@@ -498,3 +498,4 @@ HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
 }
 }
 }
+1

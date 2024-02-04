@@ -93,7 +93,7 @@ ohos_unittest("dhcp_client_unittest") {
     "-Wl,--wrap=GetDhcpKernelPacket",
     "-Wl,--wrap=GetSelectRet",
   ]
-
+1
   external_deps = [
     "ability_base:want",
     "access_token:libaccesstoken_sdk",
