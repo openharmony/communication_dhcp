@@ -130,6 +130,10 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultSuccessTest, TestSize.Level1)
     splits.push_back("wlan10");
     splits.push_back("wlan11");
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultSuccess(splits));
+
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(splits));
+    dhcpClientImpl->m_mapClientCallBack.clear();
 }
 
 HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultFailTest, TestSize.Level1)
@@ -140,6 +144,15 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultFailTest, TestSize.Level1)
     splits.push_back("wlan0");
     splits.push_back("12");
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(splits));
+
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(splits));
+    dhcpClientImpl->m_mapClientCallBack.clear();
+
+    DhcpClient client;
+    dhcpClientImpl->m_mapClientService.emplace(std::make_pair("wlan0", client));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(splits));
+    dhcpClientImpl->m_mapClientService.clear();
 }
 
 HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultTimeOutTest, TestSize.Level1)
@@ -150,6 +163,15 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultTimeOutTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultTimeOut(ifname));
     ifname = "wlan0";
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultTimeOut(ifname));
+
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultTimeOut(ifname));
+    dhcpClientImpl->m_mapClientCallBack.clear();
+
+    DhcpClient client;
+    dhcpClientImpl->m_mapClientService.emplace(std::make_pair("wlan0", client));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultTimeOut(ifname));
+    dhcpClientImpl->m_mapClientService.clear();
 }
 
 HWTEST_F(DhcpClientServiceImplTest, DhcpIpv6ResulCallbackTest, TestSize.Level1)
@@ -161,11 +183,23 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv6ResulCallbackTest, TestSize.Level1)
     dhcpClientImpl->DhcpIpv6ResulCallback(ifname, info);
 
     ASSERT_TRUE(strncpy_s(info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, " 192.168.1.10", ADDRESS_ARRAY_SIZE) == EOK);
+    dhcpClientImpl->DhcpIpv6ResulCallback(ifname, info);
+
     ASSERT_TRUE(strncpy_s(info.routeAddr, DHCP_INET6_ADDRSTRLEN, " 192.168.1.1", ADDRESS_ARRAY_SIZE) == EOK);
     dhcpClientImpl->DhcpIpv6ResulCallback(ifname, info);
 
+    ASSERT_TRUE(strncpy_s(info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, "292.168.1.10", ADDRESS_ARRAY_SIZE) == EOK);
+    dhcpClientImpl->DhcpIpv6ResulCallback(ifname, info);
+
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
     ifname = "wlan0";
     dhcpClientImpl->DhcpIpv6ResulCallback(ifname, info);
+    dhcpClientImpl->m_mapClientCallBack.clear();
+
+    sptr<IDhcpClientCallBack> mclientCallback;
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", mclientCallback));
+    dhcpClientImpl->DhcpIpv6ResulCallback(ifname, info);
+    dhcpClientImpl->m_mapClientCallBack.clear();
 }
 
 HWTEST_F(DhcpClientServiceImplTest, PushDhcpResultTest, TestSize.Level1)

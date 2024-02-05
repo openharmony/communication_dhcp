@@ -19,6 +19,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <sys/stat.h>
+#include <sys/socket.h>
 #include <linux/rtnetlink.h>
 #include <netinet/in.h>
 #include "securec.h"
@@ -41,6 +42,7 @@ using ::testing::ext::TestSize;
 
 namespace OHOS {
 namespace DHCP {
+const int KERNEL_SOCKET_IFA_FAMILY = 10;
 constexpr unsigned int IPV6_SCOPE_NODELOCAL = 0x01;
 constexpr unsigned int IPV6_SCOPE_LINKLOCAL = 0x02;
 constexpr unsigned int IPV6_SCOPE_SITELOCAL = 0x05;
@@ -84,6 +86,13 @@ public:
     std::unique_ptr<OHOS::DHCP::DhcpIpv6Client> ipv6Client;
 };
 
+HWTEST_F(DhcpIpv6ClientTest, IsRunningTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("IsRunningTest enter!");
+    ipv6Client->IsRunning();
+}
+
 HWTEST_F(DhcpIpv6ClientTest, DhcpIpv6StartTest_IsNull, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
@@ -96,6 +105,13 @@ HWTEST_F(DhcpIpv6ClientTest, DhcpIPV6StopTest, TestSize.Level1)
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("DhcpIPV6StopTest enter!");
     ipv6Client->DhcpIPV6Stop();
+}
+
+HWTEST_F(DhcpIpv6ClientTest, ResetTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ResetTest enter!");
+    ipv6Client->Reset();
 }
 
 HWTEST_F(DhcpIpv6ClientTest, ipv6AddrScope2TypeTest, TestSize.Level1)
@@ -164,6 +180,7 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6AddressAddEventTest, TestSize.Level1)
     char data[] = "192.168.1.12";
     ipv6Client->onIpv6AddressAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 1);
     ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 0);
+    ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 41);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, onIpv6DnsAddEventTest, TestSize.Level1)
@@ -173,6 +190,8 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6DnsAddEventTest, TestSize.Level1)
     char data[] = "192.168.1.12";
     ipv6Client->onIpv6DnsAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 1);
     ipv6Client->onIpv6DnsAddEvent(nullptr, PRE_FIX_LEN, 0);
+    ipv6Client->onIpv6DnsAddEvent(nullptr, PRE_FIX_LEN, 41);
+    ipv6Client->onIpv6DnsAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 41);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, onIpv6RouteAddEventTest, TestSize.Level1)
@@ -182,9 +201,9 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6RouteAddEventTest, TestSize.Level1)
     char gateway[] = "192.168.1.1";
     char dst[] = "192.168.1.2";
     ipv6Client->onIpv6RouteAddEvent(gateway, dst, 1);
-    ipv6Client->onIpv6RouteAddEvent(nullptr, dst, 0);
-    ipv6Client->onIpv6RouteAddEvent(gateway, nullptr, 0);
-    ipv6Client->onIpv6RouteAddEvent(gateway, dst, 0);
+    ipv6Client->onIpv6RouteAddEvent(nullptr, dst, 41);
+    ipv6Client->onIpv6RouteAddEvent(gateway, nullptr, 41);
+    ipv6Client->onIpv6RouteAddEvent(gateway, dst, 41);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, getIpv6RouteAddrTest, TestSize.Level1)
@@ -244,6 +263,36 @@ HWTEST_F(DhcpIpv6ClientTest, parseNDRouteMessageTest, TestSize.Level1)
     ipv6Client->parseNDRouteMessage(static_cast<void *>(&msg));
 }
 
+HWTEST_F(DhcpIpv6ClientTest, ParseNDRouteMessage_TEST1, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ParseNDRouteMessage_TEST1 enter!");
+    nlmsghdr hdrMsg;
+    rtmsg rtMsg;
+    hdrMsg.nlmsg_len = sizeof(rtmsg);
+    rtMsg.rtm_protocol = RTPROT_BOOT;
+    rtMsg.rtm_scope = RT_SCOPE_SITE;
+    rtMsg.rtm_type = RTN_MULTICAST;
+    rtMsg.rtm_src_len = 1;
+    rtMsg.rtm_flags = RTM_F_PREFIX;
+    ipv6Client->parseNDRouteMessage(&hdrMsg);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, ParseNDRouteMessage_TEST2, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ParseNDRouteMessage_TEST2 enter!");
+    nlmsghdr hdrMsg;
+    rtmsg rtMsg;
+    hdrMsg.nlmsg_len = sizeof(rtmsg);
+    rtMsg.rtm_protocol = RTPROT_KERNEL;
+    rtMsg.rtm_scope = RT_SCOPE_UNIVERSE;
+    rtMsg.rtm_type = RTN_UNICAST;
+    rtMsg.rtm_src_len = 0;
+    rtMsg.rtm_flags = 0;
+    ipv6Client->parseNDRouteMessage(&hdrMsg);
+}
+
 HWTEST_F(DhcpIpv6ClientTest, parseNewneighMessageTest, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
@@ -251,6 +300,23 @@ HWTEST_F(DhcpIpv6ClientTest, parseNewneighMessageTest, TestSize.Level1)
     struct nlmsghdr msg;
     ipv6Client->parseNewneighMessage(nullptr);
     ipv6Client->parseNewneighMessage(static_cast<void *>(&msg));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, ParseNewneighMessage_Test, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ParseNewneighMessage_Test enter!");
+    void* msg = new char[sizeof(nlmsghdr) + sizeof(ndmsg) + sizeof(rtattr) + sizeof(in6_addr)];
+    nlmsghdr* nlh = reinterpret_cast<nlmsghdr*>(msg);
+    ndmsg* ndm = reinterpret_cast<ndmsg*>((char*)msg + sizeof(nlmsghdr));
+    rtattr* rta = reinterpret_cast<rtattr*>((char*)msg + sizeof(nlmsghdr) + sizeof(ndmsg));
+    in6_addr* addr = reinterpret_cast<in6_addr*>((char*)msg + sizeof(nlmsghdr) + sizeof(ndmsg) + sizeof(rtattr));
+    nlh->nlmsg_type = RTM_NEWNEIGH;
+    ndm->ndm_family = KERNEL_SOCKET_IFA_FAMILY;
+    ndm->ndm_state = NUD_REACHABLE;
+    rta->rta_type = NDA_DST;
+    rta->rta_len = sizeof(rtattr) + sizeof(in6_addr);
+    ipv6Client->parseNewneighMessage(msg);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, fillRouteDataTest, TestSize.Level1)
@@ -271,6 +337,14 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(nullptr, 0);
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("StartIpv6Test enter!");
+    const char *ifname = nullptr;
+    EXPECT_EQ(-1, ipv6Client->StartIpv6(ifname));
 }
 }
 }
