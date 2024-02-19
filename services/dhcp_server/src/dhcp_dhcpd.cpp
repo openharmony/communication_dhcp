@@ -291,34 +291,6 @@ int ServerActionCallback(int state, int code, const char *ifname)
     return ret;
 }
 
-static void SignalHandler(int signal)
-{
-    switch (signal) {
-        case SIGTERM:
-            break;
-        case SIGUSR1:
-            break;
-        default:
-            break;
-    }
-}
-
-static int RegisterSignalHandle(void)
-{
-    DHCP_LOGI("start %{public}s   %{public}d.", __func__, __LINE__);
-    if (signal(SIGTERM, SignalHandler) == SIG_ERR) {
-        DHCP_LOGE("RegisterSignalHandle() failed, signal SIGTERM err:%d!", errno);
-        return RET_FAILED;
-    }
-
-    if (signal(SIGUSR1, SignalHandler) == SIG_ERR) {
-        DHCP_LOGE("RegisterSignalHandle() failed, signal SIGUSR1 err:%d!", errno);
-        return RET_FAILED;
-    }
-
-    return RET_SUCCESS;
-}
-
 static int InitializeDhcpConfig(const char *ifname, DhcpConfig *config)
 {
     if (!config) {
@@ -402,10 +374,6 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
     if (g_dhcpServer == nullptr) {
         DHCP_LOGE("failed to initialize dhcp server.");
         FreeArguments();
-        return 1;
-    }
-    if (RegisterSignalHandle() != RET_SUCCESS) {
-        FreeSeverResources();DHCP_LOGI("register singal handle failed");
         return 1;
     }
 

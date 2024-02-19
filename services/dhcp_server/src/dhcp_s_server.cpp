@@ -63,6 +63,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 #define ALLOW_NOBINDING_REQUEST 1
 #define REUSE_ADDRESS_ENABLE 1
 #define WAIT_STOPED_TIME 5
+#define DHCP_SERVER_SLEEP_TIMEOUTS 600000  // 600ms
 
 const uint8_t MAGIC_COOKIE_DATA[MAGIC_COOKIE_LENGTH] = {0x63, 0x82, 0x53, 0x63};  // Vendor Information "Magic Cookie"
 
@@ -113,11 +114,11 @@ struct sockaddr_in *BroadcastAddrIn(void);
 
 static struct ServerContext *GetServerInstance(const DhcpServerContext *ctx)
 {
-    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     if (!ctx || !ctx->instance) {
         return nullptr;
     }
-    DHCP_LOGI("RETRUN NOT nullptr");
+    DHCP_LOGD("RETRUN NOT nullptr");
     return (struct ServerContext *)ctx->instance;
 }
 
@@ -254,26 +255,26 @@ struct sockaddr_in *DestinationAddr(uint32_t ipAddress)
 
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
 {
-    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     static uint8_t recvBuffer[RECV_BUFFER_SIZE] = {0};
     struct timeval tmt;
     fd_set recvFd;
     FD_ZERO(&recvFd);
     FD_SET(sock, &recvFd);
-    time_t seconds = DHCP_SEL_WAIT_TIMEOUTS;
-    tmt.tv_sec = seconds;
-    tmt.tv_usec = 0;
-    DHCP_LOGI("start  select");
-    int ret = select(sock + 1, &recvFd, nullptr, nullptr, &tmt);DHCP_LOGI("watiing   select");
+    tmt.tv_sec = 0;
+    tmt.tv_usec = DHCP_SERVER_SLEEP_TIMEOUTS; // 600ms
+    DHCP_LOGD("start select");
+    int ret = select(sock + 1, &recvFd, nullptr, nullptr, &tmt);
+    DHCP_LOGD("watiing select");
     if (ret < 0) {
         DHCP_LOGE("select error, %d", errno);
         return ERR_SELECT;
     }
     if (ret == 0) {
-        DHCP_LOGE("select time out.");
+        DHCP_LOGD("select time out.");
         return RET_SELECT_TIME_OUT;
     }
-    DHCP_LOGI("start   over");
+    DHCP_LOGI("start over");
     if (!FD_ISSET(sock, &recvFd)) {
         DHCP_LOGE("failed to select isset.");
         return RET_ERROR;
@@ -346,7 +347,6 @@ void InitReply(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply
 void OnUpdateServerConfig(PDhcpServerContext ctx)
 {
     DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
-    DHCP_LOGI("OnUpdateServerConfig ...");
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
         DHCP_LOGE("dhcp server context pointer is null.");
@@ -480,7 +480,7 @@ int SaveLease(PDhcpServerContext ctx)
 
 static int OnLooperStateChanged(PDhcpServerContext ctx)
 {
-    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
         DHCP_LOGE("dhcp server context pointer is null.");
@@ -499,7 +499,7 @@ static int OnLooperStateChanged(PDhcpServerContext ctx)
 
 static int ContinueReceive(PDhcpMsgInfo from, int recvRet)
 {
-    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
+    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     if (!from) {
         return DHCP_TRUE;
     }
@@ -539,12 +539,11 @@ static void *BeginLooper(void *argc)
     InitOptionList(&reply.options);
     srvIns->looperState = LS_RUNNING;
     while (srvIns->looperState) {
-        DHCP_LOGI("start into looper111");
         if (OnLooperStateChanged(ctx) != RET_SUCCESS) {
-            DHCP_LOGI("OnLooperStateChanged");
+            DHCP_LOGI("OnLooperStateChanged break, looperState:%{public}d", srvIns->looperState);
             break;
         }
-        DHCP_LOGI("start clear");
+        DHCP_LOGD("start clear");
         ClearOptions(&from.options);
         ClearOptions(&reply.options);
         int recvRet = ReceiveDhcpMessage(ctx->instance->serverFd, &from);
@@ -553,7 +552,7 @@ static void *BeginLooper(void *argc)
             continue;
         }
         if (ContinueReceive(&from, recvRet)) {
-            DHCP_LOGI("ContinueReceive");
+            DHCP_LOGD("ContinueReceive");
             continue;
         }
         InitReply(ctx, &from, &reply);
@@ -653,7 +652,6 @@ void InitLeaseFile(DhcpAddressPool *pool)
 int StartDhcpServer(PDhcpServerContext ctx)
 {
     DHCP_LOGI("%{public}s  %{public}d  start", __func__, __LINE__);
-    DHCP_LOGI("dhcp server starting ...");
     if (!ctx) {
         DHCP_LOGE("server context pointer is null.");
         return RET_FAILED;
@@ -672,8 +670,7 @@ int StartDhcpServer(PDhcpServerContext ctx)
         DHCP_LOGE("dhcp server no initialized.");
         return RET_FAILED;
     }
-    DHCP_LOGD("bind interface: %s", ctx->ifname);
-    DHCP_LOGI("begin dhcp message looper");
+    DHCP_LOGD("bind interface: %{public}s, begin dhcp message looper", ctx->ifname);
     if (srvIns->callback) {
         srvIns->callback(ST_STARTING, 1, ctx->ifname);
     }
@@ -692,9 +689,11 @@ int StopDhcpServer(PDhcpServerContext ctx)
 {
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
+        DHCP_LOGE("StopDhcpServer GetServerInstance failed!");
         return RET_FAILED;
     }
     srvIns->looperState = LS_STOPING;
+    DHCP_LOGI("StopDhcpServer looperState LS_STOPING!");
     return RET_SUCCESS;
 }
 
