@@ -30,7 +30,7 @@ DhcpSaLoadManager& DhcpSaLoadManager::GetInstance()
     return *instance;
 }
 
-ErrCode DhcpSaLoadManager::LoadWifiSa(int32_t systemAbilityId)
+ErrCode DhcpSaLoadManager::LoadWifiSa(int32_t systemAbilityId) __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGI("DhcpSaLoadManager %{public}s enter, systemAbilityId = [%{public}d] loading", __func__, systemAbilityId);
     sptr<ISystemAbilityManager> samgr =
