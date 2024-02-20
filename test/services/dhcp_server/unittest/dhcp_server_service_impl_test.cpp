@@ -125,24 +125,6 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
     ASSERT_TRUE(DhcpFunction::RemoveFile(strFile));
 }
 
-HWTEST_F(DhcpServerServiceTest, SetDhcpServerInfoTest, TestSize.Level1)
-{
-    ASSERT_TRUE(pServerServiceImpl != nullptr);
-    std::string ifname;
-    int status = SERVICE_STATUS_INVALID;
-    pid_t serverPid = 1234;
-    EXPECT_EQ(DHCP_OPT_ERROR, pServerServiceImpl->SetDhcpServerInfo(ifname, status, serverPid));
-
-    ifname = "wlan0";
-    EXPECT_EQ(DHCP_OPT_ERROR, pServerServiceImpl->SetDhcpServerInfo(ifname, status, serverPid));
-
-    status = SERVICE_STATUS_START;
-    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->SetDhcpServerInfo(ifname, status, serverPid));
-
-    status = SERVICE_STATUS_STOP;
-    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->SetDhcpServerInfo(ifname, status, serverPid));
-}
-
 HWTEST_F(DhcpServerServiceTest, CreateDefaultConfigFileTest, TestSize.Level1)
 {
     ASSERT_TRUE(pServerServiceImpl != nullptr);
@@ -172,20 +154,6 @@ HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
     ASSERT_TRUE(pServerServiceImpl != nullptr);
 
     EXPECT_EQ(true, pServerServiceImpl->IsRemoteDied());
-}
-
-HWTEST_F(DhcpServerServiceTest, GetDhcpServerPidTest, TestSize.Level1)
-{
-    DHCP_LOGE("enter GetDhcpServerPidTest");
-    ASSERT_TRUE(pServerServiceImpl != nullptr);
-    std::string ifname;
-    EXPECT_EQ(0, pServerServiceImpl->GetDhcpServerPid(ifname));
-
-    ifname = "xxx";
-    EXPECT_EQ(0, pServerServiceImpl->GetDhcpServerPid(ifname));
-
-    ifname = "wlan0";
-    EXPECT_EQ(1234, pServerServiceImpl->GetDhcpServerPid(ifname));
 }
 
 HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)

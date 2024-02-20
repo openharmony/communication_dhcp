@@ -92,14 +92,11 @@ private:
     int CheckAndUpdateConf(const std::string& ifname);
     bool CheckIpAddrRange(const DhcpRange& range);
     int AddSpecifiedInterface(const std::string& ifname);
-    pid_t GetDhcpServerPid(const std::string &ifname);
     int GetUsingIpRange(const std::string ifname, std::string& ipRange);
     int CreateDefaultConfigFile(const std::string strFile);
     int StopServer(const pid_t& serverPid);
     void UnregisterSignal() const;
     bool IsNativeProcess();
-
-    static int SetDhcpServerInfo(const std::string &ifname, int status, const pid_t& serverPid);
 
     bool mPublishFlag;
     static std::mutex g_instanceLock;

@@ -264,11 +264,6 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
         return DHCP_E_FAILED;
     }
 
-    pid_t pidServer = GetDhcpServerPid(ifname);
-    if (pidServer == 0) {
-        DHCP_LOGI("StopDhcpServer() %{public}s, %{public}s already stop.", ifname.c_str(), DHCP_SERVER_FILE.c_str());
-        return DHCP_E_SUCCESS;
-    }
     auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
     if (iterRangeMap != m_mapInfDhcpRange.end()) {
         m_mapInfDhcpRange.erase(iterRangeMap);
@@ -277,8 +272,6 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
         return DHCP_E_FAILED;
     }
     StopDhcpServerMain();
-    SetDhcpServerInfo(ifname, SERVICE_STATUS_STOP, 0);
-
     /* Del the specified interface. */
     if (DelSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
         return DHCP_E_FAILED;
@@ -657,23 +650,6 @@ int DhcpServerServiceImpl::AddSpecifiedInterface(const std::string& ifname)
     return DHCP_OPT_SUCCESS;
 }
 
-pid_t DhcpServerServiceImpl::GetDhcpServerPid(const std::string &ifname)
-{
-    if (ifname.empty()) {
-        DHCP_LOGE("GetDhcpServerPid error, ifname is empty!");
-        return 0;
-    }
-
-    auto iter = DhcpServerServiceImpl::m_mapDhcpServer.find(ifname);
-    if (iter == DhcpServerServiceImpl::m_mapDhcpServer.end()) {
-        DHCP_LOGI("Not get dhcp server ifname:%{public}s, pid:0", ifname.c_str());
-        return 0;
-    }
-
-    DHCP_LOGI("Get dhcp server ifname:%{public}s, pid:%{public}d", ifname.c_str(), (int)iter->second.proPid);
-    return iter->second.proPid;
-}
-
 int DhcpServerServiceImpl::GetUsingIpRange(const std::string ifname, std::string& ipRange)
 {
     if (ifname.empty()) {
@@ -742,27 +718,6 @@ int DhcpServerServiceImpl::StopServer(const pid_t &serverPid)
         return DHCP_OPT_FAILED;
     }
     DHCP_LOGI("StopServer() waitpid [%{public}d] success, pro:%{public}s!", serverPid, DHCP_SERVER_FILE.c_str());
-    return DHCP_OPT_SUCCESS;
-}
-
-int DhcpServerServiceImpl::SetDhcpServerInfo(const std::string &ifname, int status, const pid_t& serverPid)
-{
-    if (ifname.empty()) {
-        DHCP_LOGE("SetDhcpServerInfo error, ifname is empty!");
-        return DHCP_OPT_ERROR;
-    }
-    if (status == SERVICE_STATUS_INVALID) {
-        DHCP_LOGE("SetDhcpServerInfo error, status is invalid!");
-        return DHCP_OPT_ERROR;
-    }
-
-    DhcpServerServiceImpl::m_mapDhcpServer[ifname].proPid = serverPid;
-    if (status == SERVICE_STATUS_START) {
-        DhcpServerServiceImpl::m_mapDhcpServer[ifname].normalExit = false;
-        DhcpServerServiceImpl::m_mapDhcpServer[ifname].exitSig = false;
-    } else {
-        DhcpServerServiceImpl::m_mapDhcpServer[ifname].normalExit = true;
-    }
     return DHCP_OPT_SUCCESS;
 }
 
