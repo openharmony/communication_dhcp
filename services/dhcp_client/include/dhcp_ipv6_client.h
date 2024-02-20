@@ -41,11 +41,11 @@ public:
 
     bool IsRunning();
     void SetCallback(std::function<void(const std::string ifname, DhcpIpv6Info &info)> callback);
-    void *DhcpIpv6Start(const char* param);
+    void *DhcpIpv6Start();
     void DhcpIPV6Stop(void);
     void Reset();
     void RunIpv6ThreadFunc();
-    int StartIpv6(const char *ifname);
+    int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
 public:
     

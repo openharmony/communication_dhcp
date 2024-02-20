@@ -115,7 +115,7 @@ int Insert(HashTable *table, uintptr_t key, uintptr_t value)
     return ret;
 }
 
-int ContainsKey(const HashTable *table, uintptr_t key)
+int ContainsKey(const HashTable *table, uintptr_t key) __attribute__((no_sanitize("cfi")))
 {
     if (!Initialized(table)) {
         return HASH_FALSE;
