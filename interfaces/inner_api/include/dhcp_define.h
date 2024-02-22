@@ -135,6 +135,8 @@ struct DhcpResult {
     std::string strRouter1; /* your (client) router1 */
     std::string strRouter2; /* your (client) router2 */
     std::string strVendor;  /* your (client) vendor */
+    std::string strVendor;  /* your (client) vendor */
+    std::string strVendor;  /* your (client) vendor */
     uint32_t uLeaseTime;    /* your (client) IP lease time (s) */
     uint32_t  uAddTime;      /* dhcp result add time */
     uint32_t uGetTime;      /* dhcp result get time */

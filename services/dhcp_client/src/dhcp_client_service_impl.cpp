@@ -471,22 +471,29 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
 {
-    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || !IsGlobalIPv6Address(info.globalIpv6Addr)) {
-        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s",
-            info.globalIpv6Addr, info.routeAddr);
+    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || strlen(info.linkIpv6Addr) == 0 ||
+        !IsGlobalIPv6Address(info.globalIpv6Addr)) {
+        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s", info.globalIpv6Addr,
+            info.routeAddr);
         return;
     }
     OHOS::Wifi::DhcpResult result;
     result.uAddTime = (uint32_t)time(NULL);
     result.iptype = 1;
     result.isOptSuc     = true;
+    result.uGetTime     = (uint32_t)time(NULL);
     result.strYourCli   = info.globalIpv6Addr;
     result.strSubnet    = info.ipv6SubnetAddr;
     result.strRouter1   = info.routeAddr;
     result.strDns1      = info.dnsAddr;
     result.strDns2      = info.dnsAddr2;
     result.strRouter2   = "*";
-    result.uGetTime     = (uint32_t)time(NULL);
+
+    char linkIpv6Addr[DHCP_INET6_ADDRSTRLEN];
+    char globalIpv6Addr[DHCP_INET6_ADDRSTRLEN];
+    char ipv6SubnetAddr[DHCP_INET6_ADDRSTRLEN];
+    char randIpv6Addr[DHCP_INET6_ADDRSTRLEN];
+    
 
     std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     PushDhcpResult(ifname, result);
