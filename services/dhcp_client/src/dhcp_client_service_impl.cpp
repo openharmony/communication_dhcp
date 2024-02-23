@@ -304,7 +304,7 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
     std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
     auto iter2 = m_mapClientService.find(ifname);
     if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pStaStateMachine != nullptr) {
+        if ((iter2->second).pStaStateMachine != nullptr && (!bIpv6)) {
             DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
                 bIpv6);
             (iter2->second).pStaStateMachine->StopIpv4();

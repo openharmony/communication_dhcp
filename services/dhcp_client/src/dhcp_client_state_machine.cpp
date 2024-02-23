@@ -128,6 +128,7 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
     } else { // renew  m_action == ACTION_RENEW
         if (m_cltCnf.timeoutExit) { // thread not exit
             DHCP_LOGI("StartIpv4 renew InitStartIpv4Thread");
+            m_renewThreadIsRun = false;
             InitStartIpv4Thread(ifname, isIpv6);
         }
         int signum = SIG_RENEW;
@@ -135,7 +136,6 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
             DHCP_LOGE("StartIpv4 renew sig send failed.");
             return DHCP_OPT_FAILED;
         }
-        m_renewThreadIsRun = false; 
         while (!m_renewThreadIsRun) {
             usleep(50000); // 50ms, waiting for socket select running...
             DHCP_LOGI("StartIpv4 renew waiting for socket select run, usleep 50ms");
@@ -344,6 +344,7 @@ int DhcpClientStateMachine::ExitIpv4(void)
         m_pthread = nullptr;
         DHCP_LOGI("StopIpv4 delete m_pthread!");
     }
+    m_renewThreadIsRun = false;
     DHCP_LOGI("ExitIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     return DHCP_OPT_SUCCESS;
 }
@@ -353,6 +354,7 @@ int DhcpClientStateMachine::StopIpv4(void)
     DHCP_LOGI("StopIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     if (!m_cltCnf.timeoutExit) { // thread not exit
         int signum = SIG_STOP;
+        m_cltCnf.timeoutExit = true;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_STOP SignalReceiver
             DHCP_LOGE("StopIpv4 send failed.");
             return DHCP_OPT_FAILED;
