@@ -117,6 +117,8 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, MessageParce
     result.strRouter1 = data.ReadString();
     result.strRouter2 = data.ReadString();
     result.strVendor = data.ReadString();
+    result.strLinkIpv6Addr = data.ReadString();
+    result.strRandIpv6Addr = data.ReadString();
     OnIpSuccessChanged(state, ifname, result);
     reply.WriteInt32(0);
     return 0;
