@@ -347,3 +347,4 @@ HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
 }
 }
 }
+1
