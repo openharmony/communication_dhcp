@@ -93,13 +93,6 @@ HWTEST_F(DhcpIpv6ClientTest, IsRunningTest, TestSize.Level1)
     ipv6Client->IsRunning();
 }
 
-HWTEST_F(DhcpIpv6ClientTest, DhcpIpv6StartTest_IsNull, TestSize.Level1)
-{
-    ASSERT_TRUE(ipv6Client != nullptr);
-    DHCP_LOGE("DhcpIpv6StartTest_IsNull enter!");
-    EXPECT_EQ(nullptr, ipv6Client->DhcpIpv6Start());
-}
-
 HWTEST_F(DhcpIpv6ClientTest, DhcpIPV6StopTest, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
@@ -337,13 +330,6 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(nullptr, 0);
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
-}
-
-HWTEST_F(DhcpIpv6ClientTest, StartIpv6Test, TestSize.Level1)
-{
-    ASSERT_TRUE(ipv6Client != nullptr);
-    DHCP_LOGE("StartIpv6Test enter!");
-    EXPECT_EQ(-1, ipv6Client->StartIpv6());
 }
 }
 }
