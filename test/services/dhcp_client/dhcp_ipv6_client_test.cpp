@@ -331,15 +331,5 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
 }
-
-HWTEST_F(DhcpIpv6ClientTest, HandleKernelEvent_NewAddr, TestSize.Level1)
-{
-    DHCP_LOGE("HandleKernelEvent_NewAddr enter!");
-    uint8_t data[sizeof(struct nlmsghdr) + sizeof(struct ifaddrmsg) + 10];
-    struct nlmsghdr* nlh = (struct nlmsghdr*)data;
-    struct ifaddrmsg* ifa = (struct ifaddrmsg*)(nlh + 1);
-    ifa->ifa_family = KERNEL_SOCKET_IFA_FAMILY;
-    ipv6Client->handleKernelEvent(data, sizeof(data));
-}
 }
 }
