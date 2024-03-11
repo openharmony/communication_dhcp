@@ -60,8 +60,8 @@ void DhcpClientCallbackProxy::OnIpSuccessChanged(int status, const std::string& 
     (void)WriteString(&data,result.strRouter1.c_str());
     (void)WriteString(&data,result.strRouter2.c_str());
     (void)WriteString(&data,result.strVendor.c_str());
-    (void)WriteString(&data,result.strLinkIpv6Addr.c_str());
-    (void)WriteString(&data,result.strRandIpv6Addr.c_str());
+    (void)WriteString(&data, result.strLinkIpv6Addr.c_str());
+    (void)WriteString(&data, result.strRandIpv6Addr.c_str());
 
     IpcIo reply;
     MessageOption option;
