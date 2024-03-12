@@ -22,7 +22,7 @@
 #include "../../../interfaces/inner_api/dhcp_client.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientImpl : public DhcpClient {
     DECLARE_DELAYED_SINGLETON(DhcpClientImpl);
 public:
@@ -49,6 +49,6 @@ private:
     sptr<IDhcpClient> client_;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

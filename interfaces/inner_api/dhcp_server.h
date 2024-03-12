@@ -19,7 +19,7 @@
 #include "dhcp_errcode.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpServer {
 public:
     static std::shared_ptr<DhcpServer> GetInstance(int systemAbilityId);
@@ -41,6 +41,6 @@ public:
     virtual ErrCode GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& dhcpClientInfo) = 0;
     virtual ErrCode UpdateLeasesTime(const std::string& leaseTime) = 0;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

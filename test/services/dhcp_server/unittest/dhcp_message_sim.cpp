@@ -30,7 +30,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpMessageSimulator");
 
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 constexpr int OPT_MESSAGE_TYPE_LEGTH = 1;
 constexpr uint8_t OPT_HEADER_LENGTH = 2;

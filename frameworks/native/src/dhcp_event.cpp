@@ -27,7 +27,7 @@ DhcpClientCallBack::~DhcpClientCallBack()
     DHCP_LOGI("~DhcpClientCallBack");
 }
 
-void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::Wifi::DhcpResult& result)
+void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result)
     __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGI("OnIpSuccessChanged status:%{public}d,ifname:%{public}s", status, ifname.c_str());
@@ -128,6 +128,30 @@ void DhcpServerCallBack::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServerCallBack OnServerSerExitChanged ifname:%{public}s", ifname.c_str());
 }
+void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s", ifname.c_str());
+    if (mapServerCallBack[ifname]) {
+        size_t size = stationInfos.size();
+        if (size <= 0) {
+            DHCP_LOGE("stationInfos size = %zu", size);
+            return;
+        }
+        DhcpStationInfo* infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
+        if (infos == nullptr) {
+            DHCP_LOGE("malloc failed");
+            return;
+        }
+        for (size_t i = 0; i < size; i++) {
+            strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr);
+            strcpy_s(infos[i].macAddr, sizeof(infos[i].macAddr), stationInfos[i].macAddr);
+            strcpy_s(infos[i].deviceName, sizeof(infos[i].deviceName), stationInfos[i].deviceName);
+        }
+        mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
+        free(infos);
+    }
+}
+
 #ifndef OHOS_ARCH_LITE
 OHOS::sptr<OHOS::IRemoteObject> DhcpServerCallBack::AsObject() 
 {

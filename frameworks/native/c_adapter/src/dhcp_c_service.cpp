@@ -23,8 +23,8 @@
 #include <string_ex.h>
 #endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpCService");
-std::shared_ptr<OHOS::Wifi::DhcpClient> dhcpClientPtr = OHOS::Wifi::DhcpClient::GetInstance(DHCP_CLIENT_ABILITY_ID);
-std::shared_ptr<OHOS::Wifi::DhcpServer> dhcpServerPtr = OHOS::Wifi::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+std::shared_ptr<OHOS::DHCP::DhcpClient> dhcpClientPtr = OHOS::DHCP::DhcpClient::GetInstance(DHCP_CLIENT_ABILITY_ID);
+std::shared_ptr<OHOS::DHCP::DhcpServer> dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
 
 #ifdef OHOS_ARCH_LITE
     static std::shared_ptr<DhcpClientCallBack> dhcpClientCallBack =
@@ -98,7 +98,7 @@ NO_SANITIZE("cfi") DhcpErrorCode SetDhcpRange(const char *ifname, const DhcpRang
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(range, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
-    OHOS::Wifi::DhcpRange rangeNew;
+    OHOS::DHCP::DhcpRange rangeNew;
     rangeNew.iptype = range->iptype;
     rangeNew.strStartip = range->strStartip;
     rangeNew.strEndip = range->strEndip;
@@ -120,7 +120,7 @@ NO_SANITIZE("cfi") DhcpErrorCode PutDhcpRange(const char *tagName, const DhcpRan
     CHECK_PTR_RETURN(tagName, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(range, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
-    OHOS::Wifi::DhcpRange rangeNew;
+    OHOS::DHCP::DhcpRange rangeNew;
     rangeNew.iptype = range->iptype;
     rangeNew.strStartip = range->strStartip;
     rangeNew.strEndip = range->strEndip;
@@ -141,7 +141,7 @@ DhcpErrorCode RemoveDhcpRange(const char *tagName, const void *range)
     CHECK_PTR_RETURN(tagName, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(range, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
-    return GetCErrorCode(dhcpServerPtr->RemoveDhcpRange(tagName, *(OHOS::Wifi::DhcpRange *)range));
+    return GetCErrorCode(dhcpServerPtr->RemoveDhcpRange(tagName, *(OHOS::DHCP::DhcpRange *)range));
 }
 
 DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationInfo *staInfo, int *staSize)

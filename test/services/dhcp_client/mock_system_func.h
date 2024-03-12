@@ -27,7 +27,7 @@ using ::testing::_;
 using ::testing::Return;
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class MockSystemFunc {
 public:
     MOCK_METHOD2(open, int(const char *__file, int __oflag));
@@ -54,6 +54,6 @@ private:
     ~MockSystemFunc()
     {}
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

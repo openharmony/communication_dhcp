@@ -16,7 +16,7 @@
 #include "mock_system_func.h"
 #include "dhcp_client_state_machine.h"
 
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 static bool g_mockTag = false;
 static int NUM_TWO = 2;
@@ -146,7 +146,7 @@ int __wrap_connect(int __fd, const struct sockaddr *__addr, socklen_t __len)
 int __real_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout)
 {
-    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> testMachine;
+    std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> testMachine;
     if (g_mockTag) {
         int nRet = MockSystemFunc::GetInstance().select(nfds, readfds, writefds, exceptfds, timeout);
         FD_ZERO(readfds);

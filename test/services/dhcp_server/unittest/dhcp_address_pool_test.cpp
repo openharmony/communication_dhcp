@@ -30,7 +30,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpAddressPoolTest");
 
 using namespace testing::ext;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpAddressPoolTest : public testing::Test {
 public:
     static void SetUpTestCase()

@@ -29,12 +29,12 @@
 #include "../interfaces/i_dhcp_server_callback.h"
 #include "../../../interfaces/inner_api/include/dhcp_define.h"
 
-class DhcpClientCallBack : public OHOS::Wifi::IDhcpClientCallBack {
+class DhcpClientCallBack : public OHOS::DHCP::IDhcpClientCallBack {
 public:
     DhcpClientCallBack();
     virtual ~DhcpClientCallBack();
 public:
-    void OnIpSuccessChanged(int status, const std::string& ifname, OHOS::Wifi::DhcpResult& result) override;
+    void OnIpSuccessChanged(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result) override;
     void OnIpFailChanged(int status, const std::string& ifname, const std::string& reason) override;
 #ifndef OHOS_ARCH_LITE
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
@@ -43,7 +43,7 @@ public:
     std::map<std::string, const ClientCallBack *> mapClientCallBack;
 };
 
-class DhcpServerCallBack : public OHOS::Wifi::IDhcpServerCallBack {
+class DhcpServerCallBack : public OHOS::DHCP::IDhcpServerCallBack {
 public:
     DhcpServerCallBack();
     virtual ~DhcpServerCallBack();
@@ -51,6 +51,7 @@ public:
     void OnServerStatusChanged(int status) override;
     void OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) override;
     void OnServerSerExitChanged(const std::string& ifname) override;
+    void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) override;
 #ifndef OHOS_ARCH_LITE
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif

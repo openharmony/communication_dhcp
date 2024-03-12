@@ -26,7 +26,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerImpl");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #define RETURN_IF_FAIL(cond)                          \
     do {                                              \
         if (!(cond)) {                                \
@@ -87,7 +87,7 @@ bool DhcpServerImpl::GetDhcpServerProxy()
         DHCP_LOGE("failed to get DEVICE_SERVICE");
         return false;
     }
-    client_ = iface_cast<OHOS::Wifi::IDhcpServer>(object);
+    client_ = iface_cast<OHOS::DHCP::IDhcpServer>(object);
     if (client_ == nullptr) {
         client_ = new (std::nothrow)DhcpServerProxy(object);
     }
@@ -182,5 +182,5 @@ ErrCode DhcpServerImpl::UpdateLeasesTime(const std::string& leaseTime)
     RETURN_IF_FAIL(GetDhcpServerProxy());
     return client_->UpdateLeasesTime(leaseTime);
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

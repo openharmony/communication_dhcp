@@ -22,7 +22,7 @@
 #include "dhcp_logger.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifndef NO_SANITIZE
 #ifdef __has_attribute
 #if __has_attribute(no_sanitize)
@@ -55,6 +55,6 @@ DhcpErrorCode GetCErrorCode(ErrCode errCode);
 int GetCallingPid();
 int GetCallingUid();
 int GetCallingTokenId();
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

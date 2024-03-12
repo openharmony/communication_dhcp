@@ -23,7 +23,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerProxyLite");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 static SvcIdentity g_sid;
 static IpcObjectStub g_objStub;
@@ -114,7 +114,7 @@ void DhcpServerProxy::ReleaseInstance(void)
 
 ErrCode DhcpServerProxy::Init(void)
 {
-    IUnknown *iUnknown = SAMGR_GetInstance()->GetFeatureApi(WIFI_SERVICE_LITE, DHCP_FEATRUE_SERVER);
+    IUnknown *iUnknown = SAMGR_GetInstance()->GetFeatureApi(DHCP_SERVICE_LITE, DHCP_FEATRUE_SERVER);
     if (iUnknown == nullptr) {
         DHCP_LOGE("GetFeatureApi failed.");
         return DHCP_E_FAILED;
@@ -129,7 +129,7 @@ ErrCode DhcpServerProxy::Init(void)
 
     // Register SA Death Callback
     uint32_t deadId = 0;
-    svcIdentity_ = SAMGR_GetRemoteIdentity(WIFI_SERVICE_LITE, DHCP_FEATRUE_SERVER);
+    svcIdentity_ = SAMGR_GetRemoteIdentity(DHCP_SERVICE_LITE, DHCP_FEATRUE_SERVER);
     result = AddDeathRecipient(svcIdentity_, OnRemoteSrvDied, nullptr, &deadId);
     if (result != 0) {
         DHCP_LOGE("Register SA Death Callback failed, errorCode[%d]", result);
@@ -558,5 +558,5 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
     }
     return ErrCode(owner.retCode);
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

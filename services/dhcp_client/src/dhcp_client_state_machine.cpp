@@ -42,7 +42,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
     m_sockFd(-1),
@@ -1702,5 +1702,5 @@ void DhcpClientStateMachine::DhcpTimer::UnRegister(uint32_t timerId)
     return;
 }
 #endif
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

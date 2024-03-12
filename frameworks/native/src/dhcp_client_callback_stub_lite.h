@@ -19,7 +19,7 @@
 #include "../interfaces/i_dhcp_client_callback.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientCallBackStub : public IDhcpClientCallBack {
 public:
     DhcpClientCallBackStub();
@@ -39,6 +39,6 @@ private:
     std::shared_ptr<IDhcpClientCallBack> callback_;
     bool mRemoteDied;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

@@ -27,7 +27,7 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class  DhcpClientStateMachine{
 public:
     DhcpClientStateMachine(std::string ifname);
@@ -138,6 +138,6 @@ typedef struct{
     DhcpClientStateMachine *pStaStateMachine;
     DhcpIpv6Client *pipv6Client;
 }DhcpClient;
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

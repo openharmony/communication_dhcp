@@ -19,7 +19,7 @@
 #include "../../../interfaces/kits/c/dhcp_error_code.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 static std::map<ErrCode, DhcpErrorCode> g_ErrCodeMap = {
     {DHCP_E_SUCCESS, DHCP_SUCCESS},
@@ -64,5 +64,5 @@ int GetCallingTokenId()
 #endif
 }
 
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

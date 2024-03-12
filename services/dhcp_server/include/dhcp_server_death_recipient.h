@@ -20,7 +20,7 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpServerDeathRecipient : public IRemoteObject::DeathRecipient {
 public:
     virtual void OnRemoteDied(const wptr<IRemoteObject>& remoteObject);

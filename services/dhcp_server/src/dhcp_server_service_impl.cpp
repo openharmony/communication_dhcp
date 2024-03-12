@@ -37,11 +37,12 @@
 #include "tokenid_kit.h"
 #include "accesstoken_kit.h"
 #endif
+#include <sstream>
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerServiceImpl");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 std::mutex DhcpServerServiceImpl::g_instanceLock;
 #ifdef OHOS_ARCH_LITE
@@ -144,8 +145,8 @@ void DhcpServerServiceImpl::StartServiceAbility(int sleepS)
             DHCP_LOGE("DhcpServerServiceImpl serviceManager is  nullptr, continue");
             continue;
         }
-        OHOS::sptr<OHOS::Wifi::DhcpServerServiceImpl> serverServiceImpl =
-            OHOS::Wifi::DhcpServerServiceImpl::GetInstance();
+        OHOS::sptr<OHOS::DHCP::DhcpServerServiceImpl> serverServiceImpl =
+            OHOS::DHCP::DhcpServerServiceImpl::GetInstance();
         int result = serviceManager->AddSystemAbility(DHCP_SERVER_ABILITY_ID, serverServiceImpl);
         if (result != 0) {
             DHCP_LOGE("DhcpServerServiceImpl AddSystemAbility error:%{public}d", result);
@@ -239,7 +240,9 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
     }
     DHCP_LOGD("localIp:%{public}s netmask:%{public}s  ipRange:%{public}s.", localIp.c_str(), netmask.c_str(),
         ipRange.c_str());
-    int ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
+
+    int ret = RegisterLeaseInfoCbks(GDealServerSuccess);
+    ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -251,6 +254,51 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
         }
     }
     return ErrCode(ret);
+}
+
+void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
+{
+    DHCP_LOGI("DealServerSuccess ifname:%{public}s.", ifname.c_str());
+    std::vector<std::string> leases;
+    std::vector<DhcpStationInfo> stationInfos;
+    GetDhcpClientInfos(ifname, leases);
+    ConvertLeasesToStationInfos(leases, stationInfos);
+    auto iter = m_mapServerCallBack.find(ifname);
+    if (iter != m_mapServerCallBack.end()) {
+        if ((iter->second) != nullptr) {
+            (iter->second)->OnServerSuccess(ifname, stationInfos);
+            return;
+        } else {
+            DHCP_LOGE("callbackFunc is null, ifname:%{public}s.", ifname.c_str());
+            return;
+        }
+    } else {
+        DHCP_LOGE("can't find ifname:%{public}s.", ifname.c_str());
+        return;
+    }
+}
+
+void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string> &leases,
+    std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("ConvertLeasesToStationInfos ");
+    for (const std::string& lease : leases) {
+        DhcpStationInfo info;
+        std::istringstream iss(lease);
+        if (!(iss >> info.macAddr >> info.ipAddr >> info.deviceName)) {
+            continue;
+        }
+        DHCP_LOGI("leases:%s ", lease.c_str());
+        DHCP_LOGI("stationInfos:%s, %s, %s ", info.macAddr, info.ipAddr, info.deviceName);
+        stationInfos.push_back(info);
+    }
+}
+
+void GDealServerSuccess(const char* ifname)
+{
+    DHCP_LOGI("GDealServerSuccess ifname:%{public}s.", ifname);
+    auto instance = DhcpServerServiceImpl::GetInstance();
+    instance->DealServerSuccess(ifname);
 }
 
 ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)

@@ -28,7 +28,7 @@
 #include "dhcp_client_callback_stub.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientStub : public IRemoteStub<IDhcpClient> {
 public:
     using handleFunc = int (DhcpClientStub::*)(
@@ -70,6 +70,6 @@ private:
     HandleFuncMap handleFuncMap;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

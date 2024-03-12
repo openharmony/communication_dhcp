@@ -21,9 +21,9 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultTest");
 
 using namespace testing::ext;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr int ARRAY_SIZE = 1030;
 class DhcpResultTest : public testing::Test {
 public:

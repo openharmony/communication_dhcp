@@ -30,7 +30,7 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 enum ClientServiceRunningState { STATE_NOT_START, STATE_RUNNING };
 #ifdef OHOS_ARCH_LITE
 class DhcpClientServiceImpl : public DhcpClientStub {
@@ -74,8 +74,8 @@ public:
     int DhcpIpv4ResultFail(const std::vector<std::string> &splits);
     int DhcpIpv4ResultTimeOut(const std::string &ifname);
     void DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info);
-    void PushDhcpResult(const std::string &ifname, OHOS::Wifi::DhcpResult &result);
-    bool CheckDhcpResultExist(const std::string &ifname, OHOS::Wifi::DhcpResult &result);
+    void PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
+    bool CheckDhcpResultExist(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
 public:
     // manager multi-instance
     std::mutex m_clientServiceMutex;
@@ -105,6 +105,6 @@ private:
     static sptr<DhcpClientServiceImpl> g_instance;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

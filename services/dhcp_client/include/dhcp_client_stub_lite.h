@@ -23,7 +23,7 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpClientStub : public IDhcpClient {
 public:
     DhcpClientStub();
@@ -43,6 +43,6 @@ private:
     HandleFuncMap handleFuncMap;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

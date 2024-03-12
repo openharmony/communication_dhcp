@@ -24,7 +24,7 @@
 #include "dhcp_ipc_lite_adapter.h"
 #include "dhcp_client_service_impl.h"
 
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 static std::shared_ptr<DhcpClientServiceImpl> g_dhcpClientServiceImpl = DhcpClientServiceImpl::GetInstance();
 
 typedef struct DhcpClientApi {

@@ -22,7 +22,7 @@
 #include <sys/stat.h>
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 const int ETH_MAC_ADDR_INDEX_0  = 0;
 const int ETH_MAC_ADDR_INDEX_1  = 1;
 const int ETH_MAC_ADDR_INDEX_2  = 2;
@@ -216,6 +216,6 @@ struct DhcpRange {
         strSubnet = "";
     }
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif /* OHOS_DHCP_DEFINE_H */

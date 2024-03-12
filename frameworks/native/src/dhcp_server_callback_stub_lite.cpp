@@ -20,7 +20,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStubLite");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 DhcpServreCallBackStub::DhcpServreCallBackStub() : userCallback_(nullptr), mRemoteDied(false)
 {
@@ -114,6 +114,14 @@ void DhcpServreCallBackStub::OnServerLeasesChanged(const std::string& ifname, st
     }
 }
 
+void DhcpServreCallBackStub::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("DhcpServreCallBackStub::OnServerSuccess, ifname:%{public}s", ifname.c_str());
+    if (userCallback_) {
+        userCallback_->OnServerSuccess(ifname.c_str(), stationInfos);
+    }
+}
+
 void DhcpServreCallBackStub::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServreCallBackStub::OnWifiWpsStateChanged, ifname:%{public}s", ifname.c_str());
@@ -137,10 +145,16 @@ int DhcpServreCallBackStub::RemoteOnServerLeasesChanged(uint32_t code, IpcIo *da
     return 0;
 }
 
+int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, IpcIo *data)
+{
+    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
+    return 0;
+}
+
 int DhcpServreCallBackStub::RemoteOnServerSerExitChanged(uint32_t code, IpcIo *data)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

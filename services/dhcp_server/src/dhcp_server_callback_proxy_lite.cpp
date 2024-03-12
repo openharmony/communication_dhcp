@@ -22,7 +22,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerCallbackProxyLite");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpServerCallbackProxy::DhcpServerCallbackProxy(SvcIdentity *sid) : sid_(*sid)
 {}
 
@@ -70,5 +70,11 @@ void DhcpServerCallbackProxy::OnServerSerExitChanged(const std::string& ifname)
     DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");
     return;
 }
-}  // namespace Wifi
+void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
+{
+    DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");
+    return;
+}
+
+}  // namespace DHCP
 }  // namespace OHOS

@@ -31,7 +31,7 @@
 #include "dhcp_ipv6_client.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6Client");
 
 const char *DEFAULUT_BAK_DNS = "240e:4c:4008::1";
@@ -489,5 +489,5 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
     DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag);
     runFlag = false;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

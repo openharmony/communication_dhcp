@@ -27,7 +27,7 @@
 #include "dhcp_logger.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpFunction");
 
 const int MAX_RETEY_WAIT_COUNT = 60;
@@ -722,5 +722,5 @@ int DhcpFunction::WaitProcessExit(const pid_t& serverPid)
     DHCP_LOGE("WaitProcessExit() timeout waitpid [%{public}d] failed!", serverPid);
     return -1;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

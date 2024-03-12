@@ -24,7 +24,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSocketTest");
 
 using namespace testing::ext;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 namespace OHOS {
 class DhcpSocketTest : public testing::Test {

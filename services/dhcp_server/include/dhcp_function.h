@@ -27,7 +27,7 @@
 #include "dhcp_define.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpFunction {
 public:
     DhcpFunction() {}
@@ -62,6 +62,6 @@ public:
 #else
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

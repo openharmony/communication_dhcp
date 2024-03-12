@@ -22,9 +22,9 @@
 #include "message_option.h"
 #endif
 #include "../../../interfaces/inner_api/include/dhcp_define.h"
-
+#include "dhcp_result_event.h"
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 #ifdef OHOS_ARCH_LITE
 class IDhcpServerCallBack {
 #else
@@ -35,11 +35,12 @@ public:
     virtual void OnServerStatusChanged(int status) = 0;
     virtual void OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) = 0;
     virtual void OnServerSerExitChanged(const std::string& ifname) = 0;
+    virtual void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) = 0;
 #ifndef OHOS_ARCH_LITE
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.wifi.IDhcpServerCallBack");
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

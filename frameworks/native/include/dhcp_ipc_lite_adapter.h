@@ -19,7 +19,7 @@
 #define DHCP_CLIENT_LITE "dhcpclientlite"
 #define DHCP_FEATRUE_CLIENT "dhcpclient"
 
-#define WIFI_SERVICE_LITE "dhcpserverlite"
+#define DHCP_SERVICE_LITE "dhcpserverlite"
 #define DHCP_FEATRUE_SERVER "dhcpserver"
 
 #define IPC_DATA_SIZE_BIG 2048

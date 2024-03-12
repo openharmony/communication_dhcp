@@ -83,6 +83,7 @@ struct ServerContext {
     int broadCastFlagEnable;
     DhcpAddressPool addressPool;
     DhcpServerCallback callback;
+    LeasesChangeFunc leasesfunc;
     DhcpConfig config;
     int serverFd;
     int looperState;
@@ -560,12 +561,7 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
         if (replyType && SendDhcpReply(ctx, replyType, &reply) != RET_SUCCESS) {
             DHCP_LOGE("failed to send reply message.");
         }
-        if (replyType == REPLY_ACK || replyType == REPLY_OFFER) {
-            int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
-            if (saveRet != RET_SUCCESS && saveRet != RET_WAIT_SAVE) {
-                DHCP_LOGW("failed to save lease recoders.");
-            }
-        }
+        CheckAndNotifyServerSuccess(replyType, ctx);
     }
     FreeOptionList(&from.options);
     FreeOptionList(&reply.options);
@@ -574,6 +570,22 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
     ctx->instance->serverFd = -1;
     srvIns->looperState = LS_STOPED;
     return nullptr;
+}
+
+void CheckAndNotifyServerSuccess(int replyType, PDhcpServerContext ctx)
+{
+    ServerContext *srvIns = GetServerInstance(ctx);
+    if (replyType == REPLY_ACK || replyType == REPLY_OFFER) {
+        int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
+        if (saveRet != RET_SUCCESS && saveRet != RET_WAIT_SAVE) {
+            DHCP_LOGW("failed to save lease recoders.");
+        }
+        if (replyType == REPLY_ACK && srvIns->leasesfunc != NULL) {
+            DHCP_LOGI("REPLY_ACK trigger OnServerSuccess");
+            srvIns->leasesfunc(ctx->ifname);
+        }
+    }
+    return;
 }
 
 static int CheckAddressRange(DhcpAddressPool *pool)
@@ -649,6 +661,11 @@ void InitLeaseFile(DhcpAddressPool *pool)
     InitBindingRecoders(pool);
 }
 
+static void ExitProcess(void)
+{
+    DHCP_LOGD("dhcp server stopped.");
+}
+
 int StartDhcpServer(PDhcpServerContext ctx)
 {
     DHCP_LOGI("%{public}s  %{public}d  start", __func__, __LINE__);
@@ -665,7 +682,9 @@ int StartDhcpServer(PDhcpServerContext ctx)
         DHCP_LOGE("dhcp server context instance pointer is null.");
         return RET_FAILED;
     }
-
+    if (atexit(ExitProcess) != 0) {
+        DHCP_LOGW("failed to regiester exit process function.");
+    }
     if (!srvIns->initialized) {
         DHCP_LOGE("dhcp server no initialized.");
         return RET_FAILED;
@@ -1615,6 +1634,17 @@ void RegisterDhcpCallback(PDhcpServerContext ctx, DhcpServerCallback callback)
         return;
     }
     srvIns->callback = callback;
+}
+
+void RegisterLeasesChangedCallback(PDhcpServerContext ctx, LeasesChangeFunc func)
+{
+    DHCP_LOGI("start %{public}s   %{public}d.", __func__, __LINE__);
+    ServerContext *srvIns = GetServerInstance(ctx);
+    if (!srvIns) {
+        DHCP_LOGE("dhcp server context pointer is null.");
+        return;
+    }
+    srvIns->leasesfunc = func;
 }
 
 static int InitServerContext(DhcpConfig *config, DhcpServerContext *ctx)

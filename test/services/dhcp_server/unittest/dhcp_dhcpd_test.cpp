@@ -24,9 +24,9 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpDhcpdTest");
 
 using namespace testing::ext;
 using namespace OHOS;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpDhcpdTest : public testing::Test {
 public:
     static void SetUpTestCase()

@@ -16,7 +16,7 @@
 #define OHOS_DHCP_MANAGER_SERVICE_IPC_INTERFACE_CODE_H
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 enum class  DhcpClientInterfaceCode {
     DHCP_CLIENT_SVR_CMD_REG_CALL_BACK = 0x4000,
     DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT = 0x4001,
@@ -46,7 +46,8 @@ enum class  DhcpServerInterfaceCode {
     DHCP_SERVER_CBK_SERVER_STATUS_CHANGE = 0x7000,
     DHCP_SERVER_CBK_SERVER_LEASES_CHANGE = 0x7001,
     DHCP_SERVER_CBK_SER_EXIT_CHANGE = 0x7002,
+    DHCP_SERVER_CBK_SERVER_SUCCESS = 0x7003,
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

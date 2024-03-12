@@ -23,7 +23,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientProxy");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 static sptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub =
     sptr<DhcpClientCallBackStub>(new (std::nothrow)DhcpClientCallBackStub());
 
@@ -237,5 +237,5 @@ ErrCode DhcpClientProxy::RenewDhcpClient(const std::string& ifname)
     DHCP_LOGI("RenewDhcpClient ok, exception:%{public}d", exception);
     return DHCP_E_SUCCESS;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

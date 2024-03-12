@@ -64,7 +64,7 @@ static int AddOptDoubleValueToOpts(uint8_t *pOpts, uint8_t code, uint32_t value1
 int __real_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd);
 int __wrap_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
 {
-    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> testMachine;
+    std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> testMachine;
     if (g_mockTag) {
         int nLen = MockCustomFunc::GetInstance().GetDhcpRawPacket(getPacket, rawFd);
         char cliIp[INET_ADDRSTRLEN] = "192.77.2.231";
@@ -99,7 +99,7 @@ int __wrap_GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
 int __real_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd);
 int __wrap_GetDhcpKernelPacket(struct DhcpPacket *getPacket, int sockFd)
 {
-    std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> testMachine;
+    std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> testMachine;
     if (g_mockTag) {
         int nLen = MockCustomFunc::GetInstance().GetDhcpKernelPacket(getPacket, sockFd);
         char cliIp[INET_ADDRSTRLEN] = "192.77.3.231";

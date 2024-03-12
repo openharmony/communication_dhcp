@@ -18,7 +18,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientCallBackStub");
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DhcpClientCallBackStub::DhcpClientCallBackStub() : callback_(nullptr), mRemoteDied(false)
 {
     DHCP_LOGI("DhcpClientCallBackStub Enter DhcpClientCallBackStub");
@@ -132,5 +132,5 @@ int DhcpClientCallBackStub::RemoteOnIpFailChanged(uint32_t code, MessageParcel &
     reply.WriteInt32(0);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

@@ -23,7 +23,7 @@
 #endif
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 
 #ifdef OHOS_ARCH_LITE
 class DhcpServerCallbackProxy : public IDhcpServerCallBack {
@@ -39,6 +39,7 @@ public:
     void OnServerStatusChanged(int status) override;
     void OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) override;
     void OnServerSerExitChanged(const std::string& ifname) override;
+    void OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos) override;
 
 private:
 #ifdef OHOS_ARCH_LITE
@@ -48,6 +49,6 @@ private:
     static inline BrokerDelegator<DhcpServerCallbackProxy> g_delegator;
 #endif
 };
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

@@ -18,10 +18,10 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientDeathRecipient");
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 void DhcpClientDeathRecipient::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
 {
     DHCP_LOGD("DhcpClientDeathRecipient::OnRemoteDied!");
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
