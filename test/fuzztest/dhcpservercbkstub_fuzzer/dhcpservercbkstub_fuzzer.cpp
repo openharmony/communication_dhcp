@@ -18,6 +18,8 @@
 #include "../../include/dhcp_event.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
 #include "../../../frameworks/native/src/dhcp_server_callback_stub.h"
+#include "dhcp_fuzz_common_func.h"
+
 
 namespace OHOS {
 namespace Wifi {
@@ -25,11 +27,6 @@ constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MAP_SCAN_NUMS = 5;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpServerCallBack";
 std::shared_ptr<DhcpServreCallBackStub> pDhcpServerCbkStub = std::make_shared<DhcpServreCallBackStub>();
-
-inline uint32_t u32_AT(const uint8_t* data)
-{
-    return (data[0] << 24) | (data[1] << 16) | (data[2] << 0) | data[3];
-}
 
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {

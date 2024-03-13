@@ -27,6 +27,7 @@ ohos_fuzztest("ServerStubFuzzTest") {
     "$DHCP_ROOT_DIR/frameworks/native/include",
     "$DHCP_ROOT_DIR/frameworks/native/interfaces",
     "$DHCP_ROOT_DIR/services/dhcp_server/include",
+    "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
     "$DHCP_ROOT_DIR/services",
   ]
 

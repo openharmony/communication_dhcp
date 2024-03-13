@@ -21,6 +21,8 @@
 #include "dhcp_client_service_impl.h"
 #include "dhcp_client_stub.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
+#include "dhcp_fuzz_common_func.h"
+
 
 namespace OHOS {
 namespace Wifi {
@@ -29,14 +31,9 @@ constexpr size_t MAP_SCAN_NUMS = 10;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
 
-inline uint32_t u32_AT(const uint8_t* data)
-{
-    return (data[0] << 24) | (data[1] << 16) | (data[2] << 0) | data[3];
-}
-
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
-    uint32_t code = u32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
+    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
     (DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
