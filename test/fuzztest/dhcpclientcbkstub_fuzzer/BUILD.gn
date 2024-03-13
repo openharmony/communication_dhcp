@@ -17,7 +17,7 @@ import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DhcpClientCbkFuzzTest") {
+ohos_fuzztest("DhcpClientCbkStubFuzzTest") {
   module_out_path = dhcp_fuzz_output_path
   fuzz_config_file =
       "$DHCP_ROOT_DIR/test/fuzztest/dhcpclientcbkstub_fuzzer"
@@ -41,6 +41,7 @@ ohos_fuzztest("DhcpClientCbkFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "ipc:ipc_single",
+    "hilog:libhilog",
   ]
 
   part_name = "dhcp"

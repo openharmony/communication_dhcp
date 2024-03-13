@@ -21,7 +21,7 @@ group("fuzztest") {
     "dhcpclient_fuzzer:DhcpClientFuzzTest",
     "dhcpserver_fuzzer:DhcpServerFuzzTest",
     "serverstub_fuzzer:ServerStubFuzzTest",
-    "dhcpclientcbkstub_fuzzer:DhcpClientCbktFuzzTest",
-    "dhcpservercbkstub_fuzzer:DhcpServerCbktFuzzTest",
+    "dhcpclientcbkstub_fuzzer:DhcpClientCbkStubFuzzTest",
+    "dhcpservercbkstub_fuzzer:DhcpServerCbkFuzzTest",
   ]
 }

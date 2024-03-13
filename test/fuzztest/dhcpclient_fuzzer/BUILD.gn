@@ -41,6 +41,7 @@ ohos_fuzztest("DhcpClientFuzzTest") {
   external_deps = [
     "c_utils:utils",
     "ipc:ipc_single",
+    "hilog:libhilog",
   ]
 
   part_name = "dhcp"

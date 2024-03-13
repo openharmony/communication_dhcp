@@ -27,7 +27,7 @@ namespace Wifi {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MAP_SCAN_NUMS = 10;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
-std::shared_ptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
+sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
 
 inline uint32_t u32_AT(const uint8_t* data)
 {
@@ -36,7 +36,7 @@ inline uint32_t u32_AT(const uint8_t* data)
 
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
-    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
+    uint32_t code = u32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
     (DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);

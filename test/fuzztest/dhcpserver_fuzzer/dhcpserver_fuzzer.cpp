@@ -13,7 +13,8 @@
  * limitations under the License.
  */
 
-#include "dhcpclient_fuzzer.h"
+#include "dhcpserver_fuzzer.h"
+#include "dhcp_define.h"
 #include "../../../interfaces/inner_api/dhcp_server.h"
 #include "../../include/dhcp_event.h"
 
@@ -29,14 +30,13 @@ namespace Wifi {
         }
         std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
         DhcpRange range;
-        int index = 0;
         int call =2;
         range.strTagName = std::string(reinterpret_cast<const char*>(data), size);
         range.strStartip = std::string(reinterpret_cast<const char*>(data), size);
         range.strEndip = std::string(reinterpret_cast<const char*>(data), size);
         range.strSubnet = std::string(reinterpret_cast<const   char*>(data), size);
-        range.iptype = static_cast<int>(data[index++]) % call;
-        range.leaseHours = static_cast<int>(data[index++]);
+        range.iptype = static_cast<int>(data[0]) % call;
+        range.leaseHours = static_cast<int>(data[0]);
         std::vector<std::string> dhcpClientInfo;
         dhcpClientInfo.push_back(std::string(reinterpret_cast<const   char*>(data), size));
 
@@ -46,7 +46,7 @@ namespace Wifi {
         dhcpServer->RemoveDhcpRange(ifname, range);
         dhcpServer->RemoveAllDhcpRange(ifname);
         dhcpServer->SetDhcpRange(ifname, range);
-        dhcpServer->SetDhcpName(ifname, range);
+        dhcpServer->SetDhcpName(ifname, ifname);
         dhcpServer->GetDhcpClientInfos(ifname, dhcpClientInfo);
         dhcpServer->UpdateLeasesTime(ifname);
         dhcpServer->RegisterDhcpServerCallBack(ifname, dhcpServerCallBack);

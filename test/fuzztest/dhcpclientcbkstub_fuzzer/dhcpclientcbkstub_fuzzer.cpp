@@ -17,9 +17,9 @@
 #include "../../../interfaces/inner_api/dhcp_client.h"
 #include "../../include/dhcp_event.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
-#include "dhcp_client_callback_stub.h"
+#include "../../../frameworks/native/src/dhcp_client_callback_stub.h"
 
-amespace OHOS {
+namespace OHOS {
 namespace Wifi {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MAP_SCAN_NUMS = 4;
@@ -33,7 +33,7 @@ inline uint32_t u32_AT(const uint8_t* data)
 
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
-    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
+    uint32_t code = u32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
     (DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_SUCCESS_CHANGE);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);

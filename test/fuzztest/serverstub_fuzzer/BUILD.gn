@@ -26,7 +26,7 @@ ohos_fuzztest("ServerStubFuzzTest") {
     "$DHCP_ROOT_DIR/interfaces/inner_api",
     "$DHCP_ROOT_DIR/frameworks/native/include",
     "$DHCP_ROOT_DIR/frameworks/native/interfaces",
-    "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_server/include",
     "$DHCP_ROOT_DIR/services",
   ]
 
@@ -38,7 +38,10 @@ ohos_fuzztest("ServerStubFuzzTest") {
   ]
   sources = [ "serverstub_fuzzer.cpp" ]
 
-  deps = [ "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk" ]
+  deps = [
+    "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
+    "$DHCP_ROOT_DIR/services/dhcp_server:dhcp_server",
+  ]
 
   external_deps = [
     "c_utils:utils",

@@ -15,11 +15,11 @@
 
 #include <cstddef>
 #include <cstdint>
-#include "dhcpclient_fuzzer.h"
+#include "serverstub_fuzzer.h"
 #include "message_parcel.h"
 #include "securec.h"
-#include "dhcp_client_service_impl.h"
-#include "dhcp_client_stub.h"
+#include "dhcp_server_service_impl.h"
+#include "dhcp_server_stub.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
 
 namespace OHOS {
@@ -27,7 +27,7 @@ namespace Wifi {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MAP_SCAN_NUMS = 20;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpServer";
-std::shared_ptr<DhcpServerStub> pDhcpServerStub = DhcpServerServiceImpl::GetInstance();
+sptr<DhcpServerStub> pDhcpServerStub = DhcpServerServiceImpl::GetInstance();
 
 inline uint32_t u32_AT(const uint8_t* data)
 {
@@ -36,8 +36,8 @@ inline uint32_t u32_AT(const uint8_t* data)
 
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
-    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
-    (DhcpServerInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
+    uint32_t code = u32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
+    (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
