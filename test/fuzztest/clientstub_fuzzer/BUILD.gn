@@ -18,7 +18,7 @@ import("//foundation/communication/dhcp/dhcp.gni")
 
 ##############################fuzztest##########################################
 ohos_fuzztest("ClientStubFuzzTest") {
-  module_out_path = fuzz_test_output_path
+  module_out_path = dhcp_fuzz_output_path
   fuzz_config_file =
       "$DHCP_ROOT_DIR/test/fuzztest/clientstub_fuzzer"
 

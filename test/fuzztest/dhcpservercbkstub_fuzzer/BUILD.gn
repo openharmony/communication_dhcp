@@ -17,10 +17,10 @@ import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DhcpServerFuzzTest") {
+ohos_fuzztest("DhcpServerCbktFuzzTest") {
   module_out_path = dhcp_fuzz_output_path
   fuzz_config_file =
-      "$DHCP_ROOT_DIR/test/fuzztest/dhcpclient_fuzzer"
+      "$DHCP_ROOT_DIR/test/fuzztest/dhcpservercbkstub_fuzzer"
 
   include_dirs = [
     "$DHCP_ROOT_DIR/interfaces/inner_api",
@@ -34,7 +34,7 @@ ohos_fuzztest("DhcpServerFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "dhcpserver_fuzzer.cpp" ]
+  sources = [ "dhcpservercbkstub_fuzzer.cpp" ]
 
   deps = [ "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk" ]
 

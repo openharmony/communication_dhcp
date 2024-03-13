@@ -14,6 +14,7 @@
 SUBSYSTEM_DIR = "//foundation/communication"
 WIFI_ROOT_DIR = "$SUBSYSTEM_DIR/wifi/wifi"
 DHCP_ROOT_DIR = "$SUBSYSTEM_DIR/dhcp"
+dhcp_fuzz_output_path = "dhcp/dhcp/dhcp_fuzz"
 
 declare_args() {
 }

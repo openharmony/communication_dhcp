@@ -13,21 +13,18 @@
  * limitations under the License.
  */
 
-#include <cstddef>
-#include <cstdint>
-#include "clientstub_fuzzer.h"
-#include "message_parcel.h"
-#include "securec.h"
-#include "dhcp_client_service_impl.h"
-#include "dhcp_client_stub.h"
+#include "dhcpservercbkstub_fuzzer.h"
+#include "../../../interfaces/inner_api/dhcp_client.h"
+#include "../../include/dhcp_event.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
+#include "dhcp_server_callback_stub.h"
 
-namespace OHOS {
+amespace OHOS {
 namespace Wifi {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
-constexpr size_t MAP_SCAN_NUMS = 10;
-const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
-std::shared_ptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
+constexpr size_t MAP_SCAN_NUMS = 5;
+const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpServerCallBack";
+std::shared_ptr<DhcpServreCallBackStub> pDhcpServerCbkStub = std::make_shared<DhcpServreCallBackStub>();
 
 inline uint32_t u32_AT(const uint8_t* data)
 {
@@ -37,7 +34,7 @@ inline uint32_t u32_AT(const uint8_t* data)
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
     uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
-    (DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
+    (DhcpServerInterfaceCode::DHCP_SERVER_CBK_SERVER_STATUS_CHANGE);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
@@ -45,7 +42,7 @@ void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
     datas.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
-    pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
+    pDhcpClientCbkStub->OnRemoteRequest(code, datas, reply, option);
 }
 
 /* Fuzzer entry point */
@@ -59,3 +56,4 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 }
 }  // namespace Wifi
 }  // namespace OHOS
+
