@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef SERVER_STUB_FUZZ_H_
-#define SERVER_STUB_FUZZ_H_
+#ifndef SERVER_STUB_FUZZ_H
+#define SERVER_STUB_FUZZ_H
 
 #define FUZZ_PROJECT_NAME "serverstub_fuzzer"
 

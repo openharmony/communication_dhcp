@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef DHCP_CLIENT_FUZZ_H_
-#define DHCP_CLIENT_FUZZ_H_
+#ifndef DHCP_CLIENT_FUZZ_H
+#define DHCP_CLIENT_FUZZ_H
 
 #define FUZZ_PROJECT_NAME "dhcpclient_fuzzer"
 

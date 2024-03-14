@@ -30,7 +30,7 @@ namespace Wifi {
         }
         std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
         DhcpRange range;
-        int call =2;
+        int call = 2;
         range.strTagName = std::string(reinterpret_cast<const char*>(data), size);
         range.strStartip = std::string(reinterpret_cast<const char*>(data), size);
         range.strEndip = std::string(reinterpret_cast<const char*>(data), size);

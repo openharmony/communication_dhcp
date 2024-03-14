@@ -19,12 +19,12 @@ import("//foundation/communication/dhcp/dhcp.gni")
 ##############################fuzztest##########################################
 ohos_fuzztest("ClientStubFuzzTest") {
   module_out_path = dhcp_fuzz_output_path
-  fuzz_config_file =
-      "$DHCP_ROOT_DIR/test/fuzztest/clientstub_fuzzer"
+  fuzz_config_file = "$DHCP_ROOT_DIR/test/fuzztest/clientstub_fuzzer"
 
   include_dirs = [
     "$DHCP_ROOT_DIR/interfaces/inner_api",
     "$DHCP_ROOT_DIR/frameworks/native/include",
+    "$DHCP_ROOT_DIR/frameworks/native/src",
     "$DHCP_ROOT_DIR/frameworks/native/interfaces",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
@@ -41,7 +41,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
 
   deps = [
     "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
-    "$DHCP_ROOT_DIR/services/dhcp_server:dhcp_server",
+    "$DHCP_ROOT_DIR/services/dhcp_client:dhcp_client",
   ]
 
   external_deps = [

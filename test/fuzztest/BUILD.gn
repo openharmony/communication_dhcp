@@ -19,9 +19,9 @@ group("fuzztest") {
   deps += [
     "clientstub_fuzzer:ClientStubFuzzTest",
     "dhcpclient_fuzzer:DhcpClientFuzzTest",
-    "dhcpserver_fuzzer:DhcpServerFuzzTest",
-    "serverstub_fuzzer:ServerStubFuzzTest",
     "dhcpclientcbkstub_fuzzer:DhcpClientCbkStubFuzzTest",
+    "dhcpserver_fuzzer:DhcpServerFuzzTest",
     "dhcpservercbkstub_fuzzer:DhcpServerCbkStubFuzzTest",
+    "serverstub_fuzzer:ServerStubFuzzTest",
   ]
 }

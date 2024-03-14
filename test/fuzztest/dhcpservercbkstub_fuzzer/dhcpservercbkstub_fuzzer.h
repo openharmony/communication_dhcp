@@ -13,8 +13,8 @@
  * limitations under the License.
  */
 
-#ifndef DHCP_SERVER_STUB_FUZZ_H_
-#define DHCP_SERVER_STUB_FUZZ_H_
+#ifndef DHCP_SERVER_STUB_FUZZ_H
+#define DHCP_SERVER_STUB_FUZZ_H
 
 #define FUZZ_PROJECT_NAME "dhcpservercbkstub_fuzzer"
 
