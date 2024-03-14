@@ -344,7 +344,6 @@ int DhcpClientStateMachine::ExitIpv4(void)
         m_pthread = nullptr;
         DHCP_LOGI("StopIpv4 delete m_pthread!");
     }
-    m_renewThreadIsRun = false;
     DHCP_LOGI("ExitIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     return DHCP_OPT_SUCCESS;
 }
@@ -354,7 +353,6 @@ int DhcpClientStateMachine::StopIpv4(void)
     DHCP_LOGI("StopIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     if (!m_cltCnf.timeoutExit) { // thread not exit
         int signum = SIG_STOP;
-        m_cltCnf.timeoutExit = true;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_STOP SignalReceiver
             DHCP_LOGE("StopIpv4 send failed.");
             return DHCP_OPT_FAILED;
