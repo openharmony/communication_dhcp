@@ -489,7 +489,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     result.strDns2      = info.dnsAddr2;
     result.strRouter2   = "*";
     result.strLinkIpv6Addr = info.linkIpv6Addr;
-    result.strRandIpv6Addr = info.randIpv6Addr; // 预留，目前为空
+    result.strRandIpv6Addr = info.randIpv6Addr; // Reserved, randIpv6Addrr is empty.
 
     std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     PushDhcpResult(ifname, result);
