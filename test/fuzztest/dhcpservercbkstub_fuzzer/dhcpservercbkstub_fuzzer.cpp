@@ -30,7 +30,7 @@ std::shared_ptr<DhcpServreCallBackStub> pDhcpServerCbkStub = std::make_shared<Dh
 
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
-    uint32_t code = u32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
+    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
     (DhcpServerInterfaceCode::DHCP_SERVER_CBK_SERVER_STATUS_CHANGE);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
@@ -39,7 +39,7 @@ void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
     datas.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
-    pDhcpClientCbkStub->OnRemoteRequest(code, datas, reply, option);
+    pDhcpServerCbkStub->OnRemoteRequest(code, datas, reply, option);
 }
 
 /* Fuzzer entry point */

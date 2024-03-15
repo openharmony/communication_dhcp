@@ -29,7 +29,7 @@ std::shared_ptr<DhcpClientCallBackStub> pDhcpClientCbkStub = std::make_shared<Dh
 
 void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
-    uint32_t code = u32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
+    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
     (DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_SUCCESS_CHANGE);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
