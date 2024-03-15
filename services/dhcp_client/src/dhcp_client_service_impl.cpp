@@ -471,31 +471,36 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
 {
-    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || !IsGlobalIPv6Address(info.globalIpv6Addr)) {
-        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s",
-            info.globalIpv6Addr, info.routeAddr);
+    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || strlen(info.linkIpv6Addr) == 0 ||
+        !IsGlobalIPv6Address(info.globalIpv6Addr)) {
+        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s", info.globalIpv6Addr,
+            info.routeAddr);
         return;
     }
     OHOS::DHCP::DhcpResult result;
     result.uAddTime = (uint32_t)time(NULL);
     result.iptype = 1;
     result.isOptSuc     = true;
+    result.uGetTime     = (uint32_t)time(NULL);
     result.strYourCli   = info.globalIpv6Addr;
     result.strSubnet    = info.ipv6SubnetAddr;
     result.strRouter1   = info.routeAddr;
     result.strDns1      = info.dnsAddr;
     result.strDns2      = info.dnsAddr2;
     result.strRouter2   = "*";
-    result.uGetTime     = (uint32_t)time(NULL);
+    result.strLinkIpv6Addr = info.linkIpv6Addr;
+    result.strRandIpv6Addr = info.randIpv6Addr; // Reserved, randIpv6Addrr is empty.
 
     std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
         "Subnet:%{private}s, Dns1:%{private}s, Dns2:%{private}s, Router1:%{private}s, Router2:%{private}s, "
-        "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
+        "strVendor:%{public}s, strLinkIpv6Addr:%{private}s, strRandIpv6Addr:%{private}s, uLeaseTime:%{public}u, "
+        "uAddTime:%{public}u, uGetTime:%{public}u.",
         ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
         result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
-        result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
+        result.strRouter2.c_str(), result.strVendor.c_str(), result.strLinkIpv6Addr.c_str(),
+        result.strRandIpv6Addr.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
     
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {

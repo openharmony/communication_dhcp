@@ -61,6 +61,12 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
     if (strcpy_s(dhcpResult.strOptVendor, DHCP_MAX_FILE_BYTES, result.strVendor.c_str()) != EOK) {
         DHCP_LOGE("OnIpSuccessChanged strOptVendor strcpy_s failed!");
     }
+    if (strcpy_s(dhcpResult.strOptLinkIpv6Addr, DHCP_MAX_FILE_BYTES, result.strLinkIpv6Addr.c_str()) != EOK) {
+        DHCP_LOGE("OnIpSuccessChanged strOptLinkIpv6Addr strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptRandIpv6Addr, DHCP_MAX_FILE_BYTES, result.strRandIpv6Addr.c_str()) != EOK) {
+        DHCP_LOGE("OnIpSuccessChanged strOptRandIpv6Addr strcpy_s failed!");
+    }
     auto iter = mapClientCallBack.find(ifname);
     if ((iter != mapClientCallBack.end()) && (iter->second != nullptr) &&
         (iter->second->OnIpSuccessChanged != nullptr)) {

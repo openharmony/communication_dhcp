@@ -135,6 +135,8 @@ struct DhcpResult {
     std::string strRouter1; /* your (client) router1 */
     std::string strRouter2; /* your (client) router2 */
     std::string strVendor;  /* your (client) vendor */
+    std::string strLinkIpv6Addr;  /* your (client) link ipv6 addr */
+    std::string strRandIpv6Addr;  /* your (client) rand ipv6 addr */
     uint32_t uLeaseTime;    /* your (client) IP lease time (s) */
     uint32_t  uAddTime;      /* dhcp result add time */
     uint32_t uGetTime;      /* dhcp result get time */
@@ -151,6 +153,8 @@ struct DhcpResult {
         strRouter1  = "";
         strRouter2  = "";
         strVendor   = "";
+        strLinkIpv6Addr = "";
+        strRandIpv6Addr = "";
         uLeaseTime  = 0;
         uAddTime    = 0;
         uGetTime    = 0;

@@ -41,6 +41,8 @@ typedef struct{
     char strOptRouter1[DHCP_MAX_FILE_BYTES];    /* your (client) router1 */
     char strOptRouter2[DHCP_MAX_FILE_BYTES];    /* your (client) router2 */
     char strOptVendor[DHCP_MAX_FILE_BYTES];     /* your (client) vendor */
+    char strOptLinkIpv6Addr[DHCP_MAX_FILE_BYTES];    /* your (client) link ipv6 addr */
+    char strOptRandIpv6Addr[DHCP_MAX_FILE_BYTES];    /* your (client) rand ipv6 addr */
     uint32_t uOptLeasetime;                     /* your (client) IP lease time (s) */
     uint32_t uAddTime;                          /* dhcp result add time */
     uint32_t uGetTime;                          /* dhcp result get time */
