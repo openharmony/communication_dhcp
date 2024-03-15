@@ -113,7 +113,6 @@ if (defined(ohos_lite)) {
       "-Wl,-E",
     ]
     shlib_type = "sa"
-    version_script = "libdhcp_client.map"
     public_configs = [ ":dhcp_manager_service_header" ]
     part_name = "dhcp"
     subsystem_name = "communication"

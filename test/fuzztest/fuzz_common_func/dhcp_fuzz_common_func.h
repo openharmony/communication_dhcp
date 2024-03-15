@@ -13,18 +13,13 @@
  * limitations under the License.
  */
 
-#ifndef DHCP_FUZZ_COMMON_FUNC_H_
-#define DHCP_FUZZ_COMMON_FUNC_H_
+#ifndef DHCP_FUZZ_COMMON_FUNC_H
+#define DHCP_FUZZ_COMMON_FUNC_H
 
 #include <cstdint>
 
 namespace OHOS {
 namespace Wifi {
-inline uint16_t U16_AT(const uint8_t* data)
-{
-    return (data[0] << 8) | data[1];
-}
-
 inline uint32_t U32_AT(const uint8_t* data)
 {
     return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
