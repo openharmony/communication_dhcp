@@ -22,7 +22,7 @@
 #include "message_option.h"
 #endif
 #include "i_dhcp_client_callback.h"
-#include "../../../interfaces/inner_api/include/dhcp_define.h"
+#include "inner_api/include/dhcp_define.h"
 #include "dhcp_errcode.h"
 
 namespace OHOS {

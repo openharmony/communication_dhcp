@@ -58,8 +58,8 @@ if (defined(ohos_lite)) {
     deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
       "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
-      "//third_party/bounds_checking_function:libsec_shared",
     ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
     defines = [
       "_GNU_SOURCE",
       "OHOS_ARCH_LITE",
@@ -140,10 +140,6 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
     ]
     include_dirs = local_base_include_dirs
-    include_dirs += [
-      "//commonlibrary/c_utils/base/include",
-      "//third_party/bounds_checking_function/include",
-    ]
 
     cflags_cc = [
       "-std=c++17",
@@ -155,9 +151,10 @@ if (defined(ohos_lite)) {
       "OHOS_EUPDATER",
     ]
 
-    deps = [ "//third_party/bounds_checking_function:libsec_shared" ]
+    deps = []
 
     external_deps = [
+      "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
     ]

@@ -21,7 +21,7 @@
 #include "message_parcel.h"
 #include "message_option.h"
 #endif
-#include "../../../interfaces/inner_api/include/dhcp_define.h"
+#include "inner_api/include/dhcp_define.h"
 
 namespace OHOS {
 namespace DHCP {

@@ -16,7 +16,7 @@ if (defined(ohos_lite)) {
   import("//foundation/communication/wifi/wifi/wifi_lite.gni")
 } else {
   import("//build/ohos.gni")
-  import("//foundation/communication/wifi/wifi/wifi.gni")
+  import("//foundation/communication/dhcp/dhcp.gni")
 }
 
 group("dhcp_system_ability") {

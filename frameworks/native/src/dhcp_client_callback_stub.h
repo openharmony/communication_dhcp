@@ -18,7 +18,7 @@
 #include "iremote_stub.h"
 #include "iremote_object.h"
 #endif
-#include "../interfaces/i_dhcp_client_callback.h"
+#include "i_dhcp_client_callback.h"
 #include "dhcp_errcode.h"
 
 namespace OHOS {

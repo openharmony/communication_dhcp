@@ -22,7 +22,7 @@
 
 #include "dhcp_client_service_impl.h"
 #include "dhcp_logger.h"
-#include "../../../interfaces/inner_api/include/dhcp_define.h"
+#include "inner_api/include/dhcp_define.h"
 #include "dhcp_result.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpResult");

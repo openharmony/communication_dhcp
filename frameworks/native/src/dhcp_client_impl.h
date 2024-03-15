@@ -17,9 +17,9 @@
 
 #include <string>
 #include "singleton.h"
-#include "../interfaces/i_dhcp_client.h"
-#include "../interfaces/i_dhcp_client_callback.h"
-#include "../../../interfaces/inner_api/dhcp_client.h"
+#include "i_dhcp_client.h"
+#include "i_dhcp_client_callback.h"
+#include "inner_api/dhcp_client.h"
 
 namespace OHOS {
 namespace DHCP {

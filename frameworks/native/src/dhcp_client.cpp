@@ -15,7 +15,7 @@
 #include "dhcp_client_impl.h"
 #include "dhcp_c_utils.h"
 #include "dhcp_logger.h"
-#include "../../../interfaces/inner_api/dhcp_client.h"
+#include "inner_api/dhcp_client.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClient");
 

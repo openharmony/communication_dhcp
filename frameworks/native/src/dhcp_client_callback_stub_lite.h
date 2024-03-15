@@ -16,7 +16,7 @@
 #define OHOS_DHCP_CLIENT_CALLBACK_STUB_LITE_H
 
 #include "serializer.h"
-#include "../interfaces/i_dhcp_client_callback.h"
+#include "i_dhcp_client_callback.h"
 
 namespace OHOS {
 namespace DHCP {

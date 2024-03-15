@@ -16,7 +16,7 @@
 #include "dhcp_c_utils.h"
 #include <map>
 #include "ipc_skeleton.h"
-#include "../../../interfaces/kits/c/dhcp_error_code.h"
+#include "kits/c/dhcp_error_code.h"
 
 namespace OHOS {
 namespace DHCP {
