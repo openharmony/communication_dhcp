@@ -48,7 +48,7 @@ private:
     int GetSigReadSockFd(void);
     int DhcpRenew(uint32_t transid, uint32_t clientip, uint32_t serverip);
     int DhcpRelease(uint32_t clientip, uint32_t serverip);
-
+    int InitConfig(const std::string &ifname, bool isIpv6);
     void SendReboot(struct DhcpPacket *p, time_t timestamp);
     void AddParamaterRequestList(struct DhcpPacket *packet);
     void DhcpResponseHandle(time_t timestamp);

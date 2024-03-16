@@ -96,12 +96,28 @@ void DhcpClientStateMachine::RunGetIPThreadFunc()
     return;
 }
 
+int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
+{
+    if (InitSpecifiedClientCfg(ifname, isIpv6) != DHCP_OPT_SUCCESS) {
+        DHCP_LOGE("InitConfig InitSpecifiedClientCfg failed!");
+        return DHCP_OPT_FAILED;
+    }
+    if (GetClientNetworkInfo() != DHCP_OPT_SUCCESS) {
+        DHCP_LOGE("InitConfig GetClientNetworkInfo failed!");
+        return DHCP_OPT_FAILED;
+    }
+    return DHCP_OPT_SUCCESS;
+}
+
 int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action)
 {
     DHCP_LOGI("StartIpv4 ifname:%{public}s isIpv6:%{public}d isExit:%{public}d threadRun:%{public}d action:%{public}d",
         ifname.c_str(), isIpv6, m_cltCnf.timeoutExit, m_renewThreadIsRun, action);
     m_ifName = ifname;
     m_action = action;
+    if (InitConfig(ifname, isIpv6) != DHCP_OPT_SUCCESS) {
+        return DHCP_OPT_FAILED;
+    }
 #ifndef OHOS_ARCH_LITE
     StartGetIpTimer(); // statr get ip timer
 #endif
@@ -149,18 +165,6 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
 int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool isIpv6)
 {
     DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d", ifname.c_str(), isIpv6);
-    /* Init the specified client process config. */
-    if (InitSpecifiedClientCfg(ifname, isIpv6) != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("InitStartIpv4Thread InitSpecifiedClientCfg failed!");
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Get the specified client process interface network info. */
-    if (GetClientNetworkInfo() != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("InitStartIpv4Thread GetClientNetworkInfo failed!");
-        return DHCP_OPT_FAILED;
-    }
-
     if (m_pthread == nullptr) {
         m_pthread = new std::thread(&DhcpClientStateMachine::RunGetIPThreadFunc, this);
         if (m_pthread == nullptr) {
@@ -184,6 +188,7 @@ int DhcpClientStateMachine::InitSpecifiedClientCfg(const std::string &ifname, bo
         DHCP_LOGE("InitSpecifiedClientCfg() m_cltCnf.workDir:%{public}s error!", m_cltCnf.workDir);
         return DHCP_OPT_FAILED;
     }
+
     if (CreateDirs(m_cltCnf.workDir, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH) != DHCP_OPT_SUCCESS) {
         DHCP_LOGE("InitSpecifiedClientCfg() CreateDirs %{public}s failed!", m_cltCnf.workDir);
         return DHCP_OPT_FAILED;
