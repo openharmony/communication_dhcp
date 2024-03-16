@@ -307,6 +307,7 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
         DHCP_LOGE("StopDhcpServer:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
+    DeleteLeaseFile(ifname);
     if (ifname.empty()) {
         DHCP_LOGE("StopDhcpServer() error, ifname is empty!");
         return DHCP_E_FAILED;
@@ -330,7 +331,6 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
             (iter->second)->OnServerStatusChanged(static_cast<int>(DHCP_SERVER_OFF));
         }
     }
-
     return DHCP_E_SUCCESS;
 }
 
@@ -571,20 +571,19 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
         DHCP_LOGE("GetDhcpClientInfos() failed, dhcp leasefile:%{public}s no exist!", strFile.c_str());
         return DHCP_E_FAILED;
     }
-
     leases.clear();
-
     std::ifstream inFile;
     inFile.open(strFile);
     std::string strTemp = "";
     char tmpLineData[FILE_LINE_MAX_SIZE] = {0};
     while (inFile.getline(tmpLineData, sizeof(tmpLineData))) {
         strTemp = tmpLineData;
-        leases.push_back(strTemp);
+        if (!strTemp.empty()) {
+            leases.push_back(strTemp);
+        }
     }
     inFile.close();
-
-    DHCP_LOGI("GetDhcpClientInfos() leases.size:%{public}d.", (int)leases.size());
+    DHCP_LOGI("GetDhcpClientInfos leases.size:%{public}d.", (int)leases.size());
     return DHCP_E_SUCCESS;
 }
 
@@ -818,6 +817,21 @@ bool DhcpServerServiceImpl::IsNativeProcess()
 #else
     return true;
 #endif
+}
+
+ErrCode DhcpServerServiceImpl::DeleteLeaseFile(const std::string& ifname)
+{
+    std::string strFile = DHCP_SERVER_LEASES_FILE + "." + ifname;
+    if (!DhcpFunction::IsExistFile(strFile)) {
+        DHCP_LOGE("DeleteLeaseFile failed, dhcp leasefile:%{public}s no exist!", strFile.c_str());
+        return DHCP_E_FAILED;
+    }
+    if (!DhcpFunction::RemoveFile(strFile)) {
+        DHCP_LOGE("DeleteLeaseFile RemoveFile failed, leasefile:%{public}s", strFile.c_str());
+        return DHCP_E_FAILED;
+    }
+    DHCP_LOGI("DeleteLeaseFile RemoveFile ok");
+    return DHCP_E_SUCCESS;
 }
 }
 }

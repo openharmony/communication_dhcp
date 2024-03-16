@@ -44,6 +44,9 @@ int FreeServerContext(PDhcpServerContext *ctx);
 int SaveLease(PDhcpServerContext ctx);
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo);
 void CheckAndNotifyServerSuccess(int replyType, PDhcpServerContext ctx);
+int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo);
+int GetVendorIdentifierOption(PDhcpMsgInfo received);
+int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin);
 #ifdef __cplusplus
 }
 #endif

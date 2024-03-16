@@ -457,6 +457,7 @@ int AddLease(DhcpAddressPool *pool, AddressBinding *lease)
     }
     if (!ContainsKey(&pool->leaseTable, (uintptr_t)&lease->ipAddress)) {
         if (Insert(&pool->leaseTable, (uintptr_t)&lease->ipAddress, (uintptr_t)lease) == HASH_INSERTED) {
+            DHCP_LOGD("insert lease info.");
             return RET_SUCCESS;
         }
     } else {
@@ -612,4 +613,43 @@ void SetDistributeMode(int mode)
 int GetDistributeMode(void)
 {
     return g_distributeMode;
+}
+
+int FindAndDelBinding(HashTable *table, AddressBinding *binding, AddressBinding *lease)
+{
+    if ((table == nullptr) || (binding == nullptr) || (lease == nullptr)) {
+        DHCP_LOGE("FindAndDelBinding pointer is null.");
+        return RET_ERROR;
+    }
+    int same = AddrEquels(binding->chaddr, lease->chaddr, MAC_ADDR_LENGTH);
+    if (same) {
+        if (ContainsKey(table, (uintptr_t)&binding->ipAddress)) {
+            if (Remove(table, (uintptr_t)&binding->ipAddress) == HASH_SUCCESS) {
+                DHCP_LOGI("FindAndDelBinding Remove ok, deviceName:%{public}s", binding->deviceName);
+            }
+        }
+    }
+    return RET_SUCCESS;
+}
+
+int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease)
+{
+    if ((pool == nullptr) || (lease == nullptr)) {
+        DHCP_LOGE("DeleteMacInLease pointer is null.");
+        return RET_ERROR;
+    }
+    HashTable *table = &pool->leaseTable;
+    if (!Initialized(table)) {
+        DHCP_LOGE("DeleteMacInLease pool does not init.");
+        return RET_ERROR;
+    }
+    for (size_t index = 0; index < table->capacity; ++index) {
+        HashNode *node = pool->leaseTable.nodes[index];
+        while (node != nullptr) {
+            AddressBinding *binding = (AddressBinding *)node->value;
+            FindAndDelBinding(table, binding, lease);
+            node = node->next;
+        }
+    }
+    return RET_SUCCESS;
 }

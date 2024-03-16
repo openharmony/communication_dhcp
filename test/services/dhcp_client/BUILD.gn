@@ -111,6 +111,7 @@ ohos_unittest("dhcp_client_unittest") {
   defines = [
     "private = public",
     "protected = public",
+    "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
   ]
 
   part_name = "dhcp"

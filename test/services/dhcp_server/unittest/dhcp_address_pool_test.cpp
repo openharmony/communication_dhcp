@@ -490,5 +490,25 @@ HWTEST_F(DhcpAddressPoolTest, SaveBindingRecodersTest, TestSize.Level1)
 {
     EXPECT_EQ(RET_FAILED, SaveBindingRecoders(NULL, 0));
 }
+
+HWTEST_F(DhcpAddressPoolTest, FindAndDelBindingTest, TestSize.Level1)
+{
+    HashTable table;
+    AddressBinding binding = {0};
+    AddressBinding lease = {0};
+    EXPECT_EQ(RET_ERROR, FindAndDelBinding(nullptr, &binding, &lease));
+    EXPECT_EQ(RET_ERROR, FindAndDelBinding(&table, nullptr, &lease));
+    EXPECT_EQ(RET_ERROR, FindAndDelBinding(&table, &binding, nullptr));
+    EXPECT_EQ(RET_SUCCESS, FindAndDelBinding(&table, &binding, &lease));
+}
+
+HWTEST_F(DhcpAddressPoolTest, DeleteMacInLeaseTest, TestSize.Level1)
+{
+    DhcpAddressPool pool;
+    AddressBinding lease = {0};
+    EXPECT_EQ(RET_ERROR, DeleteMacInLease(nullptr, &lease));
+    EXPECT_EQ(RET_ERROR, DeleteMacInLease(&pool, nullptr));
+    EXPECT_EQ(RET_ERROR, DeleteMacInLease(&pool, &lease));
+}
 }
 }

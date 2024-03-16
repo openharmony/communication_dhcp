@@ -81,7 +81,9 @@ int IsExpire(AddressBinding *binding)
 #define BINDING_PENDING_INTERVAL_POS 5
 #define BINDING_BINDING_MODE_POS 6
 #define BINDING_BINDING_STATUS_POS 7
+#define BINDING_DEVICE_NAME_POS 8
 #define BINDING_STRING_SIZE 8
+#define BINDING_STRING_MAX_SIZE 9
 
 int WriteAddressBinding(const AddressBinding *binding, char *out, uint32_t size)
 {
@@ -93,9 +95,9 @@ int WriteAddressBinding(const AddressBinding *binding, char *out, uint32_t size)
     if (mac == nullptr || ip == nullptr) {
         return RET_FAILED;
     }
-    if (snprintf_s(out, size, size - 1, "%s %s %llu %llu %llu %llu %d %d", mac, ip, binding->leaseTime,
+    if (snprintf_s(out, size, size - 1, "%s %s %llu %llu %llu %llu %d %d %s", mac, ip, binding->leaseTime,
         binding->bindingTime, binding->pendingTime, binding->pendingInterval, binding->bindingMode,
-        binding->bindingStatus) < 0) {
+        binding->bindingStatus, binding->deviceName) < 0) {
         return RET_FAILED;
     }
     return RET_SUCCESS;
@@ -197,6 +199,10 @@ int ParseAddressBinding(AddressBinding *binding, const char *buf)
         binding->bindingStatus = atoi(strs[BINDING_BINDING_STATUS_POS]);
         if (binding->bindingStatus == BIND_ASSOCIATED) {
             binding->expireIn = binding->bindingTime + binding->leaseTime;
+        }
+        if (num >= BINDING_STRING_MAX_SIZE) {
+            ParseHostName(strs[BINDING_DEVICE_NAME_POS], binding->deviceName);
+            DHCP_LOGI("ParseHostName deviceName:%{public}s", binding->deviceName);
         }
         ret += 1; /* set ret = 0 */
     } while (0);
