@@ -115,11 +115,9 @@ struct sockaddr_in *BroadcastAddrIn(void);
 
 static struct ServerContext *GetServerInstance(const DhcpServerContext *ctx)
 {
-    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     if (!ctx || !ctx->instance) {
         return nullptr;
     }
-    DHCP_LOGD("RETRUN NOT nullptr");
     return (struct ServerContext *)ctx->instance;
 }
 
@@ -256,7 +254,6 @@ struct sockaddr_in *DestinationAddr(uint32_t ipAddress)
 
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
 {
-    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     static uint8_t recvBuffer[RECV_BUFFER_SIZE] = {0};
     struct timeval tmt;
     fd_set recvFd;
@@ -264,23 +261,18 @@ int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo)
     FD_SET(sock, &recvFd);
     tmt.tv_sec = 0;
     tmt.tv_usec = DHCP_SERVER_SLEEP_TIMEOUTS; // 600ms
-    DHCP_LOGD("start select");
     int ret = select(sock + 1, &recvFd, nullptr, nullptr, &tmt);
-    DHCP_LOGD("watiing select");
     if (ret < 0) {
         DHCP_LOGE("select error, %d", errno);
         return ERR_SELECT;
     }
     if (ret == 0) {
-        DHCP_LOGD("select time out.");
         return RET_SELECT_TIME_OUT;
     }
-    DHCP_LOGI("start over");
     if (!FD_ISSET(sock, &recvFd)) {
         DHCP_LOGE("failed to select isset.");
         return RET_ERROR;
     }
-    DHCP_LOGI("go head");
     socklen_t ssize = sizeof(sockaddr_in);
     struct sockaddr_in *srcAddrIn = ResetSourceAddr();
     srcAddrIn->sin_addr.s_addr = INADDR_ANY;
@@ -481,7 +473,6 @@ int SaveLease(PDhcpServerContext ctx)
 
 static int OnLooperStateChanged(PDhcpServerContext ctx)
 {
-    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
         DHCP_LOGE("dhcp server context pointer is null.");
@@ -500,7 +491,6 @@ static int OnLooperStateChanged(PDhcpServerContext ctx)
 
 static int ContinueReceive(PDhcpMsgInfo from, int recvRet)
 {
-    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     if (!from) {
         return DHCP_TRUE;
     }
@@ -544,7 +534,6 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
             DHCP_LOGI("OnLooperStateChanged break, looperState:%{public}d", srvIns->looperState);
             break;
         }
-        DHCP_LOGD("start clear");
         ClearOptions(&from.options);
         ClearOptions(&reply.options);
         int recvRet = ReceiveDhcpMessage(ctx->instance->serverFd, &from);
@@ -553,7 +542,6 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
             continue;
         }
         if (ContinueReceive(&from, recvRet)) {
-            DHCP_LOGD("ContinueReceive");
             continue;
         }
         InitReply(ctx, &from, &reply);
