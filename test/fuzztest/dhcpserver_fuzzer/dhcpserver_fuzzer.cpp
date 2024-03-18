@@ -19,7 +19,7 @@
 #include "../../include/dhcp_event.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
     std::shared_ptr<DhcpServer> dhcpServer = DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
     static OHOS::sptr<DhcpServerCallBack> dhcpServerCallBack =
         OHOS::sptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());

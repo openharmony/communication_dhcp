@@ -18,7 +18,7 @@
 #include "../../include/dhcp_event.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
     std::shared_ptr<DhcpClient> dhcpClient = DhcpClient::GetInstance(DHCP_CLIENT_ABILITY_ID);
     static OHOS::sptr<DhcpClientCallBack> dhcpClientCallBack =
         OHOS::sptr<DhcpClientCallBack>(new (std::nothrow)DhcpClientCallBack());

@@ -25,7 +25,7 @@
 
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MAP_SCAN_NUMS = 20;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpServer";
