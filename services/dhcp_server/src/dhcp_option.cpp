@@ -190,7 +190,6 @@ PDhcpOption GetOption(PDhcpOptionList pOptions, uint8_t code)
 
 void ClearOptions(PDhcpOptionList pOptions)
 {
-    DHCP_LOGD("start %{public}s %{public}d", __func__, __LINE__);
     if (pOptions == nullptr || pOptions->size == 0) {
         return;
     }
