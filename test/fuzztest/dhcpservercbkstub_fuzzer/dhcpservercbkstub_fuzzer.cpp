@@ -45,12 +45,12 @@ void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
+    if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
-    OHOS::Wifi::OnGetSupportedFeaturesTest(data, size);
+    OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 
