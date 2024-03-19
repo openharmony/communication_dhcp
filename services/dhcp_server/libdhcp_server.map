@@ -3,6 +3,7 @@
         StartDhcpServerSa;
     extern "C++" {
         "OHOS::DHCP::DhcpServerStub::OnRemoteRequest(uint32_t, MessageParcel&, MessageParcel&, MessageOption&)"
+        "OHOS::DHCP::DhcpServerServiceImpl::GetInstance()"
     };
     local:
         *;
