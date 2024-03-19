@@ -3,6 +3,7 @@
         StartDhcpClientSa;
     extern "C++" {
         "OHOS::Wifi::DhcpClientStub::OnRemoteRequest(uint32_t, MessageParcel&, MessageParcel&, MessageOption&)"
+        "OHOS::Wifi::DhcpClientServiceImpl::GetInstance()"
     };
     local:
         *;

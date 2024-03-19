@@ -23,7 +23,6 @@
 #include "dhcp_manager_service_ipc_interface_code.h"
 #include "dhcp_fuzz_common_func.h"
 
-
 namespace OHOS {
 namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
