@@ -105,7 +105,8 @@
             ],
             "test": [
                 "//foundation/communication/dhcp/test/services/dhcp_client:unittest",
-                "//foundation/communication/dhcp/test/services/dhcp_server/unittest:unittest"
+                "//foundation/communication/dhcp/test/services/dhcp_server/unittest:unittest",
+                "//foundation/communication/dhcp/test/fuzztest:fuzztest"
             ]
         },
         "hisysevent_config": [

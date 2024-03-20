@@ -570,6 +570,9 @@ bool DhcpClientServiceImpl::IsRemoteDied(void)
 
 bool DhcpClientServiceImpl::IsNativeProcess()
 {
+#ifndef DTFUZZ_TEST
+    return true;
+#endif
 #ifndef OHOS_ARCH_LITE
     uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
     Security::AccessToken::ATokenTypeEnum callingType =
