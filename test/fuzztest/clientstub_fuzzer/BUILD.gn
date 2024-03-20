@@ -49,7 +49,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
     "ipc:ipc_single",
   ]
 
-  defines = [ "DTFUZZ_PERMISSION_ALWAYS_GRANT" ]
+  defines = [ "DTFUZZ_TEST" ]
 
   part_name = "dhcp"
   subsystem_name = "communication"

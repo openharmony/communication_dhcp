@@ -755,7 +755,7 @@ void DhcpServerServiceImpl::UnregisterSignal() const
 
 bool DhcpServerServiceImpl::IsNativeProcess()
 {
-#ifndef DTFUZZ_PERMISSION_ALWAYS_GRANT
+#ifndef DTFUZZ_TEST
     return true;
 #endif
 #ifndef OHOS_ARCH_LITE

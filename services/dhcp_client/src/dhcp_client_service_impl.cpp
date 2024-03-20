@@ -565,7 +565,7 @@ bool DhcpClientServiceImpl::IsRemoteDied(void)
 
 bool DhcpClientServiceImpl::IsNativeProcess()
 {
-#ifndef DTFUZZ_PERMISSION_ALWAYS_GRANT
+#ifndef DTFUZZ_TEST
     return true;
 #endif
 #ifndef OHOS_ARCH_LITE
