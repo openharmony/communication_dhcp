@@ -12,12 +12,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "../../../interfaces/kits/c/dhcp_c_api.h"
-#include "../../../interfaces/inner_api/dhcp_client.h"
-#include "../../../interfaces/inner_api/dhcp_server.h"
-#include "../../include/dhcp_sdk_define.h"
-#include "../inc/dhcp_c_utils.h"
-#include "../../include/dhcp_event.h"
+#include "kits/c/dhcp_c_api.h"
+#include "inner_api/dhcp_client.h"
+#include "inner_api/dhcp_server.h"
+#include "dhcp_sdk_define.h"
+#include "dhcp_c_utils.h"
+#include "dhcp_event.h"
 #include "dhcp_logger.h"
 #ifndef OHOS_ARCH_LITE
 #include <string_ex.h>

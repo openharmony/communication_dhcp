@@ -24,10 +24,10 @@
 #include <map>
 #include "securec.h"
 #include "dhcp_errcode.h"
-#include "../../../interfaces/kits/c/dhcp_result_event.h"
-#include "../interfaces/i_dhcp_client_callback.h"
-#include "../interfaces/i_dhcp_server_callback.h"
-#include "../../../interfaces/inner_api/include/dhcp_define.h"
+#include "kits/c/dhcp_result_event.h"
+#include "i_dhcp_client_callback.h"
+#include "i_dhcp_server_callback.h"
+#include "inner_api/include/dhcp_define.h"
 
 class DhcpClientCallBack : public OHOS::DHCP::IDhcpClientCallBack {
 public:

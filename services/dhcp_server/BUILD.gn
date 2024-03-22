@@ -66,8 +66,9 @@ if (defined(ohos_lite)) {
     deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
       "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
-      "//third_party/bounds_checking_function:libsec_shared",
     ]
+
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
 
     cflags_cc = [ "-fno-rtti" ]
 

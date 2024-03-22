@@ -17,7 +17,7 @@
 
 #include <string>
 #include <vector>
-#include "../../../interfaces/kits/c/dhcp_error_code.h"
+#include "kits/c/dhcp_error_code.h"
 #include "dhcp_errcode.h"
 #include "dhcp_logger.h"
 

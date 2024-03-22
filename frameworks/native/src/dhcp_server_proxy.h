@@ -21,9 +21,9 @@
 #else
 #include "iremote_proxy.h"
 #endif
-#include "../interfaces/i_dhcp_server.h"
-#include "../interfaces/i_dhcp_server_callback.h"
-#include "../../../interfaces/inner_api/dhcp_server.h"
+#include "i_dhcp_server.h"
+#include "i_dhcp_server_callback.h"
+#include "inner_api/dhcp_server.h"
 
 namespace OHOS {
 namespace DHCP {
