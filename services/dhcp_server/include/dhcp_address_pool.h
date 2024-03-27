@@ -74,6 +74,8 @@ AddressBinding *GetBindingByIp(HashTable *bindTable, uint32_t ipAddress);
 AddressBinding *QueryBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionList cliOptins);
 void SetDistributeMode(int mode);
 int GetDistributeMode(void);
+int FindAndDelBinding(HashTable *table, AddressBinding *binding, AddressBinding *lease);
+int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease);
 
 #ifdef __cplusplus
 }

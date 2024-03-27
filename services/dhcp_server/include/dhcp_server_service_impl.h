@@ -74,6 +74,7 @@ public:
     ErrCode GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& leases) override;
     ErrCode UpdateLeasesTime(const std::string& leaseTime) override;
     bool IsRemoteDied(void) override;
+    ErrCode DeleteLeaseFile(const std::string& ifname);
 
 #ifndef OHOS_ARCH_LITE
     void StartServiceAbility(int sleepS);

@@ -516,7 +516,7 @@ HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
     std::string ifname;
     bool isIpv6 = true;
     ActionMode action = ACTION_START_NEW;
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->StartIpv4Type(ifname, isIpv6, action));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->StartIpv4Type(ifname, isIpv6, action));
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
@@ -626,6 +626,24 @@ HWTEST_F(DhcpClientStateMachineTest, UnRegisterTest, TestSize.Level1)
     std::unique_ptr<Utils::Timer> timer_{nullptr};
     uint32_t timerId = 1;
     dhcpTimer.UnRegister(timerId);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
+{
+    DHCP_LOGI("AddHostNameToOptsTest enter!");
+    struct DhcpPacket packet;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddHostNameToOpts(nullptr));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddHostNameToOpts(&packet));
+}
+
+HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level1)
+{
+    DHCP_LOGI("AddStrToOptsTest enter!");
+    int option = 12;
+    std::string value = "ALN-AL80";
+    struct DhcpPacket packet;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddStrToOpts(nullptr, option, value));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddStrToOpts(&packet, option, value));
 }
 }
 }

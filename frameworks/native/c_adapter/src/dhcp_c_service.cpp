@@ -144,19 +144,11 @@ DhcpErrorCode RemoveDhcpRange(const char *tagName, const void *range)
     return GetCErrorCode(dhcpServerPtr->RemoveDhcpRange(tagName, *(OHOS::DHCP::DhcpRange *)range));
 }
 
-DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationInfo *staInfo, int *staSize)
+DhcpErrorCode ParseClientInfos(int staNumber, DhcpStationInfo *staInfo, int *staSize, std::vector<std::string> &vecInfo)
 {
-    CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
-    CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
-    std::vector<std::string> vecInfo;
-    DhcpErrorCode ret = GetCErrorCode(dhcpServerPtr->GetDhcpClientInfos(ifname, vecInfo));
-    if (ret != DHCP_SUCCESS) {
-        DHCP_LOGE("GetDhcpClientInfos failed!");
-        return DHCP_FAILED;
-    }
     int size = (int)vecInfo.size();
-    DHCP_LOGI("GetDhcpClientInfos size: %{public}d", size);
-    int i;
+    DHCP_LOGI("ParseClientInfos staNumber:%{public}d size:%{public}d", staNumber, size);
+    int i = 0;
     for (i = 0; i < size; i++) {
         std::vector<std::string> tmp;
         std::string str = vecInfo[i];
@@ -164,7 +156,7 @@ DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationI
         if (tmp.empty()) {
             continue;
         }
-        if (tmp[0] == "duid") {
+        if (tmp[DHCP_LEASE_MAC_ADDR_POS] == "duid") {
             break;
         }
         if (tmp.size() < DHCP_LEASE_FORMAT_SIZE) {
@@ -172,13 +164,13 @@ DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationI
         }
         std::string mac = tmp[DHCP_LEASE_MAC_ADDR_POS];
         std::string ipAddr = tmp[DHCP_LEASE_IP_ADDR_POS];
-        std::string deviceName = tmp[DHCP_LEASE_HOSTNAME_POS];
-        DHCP_LOGI("GetDhcpClientInfos mac:%{public}s", mac.c_str());
-
+        std::string deviceName = "";
+        if (tmp.size() >= DHCP_LEASE_FORMAT_MAX_SIZE) {
+            deviceName = tmp[DHCP_LEASE_HOSTNAME_POS];
+        }
         if (i >= staNumber) {
             break;
         }
-        
         if (strcpy_s(staInfo[i].macAddr, MAC_ADDR_MAX_LEN, mac.c_str()) != EOK) {
             DHCP_LOGE("get dhcp client info, cpy mac failed! srclen=%{public}zu", strlen(mac.c_str()));
             return DHCP_FAILED;
@@ -193,10 +185,23 @@ DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationI
         }
     }
     *staSize = i;
-    
-    DHCP_LOGI("GetDhcpClientInfos3 %{public}d macAddr:%{public}s", i, staInfo[0].macAddr);
-
+    DHCP_LOGI("GetDhcpClientInfos staNumber:%{public}d staSize:%{public}d", staNumber, *staSize);
     return DHCP_SUCCESS;
+}
+
+DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationInfo *staInfo, int *staSize)
+{
+    CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(staInfo, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(staSize, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
+    std::vector<std::string> vecInfo;
+    DhcpErrorCode ret = GetCErrorCode(dhcpServerPtr->GetDhcpClientInfos(ifname, vecInfo));
+    if (ret != DHCP_SUCCESS) {
+        DHCP_LOGE("GetDhcpClientInfos failed!");
+        return DHCP_FAILED;
+    }
+    return ParseClientInfos(staNumber, staInfo, staSize, vecInfo);
 }
 
 NO_SANITIZE("cfi") DhcpErrorCode UpdateLeasesTime(const char *leaseTime)

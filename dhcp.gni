@@ -17,4 +17,5 @@ DHCP_ROOT_DIR = "$SUBSYSTEM_DIR/dhcp"
 dhcp_fuzz_output_path = "dhcp/dhcp/dhcp_fuzz"
 
 declare_args() {
+  VENDOR_NAME = "HUAWEI:openharmony"
 }

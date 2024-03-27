@@ -310,3 +310,14 @@ int AddrEquels(const uint8_t firstAddr[DHCP_HWADDR_LENGTH], uint8_t secondAddr[D
     }
     return DHCP_TRUE;
 }
+
+int ParseHostName(const char *strHostName, char hostName[DHCP_BOOT_FILE_LENGTH])
+{
+    if (strHostName == nullptr || hostName == nullptr) {
+        return DHCP_FALSE;
+    }
+    if (memcpy_s(hostName, DHCP_BOOT_FILE_LENGTH, strHostName, strlen(strHostName)) != EOK) {
+        return DHCP_FALSE;
+    }
+    return DHCP_TRUE;
+}

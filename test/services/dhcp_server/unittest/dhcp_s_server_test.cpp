@@ -192,5 +192,19 @@ HWTEST_F(DhcpServerTest, SaveLeaseFailedTest, TestSize.Level1)
     EXPECT_EQ(RET_FAILED, SaveLease(nullptr));
     EXPECT_EQ(RET_FAILED, SaveLease(&tempCtx));
 }
+
+HWTEST_F(DhcpServerTest, GetVendorIdentifierOptionTest, TestSize.Level1)
+{
+    DhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NAK, GetVendorIdentifierOption(&received));
+}
+
+HWTEST_F(DhcpServerTest, GetHostNameOptionTest, TestSize.Level1)
+{
+    PDhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NONE, GetHostNameOption(received, nullptr));
+}
 }
 }

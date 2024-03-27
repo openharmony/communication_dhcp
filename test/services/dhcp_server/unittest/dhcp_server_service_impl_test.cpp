@@ -176,5 +176,13 @@ HWTEST_F(DhcpServerServiceTest, StopServerTest, TestSize.Level1)
     pid_t serverPid = 1234;
     EXPECT_EQ(DHCP_OPT_SUCCESS, pServerServiceImpl->StopServer(serverPid));
 }
+
+HWTEST_F(DhcpServerServiceTest, DeleteLeaseFileTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter DeleteLeaseFileTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+    std::string ifname;
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->DeleteLeaseFile(ifname));
+}
 }
 }

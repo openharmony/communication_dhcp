@@ -16,4 +16,5 @@ WIFI_ROOT_DIR = "$SUBSYSTEM_DIR/wifi/wifi"
 DHCP_ROOT_DIR = "$SUBSYSTEM_DIR/dhcp"
 
 declare_args() {
+  VENDOR_NAME = "HUAWEI:openharmony"
 }

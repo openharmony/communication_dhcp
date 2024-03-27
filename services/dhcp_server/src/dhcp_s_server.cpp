@@ -52,7 +52,6 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 #define OPT_MAC_ADDR_LENGTH 6
 #define MAGIC_COOKIE_LENGTH 4
 #define OPT_BROADCAST_FLAG_ENABLE 0
-
 #define OFFER_MIN_INTERVAL_TIME 5
 
 #define PENDING_DEFAULT_TIMEOUT 1200
@@ -967,9 +966,9 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     if (reqIp != 0 && reqIp != binding->ipAddress) {
         DHCP_LOGW("Discover package reqIp:%{public}x, binging ip:%{public}x.", reqIp, binding->ipAddress);
     }
+    DeleteMacInLease(&srvIns->addressPool, binding);
     AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     if (!lease) {
-        DHCP_LOGD("add lease recoder.");
         AddLease(&srvIns->addressPool, binding);
         lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     }
@@ -1138,7 +1137,6 @@ static int HasNobindgRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     }
     AddressBinding *binding = srvIns->addressPool.binding(received->packet.chaddr, &received->options);
     if (!binding && ALLOW_NOBINDING_REQUEST) {
-        DHCP_LOGE("client not binding.");
         uint32_t srcIp = SourceIpAddress();
         uint32_t reqIp = GetRequestIpAddress(received);
         DHCP_LOGD("allow no binding request mode.");
@@ -1155,6 +1153,44 @@ static int HasNobindgRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     return REPLY_NONE;
 }
 
+int GetVendorIdentifierOption(PDhcpMsgInfo received)
+{
+    PDhcpOption optVendorIdentifier = GetOption(&received->options, VENDOR_CLASS_IDENTIFIER_OPTION);
+    if (optVendorIdentifier) {
+        char strVendorIdentifier[DEVICE_NAME_STRING_LENGTH] = {0};
+        if (memcpy_s(strVendorIdentifier, DEVICE_NAME_STRING_LENGTH, (char*)optVendorIdentifier->data,
+            optVendorIdentifier->length) != EOK) {
+            DHCP_LOGE("GetVendorIdentifierOption strClientIdentifier memcpy_s failed!");
+            return REPLY_NONE;
+        }
+        DHCP_LOGI("GetVendorIdentifierOption strClientIdentifier:%{public}s", strVendorIdentifier);
+    } else {
+        DHCP_LOGI("GetVendorIdentifierOption pClientIdentifier is null");
+    }
+    return REPLY_NAK;
+}
+
+int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
+{
+    if (!bindin) {
+        DHCP_LOGE("GetHostNameOption bindin is nullptr!");
+        return REPLY_NONE;
+    }
+    PDhcpOption optHostName = GetOption(&received->options, HOST_NAME_OPTION);
+    if (optHostName) {
+        if (memcpy_s(bindin->deviceName, DEVICE_NAME_STRING_LENGTH, (char*)optHostName->data,
+            optHostName->length) != EOK) {
+            DHCP_LOGE("GetHostNameOption pHost memcpy_s failed!");
+            return REPLY_NONE;
+        }
+        DHCP_LOGI("GetHostNameOption deviceName:%{public}s", bindin->deviceName);
+    } else {
+        DHCP_LOGI("GetHostNameOption pHost is null");
+    }
+    GetVendorIdentifierOption(received);
+    return REPLY_NAK;
+}
+
 static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
     int ret;
@@ -1169,12 +1205,12 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     }
     AddressBinding *binding = srvIns->addressPool.binding(received->packet.chaddr, &received->options);
     if (binding == nullptr) {
-        DHCP_LOGE("OnReceivedRequest, binding is null");
         return HasNobindgRequest(ctx, received, reply);
     }
     Rebinding(&srvIns->addressPool, binding);
     AddressBinding *lease = GetLease(&srvIns->addressPool, yourIpAddr);
     if (lease) {
+        GetHostNameOption(received, lease);
         int sameAddr = AddrEquels(lease->chaddr, received->packet.chaddr, MAC_ADDR_LENGTH);
         if (!sameAddr && !IsExpire(lease)) {
             DHCP_LOGW("invalid request ip address.");

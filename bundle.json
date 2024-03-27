@@ -52,6 +52,7 @@
                 "bounds_checking_function",
                 "c_utils",
                 "hilog",
+                "init",
                 "ipc",
                 "safwk",
                 "access_token",

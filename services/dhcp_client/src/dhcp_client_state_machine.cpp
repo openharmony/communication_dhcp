@@ -39,6 +39,9 @@
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
 
+#ifdef INIT_LIB_ENABLE
+#include "parameter.h"
+#endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
 
 namespace OHOS {
@@ -689,6 +692,7 @@ int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip);
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE);
     AddOptValueToOpts(packet.options, FORCERENEW_NONCE_OPTION, 1);
+    AddHostNameToOpts(&packet);
     AddParamaterRebootList(&packet);
 
     /* Begin broadcast dhcp request packet. */
@@ -1499,7 +1503,52 @@ int DhcpClientStateMachine::GetPacketCommonInfo(struct DhcpPacket *packet)
         int nVendorIdLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + pVendorId[DHCP_OPT_LEN_INDEX];
         AddOptStrToOpts(packet->options, vendorId, nVendorIdLen);
     }
+    AddHostNameToOpts(packet);
+    return DHCP_OPT_SUCCESS;
+}
 
+int DhcpClientStateMachine::AddHostNameToOpts(struct DhcpPacket *packet)
+{
+    if (packet == nullptr) {
+        DHCP_LOGE("AddHostNameToOpts failed, packet == nullptr!");
+        return DHCP_OPT_FAILED;
+    }
+    std::string strProductModel;
+#ifdef INIT_LIB_ENABLE
+    strProductModel = GetProductModel();
+    DHCP_LOGI("AddHostNameOptions strProductModel:%{public}s", strProductModel.c_str());
+#endif
+    AddStrToOpts(packet, HOST_NAME_OPTION, strProductModel);  // add option 12
+    std::string venderName = VENDOR_NAME_PREFIX;
+    std::string venderClass = venderName + ":" + strProductModel; // xxxx:openharmony:yyyy
+    AddStrToOpts(packet, VENDOR_CLASS_IDENTIFIER_OPTION, venderClass); // add option 60
+    return DHCP_OPT_SUCCESS;
+}
+
+int DhcpClientStateMachine::AddStrToOpts(struct DhcpPacket *packet, int option, std::string &value)
+{
+    if (packet == nullptr) {
+        DHCP_LOGE("AddStrToOpts failed, packet is nullptr!");
+        return DHCP_OPT_FAILED;
+    }
+    char buf[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
+    int nRes = snprintf_s(buf, VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX,
+        VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX - 1, "%s", value.c_str());
+    if (nRes < 0) {
+        DHCP_LOGE("AddStrToOpts buf snprintf_s failed, nRes:%{public}d", nRes);
+        return DHCP_OPT_FAILED;
+    }
+    unsigned char optValue[VENDOR_MAX_LEN] = {0};
+    optValue[DHCP_OPT_CODE_INDEX] = option;
+    optValue[DHCP_OPT_LEN_INDEX] = strlen(buf);
+    if (strncpy_s((char *)optValue + DHCP_OPT_DATA_INDEX, VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX, buf,
+        strlen(buf)) != EOK) {
+        DHCP_LOGE("AddStrToOpts optValue strncpy_s failed!");
+        return DHCP_OPT_FAILED;
+    }
+    int optValueLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + optValue[DHCP_OPT_LEN_INDEX];
+    DHCP_LOGI("AddStrToOpts option=%{public}d buf=%{public}s len=%{public}d", option, buf, optValueLen);
+    AddOptStrToOpts(packet->options, optValue, optValueLen);
     return DHCP_OPT_SUCCESS;
 }
 

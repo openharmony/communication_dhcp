@@ -39,6 +39,8 @@ private:
     int PublishDhcpResultEvent(const char *ifname, const int code, struct DhcpIpResult *result);
     int GetPacketHeaderInfo(struct DhcpPacket *packet, uint8_t type);
     int GetPacketCommonInfo(struct DhcpPacket *packet);
+    int AddHostNameToOpts(struct DhcpPacket *packet);
+    int AddStrToOpts(struct DhcpPacket *packet, int option, std::string &value);
     int DhcpDiscover(uint32_t transid, uint32_t requestip);
     int DhcpRequest(uint32_t transid, uint32_t reqip, uint32_t servip);
     int DhcpReboot(uint32_t transid, uint32_t reqip );

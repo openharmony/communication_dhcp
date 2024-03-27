@@ -22,6 +22,7 @@
 extern "C" {
 #endif
 
+#define DEVICE_NAME_STRING_LENGTH 64
 enum BindingMode { BIND_MODE_STATIC = 0, BIND_MODE_DYNAMIC, BIND_MODE_RESERVED };
 
 enum BindingState { BIND_NONE = 0, BIND_PENDING, BIND_ASSOCIATED, BIND_EXPIRED, BIND_RELEASED };
@@ -38,6 +39,7 @@ struct AddressBinding {
     uint64_t pendingInterval;
     int bindingStatus;
     int bindingMode;
+    char deviceName[DEVICE_NAME_STRING_LENGTH];
 };
 typedef struct AddressBinding *PAddressBinding;
 

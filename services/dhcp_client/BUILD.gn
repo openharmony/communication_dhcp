@@ -63,6 +63,7 @@ if (defined(ohos_lite)) {
     defines = [
       "_GNU_SOURCE",
       "OHOS_ARCH_LITE",
+      "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
     ]
   }
 } else {
@@ -93,6 +94,7 @@ if (defined(ohos_lite)) {
     install_enable = true
     sources = local_base_sources
     include_dirs = local_base_include_dirs
+    defines = [ "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"" ]
 
     external_deps = [
       "access_token:libaccesstoken_sdk",
@@ -103,7 +105,10 @@ if (defined(ohos_lite)) {
       "safwk:system_ability_fwk",
       "samgr:samgr_proxy",
     ]
-
+    if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+      external_deps += [ "init:libbegetutil" ]
+      defines += [ "INIT_LIB_ENABLE" ]
+    }
     cflags = [
       "-std=c++17",
       "-fno-rtti",
@@ -149,6 +154,7 @@ if (defined(ohos_lite)) {
     defines = [
       "OHOS_ARCH_LITE",
       "OHOS_EUPDATER",
+      "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
     ]
 
     deps = []
@@ -158,6 +164,10 @@ if (defined(ohos_lite)) {
       "c_utils:utils",
       "hilog:libhilog",
     ]
+    if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+      external_deps += [ "init:libbegetutil" ]
+      defines += [ "INIT_LIB_ENABLE" ]
+    }
     ldflags = [
       "-fPIC",
       "-Wl,-E",
