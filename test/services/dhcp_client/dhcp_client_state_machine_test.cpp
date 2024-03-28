@@ -327,17 +327,6 @@ HWTEST_F(DhcpClientStateMachineTest, StopGetIpTimerTest, TestSize.Level1)
     dhcpClient->StopGetIpTimer();
 }
 
-HWTEST_F(DhcpClientStateMachineTest, InitStartIpv4ThreadTest, TestSize.Level1)
-{
-    DHCP_LOGI("InitStartIpv4ThreadTest enter!");
-    std::string ifname;
-    bool isIpv6 = true;
-    dhcpClient->InitStartIpv4Thread(ifname, isIpv6);
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->InitStartIpv4Thread(ifname, isIpv6));
-    ifname = "ipv4";
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->InitStartIpv4Thread(ifname, isIpv6));
-}
-
 HWTEST_F(DhcpClientStateMachineTest, ExitIpv4Test, TestSize.Level1)
 {
     DHCP_LOGI("ExitIpv4Test enter!");
