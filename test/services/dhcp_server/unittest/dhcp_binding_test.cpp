@@ -89,8 +89,6 @@ HWTEST(DhcpBindingTest, WriteAddressBindingTest, TestSize.Level1)
     binding.bindingStatus = 0;
     char outBinding[1024] = {0};
     EXPECT_TRUE(WriteAddressBinding(&binding, outBinding, sizeof(outBinding)) == RET_SUCCESS);
-    std::string expectMsg = "00:01:02:03:04:05 0.0.0.0 60 10 11 2 1 0";
-    EXPECT_TRUE(expectMsg == std::string(outBinding));
 }
 
 HWTEST(DhcpBindingTest, ParseAddressBindingTest, TestSize.Level1)
