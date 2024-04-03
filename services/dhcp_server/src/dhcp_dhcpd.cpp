@@ -336,6 +336,7 @@ static void FreeLocalConfig(void)
 
 void FreeSeverResources(void)
 {
+    DHCP_LOGI("FreeSeverResources enter");
     FreeArguments();
     FreeLocalConfig();
     if (FreeServerContext(&g_dhcpServer) != RET_SUCCESS) {
@@ -374,7 +375,7 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
     g_dhcpServer = InitializeServer(&g_dhcpConfig);
     if (g_dhcpServer == nullptr) {
         DHCP_LOGE("failed to initialize dhcp server.");
-        FreeArguments();
+        FreeSeverResources();
         return 1;
     }
 
@@ -394,6 +395,7 @@ int StopDhcpServerMain()
         FreeSeverResources();
         return 1;
     }
+    FreeSeverResources();
     return 0;
 }
 

@@ -1808,6 +1808,15 @@ int FreeServerContext(PDhcpServerContext *ctx)
         DHCP_LOGE("dhcp server instance pointer is null.");
         return RET_FAILED;
     }
+    int times = 5;
+    while (srvIns->looperState != LS_STOPED && srvIns->looperState != LS_IDLE) {
+        DHCP_LOGE("FreeServerContext wait 300ms.");
+        usleep(300000);
+        times--;
+        if (times <= 0) {
+            return RET_FAILED;
+        }
+    }
     FreeAddressPool(&srvIns->addressPool);
     if ((*ctx)->instance != nullptr) {
         free((*ctx)->instance);
