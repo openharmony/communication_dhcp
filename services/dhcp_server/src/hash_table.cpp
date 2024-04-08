@@ -71,6 +71,10 @@ int DestroyHashTable(HashTable *table)
         return HASH_ERROR;
     }
     for (size_t current = 0; current < table->capacity; ++current) {
+        if (table->nodes == nullptr) {
+            DHCP_LOGW("table->nodes is already free");
+            return HASH_SUCCESS;
+        }
         HashNode *node = table->nodes[current];
         while (node) {
             HashNode *next = node->next;
