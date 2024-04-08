@@ -79,15 +79,27 @@ DhcpClientServiceImpl::DhcpClientServiceImpl()
 #endif
 {
     DHCP_LOGI("enter DhcpClientServiceImpl()");
-    m_mapClientService.clear();
-    m_mapDhcpResult.clear();
-    m_mapClientCallBack.clear();
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        m_mapClientService.clear();
+    }
+
+    {
+        std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
+        m_mapDhcpResult.clear();
+    }
+
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+        m_mapClientCallBack.clear();
+    }
     CreateDirs(DHCP_WORK_DIR.c_str(), DIR_DEFAULT_MODE);
 }
 
 DhcpClientServiceImpl::~DhcpClientServiceImpl()
 {
     DHCP_LOGI("enter ~DhcpClientServiceImpl()");
+    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
     auto iter = m_mapClientService.begin();
     while(iter != m_mapClientService.end()) {
         if ((iter->second).pipv6Client != nullptr) {
@@ -227,13 +239,14 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool b
         DHCP_LOGE("StartDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
-    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-    auto iter = m_mapClientService.find(ifname);
-    if (iter != m_mapClientService.end()) {
-        return StartOldClient(ifname, bIpv6, iter->second);
-    } else {
-        return StartNewClient(ifname, bIpv6);
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iter = m_mapClientService.find(ifname);
+        if (iter != m_mapClientService.end()) {
+            return StartOldClient(ifname, bIpv6, iter->second);
+        }
     }
+    return StartNewClient(ifname, bIpv6);
 }
 
 ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bIpv6, DhcpClient &dhcpClient)
@@ -288,7 +301,10 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
     client.ifName = ifname;
     client.isIpv6 = bIpv6;
     client.pStaStateMachine = pStaState;
-    m_mapClientService.emplace(std::make_pair(ifname, client));
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        m_mapClientService.emplace(std::make_pair(ifname, client));
+    }
     DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
     pStaState->StartIpv4Type(ifname, bIpv6, ACTION_START_NEW);
     return DHCP_E_SUCCESS;
@@ -378,7 +394,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> 
         result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
         result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
 
-    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     if (CheckDhcpResultExist(ifname, result)) {
         DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s equal new addtime %{public}u, no need update.",
         ifname.c_str(), result.uAddTime);
@@ -392,6 +407,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> 
     OHOS::sptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #endif
     PushDhcpResult(ifname, result);
+    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultSuccess m_mapClientCallBack not find callback!");
@@ -415,11 +431,18 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
     result.isOptSuc = false;
     result.uGetTime = (uint32_t)time(NULL);
     result.uAddTime = atoi(splits[OHOS::DHCP::DHCP_NUM_ONE].c_str());
-
-    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv4ResultFail ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
-    
+    ActionMode action = ACTION_INVALID;
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iterlient = m_mapClientService.find(ifname);
+        if (iterlient != m_mapClientService.end() && ((iterlient->second).pStaStateMachine != nullptr)) {
+            action = (iterlient->second).pStaStateMachine->GetAction();
+        }
+    }
+
+    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultFail m_mapClientCallBack not find callback!");
@@ -428,12 +451,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
     if ((iter->second) == nullptr) {
         DHCP_LOGE("DhcpIpv4ResultFail mclientCallback == nullptr!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
-    }
-    
-    ActionMode action = ACTION_INVALID;
-    auto iterlient = m_mapClientService.find(ifname);
-    if (iterlient != m_mapClientService.end() && ((iterlient->second).pStaStateMachine != nullptr)) {
-        action = (iterlient->second).pStaStateMachine->GetAction();
     }
     
     (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_FAILED, ifname.c_str(),
@@ -445,8 +462,17 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
 
 int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
 {
-    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     DHCP_LOGI("DhcpIpv4ResultTimeOut ifname:%{public}s", ifname.c_str());
+    ActionMode action = ACTION_INVALID;
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iterlient = m_mapClientService.find(ifname);
+        if (iterlient != m_mapClientService.end() && ((iterlient->second).pStaStateMachine != nullptr)) {
+            action = (iterlient->second).pStaStateMachine->GetAction();
+        }
+    }
+
+    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultTimeOut m_mapClientCallBack not find callback!");
@@ -456,12 +482,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         DHCP_LOGE("DhcpIpv4ResultTimeOut mclientCallback == nullptr!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
-    ActionMode action = ACTION_INVALID;
-    auto iterlient = m_mapClientService.find(ifname);
-    if (iterlient != m_mapClientService.end() && ((iterlient->second).pStaStateMachine != nullptr)) {
-        action = (iterlient->second).pStaStateMachine->GetAction();
-    }
-    
     (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_TIMEOUT, ifname.c_str(),
         "get dhcp renew result timeout!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
@@ -491,7 +511,6 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     result.strLinkIpv6Addr = info.linkIpv6Addr;
     result.strRandIpv6Addr = info.randIpv6Addr; // Reserved, randIpv6Addrr is empty.
 
-    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
         "Subnet:%{private}s, Dns1:%{private}s, Dns2:%{private}s, Router1:%{private}s, Router2:%{private}s, "
@@ -501,7 +520,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
         result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
         result.strRouter2.c_str(), result.strVendor.c_str(), result.strLinkIpv6Addr.c_str(),
         result.strRandIpv6Addr.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
-    
+    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv6ResulCallback m_mapClientCallBack not find callback!");
@@ -517,6 +536,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
 
 void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
 {
+    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     auto iterResult = m_mapDhcpResult.find(ifname);
     if (iterResult != m_mapDhcpResult.end()) {
         for (int i = 0; i < iterResult->second.size(); i++) {
@@ -547,6 +567,7 @@ void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::DHCP
 bool DhcpClientServiceImpl::CheckDhcpResultExist(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
 {
     bool exist = false;
+    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     auto iterResult = m_mapDhcpResult.find(ifname);
     if (iterResult != m_mapDhcpResult.end()) {
         for (int i = 0; i < iterResult->second.size(); i++) {
