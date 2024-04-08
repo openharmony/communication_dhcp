@@ -18,6 +18,7 @@
 #include <string>
 #include <sys/types.h>
 #include <stdint.h>
+// duliqun
 
 namespace OHOS {
 namespace DHCP {
@@ -47,6 +48,7 @@ public:
     void RunIpv6ThreadFunc();
     int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
+    // duliqun
 public:
     
 private:
@@ -73,6 +75,7 @@ private:
     int32_t ipv6SocketFd = 0;
     std::thread *pthread;
     bool runFlag;
+    // duliqun
 };
 }  // namespace DHCP
 }  // namespace OHOS

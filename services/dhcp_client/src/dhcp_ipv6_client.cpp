@@ -489,5 +489,6 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
     DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag);
     runFlag = false;
 }
+// duliqun
 }  // namespace DHCP
 }  // namespace OHOS

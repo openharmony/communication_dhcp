@@ -40,6 +40,7 @@ public:
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif
     void RegisterCallBack(const std::string& ifname, const ClientCallBack *event);
+    // duliqun
     std::map<std::string, const ClientCallBack *> mapClientCallBack;
 };
 

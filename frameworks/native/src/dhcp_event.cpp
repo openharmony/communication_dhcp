@@ -113,6 +113,8 @@ void DhcpClientCallBack::RegisterCallBack(const std::string& ifname, const Clien
     }
 }
 
+// duliqun
+
 DhcpServerCallBack::DhcpServerCallBack()
 {
     DHCP_LOGI("DhcpServerCallBack");

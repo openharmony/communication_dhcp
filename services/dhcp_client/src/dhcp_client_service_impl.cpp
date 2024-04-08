@@ -301,6 +301,7 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
         DHCP_LOGE("StopDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
+    // duliqun
     std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
     auto iter2 = m_mapClientService.find(ifname);
     if (iter2 != m_mapClientService.end()) {
@@ -404,6 +405,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> 
     }
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv4ResultSuccess OnIpSuccessChanged!");
+    // duliqun
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -440,6 +442,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
         "get dhcp renew result failed!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
     DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!, action:%{public}d", action);
+    // duliqun
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -466,6 +469,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         "get dhcp renew result timeout!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
     DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!, action:%{public}d", action);
+    // duliqun
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -513,6 +517,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     }
     (iter->second)->OnIpSuccessChanged(PUBLISH_CODE_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback OnIpSuccessChanged");
+    // duliqun
 }
 
 void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
