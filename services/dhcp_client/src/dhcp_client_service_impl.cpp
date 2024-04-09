@@ -570,7 +570,7 @@ int DhcpClientServiceImpl::DhcpIpv6ResultTimeOut(const std::string &ifname)
             (iter->second).pipv6Client->StopIpv6Timer();
         }
     }
-    return OHOS::Wifi::DHCP_OPT_SUCCESS;
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
 void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
