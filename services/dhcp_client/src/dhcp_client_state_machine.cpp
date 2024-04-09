@@ -73,10 +73,6 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.pOptClientId = NULL;
     DHCP_LOGI("DhcpClientStateMachine()");
-
-    if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_sigSockFds) != 0) {
-        DHCP_LOGE("DhcpClientStateMachine() socketpair m_sigSockFds failed, error:%{public}d", errno);
-    }
 }
 
 DhcpClientStateMachine::~DhcpClientStateMachine()
@@ -88,6 +84,25 @@ DhcpClientStateMachine::~DhcpClientStateMachine()
         m_pthread = nullptr;
         DHCP_LOGI("~DhcpClientStateMachine() delete m_pthread!");
     }
+}
+
+int DhcpClientStateMachine::InitSignalHandle()
+{
+    if (socketpair(AF_UNIX, SOCK_STREAM, 0, m_sigSockFds) != 0) {
+        DHCP_LOGE("InitSignalHandle socketpair m_sigSockFds failed, error:%{public}d", errno);
+        return DHCP_OPT_FAILED;
+    }
+    DHCP_LOGI("InitSignalHandle socketpair 0:%{public}d 1:%{public}d", m_sigSockFds[0], m_sigSockFds[1]);
+    return DHCP_OPT_SUCCESS;
+}
+
+int DhcpClientStateMachine::CloseSignalHandle()
+{
+    for (int i = 0; i < NUMBER_TWO; i++) {
+        DHCP_LOGI("CloseSignalHandle m_sigSockFds, i:%{public}d %{public}d", i, m_sigSockFds[i]);
+        close(m_sigSockFds[i]);
+    }
+    return DHCP_OPT_SUCCESS;
 }
 
 void DhcpClientStateMachine::RunGetIPThreadFunc()
@@ -169,6 +184,7 @@ int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool 
 {
     DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d", ifname.c_str(), isIpv6);
     if (m_pthread == nullptr) {
+        InitSignalHandle();
         m_pthread = new std::thread(&DhcpClientStateMachine::RunGetIPThreadFunc, this);
         if (m_pthread == nullptr) {
             DHCP_LOGE("InitStartIpv4Thread thread RunGetIPThreadFunc failed!");
@@ -352,6 +368,7 @@ int DhcpClientStateMachine::ExitIpv4(void)
         m_pthread = nullptr;
         DHCP_LOGI("StopIpv4 delete m_pthread!");
     }
+    CloseSignalHandle();
     DHCP_LOGI("ExitIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     return DHCP_OPT_SUCCESS;
 }
