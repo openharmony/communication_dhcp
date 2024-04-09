@@ -27,6 +27,25 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpResult");
 
+bool DhcpIpv6TimerCallbackEvent(const char *ifname)
+{
+    DHCP_LOGI("DhcpIpv6TimerCallbackEvent ifname:%{public}s", ifname);
+    if (ifname == nullptr) {
+        DHCP_LOGE("DhcpIpv6TimerCallbackEvent ifname is nullptr!");
+        return false;
+    }
+#ifndef OHOS_ARCH_LITE
+    OHOS::sptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+#else
+    std::shared_ptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+#endif
+    if ((clientImpl != nullptr) && (clientImpl->DhcpIpv6ResultTimeOut(ifname) != OHOS::Wifi::DHCP_OPT_SUCCESS)) {
+        DHCP_LOGE("DhcpIpv6TimerCallbackEvent DhcpIpv6ResultTimeOut failed!");
+        return false;
+    }
+    return true;
+}
+
 bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname)
 {
     DHCP_LOGI("PublishDhcpIpv4ResultEvent ifname:%{public}s code:%{public}d", ifname, code);
