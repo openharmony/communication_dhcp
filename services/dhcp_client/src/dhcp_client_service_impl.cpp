@@ -255,9 +255,9 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
             dhcpClient.pipv6Client = pipv6Client;
             DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
         }
-        pipv6Client->Reset();
-        pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
-        std::placeholders::_1, std::placeholders::_2));
+        dhcpClient.pipv6Client->Reset();
+        dhcpClient.pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
+            std::placeholders::_1, std::placeholders::_2));
         dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
         dhcpClient.pipv6Client->StartIpv6Timer();
     }
