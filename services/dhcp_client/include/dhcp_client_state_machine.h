@@ -90,6 +90,8 @@ public:
     int ExecDhcpRenew(void);
     int ExitIpv4(void);
     int StopIpv4(void);
+    int InitSignalHandle();
+    int CloseSignalHandle();
     ActionMode GetAction(void);
 #ifndef OHOS_ARCH_LITE
     class DhcpTimer {
