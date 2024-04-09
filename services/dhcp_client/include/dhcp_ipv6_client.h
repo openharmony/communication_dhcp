@@ -18,7 +18,9 @@
 #include <string>
 #include <sys/types.h>
 #include <stdint.h>
-// duliqun
+#include "dhcp_client_def.h"
+#include "common_timer_errors.h"
+#include "timer.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -48,9 +50,25 @@ public:
     void RunIpv6ThreadFunc();
     int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
-    // duliqun
+    void Ipv6TimerCallback();
+    void StartIpv6Timer(void);
+    void StopIpv6Timer(void);
 public:
-    
+    class DhcpTimer {
+    public:
+        static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
+        using TimerCallback = std::function<void()>;
+        static DhcpTimer *GetInstance(void);
+
+        DhcpTimer();
+        ~DhcpTimer();
+        
+        EnumErrCode Register(const TimerCallback &callback, uint32_t &outTimerId, uint32_t interval = DEFAULT_TIMEROUT,
+            bool once = true);
+        void UnRegister(uint32_t timerId);
+    public:
+        std::unique_ptr<Utils::Timer> timer_{nullptr};
+    };
 private:
     int32_t createKernelSocket(void);
     void GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen);
@@ -75,7 +93,8 @@ private:
     int32_t ipv6SocketFd = 0;
     std::thread *pthread;
     bool runFlag;
-    // duliqun
+    uint32_t ipv6TimerId;
+    std::mutex ipv6TimerMutex;
 };
 }  // namespace DHCP
 }  // namespace OHOS
