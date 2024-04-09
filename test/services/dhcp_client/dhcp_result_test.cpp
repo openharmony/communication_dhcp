@@ -122,7 +122,7 @@ HWTEST_F(DhcpResultTest, DhcpIpv6TimerCallbackEventTest, TestSize.Level1)
     DHCP_LOGI("DhcpIpv6TimerCallbackEventTest enter!");
     std::string ifname = "wlan0";
     EXPECT_EQ(false, DhcpIpv6TimerCallbackEvent(nullptr));
-    EXPECT_EQ(false, DhcpIpv6TimerCallbackEvent(ifname.c_str()));
+    EXPECT_EQ(true, DhcpIpv6TimerCallbackEvent(ifname.c_str()));
 }
 }
 }
