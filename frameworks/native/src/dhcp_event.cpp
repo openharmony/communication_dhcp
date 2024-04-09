@@ -67,6 +67,7 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
     if (strcpy_s(dhcpResult.strOptRandIpv6Addr, DHCP_MAX_FILE_BYTES, result.strRandIpv6Addr.c_str()) != EOK) {
         DHCP_LOGE("OnIpSuccessChanged strOptRandIpv6Addr strcpy_s failed!");
     }
+    std::lock_guard<std::mutex> autoLock(callBackMutex);
     auto iter = mapClientCallBack.find(ifname);
     if ((iter != mapClientCallBack.end()) && (iter->second != nullptr) &&
         (iter->second->OnIpSuccessChanged != nullptr)) {
@@ -82,6 +83,7 @@ void DhcpClientCallBack::OnIpFailChanged(int status, const std::string& ifname, 
 {
     DHCP_LOGI("OnIpFailChanged status:%{public}d, ifname:%{public}s, reason:%{public}s", status, ifname.c_str(),
         reason.c_str());
+    std::lock_guard<std::mutex> autoLock(callBackMutex);
     auto iter = mapClientCallBack.find(ifname);
     if ((iter != mapClientCallBack.end()) && (iter->second != nullptr) && (iter->second->OnIpFailChanged != nullptr)) {
         DHCP_LOGI("OnIpFailChanged callbackEvent status:%{public}d", status);
@@ -103,6 +105,7 @@ void DhcpClientCallBack::RegisterCallBack(const std::string& ifname, const Clien
         DHCP_LOGE("DhcpClientCallBack event is nullptr!");
         return;
     }
+    std::lock_guard<std::mutex> autoLock(callBackMutex);
     auto iter = mapClientCallBack.find(ifname);
     if (iter != mapClientCallBack.end()) {
         iter->second = event;
@@ -113,7 +116,21 @@ void DhcpClientCallBack::RegisterCallBack(const std::string& ifname, const Clien
     }
 }
 
-// duliqun
+void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
+{
+    if (ifname.empty()) {
+        DHCP_LOGE("Client UnRegisterCallBack ifname is empty!");
+        return;
+    }
+    std::lock_guard<std::mutex> autoLock(callBackMutex);
+    auto iter = mapClientCallBack.find(ifname);
+    if (iter != mapClientCallBack.end()) {
+        mapClientCallBack.erase(iter);
+        DHCP_LOGI("Client UnRegisterCallBack erase ifname:%{public}s", ifname.c_str());
+    } else {
+        DHCP_LOGI("Client UnRegisterCallBack not find, ifname:%{public}s", ifname.c_str());
+    }
+}
 
 DhcpServerCallBack::DhcpServerCallBack()
 {
