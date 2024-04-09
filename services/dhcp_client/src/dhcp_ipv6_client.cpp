@@ -83,9 +83,11 @@ struct nd_opt_rdnss {
 } _packed;
 #endif
 
-DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname), pthread(nullptr), runFlag(false),
-    ipv6TimerId(0)
+DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname), pthread(nullptr), runFlag(false)
 {
+#ifndef OHOS_ARCH_LITE
+    ipv6TimerId = 0;
+#endif
     DHCP_LOGI("DhcpIpv6Client()");
 }
 
@@ -492,6 +494,7 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
     runFlag = false;
 }
 
+#ifndef OHOS_ARCH_LITE
 using TimeOutCallback = std::function<void()>;
 void DhcpIpv6Client::Ipv6TimerCallback()
 {
@@ -570,5 +573,6 @@ void DhcpIpv6Client::DhcpTimer::UnRegister(uint32_t timerId)
     timer_->Unregister(timerId);
     return;
 }
+#endif
 }  // namespace DHCP
 }  // namespace OHOS
