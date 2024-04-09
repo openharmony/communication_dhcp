@@ -74,6 +74,8 @@ public:
     int DhcpIpv4ResultFail(const std::vector<std::string> &splits);
     int DhcpIpv4ResultTimeOut(const std::string &ifname);
     int DhcpIpv6ResultTimeOut(const std::string &ifname);
+    int DhcpFreeIpv4(const std::string ifname);
+    int DhcpFreeIpv6(const std::string ifname);
     void DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info);
     void PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
     bool CheckDhcpResultExist(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
