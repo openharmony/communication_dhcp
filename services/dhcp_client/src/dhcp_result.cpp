@@ -35,11 +35,11 @@ bool DhcpIpv6TimerCallbackEvent(const char *ifname)
         return false;
     }
 #ifndef OHOS_ARCH_LITE
-    OHOS::sptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+    OHOS::sptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #else
-    std::shared_ptr<OHOS::Wifi::DhcpClientServiceImpl> clientImpl = OHOS::Wifi::DhcpClientServiceImpl::GetInstance();
+    std::shared_ptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #endif
-    if ((clientImpl != nullptr) && (clientImpl->DhcpIpv6ResultTimeOut(ifname) != OHOS::Wifi::DHCP_OPT_SUCCESS)) {
+    if ((clientImpl != nullptr) && (clientImpl->DhcpIpv6ResultTimeOut(ifname) != OHOS::DHCP::DHCP_OPT_SUCCESS)) {
         DHCP_LOGE("DhcpIpv6TimerCallbackEvent DhcpIpv6ResultTimeOut failed!");
         return false;
     }
