@@ -422,14 +422,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> 
     }
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv4ResultSuccess OnIpSuccessChanged!");
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pStaStateMachine != nullptr) {
-            DHCP_LOGI("DhcpIpv4ResultSuccess StopIpv4, ifname:%{public}s", ifname.c_str());
-            (iter2->second).pStaStateMachine->StopIpv4();
-            (iter2->second).pStaStateMachine->StopGetIpTimer();
-        }
-    }
+    DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -466,14 +459,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
         "get dhcp renew result failed!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
     DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!, action:%{public}d", action);
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pStaStateMachine != nullptr) {
-            DHCP_LOGI("DhcpIpv4ResultFail StopIpv4, ifname:%{public}s", ifname.c_str());
-            (iter2->second).pStaStateMachine->StopIpv4();
-            (iter2->second).pStaStateMachine->StopGetIpTimer();
-        }
-    }
+    DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -500,14 +486,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         "get dhcp renew result timeout!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
     DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!, action:%{public}d", action);
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pStaStateMachine != nullptr) {
-            DHCP_LOGI("DhcpIpv4ResultTimeOut StopIpv4, ifname:%{public}s", ifname.c_str());
-            (iter2->second).pStaStateMachine->StopIpv4();
-            (iter2->second).pStaStateMachine->StopGetIpTimer();
-        }
-    }
+    DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -555,21 +534,34 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     }
     (iter->second)->OnIpSuccessChanged(PUBLISH_CODE_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback OnIpSuccessChanged");
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pipv6Client != nullptr) {
-            DHCP_LOGI("DhcpIpv6ResulCallback DhcpIPV6Stop ifname:%{public}s", ifname.c_str());
-            (iter2->second).pipv6Client->DhcpIPV6Stop();
-#ifndef OHOS_ARCH_LITE
-            (iter2->second).pipv6Client->StopIpv6Timer();
-#endif
-        }
-    }
+    DhcpFreeIpv6(ifname);
 }
 
 int DhcpClientServiceImpl::DhcpIpv6ResultTimeOut(const std::string &ifname)
 {
     DHCP_LOGI("DhcpIpv6ResultTimeOut ifname:%{public}s", ifname.c_str());
+    DhcpFreeIpv6(ifname);
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
+}
+
+int DhcpClientServiceImpl::DhcpFreeIpv4(const std::string ifname)
+{
+    DHCP_LOGI("DhcpFreeIpv4 ifname:%{public}s", ifname.c_str());
+    std::lock_guard<std::mutex> autoLockServer(m_clientServiceMutex);
+    auto iter2 = m_mapClientService.find(ifname);
+    if (iter2 != m_mapClientService.end()) {
+        if ((iter2->second).pStaStateMachine != nullptr) {
+            DHCP_LOGI("DhcpIpv4ResultTimeOut StopIpv4, ifname:%{public}s", ifname.c_str());
+            (iter2->second).pStaStateMachine->StopIpv4();
+            (iter2->second).pStaStateMachine->StopGetIpTimer();
+        }
+    }
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
+}
+
+int DhcpClientServiceImpl::DhcpFreeIpv6(const std::string ifname)
+{
+    DHCP_LOGI("DhcpFreeIpv6 ifname:%{public}s", ifname.c_str());
     std::lock_guard<std::mutex> autoLockServer(m_clientServiceMutex);
     auto iter = m_mapClientService.find(ifname);
     if (iter != m_mapClientService.end()) {
