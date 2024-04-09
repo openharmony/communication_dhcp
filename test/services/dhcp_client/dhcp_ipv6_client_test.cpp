@@ -331,5 +331,15 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
     ipv6Client->handleKernelEvent(data, 1);
     ipv6Client->handleKernelEvent(data, DATA_SIZE);
 }
+
+HWTEST_F(DhcpIpv6ClientTest, UnRegisterTest, TestSize.Level1)
+{
+    DHCP_LOGI("UnRegisterTest enter!");
+    DhcpIpv6Client::DhcpTimer dhcpTimer;
+    std::unique_ptr<Utils::Timer> timer_{nullptr};
+    uint32_t timerId = 1;
+    dhcpTimer.UnRegister(0);
+    dhcpTimer.UnRegister(timerId);
+}
 }
 }
