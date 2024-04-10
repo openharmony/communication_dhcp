@@ -524,7 +524,7 @@ void DhcpIpv6Client::StopIpv6Timer()
     return;
 }
 
-DhcpIpv6Client::DhcpTimer * DhcpIpv6Client::DhcpTimer::GetInstance()
+DhcpIpv6Client::DhcpTimer* DhcpIpv6Client::DhcpTimer::GetInstance()
 {
     static DhcpTimer instance;
     return &instance;
