@@ -553,7 +553,9 @@ int DhcpClientServiceImpl::DhcpFreeIpv4(const std::string ifname)
         if ((iter2->second).pStaStateMachine != nullptr) {
             DHCP_LOGI("DhcpIpv4ResultTimeOut StopIpv4, ifname:%{public}s", ifname.c_str());
             (iter2->second).pStaStateMachine->StopIpv4();
+#ifndef OHOS_ARCH_LITE
             (iter2->second).pStaStateMachine->StopGetIpTimer();
+#endif
         }
     }
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
