@@ -634,5 +634,17 @@ HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddStrToOpts(nullptr, option, value));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddStrToOpts(&packet, option, value));
 }
+
+HWTEST_F(DhcpClientStateMachineTest, InitSignalHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("InitSignalHandleTest enter!");
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->InitSignalHandle());
+}
+
+HWTEST_F(DhcpClientStateMachineTest, CloseSignalHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("CloseSignalHandleTest enter!");
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->CloseSignalHandle());
+}
 }
 }

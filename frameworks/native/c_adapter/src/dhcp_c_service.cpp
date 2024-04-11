@@ -59,6 +59,8 @@ NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(dhcpClientCallBack, DHCP_INVALID_PARAM);
+    dhcpClientCallBack->UnRegisterCallBack(ifname);
     return  GetCErrorCode(dhcpClientPtr->StopDhcpClient(ifname, bIpv6));
 }
 

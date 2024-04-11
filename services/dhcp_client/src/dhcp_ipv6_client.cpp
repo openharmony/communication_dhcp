@@ -29,6 +29,7 @@
 #include "securec.h"
 #include "dhcp_logger.h"
 #include "dhcp_ipv6_client.h"
+#include "dhcp_result.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -84,6 +85,9 @@ struct nd_opt_rdnss {
 
 DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname), pthread(nullptr), runFlag(false)
 {
+#ifndef OHOS_ARCH_LITE
+    ipv6TimerId = 0;
+#endif
     DHCP_LOGI("DhcpIpv6Client()");
 }
 
@@ -489,5 +493,86 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
     DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag);
     runFlag = false;
 }
+
+#ifndef OHOS_ARCH_LITE
+using TimeOutCallback = std::function<void()>;
+void DhcpIpv6Client::Ipv6TimerCallback()
+{
+    DHCP_LOGI("enter Ipv6TimerCallback, ipv6TimerId:%{public}u", ipv6TimerId);
+    StopIpv6Timer();
+    DhcpIpv6TimerCallbackEvent(interfaceName.c_str());
+}
+
+void DhcpIpv6Client::StartIpv6Timer()
+{
+    DHCP_LOGI("StartIpv6Timer ipv6TimerId:%{public}u", ipv6TimerId);
+    std::unique_lock<std::mutex> lock(ipv6TimerMutex);
+    if (ipv6TimerId == 0) {
+        TimeOutCallback timeoutCallback = std::bind(&DhcpIpv6Client::Ipv6TimerCallback, this);
+        DhcpTimer::GetInstance()->Register(timeoutCallback, ipv6TimerId, DhcpTimer::DEFAULT_TIMEROUT);
+        DHCP_LOGI("StartIpv6Timer success! ipv6TimerId:%{public}u", ipv6TimerId);
+    }
+    return;
+}
+
+void DhcpIpv6Client::StopIpv6Timer()
+{
+    DHCP_LOGI("StopIpv6Timer ipv6TimerId:%{public}u", ipv6TimerId);
+    std::unique_lock<std::mutex> lock(ipv6TimerMutex);
+    DhcpTimer::GetInstance()->UnRegister(ipv6TimerId);
+    ipv6TimerId = 0;
+    return;
+}
+
+DhcpIpv6Client::DhcpTimer* DhcpIpv6Client::DhcpTimer::GetInstance()
+{
+    static DhcpTimer instance;
+    return &instance;
+}
+
+DhcpIpv6Client::DhcpTimer::DhcpTimer() : timer_(std::make_unique<Utils::Timer>("DhcpGetIpv6Timer"))
+{
+    timer_->Setup();
+}
+
+DhcpIpv6Client::DhcpTimer::~DhcpTimer()
+{
+    if (timer_) {
+        timer_->Shutdown(true);
+    }
+}
+
+EnumErrCode DhcpIpv6Client::DhcpTimer::Register(const TimerCallback &callback, uint32_t &outTimerId,
+    uint32_t interval, bool once)
+{
+    if (timer_ == nullptr) {
+        DHCP_LOGI("timer_ is nullptr");
+        return DHCP_OPT_FAILED;
+    }
+
+    uint32_t ret = timer_->Register(callback, interval, once);
+    if (ret == Utils::TIMER_ERR_DEAL_FAILED) {
+        DHCP_LOGI("Register timer failed");
+        return DHCP_OPT_FAILED;
+    }
+    outTimerId = ret;
+    return DHCP_OPT_SUCCESS;
+}
+
+void DhcpIpv6Client::DhcpTimer::UnRegister(uint32_t timerId)
+{
+    if (timerId == 0) {
+        DHCP_LOGI("timerId is 0, no register timer");
+        return;
+    }
+
+    if (timer_ == nullptr) {
+        DHCP_LOGI("timer_ is nullptr");
+        return;
+    }
+    timer_->Unregister(timerId);
+    return;
+}
+#endif
 }  // namespace DHCP
 }  // namespace OHOS

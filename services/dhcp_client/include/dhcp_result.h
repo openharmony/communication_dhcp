@@ -26,6 +26,7 @@ int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &split
 int DhcpEventResultHandle(const int code, const std::string &data);
 bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname);
 bool SplitStr(const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
+bool DhcpIpv6TimerCallbackEvent(const char *ifname);
 #ifdef __cplusplus
 }
 #endif
