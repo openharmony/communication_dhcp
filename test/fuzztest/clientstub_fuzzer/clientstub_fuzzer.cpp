@@ -95,15 +95,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     std::string ifname = "wlan0";
-    OHOS::Wifi::OnRegisterCallBackTest(ifname, size);
+    OnRegisterCallBackTest(ifname, size);
     sleep(DHCP_SLEEP_1);
-    OHOS::Wifi::OnStartDhcpClientTest(ifname, size, false); // timeout 15s
+    OnStartDhcpClientTest(ifname, size, false); // timeout 15s
     sleep(DHCP_SLEEP_2);
-    OHOS::Wifi::OnRenewDhcpClientTest(ifname, size);  // timeout 15s
+    OnRenewDhcpClientTest(ifname, size);  // timeout 15s
     sleep(DHCP_SLEEP_2);
-    OHOS::Wifi::OnStopDhcpClientTest(ifname, size, false);
+    OnStopDhcpClientTest(ifname, size, false);
     sleep(DHCP_SLEEP_1);
-    OHOS::Wifi::OnStopDhcpClientTest(ifname, size, true);
+    OnStopDhcpClientTest(ifname, size, true);
     return 0;
 }
 }  // namespace DHCP
