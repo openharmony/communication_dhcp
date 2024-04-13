@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <unistd.h>
 #include "clientstub_fuzzer.h"
 #include "message_parcel.h"
 #include "securec.h"
