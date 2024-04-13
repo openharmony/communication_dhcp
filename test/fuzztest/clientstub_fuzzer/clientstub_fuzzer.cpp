@@ -15,6 +15,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <unistd.h>
 #include "clientstub_fuzzer.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -26,18 +27,62 @@
 namespace OHOS {
 namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
-constexpr size_t MAP_SCAN_NUMS = 10;
+constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t DHCP_SLEEP_2 = 4;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
+static sptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub =
+    sptr<DhcpClientCallBackStub>(new (std::nothrow)DhcpClientCallBackStub());
 
-void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
+void OnRegisterCallBackTest(const std::string& ifname, size_t size)
 {
-    uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
-    (DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
+    uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
-    datas.WriteBuffer(data, size);
+    datas.WriteRemoteObject(g_dhcpClientCallBackStub->AsObject());
+    datas.WriteString(ifname);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
+}
+
+void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
+{
+    uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT);
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteString(ifname);
+    datas.WriteBool(ipv6);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
+}
+
+void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
+{
+    uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT);
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteString(ifname);
+    datas.WriteBool(ipv6);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
+}
+
+
+void OnRenewDhcpClientTest(const std::string& ifname, size_t size)
+{
+    uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT);
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteString(ifname);
     datas.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
@@ -50,7 +95,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
-    OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
+    std::string ifname = "wlan0";
+    OnRegisterCallBackTest(ifname, size);
+    sleep(DHCP_SLEEP_1);
+    OnStartDhcpClientTest(ifname, size, false); // max 15s timeout
+    sleep(DHCP_SLEEP_2);
+    OnRenewDhcpClientTest(ifname, size);  //  max 15s timeout
+    sleep(DHCP_SLEEP_2);
+    OnStopDhcpClientTest(ifname, size, false);
+    sleep(DHCP_SLEEP_1);
+    OnStopDhcpClientTest(ifname, size, true);
     return 0;
 }
 }  // namespace DHCP
