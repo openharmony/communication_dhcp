@@ -30,6 +30,11 @@ DhcpClientStub::DhcpClientStub()
 DhcpClientStub::~DhcpClientStub()
 {
     DHCP_LOGI("enter ~DhcpClientStub!");
+#ifndef OHOS_ARCH_LITE
+#ifndef DTFUZZ_TEST
+    RemoveDeviceCbDeathRecipient();
+#endif
+#endif
 }
 
 #ifndef OHOS_ARCH_LITE
