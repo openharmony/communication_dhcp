@@ -51,6 +51,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
+    // duliqun
     return 0;
 }
 }  // namespace DHCP
