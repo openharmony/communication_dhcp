@@ -26,6 +26,8 @@
 namespace OHOS {
 namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
+constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t DHCP_SLEEP_2 = 18;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
 static sptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub =
@@ -38,7 +40,7 @@ void OnRegisterCallBackTest(const std::string& ifname, size_t size)
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
     datas.WriteRemoteObject(g_dhcpClientCallBackStub->AsObject());
-    datas.WriteString(ifname); 
+    datas.WriteString(ifname);
     datas.RewindRead(0);
     MessageParcel reply;
     MessageOption option;
@@ -94,15 +96,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     std::string ifname = "wlan0";
     OHOS::Wifi::OnRegisterCallBackTest(ifname, size);
-    sleep(3);
+    sleep(DHCP_SLEEP_1);
     OHOS::Wifi::OnStartDhcpClientTest(ifname, size, false); // timeout 15s
-    sleep(18);
+    sleep(DHCP_SLEEP_2);
     OHOS::Wifi::OnRenewDhcpClientTest(ifname, size);  // timeout 15s
-    sleep(18);
+    sleep(DHCP_SLEEP_2);
     OHOS::Wifi::OnStopDhcpClientTest(ifname, size, false);
-    sleep(3);
+    sleep(DHCP_SLEEP_1);
     OHOS::Wifi::OnStopDhcpClientTest(ifname, size, true);
-    sleep(3);
     return 0;
 }
 }  // namespace DHCP
