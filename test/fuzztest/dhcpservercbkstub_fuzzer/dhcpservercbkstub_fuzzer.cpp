@@ -14,10 +14,10 @@
  */
 
 #include "dhcpservercbkstub_fuzzer.h"
-#include "../../../interfaces/inner_api/dhcp_client.h"
-#include "../../include/dhcp_event.h"
+#include "dhcp_client.h"
+#include "dhcp_event.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
-#include "../../../frameworks/native/src/dhcp_server_callback_stub.h"
+#include "dhcp_server_callback_stub.h"
 #include "dhcp_fuzz_common_func.h"
 
 
