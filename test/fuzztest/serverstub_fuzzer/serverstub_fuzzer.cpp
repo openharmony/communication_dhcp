@@ -36,6 +36,10 @@ void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
 {
     uint32_t code = U32_AT(data) % MAP_SCAN_NUMS + static_cast<uint32_t>
     (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK);
+    if (code == static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK) ||
+        code ==  static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK)) {
+        return;
+    }
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
