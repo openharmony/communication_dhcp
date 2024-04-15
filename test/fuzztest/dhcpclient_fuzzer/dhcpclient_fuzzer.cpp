@@ -14,8 +14,8 @@
  */
 
 #include "dhcpclient_fuzzer.h"
-#include "../../../interfaces/inner_api/dhcp_client.h"
-#include "../../include/dhcp_event.h"
+#include "dhcp_client.h"
+#include "dhcp_event.h"
 
 namespace OHOS {
 namespace DHCP {
