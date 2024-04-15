@@ -52,7 +52,6 @@ if (defined(ohos_lite)) {
       "src/dhcp_server_feature_lite.cpp",
       "src/dhcp_server_service_impl.cpp",
       "src/dhcp_server_stub_lite.cpp",
-      "src/hash_table.cpp",
     ]
 
     include_dirs = local_base_include_dirs
@@ -95,7 +94,6 @@ if (defined(ohos_lite)) {
     "src/dhcp_s_server.cpp",
     "src/dhcp_server_death_recipient.cpp",
     "src/dhcp_server_service_impl.cpp",
-    "src/hash_table.cpp",
   ]
   config("dhcp_manager_service_header") {
     visibility = [ ":*" ]

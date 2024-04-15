@@ -39,7 +39,6 @@ ohos_unittest("dhcp_server_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_death_recipient.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_service_impl.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_stub.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_server/src/hash_table.cpp",
     "address_utils_test.cpp",
     "common_util_test.cpp",
     "dhcp_address_pool_test.cpp",
@@ -55,7 +54,6 @@ ohos_unittest("dhcp_server_unittest") {
     "dhcp_server_death_recipient_test.cpp",
     "dhcp_server_service_impl_test.cpp",
     "dhcp_server_stub_test.cpp",
-    "hash_table_test.cpp",
     "system_func_mock.cpp",
   ]
 

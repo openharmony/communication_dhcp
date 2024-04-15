@@ -417,42 +417,15 @@ HWTEST_F(DhcpAddressPoolTest, LoadBindingRecodersTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, AddLease(&testPool, &lease));
 
     EXPECT_EQ(RET_SUCCESS, SaveBindingRecoders(&testPool, 1));
-    EXPECT_EQ(HASH_SUCCESS, ClearAll(&testPool.leaseTable));
-    EXPECT_TRUE(testPool.leaseTable.size == 0);
+    testPool.leaseTable.clear();
+    EXPECT_TRUE(testPool.leaseTable.size() == 0);
     EXPECT_EQ(RET_FAILED, LoadBindingRecoders(NULL));
     EXPECT_EQ(RET_SUCCESS, LoadBindingRecoders(&testPool));
-    EXPECT_TRUE(testPool.leaseTable.size == 0);
+    EXPECT_TRUE(testPool.leaseTable.size() == 0);
     EXPECT_TRUE(GetLease(&testPool, testIp1) == NULL);
     EXPECT_TRUE(GetLease(&testPool, testIp2) == NULL);
     EXPECT_TRUE(GetLease(&testPool, testIp3) == NULL);
-    EXPECT_EQ(HASH_SUCCESS, ClearAll(&testPool.leaseTable));
-}
-
-HWTEST_F(DhcpAddressPoolTest, GetBindingByIpTest, TestSize.Level1)
-{
-    AddressBinding lease = {0};
-    uint32_t testIp1 = ParseIpAddr("192.168.100.101");
-    ASSERT_TRUE(testIp1 != 0);
-    lease.bindingMode = BIND_MODE_DYNAMIC;
-    lease.bindingStatus = BIND_ASSOCIATED;
-    lease.pendingTime = 1631260680;
-    lease.bindingTime = 1631260680;
-    const uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    lease.ipAddress = testIp1;
-    for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
-        lease.chaddr[i] = testMac1[i];
-    }
-    ASSERT_EQ(RET_SUCCESS, AddLease(&testPool, &lease));
-
-    HashTable tempTable = {0};
-    EXPECT_TRUE(GetBindingByIp(NULL, testIp1) == NULL);
-    EXPECT_TRUE(GetBindingByIp(&tempTable, testIp1) == NULL);
-    AddressBinding *pLease = GetLease(&testPool, testIp1);
-    ASSERT_TRUE(pLease != NULL);
-    EXPECT_EQ(lease.ipAddress, pLease->ipAddress);
-    EXPECT_EQ(lease.leaseTime, pLease->leaseTime);
-    EXPECT_EQ(lease.bindingMode, pLease->bindingMode);
-    EXPECT_EQ(lease.bindingStatus, pLease->bindingStatus);
+    testPool.leaseTable.clear();
 }
 
 HWTEST_F(DhcpAddressPoolTest, InitAddressPoolTest, TestSize.Level1)
@@ -489,17 +462,6 @@ HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)
 HWTEST_F(DhcpAddressPoolTest, SaveBindingRecodersTest, TestSize.Level1)
 {
     EXPECT_EQ(RET_FAILED, SaveBindingRecoders(NULL, 0));
-}
-
-HWTEST_F(DhcpAddressPoolTest, FindAndDelBindingTest, TestSize.Level1)
-{
-    HashTable table;
-    AddressBinding binding = {0};
-    AddressBinding lease = {0};
-    EXPECT_EQ(RET_ERROR, FindAndDelBinding(nullptr, &binding, &lease));
-    EXPECT_EQ(RET_ERROR, FindAndDelBinding(&table, nullptr, &lease));
-    EXPECT_EQ(RET_ERROR, FindAndDelBinding(&table, &binding, nullptr));
-    EXPECT_EQ(RET_SUCCESS, FindAndDelBinding(&table, &binding, &lease));
 }
 
 HWTEST_F(DhcpAddressPoolTest, DeleteMacInLeaseTest, TestSize.Level1)

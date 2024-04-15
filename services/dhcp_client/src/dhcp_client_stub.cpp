@@ -38,14 +38,14 @@ DhcpClientStub::~DhcpClientStub()
 }
 
 #ifndef OHOS_ARCH_LITE
-void DhcpClientStub::RemoveDeviceCbDeathRecipient(void)
+void DhcpClientStub::RemoveDeviceCbDeathRecipient()
 {
     DHCP_LOGI("enter RemoveDeathRecipient!");
     std::lock_guard<std::mutex> lock(mutex_);
     for (auto iter = remoteDeathMap.begin(); iter != remoteDeathMap.end(); ++iter) {
         iter->first->RemoveDeathRecipient(iter->second);
-        remoteDeathMap.erase(iter);
     }
+    remoteDeathMap.clear();
 }
 
 void DhcpClientStub::RemoveDeviceCbDeathRecipient(const wptr<IRemoteObject> &remoteObject)
