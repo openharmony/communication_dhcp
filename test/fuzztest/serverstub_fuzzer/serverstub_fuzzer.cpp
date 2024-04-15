@@ -50,6 +50,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
+    // duliqun
     OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
     return 0;
 }
