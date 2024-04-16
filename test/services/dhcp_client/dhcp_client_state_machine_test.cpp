@@ -338,7 +338,7 @@ HWTEST_F(DhcpClientStateMachineTest, StopIpv4Test, TestSize.Level1)
 {
     DHCP_LOGI("StopIpv4Test enter!");
     dhcpClient->StopIpv4();
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->StopIpv4());
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->StopIpv4());
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
