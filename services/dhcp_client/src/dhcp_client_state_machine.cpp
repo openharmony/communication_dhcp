@@ -71,7 +71,6 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.timeoutExit = false;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
-    m_cltCnf.pOptClientId = NULL;
     DHCP_LOGI("DhcpClientStateMachine()");
 }
 
@@ -270,26 +269,6 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
         m_cltCnf.ifaceName, m_cltCnf.ifaceIpv4, cIp);
     free(cIp);
     cIp = NULL;
-
-    /* Generate clientid for the specified client process interface. */
-    if (m_cltCnf.pOptClientId == NULL) {
-        m_cltCnf.pOptClientId = (unsigned char *)malloc(DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + MAC_ADDR_LEN + 1);
-        if (m_cltCnf.pOptClientId == NULL) {
-            DHCP_LOGE("GetClientNetworkInfo() m_cltCnf.pOptClientId malloc failed!");
-            return DHCP_OPT_FAILED;
-        }
-        m_cltCnf.pOptClientId[DHCP_OPT_CODE_INDEX] = CLIENT_IDENTIFIER_OPTION;
-        m_cltCnf.pOptClientId[DHCP_OPT_LEN_INDEX] = MAC_ADDR_LEN + 1;
-        /* Generate format: 1 + ifaceMac. */
-        m_cltCnf.pOptClientId[DHCP_OPT_DATA_INDEX] = NUMBER_ONE;
-        if (memcpy_s(m_cltCnf.pOptClientId + DHCP_OPT_DATA_INDEX + 1,
-            MAC_ADDR_LEN,
-            m_cltCnf.ifaceMac,
-            MAC_ADDR_LEN) != EOK) {
-            DHCP_LOGE("GetClientNetworkInfo() memcpy_s failed!");
-            return DHCP_OPT_FAILED;
-        }
-    }
     return DHCP_OPT_SUCCESS;
 }
 
@@ -532,12 +511,20 @@ void DhcpClientStateMachine::AddParamaterRequestList(struct DhcpPacket *packet)
     int end = GetEndOptionIndex(packet->options);
     int i;
     int len = 0;
-    const uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {SUBNET_MASK_OPTION,
+    const uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {
+        SUBNET_MASK_OPTION,
         ROUTER_OPTION,
         DOMAIN_NAME_SERVER_OPTION,
-        HOST_NAME_OPTION,
         DOMAIN_NAME_OPTION,
-        BROADCAST_ADDRESS_OPTION};
+        INTERFACE_MTU_OPTION,
+        BROADCAST_ADDRESS_OPTION,
+        IP_ADDRESS_LEASE_TIME_OPTION,
+        RENEWAL_TIME_VALUE_OPTION,
+        REBINDING_TIME_VALUE_OPTION,
+        VENDOR_SPECIFIC_INFO_OPTION,
+        CAPTIVE_PORTAL_OPTION,
+        IPV6_ONLY_PREFERRED_OPTION
+    };
 
     packet->options[end + DHCP_OPT_CODE_INDEX] = PARAMETER_REQUEST_LIST_OPTION;
     for (i = 0; i < DHCP_REQ_CODE_NUM; i++) {
@@ -664,13 +651,18 @@ void DhcpClientStateMachine::AddParamaterRebootList(struct DhcpPacket *packet)
     int len = 0;
     const uint8_t arrReqCode[DHCP_REQ_CODE_NUM] = {
         SUBNET_MASK_OPTION,
-        STATIC_ROUTE_OPTION,
         ROUTER_OPTION,
         DOMAIN_NAME_SERVER_OPTION,
+        DOMAIN_NAME_OPTION,
+        INTERFACE_MTU_OPTION,
         BROADCAST_ADDRESS_OPTION,
         IP_ADDRESS_LEASE_TIME_OPTION,
         RENEWAL_TIME_VALUE_OPTION,
-        REBINDING_TIME_VALUE_OPTION};
+        REBINDING_TIME_VALUE_OPTION,
+        VENDOR_SPECIFIC_INFO_OPTION,
+        CAPTIVE_PORTAL_OPTION,
+        IPV6_ONLY_PREFERRED_OPTION
+    };
 
     packet->options[end + DHCP_OPT_CODE_INDEX] = PARAMETER_REQUEST_LIST_OPTION;
     for (i = 0; i < DHCP_REQ_CODE_NUM; i++) {
@@ -701,14 +693,12 @@ int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
         DHCP_LOGE("DhcpReboot() failed, memcpy_s error!");
         return -1;
     }
-
-    /* Get packet not common info. */
     packet.xid = transid;
-    AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip);
-    AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE);
-    AddOptValueToOpts(packet.options, FORCERENEW_NONCE_OPTION, 1);
-    AddHostNameToOpts(&packet);
-    AddParamaterRebootList(&packet);
+    AddClientIdToOpts(&packet); // 61
+    AddHostNameToOpts(&packet); // 60 12
+    AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); //50
+    AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
+    AddParamaterRebootList(&packet); // 55
 
     /* Begin broadcast dhcp request packet. */
     char *pReqIp = Ip4IntConToStr(reqip, false);
@@ -956,38 +946,99 @@ void DhcpClientStateMachine::DhcpOfferPacketHandle(uint8_t type, const struct Dh
     m_timeoutTimestamp = timestamp;
 }
 
-void DhcpClientStateMachine::ParseOtherNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
+void DhcpClientStateMachine::ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
 {
-    if ((packet == NULL) || (result == NULL)) {
-        DHCP_LOGE("ParseOtherNetworkInfo() error, packet == NULL or result == NULL!");
+    if ((packet == nullptr) || (result == nullptr)) {
+        DHCP_LOGE("ParseNetworkServerIdInfo packet == nullptr or result == nullptr!");
         return;
     }
-
     uint32_t u32Data = 0;
-    uint32_t u32Data2 = 0;
-    if (GetDhcpOptionUint32n(packet, DOMAIN_NAME_SERVER_OPTION, &u32Data, &u32Data2)) {
-        char *pDnsIp = Ip4IntConToStr(u32Data, true);
-        if (pDnsIp != NULL) {
-            DHCP_LOGI("ParseOtherNetworkInfo() recv DHCP_ACK 6, dns1: %{private}u->%{private}s.", u32Data, pDnsIp);
-            if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
-                free(pDnsIp);
-                pDnsIp = NULL;
+    if (!GetDhcpOptionUint32(packet, SERVER_IDENTIFIER_OPTION, &u32Data)) {
+        DHCP_LOGE("ParseNetworkServerIdInfo SERVER_IDENTIFIER_OPTION failed!");
+    } else {
+        m_serverIp4 = htonl(u32Data);
+        char *pSerIp = Ip4IntConToStr(m_serverIp4, false);
+        if (pSerIp != NULL) {
+            DHCP_LOGI("ParseNetworkServerIdInfo recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
+            if (strncpy_s(dhcpResult.strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
+                free(pSerIp);
+                pSerIp = NULL;
                 return;
             }
-            free(pDnsIp);
-            pDnsIp = NULL;
-        }
-        if ((u32Data2 > 0) && ((pDnsIp = Ip4IntConToStr(u32Data2, true)) != NULL)) {
-            DHCP_LOGI("ParseOtherNetworkInfo() recv DHCP_ACK 6, dns2: %{private}u->%{private}s.", u32Data2, pDnsIp);
-            if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
-                DHCP_LOGE("ParseOtherNetworkInfo() strncpy_s Failed.");
-            }
-            free(pDnsIp);
-            pDnsIp = NULL;
-            return;
+            free(pSerIp);
+            pSerIp = NULL;
         }
     }
+}
+
+void DhcpClientStateMachine::ParseNetworkDnsInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
+{
+    if ((packet == nullptr) || (result == nullptr)) {
+        DHCP_LOGE("ParseNetworkDnsInfo error, packet == nullptr or result == nullptr!");
+        return;
+    }
+    size_t len = 0;
+    const uint8_t *p = GetDhcpOption(packet, DOMAIN_NAME_SERVER_OPTION, &len);
+    if (p == nullptr) {
+        DHCP_LOGE("ParseNetworkDnsInfo nullptr!");
+        return;
+    }
+    uint32_t uData = 0;
+    int count = 0;
+    if ((len < (ssize_t)sizeof(uData)) || (len % (ssize_t)sizeof(uData) != 0)) {
+        DHCP_LOGE("ParseNetworkDnsInfo failed, len:%{public}zu is not %{public}zu * n, code:%{public}d!",
+            len, sizeof(uData), DOMAIN_NAME_SERVER_OPTION);
+        return;
+    }
+    DHCP_LOGI("ParseNetworkDnsInfo len:%{public}zu count:%{public}d", len, count);
+    while (len >= (ssize_t)sizeof(uData)) {
+        uData = 0;
+        if (memcpy_s(&uData, sizeof(uData), p, sizeof(uData)) != EOK) {
+            DHCP_LOGE("ParseNetworkDnsInfo memcpy_s failed!");
+            continue;
+        }
+        if (uData > 0) {
+            ParseNetworkDnsValue(result, uData, len, count);
+        }
+        p += sizeof(uData);
+        len -= sizeof(uData);
+    }
     return;
+}
+
+void DhcpClientStateMachine::ParseNetworkDnsValue(struct DhcpIpResult *result, uint32_t uData, size_t &len, int &count)
+{
+    if (result == nullptr) {
+        DHCP_LOGE("ParseNetworkDnsValue error, result == nullptr!");
+        return;
+    }
+    uint32_t u32Data = ntohl(uData);
+    char *pDnsIp = Ip4IntConToStr(u32Data, true);
+    if (pDnsIp != nullptr) {
+        count++;
+        result->dnsAddr.push_back(pDnsIp);
+        DHCP_LOGI("ParseNetworkDnsInfo recv DHCP_ACK 6, dns:%{private}u->%{private}s len:%{public}zu %{public}d",
+            u32Data, pDnsIp, len, count);
+        if (count == DHCP_DNS_FIRST) {
+            if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("ParseNetworkDnsInfo strncpy_s strOptDns1 Failed.");
+                free(pDnsIp);
+                pDnsIp = nullptr;
+                return;
+            }
+        } else if (count == DHCP_DNS_SECOND) {
+            if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("ParseNetworkDnsInfo strncpy_s strOptDns2 Failed.");
+                free(pDnsIp);
+                pDnsIp = nullptr;
+                return;
+            }
+        }
+        free(pDnsIp);
+        pDnsIp = nullptr;
+    } else {
+        DHCP_LOGI("ParseNetworkDnsInfo pDnsIp is nullptr, len:%{public}zu %{public}d ", len, count);
+    }
 }
 
 void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
@@ -1050,8 +1101,6 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
             pRouterIp = NULL;
         }
     }
-
-    ParseOtherNetworkInfo(packet, result);
 }
 
 void DhcpClientStateMachine::FormatString(struct DhcpIpResult *result)
@@ -1138,7 +1187,7 @@ int DhcpClientStateMachine::GetDHCPServerHostName(const struct DhcpPacket *packe
                 pHostName = NULL;
                 return DHCP_OPT_FAILED;
             } else {
-                DHCP_LOGI("SyncDhcpResult() recv DHCP_ACK sname, add pSname, \
+                DHCP_LOGI("GetDHCPServerHostName() recv DHCP_ACK sname, add pSname, \
                     result->strOptVendor is %{public}s.", result->strOptVendor);
             }
             pHostName = NULL;
@@ -1147,25 +1196,25 @@ int DhcpClientStateMachine::GetDHCPServerHostName(const struct DhcpPacket *packe
     return DHCP_OPT_SUCCESS;
 }
 
-int DhcpClientStateMachine::SyncDhcpResult(const struct DhcpPacket *packet, struct DhcpIpResult *result)
+int DhcpClientStateMachine::ParseNetworkVendorInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
 {
     if ((packet == NULL) || (result == NULL)) {
-        DHCP_LOGE("SyncDhcpResult() error, packet == NULL or result == NULL!");
+        DHCP_LOGE("ParseNetworkVendorInfo() error, packet == NULL or result == NULL!");
         return DHCP_OPT_FAILED;
     }
 
     char *pVendor = GetDhcpOptionString(packet, VENDOR_SPECIFIC_INFO_OPTION);
     if (pVendor == NULL) {
-        DHCP_LOGW("SyncDhcpResult() recv DHCP_ACK 43, pVendor is NULL!");
+        DHCP_LOGW("ParseNetworkVendorInfo() recv DHCP_ACK 43, pVendor is NULL!");
         if (GetDHCPServerHostName(packet, result) != DHCP_OPT_SUCCESS) {
             DHCP_LOGE("GetDHCPServerHostName() error, GetDHCPServerHostName failed!");
             return DHCP_OPT_FAILED;
         }
     /* Get option43 success. */
     } else {
-        DHCP_LOGI("SyncDhcpResult() recv DHCP_ACK 43, pVendor is %{public}s.", pVendor);
+        DHCP_LOGI("ParseNetworkVendorInfo() recv DHCP_ACK 43, pVendor is %{public}s.", pVendor);
         if (strncpy_s(result->strOptVendor, DHCP_FILE_MAX_BYTES, pVendor, DHCP_FILE_MAX_BYTES - 1) != EOK) {
-            DHCP_LOGE("SyncDhcpResult() error, strncpy_s pVendor failed!");
+            DHCP_LOGE("ParseNetworkVendorInfo() error, strncpy_s pVendor failed!");
             free(pVendor);
             pVendor = NULL;
             return DHCP_OPT_FAILED;
@@ -1173,140 +1222,106 @@ int DhcpClientStateMachine::SyncDhcpResult(const struct DhcpPacket *packet, stru
         free(pVendor);
         pVendor = NULL;
     }
-
-    /* Set the specified client process interface network info. */
-    if (SetLocalInterface(m_cltCnf.ifaceName, inet_addr(result->strYiaddr), inet_addr(result->strOptSubnet))
-        != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("SyncDhcpResult() error, SetLocalInterface yiaddr:%{public}s failed!", result->strYiaddr);
-        return DHCP_OPT_FAILED;
-    }
-
-     /* Format dhcp result. */
-    FormatString(result);
-#ifndef OHOS_ARCH_LITE
-    StopGetIpTimer(); //stop get ip timer
-#endif
-    /* Publish dhcp success result event. */
-    if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, result) != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("SyncDhcpResult() error, PublishDhcpResultEvent result failed!");
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("SyncDhcpResult() handle dhcp result success, ifaceName:%{public}s.", m_cltCnf.ifaceName);
     return DHCP_OPT_SUCCESS;
-}
-
-void DhcpClientStateMachine::ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp)
-{
-    if (packet == NULL) {
-        DHCP_LOGE("ParseDhcpAckPacket() error, packet == NULL!");
-        return;
-    }
-
-    struct DhcpIpResult dhcpResult;
-    if (memset_s(&dhcpResult, sizeof(struct DhcpIpResult), 0, sizeof(struct DhcpIpResult)) != EOK) {
-        DHCP_LOGE("ParseDhcpAckPacket() error, memset_s failed!");
-        return;
-    }
-
-    /* Set default leasetime. */
-    m_leaseTime = LEASETIME_DEFAULT * ONE_HOURS_SEC;
-    m_requestedIp4 = packet->yiaddr;
-    uint32_t u32Data = 0;
-    if (GetDhcpOptionUint32(packet, IP_ADDRESS_LEASE_TIME_OPTION, &u32Data)) {
-        m_leaseTime = u32Data;
-        DHCP_LOGI("ParseDhcpAckPacket() recv DHCP_ACK 51, lease:%{public}u.", m_leaseTime);
-    }
-    m_renewalSec = m_leaseTime * RENEWAL_SEC_MULTIPLE;  /* First renewal seconds. */
-    m_rebindSec  = m_leaseTime * REBIND_SEC_MULTIPLE;   /* Second rebind seconds. */
-    m_renewalTimestamp = timestamp;   /* Record begin renewing or rebinding timestamp. */
-    dhcpResult.uOptLeasetime = m_leaseTime;
-    DHCP_LOGI("ParseDhcpAckPacket() Last get lease:%{public}u,renewal:%{public}u,rebind:%{public}u.",
-        m_leaseTime, m_renewalSec, m_rebindSec);
-
-    if (!GetDhcpOptionUint32(packet, SERVER_IDENTIFIER_OPTION, &u32Data)) {
-        DHCP_LOGE("ParseDhcpAckPacket() GetDhcpOptionUint32 SERVER_IDENTIFIER_OPTION failed!");
-    } else {
-        m_serverIp4 = htonl(u32Data);
-        char *pSerIp = Ip4IntConToStr(m_serverIp4, false);
-        if (pSerIp != NULL) {
-            DHCP_LOGI("ParseDhcpAckPacket() recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
-            if (strncpy_s(dhcpResult.strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
-                free(pSerIp);
-                pSerIp = NULL;
-                return;
-            }
-            free(pSerIp);
-            pSerIp = NULL;
-        }
-    }
-
-    /* Parse the specified client process interface network info. */
-    ParseNetworkInfo(packet, &dhcpResult);
-
-    /* Sync the specified client process interface network info to the file. */
-    if (SyncDhcpResult(packet, &dhcpResult) != DHCP_OPT_SUCCESS) {
-        /* Publish dhcp failed result event. */
-        PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, NULL);
-        return;
-    }
-
-    /* Receive dhcp ack packet finished, m_leaseTime * T1 later enter renewing state. */
-    m_dhcp4State = DHCP_STATE_BOUND;
-    m_sentPacketNum = 0;
-    m_resendTimer = 0;
-    SetSocketMode(SOCKET_MODE_INVALID);
-    m_timeoutTimestamp = timestamp + m_renewalSec;
-    DHCP_LOGI("DHCP_STATE_BOUND m_renewalSec:%{public}u, m_timeoutTimestamp:%{public}u.", m_renewalSec,
-        m_timeoutTimestamp);
 }
 
 void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpPacket *packet, time_t timestamp)
 {
     if ((type != DHCP_ACK) && (type != DHCP_NAK)) {
-        DHCP_LOGI("DhcpAckOrNakPacketHandle() type:%{public}d error!", type);
+        DHCP_LOGI("DhcpAckOrNakPacketHandle type:%{public}d error!", type);
         if (m_dhcp4State == DHCP_STATE_INITREBOOT) {
             m_dhcp4State = DHCP_STATE_INIT;
             m_timeoutTimestamp = timestamp;
         }
         return;
     }
-
     if (packet == NULL) {
-        DHCP_LOGE("DhcpAckOrNakPacketHandle() type:%{public}d error, packet == NULL!", type);
+        DHCP_LOGE("DhcpAckOrNakPacketHandle type:%{public}d error, packet == NULL!", type);
         return;
     }
-
+    if (memset_s(&dhcpResult, sizeof(struct DhcpIpResult), 0, sizeof(struct DhcpIpResult)) != EOK) {
+        DHCP_LOGE("DhcpAckOrNakPacketHandle error, memset_s failed!");
+        return;
+    }
     if (type == DHCP_NAK) {
-        /* If receive dhcp nak packet, init m_dhcp4State, resend dhcp discover packet. */
-        DHCP_LOGI("DhcpAckOrNakPacketHandle() receive DHCP_NAK 53, init m_dhcp4State, resend dhcp discover packet!");
-        m_dhcp4State = DHCP_STATE_INIT;
-        SetSocketMode(SOCKET_MODE_RAW);
-        m_requestedIp4 = 0;
-        m_sentPacketNum = 0;
-        m_timeoutTimestamp = timestamp;
-
-        /* Avoid excessive network traffic. */
-        DHCP_LOGI("DhcpAckOrNakPacketHandle() receive DHCP_NAK 53, avoid excessive network traffic, need sleep!");
-        if (m_resendTimer == 0) {
-            m_resendTimer = FIRST_TIMEOUT_SEC;
-        } else {
-            sleep(m_resendTimer);
-
-            m_resendTimer *= DOUBLE_TIME;
-            if (m_resendTimer > MAX_TIMEOUT_SEC) {
-                m_resendTimer = MAX_TIMEOUT_SEC;
-            }
-        }
+        ParseDhcpNakPacket(packet, timestamp);
         return;
     }
-    DHCP_LOGI("DhcpAckOrNakPacketHandle() recv DHCP_ACK 53.");
-
-    /* Parse received dhcp ack packet. */
+#ifndef OHOS_ARCH_LITE
+    StopGetIpTimer();
+#endif
     ParseDhcpAckPacket(packet, timestamp);
+    if (SetLocalInterface(m_cltCnf.ifaceName, inet_addr(dhcpResult.strYiaddr), inet_addr(dhcpResult.strOptSubnet))
+        != DHCP_OPT_SUCCESS) {
+        DHCP_LOGE("DhcpAckOrNakPacketHandle error, SetLocalInterface yiaddr:%{public}s failed!", dhcpResult.strYiaddr);
+        return;
+    }
+    FormatString(&dhcpResult);
+    if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &dhcpResult) != DHCP_OPT_SUCCESS) {
+        PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, nullptr);
+        DHCP_LOGI("DhcpAckOrNakPacketHandle Publish result failed, ifaceName:%{public}s", m_cltCnf.ifaceName);
+        return;
+    }
+    DHCP_LOGI("DhcpAckOrNakPacketHandle result success, ifaceName:%{public}s", m_cltCnf.ifaceName);
+    m_dhcp4State = DHCP_STATE_BOUND;
+    m_sentPacketNum = 0;
+    m_resendTimer = 0;
+    SetSocketMode(SOCKET_MODE_INVALID);
+    m_timeoutTimestamp = timestamp + m_renewalSec;
+    WriteLease(packet);
+    DHCP_LOGI("DhcpAckOrNakPacketHandle DHCP_STATE_BOUND %{public}u, %{public}u.", m_renewalSec, m_timeoutTimestamp);
+}
 
-    /* ack packet success. */
-    if (m_dhcp4State == DHCP_STATE_BOUND) {
-        WriteLease(packet);
+void DhcpClientStateMachine::ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp)
+{
+    if (packet == nullptr) {
+        DHCP_LOGE("ParseDhcpAckPacket error, packet == nullptr!");
+        return;
+    }
+    /* Set default leasetime. */
+    m_leaseTime = LEASETIME_DEFAULT * ONE_HOURS_SEC;
+    m_requestedIp4 = packet->yiaddr;
+    uint32_t u32Data = 0;
+    if (GetDhcpOptionUint32(packet, IP_ADDRESS_LEASE_TIME_OPTION, &u32Data)) {
+        m_leaseTime = u32Data;
+        DHCP_LOGI("ParseDhcpAckPacket recv DHCP_ACK 51, lease:%{public}u.", m_leaseTime);
+    }
+    m_renewalSec = m_leaseTime * RENEWAL_SEC_MULTIPLE;  /* First renewal seconds. */
+    m_rebindSec = m_leaseTime * REBIND_SEC_MULTIPLE;   /* Second rebind seconds. */
+    m_renewalTimestamp = timestamp;   /* Record begin renewing or rebinding timestamp. */
+    dhcpResult.uOptLeasetime = m_leaseTime;
+    DHCP_LOGI("ParseDhcpAckPacket Last get lease:%{public}u,renewal:%{public}u,rebind:%{public}u.",
+        m_leaseTime, m_renewalSec, m_rebindSec);
+    ParseNetworkServerIdInfo(packet, &dhcpResult); // dhcpResult.strOptServerId
+    ParseNetworkInfo(packet, &dhcpResult); // strYiaddr/strOptSubnet/strOptRouter1/strOptRouter2
+    ParseNetworkDnsInfo(packet, &dhcpResult);
+    ParseNetworkVendorInfo(packet, &dhcpResult);
+}
+
+void DhcpClientStateMachine::ParseDhcpNakPacket(const struct DhcpPacket *packet, time_t timestamp)
+{
+    if (packet == NULL) {
+        DHCP_LOGE("ParseDhcpNakPacket error, packet == NULL!");
+        return;
+    }
+    /* If receive dhcp nak packet, init m_dhcp4State, resend dhcp discover packet. */
+    DHCP_LOGI("ParseDhcpNakPacket receive DHCP_NAK 53, init m_dhcp4State, resend dhcp discover packet!");
+    m_dhcp4State = DHCP_STATE_INIT;
+    SetSocketMode(SOCKET_MODE_RAW);
+    m_requestedIp4 = 0;
+    m_sentPacketNum = 0;
+    m_timeoutTimestamp = timestamp;
+    /* Avoid excessive network traffic. */
+    DHCP_LOGI("ParseDhcpNakPacket receive DHCP_NAK 53, avoid excessive network traffic, need sleep!");
+    if (m_resendTimer == 0) {
+        m_resendTimer = FIRST_TIMEOUT_SEC;
+    } else {
+        sleep(m_resendTimer);
+        DHCP_LOGI("ParseDhcpNakPacket sleep:%{public}u", m_resendTimer);
+        m_resendTimer *= DOUBLE_TIME;
+        if (m_resendTimer > MAX_TIMEOUT_SEC) {
+            m_resendTimer = MAX_TIMEOUT_SEC;
+        }
     }
 }
 
@@ -1409,38 +1424,26 @@ int DhcpClientStateMachine::SetIpv4State(int state)
 
 int DhcpClientStateMachine::PublishDhcpResultEvent(const char *ifname, const int code, struct DhcpIpResult *result)
 {
-    if (ifname == NULL) {
-        DHCP_LOGE("PublishDhcpResultEvent() failed, ifname == NULL!");
+    if (ifname == nullptr) {
+        DHCP_LOGE("PublishDhcpResultEvent failed, ifname is nullptr!");
         return DHCP_OPT_FAILED;
     }
-    if ((code != PUBLISH_CODE_SUCCESS) && (code != PUBLISH_CODE_FAILED)) {
-        DHCP_LOGE("PublishDhcpResultEvent() ifname:%{public}s failed, code:%{public}d error!", ifname, code);
+    if ((code != PUBLISH_CODE_SUCCESS) && (code != PUBLISH_CODE_FAILED) && (code != PUBLISH_CODE_TIMEOUT)) {
+        DHCP_LOGE("PublishDhcpResultEvent ifname:%{public}s failed, code:%{public}d error!", ifname, code);
         return DHCP_OPT_FAILED;
     }
-    if ((code == PUBLISH_CODE_SUCCESS) && (result == NULL)) {
-        DHCP_LOGE("PublishDhcpResultEvent() ifname:%{public}s,code:%{public}d failed, result == NULL!", ifname, code);
+    if ((code == PUBLISH_CODE_SUCCESS) && (result == nullptr)) {
+        DHCP_LOGE("PublishDhcpResultEvent ifname:%{public}s, code:%{public}d failed, result==nullptr!", ifname, code);
         return DHCP_OPT_FAILED;
     }
-    
-    /* Data format - ipv4:ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    int nBytes;
-    uint32_t curTime = (uint32_t)time(NULL);
-    char strData[STRING_MAX_LEN] = {0};
-    if (code == PUBLISH_CODE_SUCCESS) {
-        nBytes = snprintf_s(strData, STRING_MAX_LEN, STRING_MAX_LEN - 1, "ipv4:%s,%u,%s,%u,%s,%s,%s,%s,%s,%s,%s ",
-            ifname, curTime, result->strYiaddr, result->uOptLeasetime, result->strOptServerId, result->strOptSubnet,
-            result->strOptDns1, result->strOptDns2, result->strOptRouter1, result->strOptRouter2, result->strOptVendor);
-    } else {
-        nBytes = snprintf_s(strData, STRING_MAX_LEN, STRING_MAX_LEN - 1, "ipv4:%s,%u,*,*,*,*,*,*,*,*,*",
-            ifname, curTime);
-    }
-    if (nBytes < 0) {
-        DHCP_LOGE("PublishDhcpResultEvent() failed, snprintf_s %{public}s error:%{public}d!", ifname, errno);
-        return DHCP_OPT_FAILED;
-    }
-
-    if (!PublishDhcpIpv4ResultEvent(code, strData, ifname)) {
-        DHCP_LOGI("PublishDhcpResultEvent() PublishDhcpIpv4ResultEvent %{public}d failed!", code);
+    result->code = code;
+    result->uAddTime = (uint32_t)time(NULL);
+    result->ifname = ifname;
+    DHCP_LOGI("PublishDhcpResultEvent code:%{public}d ifname:%{public}s uAddTime:%{public}u", result->code,
+        result->ifname.c_str(), result->uAddTime);
+    bool ret = PublishDhcpIpv4Result(*result);
+    if (!ret) {
+        DHCP_LOGE("PublishDhcpResultEvent failed!");
         return DHCP_OPT_FAILED;
     }
     return DHCP_OPT_SUCCESS;
@@ -1490,35 +1493,32 @@ int DhcpClientStateMachine::GetPacketCommonInfo(struct DhcpPacket *packet)
         DHCP_LOGE("GetPacketCommonInfo() failed, memcpy_s error!");
         return DHCP_OPT_FAILED;
     }
-    int nClientIdLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + m_cltCnf.pOptClientId[DHCP_OPT_LEN_INDEX];
-    AddOptStrToOpts(packet->options, m_cltCnf.pOptClientId, nClientIdLen);
+    AddClientIdToOpts(packet); // 61
+    AddHostNameToOpts(packet); // 60 12
+    return DHCP_OPT_SUCCESS;
+}
 
-    /* Add packet vendor info, vendor format: pro-version. */
-    char buf[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
-    unsigned char vendorId[VENDOR_MAX_LEN] = {0};
-    unsigned char *pVendorId = vendorId;
-    int nRes = snprintf_s(buf,
-        VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX,
-        VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX - 1,
-        "%s-%s",
-        DHCPC_NAME,
-        DHCPC_VERSION);
-    if (nRes < 0) {
-        DHCP_LOGE("GetPacketCommonInfo() failed, snprintf_s res:%{public}d error!", nRes);
+int DhcpClientStateMachine::AddClientIdToOpts(struct DhcpPacket *packet)
+{
+    if (packet == nullptr) {
+        DHCP_LOGE("AddClientIdToOpts failed, packet == nullptr!");
         return DHCP_OPT_FAILED;
     }
-    pVendorId[DHCP_OPT_CODE_INDEX] = VENDOR_SPECIFIC_INFO_OPTION;
-    pVendorId[DHCP_OPT_LEN_INDEX] = strlen(buf);
-    if (strncpy_s((char *)pVendorId + DHCP_OPT_DATA_INDEX, VENDOR_MAX_LEN - DHCP_OPT_DATA_INDEX, buf, strlen(buf)) !=
-        EOK) {
-        DHCP_LOGE("GetPacketCommonInfo() failed, strncpy_s error!");
+    char macAddr[MAC_ADDR_LEN * MAC_ADDR_CHAR_NUM] = {0};
+    MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    DHCP_LOGI("AddClientIdToOpts macAddr:%{public}s", macAddr);
+
+    unsigned char optValue[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
+    optValue[DHCP_OPT_CODE_INDEX] = CLIENT_IDENTIFIER_OPTION;
+    optValue[DHCP_OPT_LEN_INDEX] = MAC_ADDR_LEN  + 1;
+    optValue[DHCP_OPT_DATA_INDEX] = NUMBER_ONE; /* Generate format: 1 + ifaceMac. */
+    if (memcpy_s(optValue + DHCP_OPT_DATA_INDEX + 1, MAC_ADDR_LEN, m_cltCnf.ifaceMac, MAC_ADDR_LEN) != EOK) {
+        DHCP_LOGE("AddClientIdToOpts memcpy_s failed!");
         return DHCP_OPT_FAILED;
     }
-    if (strlen((char *)vendorId) > 0) {
-        int nVendorIdLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + pVendorId[DHCP_OPT_LEN_INDEX];
-        AddOptStrToOpts(packet->options, vendorId, nVendorIdLen);
-    }
-    AddHostNameToOpts(packet);
+    int optValueLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + optValue[DHCP_OPT_LEN_INDEX];
+    DHCP_LOGI("AddClientIdToOpts option=%{public}d len=%{public}d", CLIENT_IDENTIFIER_OPTION, optValueLen);
+    AddOptStrToOpts(packet->options, optValue, optValueLen);
     return DHCP_OPT_SUCCESS;
 }
 
@@ -1533,10 +1533,10 @@ int DhcpClientStateMachine::AddHostNameToOpts(struct DhcpPacket *packet)
     strProductModel = GetProductModel();
     DHCP_LOGI("AddHostNameOptions strProductModel:%{public}s", strProductModel.c_str());
 #endif
-    AddStrToOpts(packet, HOST_NAME_OPTION, strProductModel);  // add option 12
     std::string venderName = VENDOR_NAME_PREFIX;
     std::string venderClass = venderName + ":" + strProductModel; // xxxx:openharmony:yyyy
     AddStrToOpts(packet, VENDOR_CLASS_IDENTIFIER_OPTION, venderClass); // add option 60
+    AddStrToOpts(packet, HOST_NAME_OPTION, strProductModel);  // add option 12
     return DHCP_OPT_SUCCESS;
 }
 
@@ -1562,7 +1562,7 @@ int DhcpClientStateMachine::AddStrToOpts(struct DhcpPacket *packet, int option, 
         return DHCP_OPT_FAILED;
     }
     int optValueLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + optValue[DHCP_OPT_LEN_INDEX];
-    DHCP_LOGI("AddStrToOpts option=%{public}d buf=%{public}s len=%{public}d", option, buf, optValueLen);
+    DHCP_LOGD("AddStrToOpts option=%{public}d buf=%{public}s len=%{public}d", option, buf, optValueLen);
     AddOptStrToOpts(packet->options, optValue, optValueLen);
     return DHCP_OPT_SUCCESS;
 }
@@ -1585,7 +1585,8 @@ int DhcpClientStateMachine::DhcpDiscover(uint32_t transid, uint32_t requestip)
 
     /* Get packet not common info. */
     packet.xid = transid;
-    AddParamaterRequestList(&packet);
+    AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); // 57
+    AddParamaterRequestList(&packet); // 55
 
     /* Begin broadcast dhcp discover packet. */
     DHCP_LOGI("DhcpDiscover() discover, begin broadcast discover packet...");
@@ -1610,9 +1611,10 @@ int DhcpClientStateMachine::DhcpRequest(uint32_t transid, uint32_t reqip, uint32
 
     /* Get packet not common info. */
     packet.xid = transid;
-    AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip);
-    AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, servip);
-    AddParamaterRequestList(&packet);
+    AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, servip); // 50
+    AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); // 54
+    AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
+    AddParamaterRequestList(&packet); // 55
 
     /* Begin broadcast dhcp request packet. */
     char *pReqIp = Ip4IntConToStr(reqip, false);
@@ -1695,7 +1697,10 @@ void DhcpClientStateMachine::GetIpTimerCallback()
         return;
     }
     StopGetIpTimer();
-    PublishDhcpIpv4ResultEvent(PUBLISH_CODE_TIMEOUT, "get dhcp result timeout!", m_ifName.c_str());
+    struct DhcpIpResult ipResult;
+    ipResult.code = PUBLISH_CODE_TIMEOUT;
+    ipResult.ifname = m_cltCnf.ifaceName;
+    PublishDhcpIpv4Result(ipResult);
 }
 
 void DhcpClientStateMachine::StartGetIpTimer()

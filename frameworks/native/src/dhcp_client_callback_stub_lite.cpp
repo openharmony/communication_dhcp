@@ -144,6 +144,8 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, IpcIo *data)
     result.strVendor = (char *)ReadString(data, &readLen);
     result.strLinkIpv6Addr = (char *)ReadString(data, &readLen);
     result.strRandIpv6Addr = (char *)ReadString(data, &readLen);
+    result.strLocalAddr1 = (char *)ReadString(data, &readLen);
+    result.strLocalAddr2 = (char *)ReadString(data, &readLen);
     OnIpSuccessChanged(state, ifname, result);
     return 0;
 }

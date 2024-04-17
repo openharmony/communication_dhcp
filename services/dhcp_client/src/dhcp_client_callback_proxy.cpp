@@ -52,6 +52,15 @@ void DhcpClientCallbackProxy::OnIpSuccessChanged(int status, const std::string& 
     data.WriteString(result.strRouter1);
     data.WriteString(result.strRouter2);
     data.WriteString(result.strVendor);
+    data.WriteString(result.strLinkIpv6Addr);
+    data.WriteString(result.strRandIpv6Addr);
+    data.WriteString(result.strLocalAddr1);
+    data.WriteString(result.strLocalAddr2);
+    data.WriteInt32(result.vectorDnsAddr.size());
+    for (auto dns : result.vectorDnsAddr) {
+        data.WriteString(dns);
+    }
+    
     DHCP_LOGI("start send client request");
     int error = Remote()->SendRequest(static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_IP_SUCCESS_CHANGE), data, reply, option);
     if (error != ERR_NONE) {

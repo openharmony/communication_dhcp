@@ -141,63 +141,63 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail5, TestSize.Leve
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->PublishDhcpResultEvent(ifname, PUBLISH_CODE_FAILED, &result));
 }
 /**
- * @tc.name: SyncDhcpResult_Fail1
- * @tc.desc: SyncDhcpResult()
+ * @tc.name: ParseNetworkVendorInfo_Fail1
+ * @tc.desc: ParseNetworkVendorInfo()
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail1, TestSize.Level1)
 {
     struct DhcpPacket *packet = nullptr;
     DhcpIpResult result;
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(packet, &result));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(packet, &result));
 }
 /**
- * @tc.name: SyncDhcpResult_Fail2
- * @tc.desc: SyncDhcpResult()
+ * @tc.name: ParseNetworkVendorInfo_Fail2
+ * @tc.desc: ParseNetworkVendorInfo()
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail2, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail2, TestSize.Level1)
 {
     struct DhcpPacket packet;
     DhcpIpResult *result = nullptr;
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, result));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(&packet, result));
 }
 /**
- * @tc.name: SyncDhcpResult_Fail3
- * @tc.desc: SyncDhcpResult()
+ * @tc.name: ParseNetworkVendorInfo_Fail3
+ * @tc.desc: ParseNetworkVendorInfo()
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail3, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail3, TestSize.Level1)
 {
     struct DhcpPacket *packet = nullptr;
     DhcpIpResult *result = nullptr;
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(packet, result));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(packet, result));
 }
 
 /**
- * @tc.name: SyncDhcpResult_Fail4
- * @tc.desc: SyncDhcpResult()
+ * @tc.name: ParseNetworkVendorInfo_Fail4
+ * @tc.desc: ParseNetworkVendorInfo()
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail4, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail4, TestSize.Level1)
 {
     struct DhcpPacket packet;
     struct DhcpIpResult result;
     strcpy_s((char*)packet.sname, sizeof(packet.sname), "testcode");
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, &result));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(&packet, &result));
 }
 
 /**
- * @tc.name: SyncDhcpResult_Fail5
- * @tc.desc: SyncDhcpResult()
+ * @tc.name: ParseNetworkVendorInfo_Fail5
+ * @tc.desc: ParseNetworkVendorInfo()
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail5, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail5, TestSize.Level1)
 {
     char buf[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
     ASSERT_TRUE(snprintf_s(buf,
@@ -222,7 +222,7 @@ HWTEST_F(DhcpClientStateMachineTest, SyncDhcpResult_Fail5, TestSize.Level1)
     pOption[endIndex] = END_OPTION;
 
     struct DhcpIpResult result;
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SyncDhcpResult(&packet, &result));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(&packet, &result));
 }
 
 /**
@@ -455,24 +455,24 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
     dhcpClient->ParseNetworkInfo(&packet3, &result3);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseOtherNetworkInfoTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsInfoTest, TestSize.Level1)
 {
-    DHCP_LOGI("ParseOtherNetworkInfoTest enter!");
+    DHCP_LOGI("ParseNetworkDnsInfoTest enter!");
     struct DhcpPacket *packet = nullptr;
     struct DhcpIpResult *result = nullptr;
-    dhcpClient->ParseOtherNetworkInfo(packet, result);
+    dhcpClient->ParseNetworkDnsInfo(packet, result);
 
     DhcpPacket *packet1 = nullptr;
     DhcpIpResult result1;
-    dhcpClient->ParseOtherNetworkInfo(packet1, &result1);
+    dhcpClient->ParseNetworkDnsInfo(packet1, &result1);
 
     DhcpPacket packet2;
     DhcpIpResult *result2 = nullptr;
-    dhcpClient->ParseOtherNetworkInfo(&packet2, result2);
+    dhcpClient->ParseNetworkDnsInfo(&packet2, result2);
 
     DhcpPacket packet3;
     DhcpIpResult result3;
-    dhcpClient->ParseOtherNetworkInfo(&packet3, &result3);
+    dhcpClient->ParseNetworkDnsInfo(&packet3, &result3);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
@@ -645,6 +645,57 @@ HWTEST_F(DhcpClientStateMachineTest, CloseSignalHandleTest, TestSize.Level1)
 {
     DHCP_LOGI("CloseSignalHandleTest enter!");
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->CloseSignalHandle());
+}
+
+HWTEST_F(DhcpClientStateMachineTest, AddClientIdToOptsTest, TestSize.Level1)
+{
+    DHCP_LOGI("AddClientIdToOpts enter!");
+    struct DhcpPacket packet;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddClientIdToOpts(nullptr));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddClientIdToOpts(&packet));
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseDhcpNakPacket enter!");
+    struct DhcpPacket *packet = nullptr;
+    time_t curTimestamp = time(NULL);
+    dhcpClient->ParseDhcpNakPacket(packet, curTimestamp);
+    DhcpPacket packet1;
+    dhcpClient->ParseDhcpNakPacket(&packet1, curTimestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseNetworkServerIdInfo enter!");
+    struct DhcpPacket *packet = nullptr;
+    struct DhcpIpResult *result = nullptr;
+    dhcpClient->ParseNetworkServerIdInfo(packet, result);
+
+    DhcpPacket *packet1 = nullptr;
+    DhcpIpResult result1;
+    dhcpClient->ParseNetworkServerIdInfo(packet1, &result1);
+
+    DhcpPacket packet2;
+    DhcpIpResult *result2 = nullptr;
+    dhcpClient->ParseNetworkServerIdInfo(&packet2, result2);
+
+    DhcpPacket packet3;
+    DhcpIpResult result3;
+    dhcpClient->ParseNetworkServerIdInfo(&packet3, &result3);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level1)
+{
+    DHCP_LOGI("ParseNetworkDnsValue enter!");
+    struct DhcpIpResult *result = nullptr;
+    uint32_t uData = 123456;
+    size_t len = 4;
+    int count = 0;
+    dhcpClient->ParseNetworkDnsValue(result, uData, len, count);
+
+    struct DhcpIpResult result1;
+    dhcpClient->ParseNetworkDnsValue(&result1, uData, len, count);
 }
 }
 }

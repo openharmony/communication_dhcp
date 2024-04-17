@@ -41,6 +41,7 @@ public:
 #endif
     void RegisterCallBack(const std::string& ifname, const ClientCallBack *event);
     void UnRegisterCallBack(const std::string& ifname);
+    void ResultInfoCopy(DhcpResult &dhcpResult, OHOS::DHCP::DhcpResult& result);
     std::mutex callBackMutex;
     std::map<std::string, const ClientCallBack *> mapClientCallBack;
 };

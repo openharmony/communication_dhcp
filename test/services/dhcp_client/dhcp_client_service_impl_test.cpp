@@ -117,22 +117,20 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultSuccessTest, TestSize.Level1)
 {
     DHCP_LOGE("enter DhcpIpv4ResultSuccessTest");
     ASSERT_TRUE(dhcpClientImpl != nullptr);
-    std::vector<std::string> splits {};
-    splits.push_back("wlan0");
-    splits.push_back("12");
-    splits.push_back("*");
-    splits.push_back("wlan4");
-    splits.push_back("wlan5");
-    splits.push_back("wlan6");
-    splits.push_back("wlan7");
-    splits.push_back("wlan8");
-    splits.push_back("wlan9");
-    splits.push_back("wlan10");
-    splits.push_back("wlan11");
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultSuccess(splits));
+    struct DhcpIpResult ipResult;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
 
+    ipResult.code = PUBLISH_CODE_SUCCESS;
     dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(splits));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
+
+    ipResult.code = PUBLISH_CODE_TIMEOUT;
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
+
+    ipResult.code = PUBLISH_CODE_FAILED;
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
     dhcpClientImpl->m_mapClientCallBack.clear();
 }
 
@@ -140,18 +138,16 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultFailTest, TestSize.Level1)
 {
     DHCP_LOGE("enter DhcpIpv4ResultFailTest");
     ASSERT_TRUE(dhcpClientImpl != nullptr);
-    std::vector<std::string> splits {};
-    splits.push_back("wlan0");
-    splits.push_back("12");
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(splits));
+    struct DhcpIpResult ipResult;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(ipResult));
 
     dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(splits));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(ipResult));
     dhcpClientImpl->m_mapClientCallBack.clear();
 
     DhcpClient client;
     dhcpClientImpl->m_mapClientService.emplace(std::make_pair("wlan0", client));
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(splits));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(ipResult));
     dhcpClientImpl->m_mapClientService.clear();
 }
 

@@ -40,6 +40,10 @@ struct AddressBinding {
     int bindingStatus;
     int bindingMode;
     char deviceName[DEVICE_NAME_STRING_LENGTH];
+    char userClass[DEVICE_NAME_STRING_LENGTH]; // User-Class
+    char portalUrl[DEVICE_NAME_STRING_LENGTH]; // portalurl
+    bool rapidCommit; // Rapid Commit
+    int ipv6Only; // IPv6-Only Preferred
 };
 typedef struct AddressBinding *PAddressBinding;
 

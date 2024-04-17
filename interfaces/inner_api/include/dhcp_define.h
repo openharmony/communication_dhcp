@@ -137,9 +137,12 @@ struct DhcpResult {
     std::string strVendor;  /* your (client) vendor */
     std::string strLinkIpv6Addr;  /* your (client) link ipv6 addr */
     std::string strRandIpv6Addr;  /* your (client) rand ipv6 addr */
+    std::string strLocalAddr1;  /* your (client) unique local ipv6 addr */
+    std::string strLocalAddr2;  /* your (client) unique local ipv6 addr */
     uint32_t uLeaseTime;    /* your (client) IP lease time (s) */
-    uint32_t  uAddTime;      /* dhcp result add time */
+    uint32_t uAddTime;      /* dhcp result add time */
     uint32_t uGetTime;      /* dhcp result get time */
+    std::vector<std::string> vectorDnsAddr; /* your (client) multi dns server */
 
     DhcpResult()
     {
@@ -155,9 +158,12 @@ struct DhcpResult {
         strVendor   = "";
         strLinkIpv6Addr = "";
         strRandIpv6Addr = "";
+        strLocalAddr1   = "";
+        strLocalAddr2   = "";
         uLeaseTime  = 0;
         uAddTime    = 0;
         uGetTime    = 0;
+        vectorDnsAddr.clear();
     }
 };
 

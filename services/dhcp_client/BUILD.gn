@@ -105,6 +105,8 @@ if (defined(ohos_lite)) {
       "c_utils:utils",
       "hilog:libhilog",
       "ipc:ipc_single",
+      "netmanager_base:net_conn_manager_if",
+      "netmanager_base:net_native_manager_if",
       "safwk:system_ability_fwk",
       "samgr:samgr_proxy",
     ]
@@ -167,6 +169,8 @@ if (defined(ohos_lite)) {
       "bounds_checking_function:libsec_shared",
       "c_utils:utils",
       "hilog:libhilog",
+      "netmanager_base:net_conn_manager_if",
+      "netmanager_base:net_native_manager_if",
     ]
     if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
       external_deps += [ "init:libbegetutil" ]
