@@ -85,6 +85,7 @@ if (defined(ohos_lite)) {
     include_dirs = local_base_include_dirs
   }
   ohos_shared_library("dhcp_client") {
+    branch_protector_ret = "pac_ret"
     sanitize = {
       cfi = true
       boundary_sanitize = true
@@ -133,6 +134,7 @@ if (defined(ohos_lite)) {
       cfi = true
       boundary_sanitize = true
       cfi_cross_dso = true
+      debug = false
     }
     install_enable = true
     sources = [
