@@ -14,6 +14,7 @@
  */
 
 #include "dhcp_address_pool.h"
+#include <map>
 #include <securec.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -28,44 +29,34 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerAddressPool");
 #define DHCP_RELEASE_REMOVE_MODE 0
 
 static int g_releaseRemoveMode = DHCP_RELEASE_REMOVE_MODE;
-static HashTable g_bindingRecoders;
+static std::map<std::size_t, AddressBinding> g_bindingRecoders;
 static int g_distributeMode = 0;
 
-AddressBinding *GetBindingByMac(HashTable *bindTable, uint8_t macAddr[DHCP_HWADDR_LENGTH])
+#define HASH_DEFAULT_VALUE 5381
+#define HASH_CAL_CODE_CAL 5
+//Write a HASH FUNCTION FOR uint8_t macAddr[DHCP_HWADDR_LENGTH]
+std::size_t macAddrHash(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    if (!bindTable) {
-        DHCP_LOGE("binding table pointer is null.");
-        return nullptr;
+    std::size_t hash = HASH_DEFAULT_VALUE;
+    for (std::size_t i = 0; i < DHCP_HWADDR_LENGTH; ++i) {
+        hash = ((hash << HASH_CAL_CODE_CAL) + hash) ^ static_cast<std::size_t>(macAddr[i]);
     }
-    if (!Initialized(bindTable)) {
-        DHCP_LOGE("binding recoders table doesn't initialized");
-        return nullptr;
-    }
-    if (ContainsKey(&g_bindingRecoders, (uintptr_t)macAddr)) {
-        return (AddressBinding *)At(bindTable, (uintptr_t)macAddr);
+    return hash;
+}
+
+
+AddressBinding *GetBindingByMac(uint8_t macAddr[DHCP_HWADDR_LENGTH])
+{
+    std::size_t hash = macAddrHash(macAddr);
+    if (g_bindingRecoders.count(hash) > 0) {
+        return &g_bindingRecoders[hash];
     }
     return nullptr;
 }
 
 AddressBinding *QueryBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionList cliOptins)
 {
-    return GetBindingByMac(&g_bindingRecoders, macAddr);
-}
-
-AddressBinding *GetBindingByIp(HashTable *bindTable, uint32_t ipAddress)
-{
-    if (!bindTable) {
-        DHCP_LOGE("binding table pointer is null.");
-        return nullptr;
-    }
-    if (!Initialized(bindTable)) {
-        DHCP_LOGE("binding recoders table doesn't initialized");
-        return nullptr;
-    }
-    if (ContainsKey(bindTable, (uintptr_t)&ipAddress)) {
-        return (AddressBinding *)At(bindTable, (uintptr_t)&ipAddress);
-    }
-    return nullptr;
+    return GetBindingByMac(macAddr);
 }
 
 AddressBinding *AddNewBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionList cliOptins)
@@ -80,8 +71,8 @@ AddressBinding *AddNewBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionLi
     newBind.pendingTime = Tmspsec();
     newBind.expireIn = newBind.bindingTime + DHCP_LEASE_TIME;
     newBind.leaseTime = DHCP_LEASE_TIME;
-    Insert(&g_bindingRecoders, (uintptr_t)macAddr, (uintptr_t)&newBind);
-    return GetBindingByMac(&g_bindingRecoders, macAddr);
+    g_bindingRecoders[macAddrHash(macAddr)] = newBind;
+    return GetBindingByMac(macAddr);
 }
 
 int CheckIpAvailability(DhcpAddressPool *pool, uint8_t macAddr[DHCP_HWADDR_LENGTH], uint32_t distIp)
@@ -242,24 +233,12 @@ int InitAddressPool(DhcpAddressPool *pool, const char *ifname, PDhcpOptionList o
         DHCP_LOGD("failed to init options field for dhcp pool.");
         return RET_FAILED;
     }
-    if (CreateHashTable(&pool->leaseTable, sizeof(uint32_t), sizeof(AddressBinding), DHCP_POOL_INIT_SIZE) !=
-        HASH_SUCCESS) {
-        DHCP_LOGD("failed to create lease table.");
-        FreeOptionList(&pool->fixedOptions);
-        return RET_FAILED;
-    }
-    if (!Initialized(&g_bindingRecoders)) {
-        if (CreateHashTable(&g_bindingRecoders, MAC_ADDR_LENGTH, sizeof(AddressBinding), DHCP_POOL_INIT_SIZE) !=
-            HASH_SUCCESS) {
-            DHCP_LOGD("failed to create binding recoding table.");
-            FreeAddressPool(pool);
-            return RET_FAILED;
-        }
-    }
+    g_bindingRecoders.clear();
 
     pool->distribue = AddressDistribute;
     pool->binding = QueryBinding;
     pool->newBinding = AddNewBinding;
+    pool->leaseTable.clear();
     return RET_SUCCESS;
 }
 
@@ -273,8 +252,8 @@ void FreeAddressPool(DhcpAddressPool *pool)
         ClearOptions(&pool->fixedOptions);
     }
 
-    if (pool && Initialized(&pool->leaseTable)) {
-        DestroyHashTable(&pool->leaseTable);
+    if (pool) {
+        pool->leaseTable.clear();
     }
 
     if (pool && HasInitialized(&pool->fixedOptions)) {
@@ -284,25 +263,13 @@ void FreeAddressPool(DhcpAddressPool *pool)
 
 AddressBinding *FindBindingByIp(uint32_t ipAddress)
 {
-    if (!Initialized(&g_bindingRecoders)) {
-        if (CreateHashTable(&g_bindingRecoders, MAC_ADDR_LENGTH, sizeof(AddressBinding), DHCP_POOL_INIT_SIZE) !=
-            HASH_SUCCESS) {
-            DHCP_LOGD("failed to create binding recoding table.");
-            return nullptr;
-        }
-    }
-    if (!g_bindingRecoders.nodes) {
+    if (g_bindingRecoders.empty()) {
         return nullptr;
     }
-    for (size_t current = 0; current < g_bindingRecoders.capacity; ++current) {
-        HashNode *node = g_bindingRecoders.nodes[current];
-        while (node) {
-            HashNode *next = node->next;
-            AddressBinding *binding = (AddressBinding *)node->value;
-            if (binding && ipAddress == binding->ipAddress) {
-                return binding;
-            }
-            node = next;
+    for (auto current: g_bindingRecoders) {
+        AddressBinding *binding = &current.second;
+        if (binding && ipAddress == binding->ipAddress) {
+            return binding;
         }
     }
     return nullptr;
@@ -310,12 +277,8 @@ AddressBinding *FindBindingByIp(uint32_t ipAddress)
 
 int IsReserved(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    if (!Initialized(&g_bindingRecoders)) {
-        DHCP_LOGD("binding recoders table doesn't initialized");
-        return DHCP_FALSE;
-    }
-    if (ContainsKey(&g_bindingRecoders, (uintptr_t)macAddr)) {
-        AddressBinding *binding = GetBindingByMac(&g_bindingRecoders, macAddr);
+    if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
+        AddressBinding *binding = &g_bindingRecoders[macAddrHash(macAddr)];
         if (binding && binding->bindingMode == BIND_MODE_RESERVED) {
             return DHCP_TRUE;
         }
@@ -331,8 +294,8 @@ int IsReservedIp(DhcpAddressPool *pool, uint32_t ipAddress)
     if (!ipAddress) {
         return DHCP_FALSE;
     }
-    if (ContainsKey(&pool->leaseTable, (uintptr_t)&ipAddress)) {
-        AddressBinding *lease = GetBindingByIp(&pool->leaseTable, ipAddress);
+    if (pool->leaseTable.count(ipAddress) >0) {
+        AddressBinding *lease = &pool->leaseTable[ipAddress];
         if (lease && lease->bindingMode == BIND_MODE_RESERVED) {
             return DHCP_TRUE;
         }
@@ -342,13 +305,6 @@ int IsReservedIp(DhcpAddressPool *pool, uint32_t ipAddress)
 
 int AddBinding(AddressBinding *binding)
 {
-    if (!Initialized(&g_bindingRecoders)) {
-        if (CreateHashTable(&g_bindingRecoders, MAC_ADDR_LENGTH, sizeof(AddressBinding), DHCP_POOL_INIT_SIZE) !=
-            HASH_SUCCESS) {
-            DHCP_LOGD("failed to create binding recoding table.");
-            return RET_FAILED;
-        }
-    }
     if (!binding) {
         DHCP_LOGE("binding pointer is null.");
         return RET_ERROR;
@@ -361,26 +317,17 @@ int AddBinding(AddressBinding *binding)
         DHCP_LOGE("binding ip is empty.");
         return RET_ERROR;
     }
-    if (!ContainsKey(&g_bindingRecoders, (uintptr_t)binding->chaddr)) {
-        if (Insert(&g_bindingRecoders, (uintptr_t)binding->chaddr, (uintptr_t)binding) == HASH_INSERTED) {
-            return RET_SUCCESS;
-        }
-    } else {
+    if (g_bindingRecoders.count(macAddrHash(binding->chaddr)) > 0) {
         DHCP_LOGW("binding recoder exist.");
         return RET_FAILED;
     }
-    return RET_FAILED;
+    g_bindingRecoders[macAddrHash(binding->chaddr)] = *binding;
+    return RET_SUCCESS;
 }
+
 int AddReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    if (!Initialized(&g_bindingRecoders)) {
-        if (CreateHashTable(&g_bindingRecoders, MAC_ADDR_LENGTH, sizeof(AddressBinding), DHCP_POOL_INIT_SIZE) !=
-            HASH_SUCCESS) {
-            DHCP_LOGD("failed to create binding recoding table.");
-            return RET_FAILED;
-        }
-    }
-    AddressBinding *binding = GetBindingByMac(&g_bindingRecoders, macAddr);
+    AddressBinding *binding = GetBindingByMac(macAddr);
     if (binding) {
         binding->bindingMode = BIND_MODE_RESERVED;
     } else {
@@ -388,60 +335,45 @@ int AddReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
         bind.bindingMode = BIND_MODE_RESERVED;
         bind.bindingTime = Tmspsec();
         bind.pendingTime = bind.bindingTime;
-        if (Insert(&g_bindingRecoders, (uintptr_t)macAddr, (uintptr_t)&bind) == HASH_INSERTED) {
-            return RET_SUCCESS;
-        }
-        return RET_FAILED;
+        g_bindingRecoders[macAddrHash(macAddr)] = bind;
     }
     return RET_SUCCESS;
 }
 
 int RemoveBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    if (ContainsKey(&g_bindingRecoders, (uintptr_t)macAddr)) {
-        if (Remove(&g_bindingRecoders, (uintptr_t)macAddr) == HASH_SUCCESS) {
-            return RET_SUCCESS;
-        }
-        return RET_ERROR;
+    if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
+        g_bindingRecoders.erase(macAddrHash(macAddr));
+        return RET_SUCCESS;
     }
     return RET_FAILED;
 }
 
 int RemoveReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    if (ContainsKey(&g_bindingRecoders, (uintptr_t)macAddr)) {
-        AddressBinding *binding = GetBindingByMac(&g_bindingRecoders, macAddr);
-        if (!binding) {
-            DHCP_LOGE("failed to get binding recoder.");
-            return RET_FAILED;
+    if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
+        AddressBinding *binding = &g_bindingRecoders[macAddrHash(macAddr)];
+        if (binding && binding->bindingMode == BIND_MODE_RESERVED) {
+            g_bindingRecoders.erase(macAddrHash(macAddr));
+            return RET_SUCCESS;
         }
-        if (binding->bindingMode == BIND_MODE_RESERVED) {
-            if (Remove(&g_bindingRecoders, (uintptr_t)macAddr) == HASH_SUCCESS) {
-                return RET_SUCCESS;
-            }
-            DHCP_LOGE("failed to remove reserved binding recoder.");
-        } else {
-            DHCP_LOGW("binding mode is not 'BIND_MODE_RESERVED'.");
-        }
-        return RET_FAILED;
     }
+    DHCP_LOGW("binding mode is not 'BIND_MODE_RESERVED'.");
     return RET_FAILED;
 }
 
 int ReleaseBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    if (ContainsKey(&g_bindingRecoders, (uintptr_t)macAddr)) {
+    if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
         if (g_releaseRemoveMode) {
-            return Remove(&g_bindingRecoders, (uintptr_t)macAddr);
+            g_bindingRecoders.erase(macAddrHash(macAddr));
+            return RET_SUCCESS;
         }
-
-        AddressBinding *binding = GetBindingByMac(&g_bindingRecoders, macAddr);
-        if (!binding) {
-            DHCP_LOGE("failed to query binding.");
-            return RET_ERROR;
+        AddressBinding *binding = &g_bindingRecoders[macAddrHash(macAddr)];
+        if (binding) {
+            binding->bindingStatus = BIND_RELEASED;
+            return RET_SUCCESS;
         }
-        binding->bindingStatus = BIND_RELEASED;
-        return RET_SUCCESS;
     }
     return RET_FAILED;
 }
@@ -455,18 +387,16 @@ int AddLease(DhcpAddressPool *pool, AddressBinding *lease)
     if (!lease || !lease->ipAddress || IsEmptyHWAddr(lease->chaddr)) {
         return RET_ERROR;
     }
-    if (!ContainsKey(&pool->leaseTable, (uintptr_t)&lease->ipAddress)) {
-        if (Insert(&pool->leaseTable, (uintptr_t)&lease->ipAddress, (uintptr_t)lease) == HASH_INSERTED) {
-            DHCP_LOGD("insert lease info.");
-            return RET_SUCCESS;
-        }
+
+    if (pool->leaseTable.count(lease->ipAddress) > 0) {
+        DHCP_LOGD("update lease info.");
+        pool->leaseTable[lease->ipAddress] = *lease;
+        return RET_SUCCESS;
     } else {
-        if (Insert(&pool->leaseTable, (uintptr_t)&lease->ipAddress, (uintptr_t)lease) == HASH_UPDATED) {
-            DHCP_LOGD("update lease info.");
-            return RET_SUCCESS;
-        }
+        DHCP_LOGD("insert lease info.");
+        pool->leaseTable[lease->ipAddress] = *lease;
+        return RET_SUCCESS;
     }
-    return RET_FAILED;
 }
 
 AddressBinding *GetLease(DhcpAddressPool *pool, uint32_t ipAddress)
@@ -478,13 +408,8 @@ AddressBinding *GetLease(DhcpAddressPool *pool, uint32_t ipAddress)
         return nullptr;
     }
     int ipAddr = ipAddress;
-    if (ContainsKey(&pool->leaseTable, (uintptr_t)&ipAddr)) {
-        AddressBinding *lease = GetBindingByIp(&pool->leaseTable, ipAddress);
-        if (!lease) {
-            DHCP_LOGE("failed to update lease recoder.");
-            return nullptr;
-        }
-        return lease;
+    if (pool->leaseTable.count(ipAddr) > 0) {
+        return &pool->leaseTable[ipAddr];
     }
     return nullptr;
 }
@@ -498,11 +423,9 @@ int UpdateLease(DhcpAddressPool *pool, AddressBinding *lease)
     if (!lease || !lease->ipAddress || IsEmptyHWAddr(lease->chaddr)) {
         return RET_ERROR;
     }
-
-    if (ContainsKey(&pool->leaseTable, (uintptr_t)&lease->ipAddress)) {
-        if (Insert(&pool->leaseTable, (uintptr_t)&lease->ipAddress, (uintptr_t)lease) == HASH_UPDATED) {
-            return RET_SUCCESS;
-        }
+    if (pool->leaseTable.count(lease->ipAddress) > 0) {
+        pool->leaseTable[lease->ipAddress] = *lease;
+        return RET_SUCCESS;
     }
     return RET_FAILED;
 }
@@ -517,10 +440,9 @@ int RemoveLease(DhcpAddressPool *pool, AddressBinding *lease)
         return RET_ERROR;
     }
 
-    if (ContainsKey(&pool->leaseTable, (uintptr_t)&lease->ipAddress)) {
-        if (Remove(&pool->leaseTable, (uintptr_t)&lease->ipAddress) == HASH_SUCCESS) {
-            return RET_SUCCESS;
-        }
+    if (pool->leaseTable.count(lease->ipAddress) > 0) {
+        pool->leaseTable.erase(lease->ipAddress);
+        return RET_SUCCESS;
     }
     return RET_FAILED;
 }
@@ -553,7 +475,7 @@ int LoadBindingRecoders(DhcpAddressPool *pool)
             continue;
         }
         if (IpInRange(bind.ipAddress, beginIp, endIp, netmask)) {
-            Insert(&(pool->leaseTable), (uintptr_t)&bind.ipAddress, (uintptr_t)&bind);
+            pool->leaseTable[bind.ipAddress] = bind;
         }
     }
 
@@ -586,16 +508,12 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         DHCP_LOGE("Save binding records %{private}s failed: %{public}d", filePath, errno);
         return RET_FAILED;
     }
-    for (size_t index = 0; index < pool->leaseTable.capacity; ++index) {
-        HashNode *node = pool->leaseTable.nodes[index];
-        while (node != nullptr) {
-            AddressBinding *binding = (AddressBinding *)node->value;
-            if (WriteAddressBinding(binding, line, sizeof(line)) != RET_SUCCESS) {
-                DHCP_LOGE("Failed to convert binding info to string");
-            } else {
-                fprintf(fp, "%s\n", line);
-            }
-            node = node->next;
+    for (auto index: pool->leaseTable) {
+        AddressBinding *binding = &index.second;
+        if (binding && WriteAddressBinding(binding, line, sizeof(line)) != RET_SUCCESS) {
+            DHCP_LOGE("Failed to convert binding info to string");
+        } else {
+            fprintf(fp, "%s\n", line);
         }
     }
 
@@ -615,40 +533,18 @@ int GetDistributeMode(void)
     return g_distributeMode;
 }
 
-int FindAndDelBinding(HashTable *table, AddressBinding *binding, AddressBinding *lease)
-{
-    if ((table == nullptr) || (binding == nullptr) || (lease == nullptr)) {
-        DHCP_LOGE("FindAndDelBinding pointer is null.");
-        return RET_ERROR;
-    }
-    int same = AddrEquels(binding->chaddr, lease->chaddr, MAC_ADDR_LENGTH);
-    if (same) {
-        if (ContainsKey(table, (uintptr_t)&binding->ipAddress)) {
-            if (Remove(table, (uintptr_t)&binding->ipAddress) == HASH_SUCCESS) {
-                DHCP_LOGI("FindAndDelBinding Remove ok, deviceName:%{public}s", binding->deviceName);
-            }
-        }
-    }
-    return RET_SUCCESS;
-}
-
 int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease)
 {
     if ((pool == nullptr) || (lease == nullptr)) {
         DHCP_LOGE("DeleteMacInLease pointer is null.");
         return RET_ERROR;
     }
-    HashTable *table = &pool->leaseTable;
-    if (!Initialized(table)) {
-        DHCP_LOGE("DeleteMacInLease pool does not init.");
-        return RET_ERROR;
-    }
-    for (size_t index = 0; index < table->capacity; ++index) {
-        HashNode *node = pool->leaseTable.nodes[index];
-        while (node != nullptr) {
-            AddressBinding *binding = (AddressBinding *)node->value;
-            FindAndDelBinding(table, binding, lease);
-            node = node->next;
+    for (auto it = pool->leaseTable.begin(); it != pool->leaseTable.end();) {
+        AddressBinding *binding = &(it->second);
+        if (binding && AddrEquels(binding->chaddr, lease->chaddr, MAC_ADDR_LENGTH)) {
+            it = pool->leaseTable.erase(it);
+        } else {
+            ++it;
         }
     }
     return RET_SUCCESS;

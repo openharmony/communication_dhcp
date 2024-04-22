@@ -38,7 +38,6 @@
 #include "dhcp_server_ipv4.h"
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
-#include "hash_table.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 
@@ -463,7 +462,7 @@ int SaveLease(PDhcpServerContext ctx)
     }
     int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
     if (saveRet == RET_FAILED) {
-        DHCP_LOGD("failed to save lease recoders. total: %zu", srvIns->addressPool.leaseTable.size);
+        DHCP_LOGD("failed to save lease recoders. total: %zu", srvIns->addressPool.leaseTable.size());
     } else if (saveRet == RET_SUCCESS) {
         DHCP_LOGD("lease recoders saved.");
     }
@@ -597,30 +596,20 @@ void InitBindingRecoders(DhcpAddressPool *pool)
         DHCP_LOGE("address pool pointer is null.");
         return;
     }
-    HashTable *table = &pool->leaseTable;
-    if (!Initialized(table)) {
-        DHCP_LOGE("pool does not init.");
-        return;
-    }
     uint32_t realLeaseTotal = 0;
-    for (size_t current = 0; current < table->capacity; ++current) {
-        HashNode *node = table->nodes[current];
+    for (auto current: pool->leaseTable) {
         int invalidBindig;
-        while (node) {
-            HashNode *next = node->next;
-            AddressBinding *binding = (AddressBinding*)node->value;
-            if (binding && !IsEmptyHWAddr(binding->chaddr) && binding->ipAddress) {
-                AddBinding(binding);
-                realLeaseTotal++;
-                invalidBindig = 0;
-            } else {
-                DHCP_LOGE("bad binding recoder.");
-                invalidBindig = 1;
-            }
-            if (!invalidBindig && binding && pool->distribution < binding->ipAddress) {
-                pool->distribution = binding->ipAddress;
-            }
-            node = next;
+        AddressBinding *binding = &current.second;
+        if (binding && !IsEmptyHWAddr(binding->chaddr) && binding->ipAddress) {
+            AddBinding(binding);
+            realLeaseTotal++;
+            invalidBindig = 0;
+        } else {
+            DHCP_LOGE("bad binding recoder.");
+            invalidBindig = 1;
+        }
+        if (!invalidBindig && binding && pool->distribution < binding->ipAddress) {
+            pool->distribution = binding->ipAddress;
         }
     }
     DHCP_LOGD("lease recoder total: %u", realLeaseTotal);
@@ -824,15 +813,11 @@ static int Repending(DhcpAddressPool *pool, AddressBinding *binding)
         return REPLY_NAK;
     }
     if (srcIp && srcIp == bindingIp) {
-        if (!ContainsKey(&pool->leaseTable, (uintptr_t)&srcIp)) {
+        if (pool->leaseTable.count(srcIp) == 0) {
             DHCP_LOGD("can't find lease information.");
-            if (Insert(&pool->leaseTable, (uintptr_t)&srcIp, (uintptr_t)binding) != HASH_INSERTED) {
-                DHCP_LOGE("failed to insert lease information.");
-            }
+            pool->leaseTable[srcIp] = *binding;
         } else {
-            if (Insert(&pool->leaseTable, (uintptr_t)&srcIp, (uintptr_t)binding) != HASH_UPDATED) {
-                DHCP_LOGE("failed to update lease information.");
-            }
+            pool->leaseTable[srcIp] = *binding;
         }
     }
     return REPLY_OFFER;
@@ -1272,8 +1257,8 @@ static int OnReceivedDecline(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
         DHCP_LOGD("invalid request ip address.");
         return REPLY_NONE;
     }
-    if (ContainsKey(&srvIns->addressPool.leaseTable, (uintptr_t)&binding->ipAddress)) {
-        AddressBinding *lease = GetBindingByIp(&srvIns->addressPool.leaseTable, binding->ipAddress);
+    if (srvIns->addressPool.leaseTable.count(reqIp) > 0) {
+        AddressBinding *lease = &srvIns->addressPool.leaseTable[reqIp];
         if (lease) {
             lease->bindingStatus = BIND_MODE_RESERVED;
             lease->expireIn = Tmspsec() + lease->leaseTime;

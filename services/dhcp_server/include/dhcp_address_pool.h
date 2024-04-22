@@ -17,11 +17,10 @@
 #define OHOS_DHCP_ADDRESS_POOL_H
 
 #include <stdint.h>
+#include <map>
 #include "dhcp_binding.h"
 #include "dhcp_s_define.h"
 #include "dhcp_option.h"
-#include "hash_table.h"
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -49,7 +48,7 @@ struct DhcpAddressPool {
     Distribute distribue;
     QueryBind binding;
     AddBind newBinding;
-    HashTable leaseTable;
+    std::map<uint32_t, AddressBinding> leaseTable;
     DhcpOptionList fixedOptions;
     int initialized;
 };
@@ -70,11 +69,9 @@ int UpdateLease(DhcpAddressPool *pool, AddressBinding *lease);
 int RemoveLease(DhcpAddressPool *pool, AddressBinding *lease);
 int LoadBindingRecoders(DhcpAddressPool *pool);
 int SaveBindingRecoders(const DhcpAddressPool *pool, int force);
-AddressBinding *GetBindingByIp(HashTable *bindTable, uint32_t ipAddress);
 AddressBinding *QueryBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionList cliOptins);
 void SetDistributeMode(int mode);
 int GetDistributeMode(void);
-int FindAndDelBinding(HashTable *table, AddressBinding *binding, AddressBinding *lease);
 int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease);
 
 #ifdef __cplusplus

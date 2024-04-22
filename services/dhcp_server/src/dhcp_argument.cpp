@@ -14,6 +14,7 @@
  */
 
 #include "dhcp_argument.h"
+#include <map>
 #include <getopt.h>
 #include <securec.h>
 #include <stddef.h>
@@ -23,11 +24,10 @@
 #include "address_utils.h"
 #include "dhcp_s_define.h"
 #include "dhcp_logger.h"
-#include "hash_table.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpArgument");
 
-static HashTable g_argumentsTable;
+static std::map<std::string, ArgumentInfo> g_argumentsTable;
 
 static int PutIpArgument(const char *argument, const char *val)
 {
@@ -115,7 +115,10 @@ int HasArgument(const char *argument)
         DHCP_LOGE("failed to set argument name.");
         return 0;
     }
-    if (ContainsKey(&g_argumentsTable, (uintptr_t)name)) {
+    if (g_argumentsTable.empty()) {
+        return 0;
+    }
+    if (g_argumentsTable.count(name) > 0) {
         return 1;
     }
     return 0;
@@ -195,9 +198,7 @@ void ShowHelp(int argc)
 int InitArguments(void)
 {
     DHCP_LOGI("start InitArguments.");
-    if (CreateHashTable(&g_argumentsTable, ARGUMENT_NAME_SIZE, sizeof(ArgumentInfo), INIT_ARGS_SIZE) != HASH_SUCCESS) {
-        return RET_FAILED;
-    }
+    g_argumentsTable.clear();
     DHCP_LOGI("end InitArguments.");
     return RET_SUCCESS;
 }
@@ -213,9 +214,8 @@ ArgumentInfo *GetArgument(const char *name)
         DHCP_LOGE("failed to set argument name.");
         return nullptr;
     }
-    if (ContainsKey(&g_argumentsTable, (uintptr_t)argName)) {
-        ArgumentInfo *arg = (ArgumentInfo *)At(&g_argumentsTable, (uintptr_t)argName);
-        return arg;
+    if (g_argumentsTable.count(argName) > 0) {
+        return &g_argumentsTable[argName];
     }
     return nullptr;
 }
@@ -260,11 +260,8 @@ int PutArgument(const char *argument, const char *val)
         DHCP_LOGE("failed to set argument value.");
         return RET_ERROR;
     }
-    int ret = Insert(&g_argumentsTable, (uintptr_t)arg.name, (uintptr_t)&arg);
-    if (ret == HASH_INSERTED) {
-        return RET_SUCCESS;
-    }
-    return RET_FAILED;
+    g_argumentsTable[std::string(arg.name)] = arg;
+    return RET_SUCCESS;
 }
 
 int FindIndex(int c)
@@ -291,8 +288,5 @@ int ParseArguments(const std::string& ifName, const std::string& netMask, const 
 
 void FreeArguments(void)
 {
-    if (!Initialized(&g_argumentsTable)) {
-        return;
-    }
-    DestroyHashTable(&g_argumentsTable);
+    g_argumentsTable.clear();
 }

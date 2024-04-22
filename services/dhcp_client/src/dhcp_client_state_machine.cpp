@@ -139,10 +139,10 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
 #ifndef OHOS_ARCH_LITE
     StartGetIpTimer(); // statr get ip timer
 #endif
-    if(m_action == ACTION_START_NEW && !m_cltCnf.timeoutExit) {  // first, thread is exit
+    if (m_action == ACTION_START_NEW && !m_cltCnf.timeoutExit) {  // first, thread is exit
         DHCP_LOGI("StartIpv4 start new InitStartIpv4Thread");
         InitStartIpv4Thread(ifname, isIpv6);
-    } else if(m_action == ACTION_START_OLD) {
+    } else if (m_action == ACTION_START_OLD) {
         if (!m_cltCnf.timeoutExit && m_renewThreadIsRun) {  // thread is running
             int signum = SIG_START;
             m_renewThreadIsRun = false;
