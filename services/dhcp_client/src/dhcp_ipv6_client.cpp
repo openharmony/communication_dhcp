@@ -424,7 +424,6 @@ int DhcpIpv6Client::StartIpv6()
     runFlag = true;
     ipv6SocketFd = createKernelSocket();
     if (ipv6SocketFd < 0) {
-        DHCP_LOGE("StartIpv6 createKernelSocket failed.");
         runFlag = false;
         DHCP_LOGE("StartIpv6 ipv6SocketFd < 0 failed!");
         return -1;
@@ -443,6 +442,10 @@ int DhcpIpv6Client::StartIpv6()
     while (runFlag) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0, KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
+        if (ipv6SocketFd < 0) {
+            DHCP_LOGE("error: ipv6SocketFd < 0");
+            break;
+        }
         FD_SET(ipv6SocketFd, &rSet);
         int iRet = select(ipv6SocketFd + 1, &rSet, NULL, NULL, &timeout);
         if (iRet < 0) {
