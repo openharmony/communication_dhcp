@@ -334,7 +334,7 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
             inet_ntop(AF_INET6, addrs + 0, dhcpIpv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN);
         }
         onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
-        DHCP_LOGI("onIpv6DnsAddEvent addr: %{private}s", dhcpIpv6Info.dnsAddr2);
+        DHCP_LOGD("onIpv6DnsAddEvent addr: %{private}s", dhcpIpv6Info.dnsAddr2);
     } while (false);
 }
 

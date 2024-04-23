@@ -100,7 +100,6 @@ bool DhcpClientImpl::GetDhcpClientProxy()
         DHCP_LOGE("dhcp client init failed. %{public}d", systemAbilityId_);
         return false;
     }
-    DHCP_LOGI("DhcpClientImpl GetDhcpClientProxy ok");
     return true;
 #endif
 }

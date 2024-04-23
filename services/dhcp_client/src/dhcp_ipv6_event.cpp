@@ -163,14 +163,13 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
         DHCP_LOGE("handleKernelEvent failed, data invalid.");
         return;
     }
-    DHCP_LOGI("handleKernelEvent recv enter.");
     if (len < (int32_t)sizeof(struct nlmsghdr)) {
         DHCP_LOGE("recv kernel data not full continue.");
         return;
     }
     struct nlmsghdr *nlh = (struct nlmsghdr*)data;
     while (NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
-        DHCP_LOGI("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
+        DHCP_LOGD("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
         if (nlh->nlmsg_type == RTM_NEWADDR) {
             struct ifaddrmsg *ifa = (struct ifaddrmsg*)NLMSG_DATA(nlh);
             struct rtattr *rth = IFA_RTA(ifa);

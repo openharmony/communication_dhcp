@@ -337,7 +337,7 @@ int AddOptStrToOpts(uint8_t *pOpts, uint8_t *pOpt, int nOptLen)
         return 0;
     }
 
-    DHCP_LOGI("AddOptStrToOpts() adding option code %{public}u.", pOpt[DHCP_OPT_CODE_INDEX]);
+    DHCP_LOGD("AddOptStrToOpts() adding option code %{public}u.", pOpt[DHCP_OPT_CODE_INDEX]);
     if (memcpy_s(pOpts + nEndIndex, nOptLen + 1, pOpt, nOptLen) != EOK) {
         return 0;
     }
