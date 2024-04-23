@@ -325,7 +325,7 @@ int DhcpClientStateMachine::StartIpv4(void)
             m_sigSockFds[0], m_sigSockFds[1], m_sentPacketNum);
 
         if (timeout.tv_sec <= 0) {
-            DHCP_LOGD("StartIpv4 already timed out, need send or resend packet...");
+            DHCP_LOGI("StartIpv4 already timed out, need send or resend packet...");
             nRet = 0;
         } else {
             nMaxFds = (m_sigSockFds[0] > m_sockFd) ? m_sigSockFds[0] : m_sockFd;
@@ -1656,7 +1656,7 @@ int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint3
         DHCP_LOGI("DhcpRenew() rebind, begin broadcast req packet");
         return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
     }
-    DHCP_LOGD("DhcpRenew() renew, begin unicast request packet");
+    DHCP_LOGI("DhcpRenew() renew, begin unicast request packet");
     return SendDhcpPacket(&packet, clientip, serverip);
 }
 
