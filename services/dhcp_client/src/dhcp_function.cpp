@@ -307,7 +307,6 @@ int SetLocalInterface(const char *ifname, uint32_t ipAddr, uint32_t netMask)
         DHCP_LOGE("SetLocalInterface() failed, ifname == NULL or \"\"!");
         return DHCP_OPT_FAILED;
     }
-    DHCP_LOGI("SetLocalInterface() %{public}s, ipAddr:%{public}u mask %{public}u.", ifname, ipAddr, netMask);
 
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd < 0) {
