@@ -514,7 +514,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
 {
     if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || strlen(info.linkIpv6Addr) == 0 ||
         !IsGlobalIPv6Address(info.globalIpv6Addr)) {
-        DHCP_LOGD("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s", info.globalIpv6Addr,
+        DHCP_LOGI("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s", info.globalIpv6Addr,
             info.routeAddr);
         return;
     }
