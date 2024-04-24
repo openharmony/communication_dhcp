@@ -84,7 +84,6 @@ int InitOptionList(PDhcpOptionList pOptions)
 
 int PushBackOption(PDhcpOptionList pOptions, PDhcpOption pOption)
 {
-    DHCP_LOGI(" start %{public}s %{public}d", __func__, __LINE__);
     if (!pOptions) {
         DHCP_LOGE("option list pointer is null.");
         return RET_ERROR;
@@ -167,7 +166,6 @@ int RemoveOption(PDhcpOptionList pOptions, uint8_t code)
 
 PDhcpOptionNode GetOptionNode(PDhcpOptionList pOptions, uint8_t code)
 {
-    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     if (pOptions->first == nullptr) {
         return nullptr;
     }
@@ -180,7 +178,6 @@ PDhcpOptionNode GetOptionNode(PDhcpOptionList pOptions, uint8_t code)
 
 PDhcpOption GetOption(PDhcpOptionList pOptions, uint8_t code)
 {
-    DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     PDhcpOptionNode pNode = GetOptionNode(pOptions, code);
     if (pNode) {
         return &pNode->option;

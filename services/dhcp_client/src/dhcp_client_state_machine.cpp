@@ -319,10 +319,9 @@ int DhcpClientStateMachine::StartIpv4(void)
 
         if (m_sockFd >= 0) {
             FD_SET(m_sockFd, &exceptfds);
-            DHCP_LOGI("StartIpv4 m_sockFd>0 m_sockFd:%{public}d", m_sockFd);
         }
         FD_SET(m_sigSockFds[0], &exceptfds);
-        DHCP_LOGI("StartIpv4 m_sigSockFds[0]:%{public}d m_sigSockFds[1]:%{public}d m_sentPacketNum:%{public}d",
+        DHCP_LOGD("StartIpv4 m_sigSockFds[0]:%{public}d m_sigSockFds[1]:%{public}d m_sentPacketNum:%{public}d",
             m_sigSockFds[0], m_sigSockFds[1], m_sentPacketNum);
 
         if (timeout.tv_sec <= 0) {
@@ -347,7 +346,6 @@ int DhcpClientStateMachine::StartIpv4(void)
             continue;
         }
         curTimestamp = time(NULL);
-        DHCP_LOGI("StartIpv4  nRet:%{public}d m_socketMode:%{public}d", nRet, m_socketMode);
         if (nRet == 0) {
             DhcpRequestHandle(curTimestamp);
         } else if ((m_socketMode != SOCKET_MODE_INVALID) && FD_ISSET(m_sockFd, &exceptfds)) {
