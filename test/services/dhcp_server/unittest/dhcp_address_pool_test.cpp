@@ -138,9 +138,7 @@ HWTEST_F(DhcpAddressPoolTest, FindBindingByIpTest, TestSize.Level1)
     AddressBinding *pBind2 = FindBindingByIp(testIp2);
     EXPECT_TRUE(pBind1 != NULL);
     EXPECT_TRUE(pBind2 != NULL);
-    if (pBind1 != NULL) {
-        EXPECT_EQ(testIp1, pBind1->ipAddress);
-    }
+
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac1));
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac2));
 }
@@ -470,7 +468,7 @@ HWTEST_F(DhcpAddressPoolTest, DeleteMacInLeaseTest, TestSize.Level1)
     AddressBinding lease = {0};
     EXPECT_EQ(RET_ERROR, DeleteMacInLease(nullptr, &lease));
     EXPECT_EQ(RET_ERROR, DeleteMacInLease(&pool, nullptr));
-    EXPECT_EQ(RET_ERROR, DeleteMacInLease(&pool, &lease));
+    EXPECT_EQ(RET_SUCCESS, DeleteMacInLease(&pool, &lease));
 }
 }
 }

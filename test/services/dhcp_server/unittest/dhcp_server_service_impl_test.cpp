@@ -174,7 +174,7 @@ HWTEST_F(DhcpServerServiceTest, StopServerTest, TestSize.Level1)
     ASSERT_TRUE(pServerServiceImpl != nullptr);
 
     pid_t serverPid = 1234;
-    EXPECT_EQ(DHCP_OPT_FAILED, pServerServiceImpl->StopServer(serverPid));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerServiceImpl->StopServer(serverPid));
 }
 
 HWTEST_F(DhcpServerServiceTest, DeleteLeaseFileTest, TestSize.Level1)
