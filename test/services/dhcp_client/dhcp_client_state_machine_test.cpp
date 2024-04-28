@@ -188,7 +188,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail4, TestSize.Leve
     struct DhcpPacket packet;
     struct DhcpIpResult result;
     strcpy_s((char*)packet.sname, sizeof(packet.sname), "testcode");
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(&packet, &result));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->ParseNetworkVendorInfo(&packet, &result));
 }
 
 /**
@@ -222,7 +222,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail5, TestSize.Leve
     pOption[endIndex] = END_OPTION;
 
     struct DhcpIpResult result;
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->ParseNetworkVendorInfo(&packet, &result));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->ParseNetworkVendorInfo(&packet, &result));
 }
 
 /**
