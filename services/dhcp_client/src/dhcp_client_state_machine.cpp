@@ -1531,7 +1531,7 @@ int DhcpClientStateMachine::AddHostNameToOpts(struct DhcpPacket *packet)
     std::string strProductModel;
 #ifdef INIT_LIB_ENABLE
     strProductModel = GetProductModel();
-    DHCP_LOGI("AddHostNameOptions strProductModel:%{public}s", strProductModel.c_str());
+    DHCP_LOGD("AddHostNameOptions strProductModel:%{public}s", strProductModel.c_str());
 #endif
     AddStrToOpts(packet, HOST_NAME_OPTION, strProductModel);  // add option 12
     std::string venderName = VENDOR_NAME_PREFIX;
@@ -1562,7 +1562,7 @@ int DhcpClientStateMachine::AddStrToOpts(struct DhcpPacket *packet, int option, 
         return DHCP_OPT_FAILED;
     }
     int optValueLen = DHCP_OPT_CODE_BYTES + DHCP_OPT_LEN_BYTES + optValue[DHCP_OPT_LEN_INDEX];
-    DHCP_LOGI("AddStrToOpts option=%{public}d buf=%{public}s len=%{public}d", option, buf, optValueLen);
+    DHCP_LOGD("AddStrToOpts option=%{public}d buf=%{public}s len=%{public}d", option, buf, optValueLen);
     AddOptStrToOpts(packet->options, optValue, optValueLen);
     return DHCP_OPT_SUCCESS;
 }
