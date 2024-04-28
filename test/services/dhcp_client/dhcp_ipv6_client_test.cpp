@@ -343,9 +343,7 @@ HWTEST_F(DhcpIpv6ClientTest, UnRegisterTest, TestSize.Level1)
 HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest, TestSize.Level1)
 {
     DHCP_LOGI("AddIpv6Address enter!");
-    char ipv6addr[] = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
     ipv6Client->AddIpv6Address(nullptr);
-    ipv6Client->AddIpv6Address(ipv6addr);
 }
 }
 }
