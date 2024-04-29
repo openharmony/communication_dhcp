@@ -1506,7 +1506,6 @@ int DhcpClientStateMachine::AddClientIdToOpts(struct DhcpPacket *packet)
     }
     char macAddr[MAC_ADDR_LEN * MAC_ADDR_CHAR_NUM] = {0};
     MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
-    DHCP_LOGI("AddClientIdToOpts macAddr:%{public}s", macAddr);
 
     unsigned char optValue[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
     optValue[DHCP_OPT_CODE_INDEX] = CLIENT_IDENTIFIER_OPTION;
