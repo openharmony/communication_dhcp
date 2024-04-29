@@ -27,9 +27,6 @@
 #include "system_ability.h"
 #include "iremote_object.h"
 #include "dhcp_client_stub.h"
-#include "iservice_registry.h"
-#include "netsys_native_service_proxy.h"
-#include "system_ability_definition.h"
 #endif
 
 namespace OHOS {
@@ -68,8 +65,6 @@ public:
     ErrCode RenewDhcpClient(const std::string& ifname) override;
 #ifndef OHOS_ARCH_LITE
     void StartServiceAbility(int sleepS);
-    void SetIpv6PrivacyExtensions(const std::string interface, int on);
-    void SetEnableIpv6(const std::string interface, int on);
 #endif
     bool IsRemoteDied(void) override;
     ErrCode StartOldClient(const std::string& ifname, bool bIpv6, DhcpClient &dhcpClient);
