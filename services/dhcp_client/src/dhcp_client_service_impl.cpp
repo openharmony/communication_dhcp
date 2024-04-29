@@ -276,7 +276,7 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
 #ifndef OHOS_ARCH_LITE
         NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
         NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
-        pipv6Client->StartIpv6Timer();
+        dhcpClient.pipv6Client->StartIpv6Timer();
 #endif
         dhcpClient.pipv6Client->Reset();
         dhcpClient.pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
