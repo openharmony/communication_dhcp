@@ -273,16 +273,14 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
             DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
         }
 #ifndef OHOS_ARCH_LITE
-        SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
-        SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+        NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+        NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+        pipv6Client->StartIpv6Timer();
 #endif
         dhcpClient.pipv6Client->Reset();
         dhcpClient.pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
             std::placeholders::_1, std::placeholders::_2));
         dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
-#ifndef OHOS_ARCH_LITE
-        dhcpClient.pipv6Client->StartIpv6Timer();
-#endif
     }
     return DHCP_E_SUCCESS;
 }
@@ -300,16 +298,14 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         client.pipv6Client = pipv6Client;
         DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
 #ifndef OHOS_ARCH_LITE
-        SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
-        SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+        NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+        NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+        pipv6Client->StartIpv6Timer();
 #endif
         pipv6Client->Reset();
         pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this, std::placeholders::_1,
             std::placeholders::_2));
         pipv6Client->StartIpv6Thread(ifname, bIpv6);
-#ifndef OHOS_ARCH_LITE
-        pipv6Client->StartIpv6Timer();
-#endif
     }
     DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
     if (pStaState == nullptr) {
@@ -360,7 +356,7 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
                 bIpv6);
             (iter2->second).pipv6Client->DhcpIPV6Stop();
 #ifndef OHOS_ARCH_LITE
-            SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
+            NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
             (iter2->second).pipv6Client->StopIpv6Timer();
 #endif
         }
@@ -689,50 +685,5 @@ bool DhcpClientServiceImpl::IsGlobalIPv6Address(std::string ipAddress)
     }
     return false;
 }
-#ifndef OHOS_ARCH_LITE
-void DhcpClientServiceImpl::SetIpv6PrivacyExtensions(const std::string interface, int on)
-{
-    DHCP_LOGI("Enter SetIpv6PrivacyExtensions interface=%{public}s, on=%{public}d", interface.c_str(), on);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgr == nullptr) {
-        DHCP_LOGE("SetIpv6PrivacyExtensions GetSystemAbilityManager failed!");
-        return;
-    }
-    auto remote = samgr->GetSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
-    if (remote == nullptr) {
-        DHCP_LOGE("SetIpv6PrivacyExtensions GetSystemAbility failed!");
-        return;
-    }
-    sptr<NetsysNative::INetsysService> netsysService = iface_cast<NetsysNative::INetsysService>(remote);
-    if (netsysService == nullptr) {
-        DHCP_LOGE("SetIpv6PrivacyExtensions NetdService is nullptr!");
-        return;
-    }
-    int32_t result = netsysService->SetIpv6PrivacyExtensions(interface, on);
-    DHCP_LOGI("SetIpv6PrivacyExtensions result:%{public}d", result);
-}
-
-void DhcpClientServiceImpl::SetEnableIpv6(const std::string interface, int on)
-{
-    DHCP_LOGI("Enter SetEnableIpv6 interface=%{public}s, on=%{public}d", interface.c_str(), on);
-    auto samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-    if (samgr == nullptr) {
-        DHCP_LOGE("SetEnableIpv6 GetSystemAbilityManager failed!");
-        return;
-    }
-    auto remote = samgr->GetSystemAbility(COMM_NETSYS_NATIVE_SYS_ABILITY_ID);
-    if (remote == nullptr) {
-        DHCP_LOGE("SetEnableIpv6 GetSystemAbility failed!");
-        return;
-    }
-    sptr<NetsysNative::INetsysService> netsysService = iface_cast<NetsysNative::INetsysService>(remote);
-    if (netsysService == nullptr) {
-        DHCP_LOGE("NetdService is nullptr!");
-        return;
-    }
-    int32_t result = netsysService->SetEnableIpv6(interface, on);
-    DHCP_LOGI("SetEnableIpv6 result:%{public}d", result);
-}
-#endif
 }
 }
