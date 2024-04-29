@@ -63,6 +63,8 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 #define WAIT_STOPED_TIME 5
 #define DHCP_SERVER_SLEEP_TIMEOUTS 600000  // 600ms
 
+#define VNEDOR_OPEN_HARMONY "OPEN_HARMONY"
+
 const uint8_t MAGIC_COOKIE_DATA[MAGIC_COOKIE_LENGTH] = {0x63, 0x82, 0x53, 0x63};  // Vendor Information "Magic Cookie"
 
 enum AssignedNumbers {
@@ -913,6 +915,30 @@ AddressBinding *GetBinding(DhcpAddressPool *pool, PDhcpMsgInfo received)
     return binding;
 }
 
+int ReplyCommontOption(PDhcpServerContext ctx, PDhcpMsgInfo reply)
+{
+    if (!reply) {
+        DHCP_LOGE("reply is nullptr!");
+        return REPLY_NONE;
+    }
+    ServerContext *srvIns = GetServerInstance(ctx);
+    if (!srvIns) {
+        DHCP_LOGE("srvIns is nullptr!");
+        return REPLY_NONE;
+    }
+    AddAddressOption(reply, SUBNET_MASK_OPTION, srvIns->addressPool.netmask);
+    if (srvIns->addressPool.gateway) {
+        AddAddressOption(reply, ROUTER_OPTION, srvIns->addressPool.gateway);
+    }
+    DhcpOption optVendorInfo = {VENDOR_SPECIFIC_INFO_OPTION, static_cast<uint8_t>(strlen(VNEDOR_OPEN_HARMONY)),
+        VNEDOR_OPEN_HARMONY};
+    PushBackOption(&reply->options, &optVendorInfo);
+    uint32_t netAddress = reply->packet.yiaddr & srvIns->addressPool.netmask;
+    uint32_t boastAddress = (~srvIns->addressPool.netmask) | netAddress;
+    AddAddressOption(reply, BROADCAST_ADDRESS_OPTION, boastAddress);
+    return REPLY_OFFER;
+}
+
 static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
     if (!received || !reply) {
@@ -945,7 +971,6 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
         return REPLY_NONE;
     }
     if (!binding->ipAddress) {
-        DHCP_LOGE("no ip address available.");
         return REPLY_NONE;
     }
     if (reqIp != 0 && reqIp != binding->ipAddress) {
@@ -962,9 +987,9 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     }
     AddReplyMessageTypeOption(reply, DHCPOFFER);
     reply->packet.yiaddr = lease->ipAddress;
+    ReplyCommontOption(ctx, reply);
     return REPLY_OFFER;
 }
-
 
 static uint32_t GetRequestIpAddress(PDhcpMsgInfo received)
 {
@@ -1148,9 +1173,9 @@ int GetVendorIdentifierOption(PDhcpMsgInfo received)
             DHCP_LOGE("GetVendorIdentifierOption strClientIdentifier memcpy_s failed!");
             return REPLY_NONE;
         }
-        DHCP_LOGI("GetVendorIdentifierOption strClientIdentifier:%{public}s", strVendorIdentifier);
+        DHCP_LOGD("GetVendorIdentifierOption strClientIdentifier:%{public}s", strVendorIdentifier);
     } else {
-        DHCP_LOGI("GetVendorIdentifierOption pClientIdentifier is null");
+        DHCP_LOGD("GetVendorIdentifierOption pClientIdentifier is null");
     }
     return REPLY_NAK;
 }
@@ -1170,10 +1195,104 @@ int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
         }
         DHCP_LOGI("GetHostNameOption deviceName:%{public}s", bindin->deviceName);
     } else {
-        DHCP_LOGI("GetHostNameOption pHost is null");
+        DHCP_LOGD("GetHostNameOption pHost is null");
     }
-    GetVendorIdentifierOption(received);
     return REPLY_NAK;
+}
+
+int GetUserClassOption(PDhcpMsgInfo received, AddressBinding *bindin)
+{
+    if (!bindin) {
+        DHCP_LOGE("GetUserClassOption bindin is nullptr!");
+        return REPLY_NONE;
+    }
+    PDhcpOption option = GetOption(&received->options, USER_CLASS_OPTION);
+    if (option) {
+        if (memcpy_s(bindin->userClass, DEVICE_NAME_STRING_LENGTH, (char*)option->data, option->length) != EOK) {
+            DHCP_LOGE("GetUserClassOption memcpy_s failed!");
+            return REPLY_NONE;
+        }
+        DHCP_LOGD("GetUserClassOption userClass:%{public}s", bindin->userClass);
+    } else {
+        DHCP_LOGD("GetUserClassOption pHost is null");
+    }
+    return REPLY_ACK;
+}
+
+int GetRapidCommitOption(PDhcpMsgInfo received, AddressBinding *bindin)
+{
+    if (!bindin) {
+        DHCP_LOGE("GetRapidCommitOption bindin is nullptr!");
+        return REPLY_NONE;
+    }
+    PDhcpOption option = GetOption(&received->options, RAPID_COMMIT_OPTION);
+    if (option) {
+        char value[DEVICE_NAME_STRING_LENGTH] = {0};
+        if (memcpy_s(value, DEVICE_NAME_STRING_LENGTH, (char*)option->data, option->length) != EOK) {
+            DHCP_LOGE("GetRapidCommitOption memcpy_s failed!");
+            return REPLY_NONE;
+        }
+        DHCP_LOGD("GetRapidCommitOption value:%{public}s", value);
+    } else {
+        DHCP_LOGD("GetRapidCommitOption pHost is null");
+    }
+    return REPLY_ACK;
+}
+
+int GetOnlyIpv6Option(PDhcpMsgInfo received, AddressBinding *bindin)
+{
+    if (!bindin) {
+        DHCP_LOGE("GetOnlyIpv6Option bindin is nullptr!");
+        return REPLY_NONE;
+    }
+    PDhcpOption option = GetOption(&received->options, IPV6_ONLY_PREFERRED_OPTION);
+    if (option) {
+        char value[DEVICE_NAME_STRING_LENGTH] = {0};
+        if (memcpy_s(value, DEVICE_NAME_STRING_LENGTH, (char*)option->data, option->length) != EOK) {
+            DHCP_LOGE("GetOnlyIpv6Option memcpy_s failed!");
+            return REPLY_NONE;
+        }
+        DHCP_LOGD("GetOnlyIpv6Option value:%{public}s", value);
+    } else {
+        DHCP_LOGD("GetOnlyIpv6Option pHost is null");
+    }
+    return REPLY_ACK;
+}
+
+int GetPortalUrlOption(PDhcpMsgInfo received, AddressBinding *bindin)
+{
+    if (!bindin) {
+        DHCP_LOGE("GetPortalUrlOption bindin is nullptr!");
+        return REPLY_NONE;
+    }
+    PDhcpOption option = GetOption(&received->options, IPV6_ONLY_PREFERRED_OPTION);
+    if (option) {
+        char value[DEVICE_NAME_STRING_LENGTH] = {0};
+        if (memcpy_s(value, DEVICE_NAME_STRING_LENGTH, (char*)option->data, option->length) != EOK) {
+            DHCP_LOGE("GetPortalUrlOption memcpy_s failed!");
+            return REPLY_NONE;
+        }
+        DHCP_LOGD("GetPortalUrlOption value:%{public}s", value);
+    } else {
+        DHCP_LOGD("GetPortalUrlOption pHost is null");
+    }
+    return REPLY_ACK;
+}
+
+int ParseDhcpOption(PDhcpMsgInfo received, AddressBinding *bindin)
+{
+    if (!bindin) {
+        DHCP_LOGE("ParseDhcpOption bindin is nullptr!");
+        return REPLY_NONE;
+    }
+    DHCP_LOGE("enter ParseDhcpOption");
+    GetHostNameOption(received, bindin);
+    GetVendorIdentifierOption(received);
+    GetUserClassOption(received, bindin);
+    GetRapidCommitOption(received, bindin);
+    GetOnlyIpv6Option(received, bindin);
+    GetPortalUrlOption(received, bindin);
+    return REPLY_ACK;
 }
 
 static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
@@ -1195,7 +1314,7 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     Rebinding(&srvIns->addressPool, binding);
     AddressBinding *lease = GetLease(&srvIns->addressPool, yourIpAddr);
     if (lease) {
-        GetHostNameOption(received, lease);
+        ParseDhcpOption(received, lease);
         int sameAddr = AddrEquels(lease->chaddr, received->packet.chaddr, MAC_ADDR_LENGTH);
         if (!sameAddr && !IsExpire(lease)) {
             DHCP_LOGW("invalid request ip address.");
@@ -1217,15 +1336,8 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
         DHCP_LOGE("error request ip binding.");
         return REPLY_NAK;
     }
-    AddAddressOption(reply, SUBNET_MASK_OPTION, srvIns->addressPool.netmask);
-    if (srvIns->addressPool.gateway) {
-        AddAddressOption(reply, ROUTER_OPTION, srvIns->addressPool.gateway);
-    }
-    /* Add option43 as "OPEN_HARMONY". */
-    DhcpOption optVendorInfo = {
-        VENDOR_SPECIFIC_INFO_OPTION, static_cast<uint8_t>(strlen("OPEN_HARMONY")), "OPEN_HARMONY"};
-    PushBackOption(&reply->options, &optVendorInfo);
     reply->packet.yiaddr = bindingIp;
+    ReplyCommontOption(ctx, reply);
     return REPLY_ACK;
 }
 
@@ -1490,6 +1602,12 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         DHCP_LOGE("SendDhcpNak, srvIns is null");
         return RET_FAILED;
     }
+    if (AddReplyServerIdOption(&reply->options, srvIns->addressPool.serverId) != RET_SUCCESS) {
+        DHCP_LOGE("SendDhcpNak serverId fail!");
+        return RET_FAILED;
+    }
+    DhcpOption optVendorInfo = {MESSAGE_OPTION, static_cast<uint8_t>(strlen("wrong network")), "wrong network"};
+    PushBackOption(&reply->options, &optVendorInfo);
     if (ParseReplyOptions(reply) != RET_SUCCESS) {
         return RET_FAILED;
     }

@@ -119,6 +119,15 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, MessageParce
     result.strVendor = data.ReadString();
     result.strLinkIpv6Addr = data.ReadString();
     result.strRandIpv6Addr = data.ReadString();
+    result.strLocalAddr1 = data.ReadString();
+    result.strLocalAddr2 = data.ReadString();
+    int size = reply.ReadInt32();
+    if (state == DHCP_E_SUCCESS) {
+        for (int i = 0; i < size; i++) {
+            std::string str = reply.ReadString();
+            result.vectorDnsAddr.push_back(str);
+        }
+    }
     OnIpSuccessChanged(state, ifname, result);
     reply.WriteInt32(0);
     return 0;

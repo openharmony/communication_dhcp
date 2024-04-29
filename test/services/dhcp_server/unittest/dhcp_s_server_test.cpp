@@ -206,5 +206,49 @@ HWTEST_F(DhcpServerTest, GetHostNameOptionTest, TestSize.Level1)
     ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
     EXPECT_EQ(REPLY_NONE, GetHostNameOption(received, nullptr));
 }
+
+HWTEST_F(DhcpServerTest, ReplyCommontOptionTest, TestSize.Level1)
+{
+    DhcpServerContext ctx;
+    EXPECT_EQ(REPLY_NONE, ReplyCommontOption(&ctx, nullptr));
+    DhcpMsgInfo reply;
+    EXPECT_EQ(REPLY_NONE, ReplyCommontOption(nullptr, &reply));
+}
+
+HWTEST_F(DhcpServerTest, ParseDhcpOptionTest, TestSize.Level1)
+{
+    PDhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NONE, ParseDhcpOption(received, nullptr));
+}
+
+HWTEST_F(DhcpServerTest, GetUserClassOptionTest, TestSize.Level1)
+{
+    PDhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NONE, GetUserClassOption(received, nullptr));
+}
+
+
+HWTEST_F(DhcpServerTest, GetRapidCommitOptionest, TestSize.Level1)
+{
+    PDhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NONE, GetRapidCommitOption(received, nullptr));
+}
+
+HWTEST_F(DhcpServerTest, GetOnlyIpv6OptionTest, TestSize.Level1)
+{
+    PDhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NONE, GetOnlyIpv6Option(received, nullptr));
+}
+
+HWTEST_F(DhcpServerTest, GetPortalUrlOptionTest, TestSize.Level1)
+{
+    PDhcpMsgInfo received;
+    ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
+    EXPECT_EQ(REPLY_NONE, GetPortalUrlOption(received, nullptr));
+}
 }
 }

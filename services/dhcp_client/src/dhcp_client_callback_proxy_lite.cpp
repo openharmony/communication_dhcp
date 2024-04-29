@@ -47,21 +47,26 @@ void DhcpClientCallbackProxy::OnIpSuccessChanged(int status, const std::string& 
     (void)WriteInt32(&data, 0);
     (void)WriteInt32(&data, status);
     (void)WriteString(&data, ifname.c_str());
-    (void)WriteInt32(&data,result.iptype);
-    (void)WriteBool(&data,result.isOptSuc);
-    (void)WriteInt32(&data,result.uLeaseTime);
-    (void)WriteInt32(&data,result.uAddTime);
-    (void)WriteInt32(&data,result.uGetTime);
-    (void)WriteString(&data,result.strYourCli.c_str());
-    (void)WriteString(&data,result.strServer.c_str());
-    (void)WriteString(&data,result.strSubnet.c_str());
-    (void)WriteString(&data,result.strDns1.c_str());
-    (void)WriteString(&data,result.strDns2.c_str());
-    (void)WriteString(&data,result.strRouter1.c_str());
-    (void)WriteString(&data,result.strRouter2.c_str());
-    (void)WriteString(&data,result.strVendor.c_str());
+    (void)WriteInt32(&data, result.iptype);
+    (void)WriteBool(&data, result.isOptSuc);
+    (void)WriteInt32(&data, result.uLeaseTime);
+    (void)WriteInt32(&data, result.uAddTime);
+    (void)WriteInt32(&data, result.uGetTime);
+    (void)WriteString(&data, result.strYourCli.c_str());
+    (void)WriteString(&data, result.strServer.c_str());
+    (void)WriteString(&data, result.strSubnet.c_str());
+    (void)WriteString(&data, result.strDns1.c_str());
+    (void)WriteString(&data, result.strDns2.c_str());
+    (void)WriteString(&data, result.strRouter1.c_str());
+    (void)WriteString(&data, result.strRouter2.c_str());
+    (void)WriteString(&data, result.strVendor.c_str());
     (void)WriteString(&data, result.strLinkIpv6Addr.c_str());
     (void)WriteString(&data, result.strRandIpv6Addr.c_str());
+    (void)WriteString(&data, result.strLocalAddr1.c_str());
+    (void)WriteString(&data, result.strLocalAddr2.c_str());
+    for (auto dnsAddr : result.vectorDnsAddr) {
+        (void)WriteString(&data, dnsAddr.c_str());
+    }
 
     IpcIo reply;
     MessageOption option;

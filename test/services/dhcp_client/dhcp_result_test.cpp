@@ -37,83 +37,12 @@ public:
     {}
 };
 
-HWTEST_F(DhcpResultTest, SplitStrTest, TestSize.Level1)
+HWTEST_F(DhcpResultTest, PublishDhcpIpv4ResultTest, TestSize.Level1)
 {
-    DHCP_LOGE("enter SplitStrTest");
-    std::string src;
-    std::string delim;
-    int count = 0;
-    std::vector<std::string> splits {};
-    EXPECT_EQ(false, SplitStr(src, delim, count, splits));
-    src = "";
-    delim = "test";
-    EXPECT_EQ(false, SplitStr(src, delim, count, splits));
-    src = "testcode";
-    delim = "";
-    EXPECT_EQ(false, SplitStr(src, delim, count, splits));
-    src = "testcode";
-    delim = "test";
-    count = 1;
-    EXPECT_EQ(true, SplitStr(src, delim, count, splits));
-}
-
-HWTEST_F(DhcpResultTest, GetDhcpEventIpv4ResultTest, TestSize.Level1)
-{
-    DHCP_LOGE("enter GetDhcpEventIpv4ResultTest");
-    std::vector<std::string> splits;
-    splits.push_back("wlan0");
-    splits.push_back("12");
-    splits.push_back("*");
-    EXPECT_EQ(DHCP_OPT_FAILED, GetDhcpEventIpv4Result(-1, splits));
-    splits.push_back("wlan4");
-    splits.push_back("wlan5");
-    splits.push_back("wlan6");
-    splits.push_back("wlan7");
-    splits.push_back("wlan8");
-    splits.push_back("wlan9");
-    splits.push_back("wlan10");
-    splits.push_back("wlan11");
-    EXPECT_EQ(DHCP_OPT_FAILED, GetDhcpEventIpv4Result(-1, splits));
-    splits[2] = "wlan3";
-    EXPECT_EQ(DHCP_OPT_SUCCESS, GetDhcpEventIpv4Result(0, splits));
-    splits[0] = "";
-    EXPECT_EQ(DHCP_OPT_FAILED, GetDhcpEventIpv4Result(0, splits));
-    splits[0] = "wlan0";
-    splits[1] = "";
-    EXPECT_EQ(DHCP_OPT_FAILED, GetDhcpEventIpv4Result(0, splits));
-}
-
-HWTEST_F(DhcpResultTest, DhcpEventResultHandleTest, TestSize.Level1)
-{
-    DHCP_LOGE("enter DhcpEventResultHandleTest");
-    std::string data;
-    int code = 0;
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpEventResultHandle(code, data));
-    data = "ipv4:ipv4,1640995200,*,*,*,*,*,*,*,*,*";
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpEventResultHandle(code, data));
-    data = "ipv6:ipv6,1640995200,*,*,*,*,*,*,*,*,*";
-    EXPECT_EQ(DHCP_OPT_SUCCESS, DhcpEventResultHandle(code, data));
-    data = "wlan0:wlan0,1640995200,*,*,*,*,*,*,*,*,*";
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpEventResultHandle(code, data));
-}
-
-HWTEST_F(DhcpResultTest, PublishDhcpIpv4ResultEventTest1, TestSize.Level1)
-{
-    DHCP_LOGI("PublishDhcpIpv4ResultEventTest1 enter!");
-    char data[] = "ipv6:ipv6,1640995200,*,*,*,*,*,*,*,*,*";
-    char ifname[] = "testcode";
-    bool result = PublishDhcpIpv4ResultEvent(1, data, ifname);
-    DHCP_LOGE("PublishDhcpIpv4ResultEventTest1 result(%{public}d)", result);
-    EXPECT_EQ(true, result);
-}
-
-HWTEST_F(DhcpResultTest, PublishDhcpIpv4ResultEventTest2, TestSize.Level1)
-{
-    DHCP_LOGI("PublishDhcpIpv4ResultEventTest2 enter!");
-    char data[] = "wlan0:wlan0,1640995200,*,*,*,*,*,*,*,*,*";
-    char ifname[ARRAY_SIZE] = {1};
-    bool result = PublishDhcpIpv4ResultEvent(1, data, ifname);
-    DHCP_LOGE("PublishDhcpIpv4ResultEventTest2 result(%{public}d)", result);
+    DHCP_LOGI("PublishDhcpIpv4ResultTest enter!");
+    struct DhcpIpResult ipResult;
+    bool result = PublishDhcpIpv4Result(ipResult);
+    DHCP_LOGE("PublishDhcpIpv4ResultTest result(%{public}d)", result);
     EXPECT_EQ(false, result);
 }
 

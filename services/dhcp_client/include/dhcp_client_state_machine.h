@@ -39,13 +39,14 @@ private:
     int PublishDhcpResultEvent(const char *ifname, const int code, struct DhcpIpResult *result);
     int GetPacketHeaderInfo(struct DhcpPacket *packet, uint8_t type);
     int GetPacketCommonInfo(struct DhcpPacket *packet);
+    int AddClientIdToOpts(struct DhcpPacket *packet);
     int AddHostNameToOpts(struct DhcpPacket *packet);
     int AddStrToOpts(struct DhcpPacket *packet, int option, std::string &value);
     int DhcpDiscover(uint32_t transid, uint32_t requestip);
     int DhcpRequest(uint32_t transid, uint32_t reqip, uint32_t servip);
     int DhcpReboot(uint32_t transid, uint32_t reqip );
     int GetDHCPServerHostName(const struct DhcpPacket *packet, struct DhcpIpResult *result);
-    int SyncDhcpResult(const struct DhcpPacket *packet, struct DhcpIpResult *result);
+    int ParseNetworkVendorInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     int GetPacketReadSockFd(void);
     int GetSigReadSockFd(void);
     int DhcpRenew(uint32_t transid, uint32_t clientip, uint32_t serverip);
@@ -56,12 +57,15 @@ private:
     void DhcpResponseHandle(time_t timestamp);
     void DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpPacket *packet, time_t timestamp);
     void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp);
+    void ParseDhcpNakPacket(const struct DhcpPacket *packet, time_t timestamp);
     void DhcpInit(void);
     void DhcpStop(void);
     void InitSocketFd(void);
     void SetSocketMode(uint32_t mode);
+    void ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
-    void ParseOtherNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
+    void ParseNetworkDnsInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
+    void ParseNetworkDnsValue(struct DhcpIpResult *result, uint32_t uData, size_t &len, int &count);
     void DhcpOfferPacketHandle(uint8_t type, const struct DhcpPacket *packet, time_t timestamp);
     void DhcpRequestHandle(time_t timestamp);
     void Rebinding(time_t timestamp);
@@ -130,6 +134,7 @@ private:
     bool m_renewThreadIsRun; //续租时，对象的线程是否在已启动
     std::thread *m_pthread;
     ActionMode m_action;
+    struct DhcpIpResult dhcpResult;
 #ifndef OHOS_ARCH_LITE
     uint32_t getIpTimerId;
     std::mutex getIpTimerMutex;

@@ -54,6 +54,7 @@
                 "hilog",
                 "init",
                 "ipc",
+                "netmanager_base",
                 "safwk",
                 "access_token",
                 "samgr"

@@ -30,6 +30,13 @@ extern "C" {
 #define DHCP_LEASE_IP_ADDR_POS 1
 #define DHCP_LEASE_HOSTNAME_POS 8
 #define DHCP_LEASE_DATA_MAX_LEN 128
+#define DHCP_DNS_MAX_NUMBER 10
+#define DHCP_DNS_DATA_MAX_LEN 128
+
+typedef struct{
+    uint32_t dnsNumber;
+    char dnsAddr[DHCP_DNS_MAX_NUMBER][DHCP_DNS_DATA_MAX_LEN];
+}DnsList;
 
 typedef struct{
     int iptype;                                /* 0-ipv4,1-ipv6 */
@@ -42,11 +49,14 @@ typedef struct{
     char strOptRouter1[DHCP_MAX_FILE_BYTES];    /* your (client) router1 */
     char strOptRouter2[DHCP_MAX_FILE_BYTES];    /* your (client) router2 */
     char strOptVendor[DHCP_MAX_FILE_BYTES];     /* your (client) vendor */
-    char strOptLinkIpv6Addr[DHCP_MAX_FILE_BYTES];    /* your (client) link ipv6 addr */
-    char strOptRandIpv6Addr[DHCP_MAX_FILE_BYTES];    /* your (client) rand ipv6 addr */
+    char strOptLinkIpv6Addr[DHCP_MAX_FILE_BYTES];  /* your (client) link ipv6 addr */
+    char strOptRandIpv6Addr[DHCP_MAX_FILE_BYTES];  /* your (client) rand ipv6 addr */
+    char strOptLocalAddr1[DHCP_MAX_FILE_BYTES];    /* your (client) unique local ipv6 addr */
+    char strOptLocalAddr2[DHCP_MAX_FILE_BYTES];    /* your (client) unique local ipv6 addr */
     uint32_t uOptLeasetime;                     /* your (client) IP lease time (s) */
     uint32_t uAddTime;                          /* dhcp result add time */
     uint32_t uGetTime;                          /* dhcp result get time */
+    DnsList dnsList;                            /* dhcp dns list */
 }DhcpResult;
 
 typedef struct DhcpRange{

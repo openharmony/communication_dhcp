@@ -27,6 +27,58 @@ DhcpClientCallBack::~DhcpClientCallBack()
     DHCP_LOGI("~DhcpClientCallBack");
 }
 
+void DhcpClientCallBack::ResultInfoCopy(DhcpResult &dhcpResult, OHOS::DHCP::DhcpResult& result)
+{
+    if (strcpy_s(dhcpResult.strOptClientId, DHCP_MAX_FILE_BYTES, result.strYourCli.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptClientId strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptServerId, DHCP_MAX_FILE_BYTES, result.strServer.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptServerId strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptSubnet, DHCP_MAX_FILE_BYTES, result.strSubnet.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptSubnet strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptDns1, DHCP_MAX_FILE_BYTES, result.strDns1.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptDns1 strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptDns2, DHCP_MAX_FILE_BYTES, result.strDns2.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptDns2 strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptRouter1, DHCP_MAX_FILE_BYTES, result.strRouter1.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptRouter1 strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptRouter2, DHCP_MAX_FILE_BYTES, result.strRouter2.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptRouter2 strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptVendor, DHCP_MAX_FILE_BYTES, result.strVendor.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptVendor strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptLinkIpv6Addr, DHCP_MAX_FILE_BYTES, result.strLinkIpv6Addr.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptLinkIpv6Addr strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptRandIpv6Addr, DHCP_MAX_FILE_BYTES, result.strRandIpv6Addr.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptRandIpv6Addr strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptLocalAddr1, DHCP_MAX_FILE_BYTES, result.strLocalAddr1.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptLocalAddr1 strcpy_s failed!");
+    }
+    if (strcpy_s(dhcpResult.strOptLocalAddr2, DHCP_MAX_FILE_BYTES, result.strLocalAddr2.c_str()) != EOK) {
+        DHCP_LOGE("ResultInfoCopy strOptLocalAddr2 strcpy_s failed!");
+    }
+    for (size_t i = 0; i < result.vectorDnsAddr.size(); i++) {
+        if (i >= DHCP_DNS_MAX_NUMBER) {
+            DHCP_LOGE("ResultInfoCopy break, i:%{public}zu, dns max number:%{public}d", i, DHCP_DNS_MAX_NUMBER);
+            break;
+        }
+        if (strncpy_s(dhcpResult.dnsList.dnsAddr[i], DHCP_DNS_DATA_MAX_LEN, result.vectorDnsAddr[i].c_str(),
+            result.vectorDnsAddr[i].length()) != EOK) {
+            DHCP_LOGE("ResultInfoCopy, strncpy_s failed, i:%{public}zu", i);
+        } else {
+            dhcpResult.dnsList.dnsNumber++;
+        }
+    }
+}
+
 void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result)
     __attribute__((no_sanitize("cfi")))
 {
@@ -37,36 +89,10 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
     dhcpResult.uOptLeasetime = result.uLeaseTime;
     dhcpResult.uAddTime = result.uAddTime;
     dhcpResult.uGetTime = result.uGetTime;
-    if (strcpy_s(dhcpResult.strOptClientId, DHCP_MAX_FILE_BYTES, result.strYourCli.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptClientId strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptServerId, DHCP_MAX_FILE_BYTES, result.strServer.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptServerId strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptSubnet, DHCP_MAX_FILE_BYTES, result.strSubnet.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptSubnet strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptDns1, DHCP_MAX_FILE_BYTES, result.strDns1.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptDns1 strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptDns2, DHCP_MAX_FILE_BYTES, result.strDns2.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptDns2 strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptRouter1, DHCP_MAX_FILE_BYTES, result.strRouter1.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptRouter1 strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptRouter2, DHCP_MAX_FILE_BYTES, result.strRouter2.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptRouter2 strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptVendor, DHCP_MAX_FILE_BYTES, result.strVendor.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptVendor strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptLinkIpv6Addr, DHCP_MAX_FILE_BYTES, result.strLinkIpv6Addr.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptLinkIpv6Addr strcpy_s failed!");
-    }
-    if (strcpy_s(dhcpResult.strOptRandIpv6Addr, DHCP_MAX_FILE_BYTES, result.strRandIpv6Addr.c_str()) != EOK) {
-        DHCP_LOGE("OnIpSuccessChanged strOptRandIpv6Addr strcpy_s failed!");
-    }
+    ResultInfoCopy(dhcpResult, result);
+    DHCP_LOGI("ResultInfoCopy dstDnsNumber:%{public}u srcDnsNumber:%{public}zu", dhcpResult.dnsList.dnsNumber,
+        result.vectorDnsAddr.size());
+
     std::lock_guard<std::mutex> autoLock(callBackMutex);
     auto iter = mapClientCallBack.find(ifname);
     if ((iter != mapClientCallBack.end()) && (iter->second != nullptr) &&

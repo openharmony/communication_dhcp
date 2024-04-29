@@ -22,10 +22,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-int GetDhcpEventIpv4Result(const int code, const std::vector<std::string> &splits);
-int DhcpEventResultHandle(const int code, const std::string &data);
-bool PublishDhcpIpv4ResultEvent(const int code, const char *data, const char *ifname);
-bool SplitStr(const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
+bool PublishDhcpIpv4Result(struct DhcpIpResult &ipResult);
 bool DhcpIpv6TimerCallbackEvent(const char *ifname);
 #ifdef __cplusplus
 }

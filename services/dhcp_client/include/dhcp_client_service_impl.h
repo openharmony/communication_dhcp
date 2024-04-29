@@ -70,8 +70,8 @@ public:
     ErrCode StartOldClient(const std::string& ifname, bool bIpv6, DhcpClient &dhcpClient);
     ErrCode StartNewClient(const std::string& ifname, bool bIpv6);
 
-    int DhcpIpv4ResultSuccess(const std::vector<std::string> &splits);
-    int DhcpIpv4ResultFail(const std::vector<std::string> &splits);
+    int DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult);
+    int DhcpIpv4ResultFail(struct DhcpIpResult &ipResult);
     int DhcpIpv4ResultTimeOut(const std::string &ifname);
     int DhcpIpv6ResultTimeOut(const std::string &ifname);
     int DhcpFreeIpv4(const std::string ifname);

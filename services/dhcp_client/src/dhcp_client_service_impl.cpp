@@ -34,6 +34,7 @@
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
 #include "accesstoken_kit.h"
+#include "netsys_controller.h"
 #endif
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImpl");
@@ -239,6 +240,10 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool b
         DHCP_LOGE("StartDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
+    if (ifname.empty()) {
+        DHCP_LOGE("StartDhcpClient ifname is empty!");
+        return DHCP_E_FAILED;
+    }
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
         auto iter = m_mapClientService.find(ifname);
@@ -268,13 +273,15 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
             dhcpClient.pipv6Client = pipv6Client;
             DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
         }
+#ifndef OHOS_ARCH_LITE
+        NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+        NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+        dhcpClient.pipv6Client->StartIpv6Timer();
+#endif
         dhcpClient.pipv6Client->Reset();
         dhcpClient.pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
             std::placeholders::_1, std::placeholders::_2));
         dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
-#ifndef OHOS_ARCH_LITE
-        dhcpClient.pipv6Client->StartIpv6Timer();
-#endif
     }
     return DHCP_E_SUCCESS;
 }
@@ -291,13 +298,15 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         }
         client.pipv6Client = pipv6Client;
         DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+#ifndef OHOS_ARCH_LITE
+        NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+        NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+        pipv6Client->StartIpv6Timer();
+#endif
         pipv6Client->Reset();
         pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this, std::placeholders::_1,
             std::placeholders::_2));
         pipv6Client->StartIpv6Thread(ifname, bIpv6);
-#ifndef OHOS_ARCH_LITE
-        pipv6Client->StartIpv6Timer();
-#endif
     }
     DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
     if (pStaState == nullptr) {
@@ -348,6 +357,7 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
                 bIpv6);
             (iter2->second).pipv6Client->DhcpIPV6Stop();
 #ifndef OHOS_ARCH_LITE
+            NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
             (iter2->second).pipv6Client->StopIpv6Timer();
 #endif
         }
@@ -387,43 +397,38 @@ ErrCode DhcpClientServiceImpl::RenewDhcpClient(const std::string& ifname)
     return DHCP_E_SUCCESS;
 }
 
-int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> &splits)
+int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
 {
-    /* Result format - ifname,time,cliIp,lease,servIp,subnet,dns1,dns2,router1,router2,vendor */
-    std::string ifname = splits[OHOS::DHCP::DHCP_NUM_ZERO];
+    std::string ifname = ipResult.ifname;
     OHOS::DHCP::DhcpResult result;
     result.iptype = 0;
     result.isOptSuc = true;
     result.uGetTime = (uint32_t)time(NULL);
-    result.uAddTime = atoi(splits[OHOS::DHCP::DHCP_NUM_ONE].c_str());
-    result.strYourCli   = splits[OHOS::DHCP::DHCP_NUM_TWO];
-    result.uLeaseTime   = atoi(splits[OHOS::DHCP::DHCP_NUM_THREE].c_str());
-    result.strServer    = splits[OHOS::DHCP::DHCP_NUM_FOUR];
-    result.strSubnet    = splits[OHOS::DHCP::DHCP_NUM_FIVE];
-    result.strDns1      = splits[OHOS::DHCP::DHCP_NUM_SIX];
-    result.strDns2      = splits[OHOS::DHCP::DHCP_NUM_SEVEN];
-    result.strRouter1   = splits[OHOS::DHCP::DHCP_NUM_EIGHT];
-    result.strRouter2   = splits[OHOS::DHCP::DHCP_NUM_NINE];
-    result.strVendor    = splits[OHOS::DHCP::DHCP_NUM_TEN];
+    result.uAddTime = ipResult.uAddTime;
+    result.uLeaseTime = ipResult.uOptLeasetime;
+    result.strYourCli = ipResult.strYiaddr;
+    result.strServer = ipResult.strOptServerId;
+    result.strSubnet = ipResult.strOptSubnet;
+    result.strDns1 = ipResult.strOptDns1;
+    result.strDns2 = ipResult.strOptDns2;
+    result.strRouter1 = ipResult.strOptRouter1;
+    result.strRouter2 = ipResult.strOptRouter2;
+    result.strVendor = ipResult.strOptVendor;
+    for (std::vector<std::string>::iterator it = ipResult.dnsAddr.begin(); it != ipResult.dnsAddr.end(); it++) {
+        result.vectorDnsAddr.push_back(*it);
+    }
     DHCP_LOGI("DhcpIpv4ResultSuccess %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
         "Subnet:%{private}s, Dns1:%{private}s, Dns2:%{private}s, Router1:%{private}s, Router2:%{private}s, "
         "strVendor:%{public}s, uLeaseTime:%{public}u, uAddTime:%{public}u, uGetTime:%{public}u.",
         ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
         result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
         result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
-
+    
     if (CheckDhcpResultExist(ifname, result)) {
         DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s equal new addtime %{public}u, no need update.",
-        ifname.c_str(), result.uAddTime);
+            ifname.c_str(), result.uAddTime);
         return OHOS::DHCP::DHCP_OPT_SUCCESS;
     }
-    DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s no equal new addtime %{public}u, need update...",
-        ifname.c_str(), result.uAddTime);
-#ifdef OHOS_ARCH_LITE
-    std::shared_ptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
-#else
-    OHOS::sptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
-#endif
     PushDhcpResult(ifname, result);
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
@@ -431,25 +436,23 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(const std::vector<std::string> 
         DHCP_LOGE("DhcpIpv4ResultSuccess m_mapClientCallBack not find callback!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
-
     if ((iter->second) == nullptr) {
-        DHCP_LOGE("DhcpIpv4ResultSuccess  mclientCallback is nullptr!");
+        DHCP_LOGE("DhcpIpv4ResultSuccess mclientCallback is nullptr!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
-    DHCP_LOGI("DhcpIpv4ResultSuccess OnIpSuccessChanged!");
     DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
-int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &splits)
+int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
 {
-    std::string ifname = splits[OHOS::DHCP::DHCP_NUM_ZERO];
+    std::string ifname = ipResult.ifname;
     OHOS::DHCP::DhcpResult result;
     result.iptype = 0;
     result.isOptSuc = false;
     result.uGetTime = (uint32_t)time(NULL);
-    result.uAddTime = atoi(splits[OHOS::DHCP::DHCP_NUM_ONE].c_str());
+    result.uAddTime = ipResult.uAddTime;
     PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv4ResultFail ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
     ActionMode action = ACTION_INVALID;
@@ -460,7 +463,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
             action = (iterlient->second).pStaStateMachine->GetAction();
         }
     }
-
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
@@ -471,7 +473,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(const std::vector<std::string> &sp
         DHCP_LOGE("DhcpIpv4ResultFail mclientCallback == nullptr!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
-    
     (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_FAILED, ifname.c_str(),
         "get dhcp renew result failed!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
@@ -512,10 +513,11 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
 {
-    if (strlen(info.globalIpv6Addr) == 0 || strlen(info.routeAddr) == 0 || strlen(info.linkIpv6Addr) == 0 ||
-        !IsGlobalIPv6Address(info.globalIpv6Addr)) {
-        DHCP_LOGI("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s", info.globalIpv6Addr,
-            info.routeAddr);
+    if (strlen(info.dnsAddr) == 0 || strlen(info.linkIpv6Addr) == 0) {
+        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s, linkIpv6Addr:%{private}s "
+            "randIpv6Addr:%{private}s ipv6SubnetAddr:%{private}s dnsAddr:%{private}s dnsAddr2:%{private}s "
+            "status:%{public}d", info.globalIpv6Addr, info.routeAddr, info.linkIpv6Addr, info.randIpv6Addr,
+            info.ipv6SubnetAddr, info.dnsAddr, info.dnsAddr2, info.status);
         return;
     }
     OHOS::DHCP::DhcpResult result;
@@ -530,7 +532,12 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     result.strDns2      = info.dnsAddr2;
     result.strRouter2   = "*";
     result.strLinkIpv6Addr = info.linkIpv6Addr;
-    result.strRandIpv6Addr = info.randIpv6Addr; // Reserved, randIpv6Addrr is empty.
+    result.strRandIpv6Addr = info.randIpv6Addr;
+    result.strLocalAddr1 = info.uniqueLocalAddr1;
+    result.strLocalAddr2 = info.uniqueLocalAddr2;
+    for (auto dnsAddr : info.vectorDnsAddr) {
+        result.vectorDnsAddr.push_back(dnsAddr);
+    }
 
     PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
@@ -553,7 +560,6 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     }
     (iter->second)->OnIpSuccessChanged(PUBLISH_CODE_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback OnIpSuccessChanged");
-    DhcpFreeIpv6(ifname);
 }
 
 int DhcpClientServiceImpl::DhcpIpv6ResultTimeOut(const std::string &ifname)
@@ -680,6 +686,5 @@ bool DhcpClientServiceImpl::IsGlobalIPv6Address(std::string ipAddress)
     }
     return false;
 }
-
 }
 }

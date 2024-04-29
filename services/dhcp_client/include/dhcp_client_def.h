@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <netinet/udp.h>
 #include <netinet/ip.h>
+#include <string>
 
 #define DHCP_GET_TIMEOUT        15
 #define MAXRETRYTIMEOUT         10
@@ -29,6 +30,7 @@
 #define NUMBER_THREE            3
 #define NUMBER_FOUR             4
 #define NUMBER_FIVE             5
+#define NUMBER_FIFTY_FOUR       54
 #define FIRST_TIMEOUT_SEC       1
 #define MAX_TIMEOUT_SEC         6
 #define DOUBLE_TIME             2
@@ -97,10 +99,12 @@
 #define DHCP_UINT32_BYTES           4
 #define DHCP_UINT32_DOUBLE_BYTES    8
 #define DHCP_UINT16_BITS            16
-#define DHCP_REQ_CODE_NUM           10
+#define DHCP_REQ_CODE_NUM           12
 #define OPTION_FIELD                0
 #define FILE_FIELD                  1
 #define SNAME_FIELD                 2
+#define DHCP_DNS_FIRST              1
+#define DHCP_DNS_SECOND             2
 
 #ifdef OHOS_EUPDATER
 #define WORKDIR                 "/tmp/service/el1/public/dhcp/"
@@ -113,6 +117,10 @@
 #define DHCPC_PID               "dhcp_client_service.pid"
 #define DHCPC_VERSION           "1.0"
 #define DHCPC_LEASE             "dhcp_client_service-%s.lease"
+
+/* netmanager ipv6 */
+constexpr int DHCP_IPV6_ENABLE = 1;
+constexpr int DHCP_IPV6_DISENABLE = 0;
 
 /* dhcp action mode */
 enum ActionMode {
@@ -284,7 +292,8 @@ enum DhcpOptions {
     REBINDING_TIME_VALUE_OPTION = 59,
     VENDOR_CLASS_IDENTIFIER_OPTION = 60,
     CLIENT_IDENTIFIER_OPTION = 61,
-
+    IPV6_ONLY_PREFERRED_OPTION = 108,
+    CAPTIVE_PORTAL_OPTION = 114,
     /* RFC 6704 */
     FORCERENEW_NONCE_OPTION = 145, /* Forcerenew Nonce Authentication */
 };
@@ -340,6 +349,10 @@ struct UdpDhcpPacket {
 };
 
 struct DhcpIpResult{
+    uint32_t code;                          /* get result code */
+    std::string ifname;                     /* ifname */
+    uint32_t uAddTime;                      /* addTime */
+    uint32_t uOptLeasetime;                 /* dhcp option IP_ADDRESS_LEASE_TIME_OPTION */
     char strYiaddr[INET_ADDRSTRLEN];        /* your (client) IP */
     char strOptServerId[INET_ADDRSTRLEN];   /* dhcp option SERVER_IDENTIFIER_OPTION */
     char strOptSubnet[INET_ADDRSTRLEN];     /* dhcp option SUBNET_MASK_OPTION */
@@ -348,7 +361,7 @@ struct DhcpIpResult{
     char strOptRouter1[INET_ADDRSTRLEN];    /* dhcp option ROUTER_OPTION */
     char strOptRouter2[INET_ADDRSTRLEN];    /* dhcp option ROUTER_OPTION */
     char strOptVendor[DHCP_FILE_MAX_BYTES]; /* dhcp option VENDOR_SPECIFIC_INFO_OPTION */
-    uint32_t uOptLeasetime;                 /* dhcp option IP_ADDRESS_LEASE_TIME_OPTION */
+    std::vector<std::string> dnsAddr;       /* dhcp option MULTI DOMAIN_NAME_SERVER_OPTION */
 };
 
 enum DHCP_IP_TYPE {
@@ -364,7 +377,6 @@ typedef struct{
     unsigned int ifaceIpv4;                 /* IPv4 of the network interface used by the current process. */
     unsigned int getMode;                   /* Current process obtaining IPv4 address mode. */
     unsigned char ifaceMac[MAC_ADDR_LEN];   /* Mac addr of the network interface used by the current process. */
-    unsigned char *pOptClientId;            /* DHCP packet options field clientid. */
     char ifaceName[INFNAME_SIZE];           /* Name of the network interface used by the current process. */
     char workDir[DIR_MAX_LEN];              /* Current process working directory. */
     char confFile[DIR_MAX_LEN];             /* Current process Configuration Directory. */

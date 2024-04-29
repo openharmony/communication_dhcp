@@ -36,7 +36,10 @@ struct DhcpIpv6Info {
     char routeAddr[DHCP_INET6_ADDRSTRLEN];
     char dnsAddr[DHCP_INET6_ADDRSTRLEN];
     char dnsAddr2[DHCP_INET6_ADDRSTRLEN];
+    char uniqueLocalAddr1[DHCP_INET6_ADDRSTRLEN];
+    char uniqueLocalAddr2[DHCP_INET6_ADDRSTRLEN];
     int status;   // 1 ipv4 getted, 2 dns getted, 3 ipv4 and dns getted
+    std::vector<std::string> vectorDnsAddr;
 };
 
 class DhcpIpv6Client {
@@ -50,6 +53,7 @@ public:
     void DhcpIPV6Stop(void);
     void Reset();
     void RunIpv6ThreadFunc();
+    void AddIpv6Address(char *ipv6addr);
     int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
 #ifndef OHOS_ARCH_LITE

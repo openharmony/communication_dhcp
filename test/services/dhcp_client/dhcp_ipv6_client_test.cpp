@@ -339,5 +339,11 @@ HWTEST_F(DhcpIpv6ClientTest, UnRegisterTest, TestSize.Level1)
     dhcpTimer.UnRegister(0);
     dhcpTimer.UnRegister(timerId);
 }
+
+HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest, TestSize.Level1)
+{
+    DHCP_LOGI("AddIpv6Address enter!");
+    ipv6Client->AddIpv6Address(nullptr);
+}
 }
 }

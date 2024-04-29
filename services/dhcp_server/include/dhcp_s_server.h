@@ -47,6 +47,12 @@ void CheckAndNotifyServerSuccess(int replyType, PDhcpServerContext ctx);
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo);
 int GetVendorIdentifierOption(PDhcpMsgInfo received);
 int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin);
+int ReplyCommontOption(PDhcpServerContext ctx, PDhcpMsgInfo reply);
+int ParseDhcpOption(PDhcpMsgInfo received, AddressBinding *bindin);
+int GetUserClassOption(PDhcpMsgInfo received, AddressBinding *bindin);
+int GetRapidCommitOption(PDhcpMsgInfo received, AddressBinding *bindin);
+int GetOnlyIpv6Option(PDhcpMsgInfo received, AddressBinding *bindin);
+int GetPortalUrlOption(PDhcpMsgInfo received, AddressBinding *bindin);
 #ifdef __cplusplus
 }
 #endif
