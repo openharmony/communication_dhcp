@@ -34,6 +34,7 @@
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
 #include "accesstoken_kit.h"
+#include "netsys_controller.h"
 #endif
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImpl");
