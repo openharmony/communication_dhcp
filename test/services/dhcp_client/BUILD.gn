@@ -103,7 +103,7 @@ ohos_unittest("dhcp_client_unittest") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "netmanager_base:net_native_manager_if",
-      "netmanager_base:netsys_controller",
+    "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
   ]
