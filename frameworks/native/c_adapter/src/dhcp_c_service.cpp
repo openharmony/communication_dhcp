@@ -23,26 +23,34 @@
 #include <string_ex.h>
 #endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpCService");
-std::shared_ptr<OHOS::DHCP::DhcpClient> dhcpClientPtr = OHOS::DHCP::DhcpClient::GetInstance(DHCP_CLIENT_ABILITY_ID);
-std::shared_ptr<OHOS::DHCP::DhcpServer> dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+std::shared_ptr<OHOS::DHCP::DhcpClient> dhcpClientPtr = nullptr;
+std::shared_ptr<OHOS::DHCP::DhcpServer> dhcpServerPtr = nullptr;
 
 #ifdef OHOS_ARCH_LITE
-    static std::shared_ptr<DhcpClientCallBack> dhcpClientCallBack =
-        std::shared_ptr<DhcpClientCallBack>(new (std::nothrow)DhcpClientCallBack());
-    static std::shared_ptr<DhcpServerCallBack> dhcpServerCallBack =
-        std::shared_ptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
+    static std::shared_ptr<DhcpClientCallBack> dhcpClientCallBack = nullptr;
+    static std::shared_ptr<DhcpServerCallBack> dhcpServerCallBack = nullptr;
 #else
-    static OHOS::sptr<DhcpClientCallBack> dhcpClientCallBack =
-        OHOS::sptr<DhcpClientCallBack>(new (std::nothrow)DhcpClientCallBack());
-    static OHOS::sptr<DhcpServerCallBack> dhcpServerCallBack =
-        OHOS::sptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
+    static OHOS::sptr<DhcpClientCallBack> dhcpClientCallBack = nullptr;
+    static OHOS::sptr<DhcpServerCallBack> dhcpServerCallBack = nullptr;
 #endif
 
 NO_SANITIZE("cfi")  DhcpErrorCode RegisterDhcpClientCallBack(const char *ifname, const ClientCallBack *event)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(event, DHCP_INVALID_PARAM);
+    if (dhcpClientPtr == nullptr) {
+        dhcpClientPtr = OHOS::DHCP::DhcpClient::GetInstance(DHCP_CLIENT_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
+#ifdef OHOS_ARCH_LITE
+    if (dhcpClientCallBack == nullptr) {
+        dhcpClientCallBack = std::shared_ptr<DhcpClientCallBack>(new (std::nothrow)DhcpClientCallBack());
+    }
+#else
+    if (dhcpClientCallBack == nullptr) {
+        dhcpClientCallBack = OHOS::sptr<DhcpClientCallBack>(new (std::nothrow)DhcpClientCallBack());
+    }
+#endif
     CHECK_PTR_RETURN(dhcpClientCallBack, DHCP_INVALID_PARAM);
     dhcpClientCallBack->RegisterCallBack(ifname, event);
     return GetCErrorCode(dhcpClientPtr->RegisterDhcpClientCallBack(ifname, dhcpClientCallBack));
@@ -75,7 +83,19 @@ NO_SANITIZE("cfi") DhcpErrorCode RegisterDhcpServerCallBack(const char *ifname, 
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(event, DHCP_INVALID_PARAM);
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
+#ifdef OHOS_ARCH_LITE
+    if (dhcpServerCallBack == nullptr) {
+        dhcpServerCallBack = std::shared_ptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
+    }
+#else
+    if (dhcpServerCallBack == nullptr) {
+        dhcpServerCallBack = OHOS::sptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
+    }
+#endif
     CHECK_PTR_RETURN(dhcpServerCallBack, DHCP_INVALID_PARAM);
     dhcpServerCallBack->RegisterCallBack(ifname, event);
     return GetCErrorCode(dhcpServerPtr->RegisterDhcpServerCallBack(ifname, dhcpServerCallBack));
