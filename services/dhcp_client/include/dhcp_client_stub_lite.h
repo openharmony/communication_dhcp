@@ -36,6 +36,7 @@ private:
     void InitHandleMap(void);
     int OnRegisterCallBack(uint32_t code, IpcIo *req, IpcIo *reply);
     int OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply);
+    int OnSetConfiguration(uint32_t code, IpcIo *req, IpcIo *reply);
     int OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply);
     int OnGetDhcpInfo(uint32_t code, IpcIo *req, IpcIo *reply);
     int OnRenewDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply);

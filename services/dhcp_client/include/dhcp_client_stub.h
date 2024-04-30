@@ -44,6 +44,7 @@ private:
     void InitHandleMap(void);
     int OnRegisterCallBack(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnStartDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int OnSetConfiguration(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnStopDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnRenewDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 #ifndef OHOS_ARCH_LITE

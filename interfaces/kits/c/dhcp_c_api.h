@@ -39,6 +39,14 @@ extern "C" {
      */
     DhcpErrorCode StartDhcpClient(const char *ifname, bool bIpv6);
     /**
+     * @Description : set bssid of specified interface.
+     *
+     * @param ifname - interface name, eg:wlan0 [in]
+     * @param targetBssid - target Bssid [in]
+     * @Return : success - DHCP_SUCCESS, failed - others.
+     */
+    DhcpErrorCode SetConfiguration(const char *ifname, const RouterConfig config);
+    /**
      * @Description : Stop dhcp client service of specified interface.
      *
      * @param ifname - interface name, eg:wlan0 [in]

@@ -45,6 +45,8 @@
 #define LEASETIME_DEFAULT       1
 #define SLEEP_TIME_200_MS       (200 * 1000)
 #define SLEEP_TIME_500_MS       (500 * 1000)
+#define DHCP_FAILE_TIMEOUT_THR  6
+#define MAX_CONFLICTS_COUNT     2
 
 #define MAC_ADDR_LEN            6
 #define MAC_ADDR_CHAR_NUM       3
@@ -117,7 +119,7 @@
 #define DHCPC_PID               "dhcp_client_service.pid"
 #define DHCPC_VERSION           "1.0"
 #define DHCPC_LEASE             "dhcp_client_service-%s.lease"
-
+#define DHCP_CACHE_FILE         WORKDIR"/dhcp_cache.conf"
 /* netmanager ipv6 */
 constexpr int DHCP_IPV6_ENABLE = 1;
 constexpr int DHCP_IPV6_DISENABLE = 0;
@@ -148,7 +150,10 @@ enum EnumDhcpStateCode {
     DHCP_STATE_REBINDING,
     DHCP_STATE_INITREBOOT,
     DHCP_STATE_RELEASED,
-    DHCP_STATE_RENEWED
+    DHCP_STATE_RENEWED,
+    DHCP_STATE_FAST_ARP,
+    DHCP_STATE_SLOW_ARP,
+    DHCP_STATE_DECLINE,
 };
 
 /* dhcp return code */
@@ -385,4 +390,9 @@ typedef struct{
     char result6File[DIR_MAX_LEN];
 }DhcpClientCfg;
 
+struct IpInfoCached {
+    std::string bssid;
+    uint32_t absoluteLeasetime;
+    struct DhcpIpResult ipResult;
+};
 #endif

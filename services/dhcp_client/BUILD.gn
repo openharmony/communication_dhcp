@@ -68,6 +68,7 @@ if (defined(ohos_lite)) {
   }
 } else {
   local_base_sources = [
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
@@ -78,6 +79,7 @@ if (defined(ohos_lite)) {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
   ]
   config("dhcp_manager_service_header") {
@@ -140,6 +142,7 @@ if (defined(ohos_lite)) {
     }
     install_enable = true
     sources = [
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_arp_checker.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub_lite.cpp",
@@ -148,6 +151,7 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
     ]
     include_dirs = local_base_include_dirs

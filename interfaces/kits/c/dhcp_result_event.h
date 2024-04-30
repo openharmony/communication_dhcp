@@ -86,6 +86,9 @@ typedef struct {
     void (*OnServerSuccess)(const char *ifname, DhcpStationInfo* stationInfos, size_t size);
 }ServerCallBack;
 
+typedef struct RouterConfig {
+    char bssid[MAC_ADDR_MAX_LEN];
+}RouterConfig;
 #ifdef __cplusplus
 }
 #endif

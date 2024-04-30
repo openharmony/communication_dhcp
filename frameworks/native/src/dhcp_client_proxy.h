@@ -48,6 +48,7 @@ public:
     ErrCode RegisterDhcpClientCallBack(const std::string& ifname, const sptr<IDhcpClientCallBack> &callback) override;
 #endif
     ErrCode StartDhcpClient(const std::string& ifname, bool bIpv6) override;
+    ErrCode SetConfiguration(const std::string& ifname, const RouterConfig& config) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
     ErrCode RenewDhcpClient(const std::string& ifname) override;
     bool IsRemoteDied() override;

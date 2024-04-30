@@ -19,6 +19,7 @@
 #include <string>
 #include <stdint.h>
 #include <sys/types.h>
+#include "dhcp_arp_checker.h"
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
 #ifndef OHOS_ARCH_LITE
@@ -44,7 +45,8 @@ private:
     int AddStrToOpts(struct DhcpPacket *packet, int option, std::string &value);
     int DhcpDiscover(uint32_t transid, uint32_t requestip);
     int DhcpRequest(uint32_t transid, uint32_t reqip, uint32_t servip);
-    int DhcpReboot(uint32_t transid, uint32_t reqip );
+    int DhcpReboot(uint32_t transid, uint32_t reqip);
+    int DhcpDecline(uint32_t transid, uint32_t clientIp, uint32_t serverIp);
     int GetDHCPServerHostName(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     int ParseNetworkVendorInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     int GetPacketReadSockFd(void);
@@ -52,7 +54,7 @@ private:
     int DhcpRenew(uint32_t transid, uint32_t clientip, uint32_t serverip);
     int DhcpRelease(uint32_t clientip, uint32_t serverip);
     int InitConfig(const std::string &ifname, bool isIpv6);
-    void SendReboot(struct DhcpPacket *p, time_t timestamp);
+    void SendReboot(uint32_t targetIp, time_t timestamp);
     void AddParamaterRequestList(struct DhcpPacket *packet);
     void DhcpResponseHandle(time_t timestamp);
     void DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpPacket *packet, time_t timestamp);
@@ -72,15 +74,22 @@ private:
     void Requesting(time_t timestamp);
     void Renewing(time_t timestamp);
     void Reboot(time_t timestamp);
+    void Declining(time_t timestamp);
     void AddParamaterRebootList(struct DhcpPacket *packet);
     void InitSelecting(time_t timestamp);
     void SignalReceiver(void);
     void RunGetIPThreadFunc();
     void FormatString(struct DhcpIpResult *result);
-    ssize_t WriteLease(const struct DhcpPacket *pkt);
-    struct DhcpPacket *ReadLease(void);
     uint32_t GetRandomId(void);
     uint32_t GetDhcpTransID(void);
+    void IpConflictDetect();
+    void FastArpDetect();
+    void SlowArpDetect(time_t timestamp);
+    bool IsArpReachable(uint32_t timeoutMillis, std::string ipAddress);
+    void SaveIpInfoInLocalFile(const DhcpIpResult ipResult);
+    int32_t GetCachedDhcpResult(std::string targetBssid, IpInfoCached &ipCached);
+    void TryCachedIp();
+
 public:
 #ifndef OHOS_ARCH_LITE
     void GetIpTimerCallback();
@@ -97,6 +106,7 @@ public:
     int InitSignalHandle();
     int CloseSignalHandle();
     ActionMode GetAction(void);
+    void SetConfiguration(const std::string targetBssid);
 #ifndef OHOS_ARCH_LITE
     class DhcpTimer {
     public:
@@ -134,11 +144,15 @@ private:
     bool m_renewThreadIsRun; //续租时，对象的线程是否在已启动
     std::thread *m_pthread;
     ActionMode m_action;
-    struct DhcpIpResult dhcpResult;
 #ifndef OHOS_ARCH_LITE
     uint32_t getIpTimerId;
     std::mutex getIpTimerMutex;
 #endif
+    std::string m_arpDectionTargetIp;
+    std::string m_targetBssid;
+    uint32_t m_conflictCount;
+    DhcpIpResult m_dhcpIpResult;
+    DhcpArpChecker m_dhcpArpChecker;
 };
 
 typedef struct{

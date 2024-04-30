@@ -154,11 +154,6 @@ int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
             FD_SET(testMachine->GetPacketReadSockFd(), readfds);
         } else if (nRet == NUM_TWO) {
             FD_SET(testMachine->GetSigReadSockFd(), readfds);
-        } else if (nRet == NUM_THREE) {
-            struct DhcpPacket *dhcp = reinterpret_cast<struct DhcpPacket *>(calloc(1, sizeof(*dhcp)));
-            if (dhcp != nullptr) {
-                testMachine->SendReboot(dhcp, time(nullptr));
-            }
         } else if (nRet == NUM_FOUR) {
             FD_SET(testMachine->GetSigReadSockFd(), readfds);
         }

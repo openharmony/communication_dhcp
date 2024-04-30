@@ -287,7 +287,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, SendRebootTest, TestSize.Level1)
 {
     DHCP_LOGE("SendRebootTest enter!");
-    dhcpClient->SendReboot(nullptr, 1);
+    dhcpClient->SendReboot(1, 1);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetPacketReadSockFdTest, TestSize.Level1)
@@ -512,17 +512,6 @@ HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("GetIpTimerCallbackTest enter!");
     dhcpClient->GetIpTimerCallback();
-}
-
-HWTEST_F(DhcpClientStateMachineTest, WriteLeaseTest, TestSize.Level1)
-{
-    DHCP_LOGI("WriteLeaseTest enter!");
-    struct DhcpPacket *pkt = nullptr;
-    EXPECT_EQ(-1, dhcpClient->WriteLease(pkt));
-
-    DhcpPacket pkt1;
-    pkt1.cookie = 1;
-    dhcpClient->WriteLease(&pkt1);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)

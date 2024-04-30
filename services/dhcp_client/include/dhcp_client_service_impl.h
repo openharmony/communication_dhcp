@@ -61,6 +61,7 @@ public:
     ErrCode RegisterDhcpClientCallBack(const std::string& ifname, const sptr<IDhcpClientCallBack> &clientCallback) override;
 #endif
     ErrCode StartDhcpClient(const std::string& ifname, bool bIpv6) override;
+    ErrCode SetConfiguration (const std::string& ifname, const RouterConfig& config) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
     ErrCode RenewDhcpClient(const std::string& ifname) override;
 #ifndef OHOS_ARCH_LITE
@@ -74,7 +75,6 @@ public:
     int DhcpIpv4ResultFail(struct DhcpIpResult &ipResult);
     int DhcpIpv4ResultTimeOut(const std::string &ifname);
     int DhcpIpv6ResultTimeOut(const std::string &ifname);
-    int DhcpFreeIpv4(const std::string ifname);
     int DhcpFreeIpv6(const std::string ifname);
     void DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info);
     void PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
@@ -107,6 +107,7 @@ private:
 #else
     static sptr<DhcpClientServiceImpl> g_instance;
 #endif
+   std::string m_bssid;
 };
 }  // namespace DHCP
 }  // namespace OHOS

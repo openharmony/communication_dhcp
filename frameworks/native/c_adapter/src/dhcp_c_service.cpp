@@ -55,6 +55,15 @@ NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const char *ifname, bool bIpv6)
     return GetCErrorCode(dhcpClientPtr->StartDhcpClient(ifname, bIpv6));
 }
 
+NO_SANITIZE("cfi") DhcpErrorCode SetConfiguration(const char *ifname, const RouterConfig config)
+{
+    CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
+    OHOS::DHCP::RouterConfig routerConfig;
+    routerConfig.bssid = config.bssid;
+    return GetCErrorCode(dhcpClientPtr->SetConfiguration(ifname, routerConfig));
+}
+
 NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
