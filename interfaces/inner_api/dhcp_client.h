@@ -32,6 +32,7 @@ public:
         const sptr<IDhcpClientCallBack> &callback) = 0;
 #endif
     virtual ErrCode StartDhcpClient(const std::string& ifname, bool bIpv6) = 0;
+    virtual ErrCode SetConfiguration (const std::string& ifname, const RouterConfig& config) = 0;
     virtual ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) = 0;
     virtual ErrCode RenewDhcpClient(const std::string& ifname) = 0;
 };

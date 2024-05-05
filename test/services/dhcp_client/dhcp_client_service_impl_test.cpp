@@ -242,13 +242,6 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv6ResultTimeOutTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv6ResultTimeOut(ifname));
 }
 
-HWTEST_F(DhcpClientServiceImplTest, DhcpFreeIpv4Test, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpFreeIpv4Test enter!");
-    std::string ifname = "wlan0";
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpFreeIpv4(ifname));
-}
-
 HWTEST_F(DhcpClientServiceImplTest, DhcpFreeIpv6Test, TestSize.Level1)
 {
     DHCP_LOGI("DhcpFreeIpv6Test enter!");

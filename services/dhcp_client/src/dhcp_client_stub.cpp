@@ -79,6 +79,8 @@ void DhcpClientStub::InitHandleMap()
         &DhcpClientStub::OnStopDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT)] =
         &DhcpClientStub::OnRenewDhcpClient;
+    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG)] =
+        &DhcpClientStub::OnSetConfiguration;
 }
 
 int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -138,6 +140,18 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, MessageParcel &data, Messag
     std::string ifname = data.ReadString();
     bool bIpv6 = data.ReadBool();
     ErrCode ret = StartDhcpClient(ifname, bIpv6);
+    reply.WriteInt32(0);
+    reply.WriteInt32(ret);
+    return 0;
+}
+
+int DhcpClientStub::OnSetConfiguration(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
+    std::string ifname = data.ReadString();
+    RouterConfig config;
+    config.bssid = data.ReadString();
+    ErrCode ret = SetConfiguration(ifname, config);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
     return 0;

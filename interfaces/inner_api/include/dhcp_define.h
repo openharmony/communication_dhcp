@@ -226,6 +226,10 @@ struct DhcpRange {
         strSubnet = "";
     }
 };
+
+struct RouterConfig {
+    std::string bssid;
+};
 }  // namespace DHCP
 }  // namespace OHOS
 #endif /* OHOS_DHCP_DEFINE_H */

@@ -129,6 +129,13 @@ ErrCode DhcpClientImpl::StartDhcpClient(const std::string& ifname, bool bIpv6)
     return client_->StartDhcpClient(ifname, bIpv6);
 }
 
+ErrCode DhcpClientImpl::SetConfiguration(const std::string& ifname, const RouterConfig& config)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RETURN_IF_FAIL(GetDhcpClientProxy());
+    return client_->SetConfiguration(ifname, config);
+}
+
 ErrCode DhcpClientImpl::StopDhcpClient(const std::string& ifname, bool bIpv6)
 {
     std::lock_guard<std::mutex> lock(mutex_);

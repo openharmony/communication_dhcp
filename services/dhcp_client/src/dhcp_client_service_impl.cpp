@@ -254,6 +254,13 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool b
     return StartNewClient(ifname, bIpv6);
 }
 
+ErrCode DhcpClientServiceImpl::SetConfiguration(const std::string& ifname, const RouterConfig& config)
+{
+    DHCP_LOGI("SetConfiguration ifName:%{public}s", ifname.c_str());
+    m_bssid = config.bssid;
+    return DHCP_E_SUCCESS;
+}
+
 ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bIpv6, DhcpClient &dhcpClient)
 {
     DHCP_LOGI("StartOldClient ifname:%{public}s bIpv6:%{public}d", ifname.c_str(), bIpv6);
@@ -261,6 +268,7 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
         DHCP_LOGE("StartOldClient pStaStateMachine is null!");
         return DHCP_E_FAILED;
     }
+    dhcpClient.pStaStateMachine->SetConfiguration(m_bssid);
     dhcpClient.pStaStateMachine->StartIpv4Type(ifname, bIpv6, ACTION_START_OLD);
     if (bIpv6) {
         if (dhcpClient.pipv6Client == nullptr) {
@@ -321,6 +329,7 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         m_mapClientService.emplace(std::make_pair(ifname, client));
     }
     DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    pStaState->SetConfiguration(m_bssid);
     pStaState->StartIpv4Type(ifname, bIpv6, ACTION_START_NEW);
     return DHCP_E_SUCCESS;
 }
@@ -348,9 +357,6 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
                 bIpv6);
             (iter2->second).pStaStateMachine->StopIpv4();
-#ifndef OHOS_ARCH_LITE
-            (iter2->second).pStaStateMachine->StopGetIpTimer();
-#endif
         }
         if ((iter2->second).pipv6Client != nullptr) {
             DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
@@ -441,7 +447,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
-    DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -477,7 +482,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
         "get dhcp renew result failed!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
     DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!, action:%{public}d", action);
-    DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -507,7 +511,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         "get dhcp renew result timeout!")) :
         ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
     DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!, action:%{public}d", action);
-    DhcpFreeIpv4(ifname);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
@@ -566,23 +569,6 @@ int DhcpClientServiceImpl::DhcpIpv6ResultTimeOut(const std::string &ifname)
 {
     DHCP_LOGI("DhcpIpv6ResultTimeOut ifname:%{public}s", ifname.c_str());
     DhcpFreeIpv6(ifname);
-    return OHOS::DHCP::DHCP_OPT_SUCCESS;
-}
-
-int DhcpClientServiceImpl::DhcpFreeIpv4(const std::string ifname)
-{
-    DHCP_LOGI("DhcpFreeIpv4 ifname:%{public}s", ifname.c_str());
-    std::lock_guard<std::mutex> autoLockServer(m_clientServiceMutex);
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pStaStateMachine != nullptr) {
-            DHCP_LOGI("DhcpIpv4ResultTimeOut StopIpv4, ifname:%{public}s", ifname.c_str());
-            (iter2->second).pStaStateMachine->StopIpv4();
-#ifndef OHOS_ARCH_LITE
-            (iter2->second).pStaStateMachine->StopGetIpTimer();
-#endif
-        }
-    }
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
