@@ -243,6 +243,7 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
 
     int ret = RegisterLeaseInfoCbks(GDealServerSuccess);
     ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
+    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -263,6 +264,7 @@ void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
     std::vector<DhcpStationInfo> stationInfos;
     GetDhcpClientInfos(ifname, leases);
     ConvertLeasesToStationInfos(leases, stationInfos);
+    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -325,6 +327,7 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
     if (DelSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
         return DHCP_E_FAILED;
     }
+    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
