@@ -57,7 +57,8 @@
                 "netmanager_base",
                 "safwk",
                 "access_token",
-                "samgr"
+                "samgr",
+                "ffrt"
             ],
             "third_party": [ "openssl" ]
         },

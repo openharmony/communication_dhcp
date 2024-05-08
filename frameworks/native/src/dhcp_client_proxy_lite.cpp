@@ -68,7 +68,7 @@ static int IpcCallback(void *owner, int code, IpcIo *reply)
     struct IpcOwner *data = (struct IpcOwner *)owner;
     (void)ReadInt32(reply, &data->exception);
     (void)ReadInt32(reply, &data->retCode);
-    if (data->exception != 0 || data->retCode != WIFI_OPT_SUCCESS || data->variable == nullptr) {
+    if (data->exception != 0 || data->retCode != DHCP_OPT_SUCCESS || data->variable == nullptr) {
         return ERR_FAILED;
     }
     return ERR_NONE;
@@ -160,7 +160,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), &req,
         &owner, IpcCallback);
     if (error != EC_SUCCESS) {
-        WIFI_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
+        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
             static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), error);
         return DHCP_E_FAILED;
     }
@@ -198,7 +198,7 @@ ErrCode DhcpClientProxy::SetConfiguration(const std::string& ifname, const Route
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), &req,
         &owner, IpcCallback);
     if (error != EC_SUCCESS) {
-        WIFI_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
+        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
             static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), error);
         return DHCP_E_FAILED;
     }
@@ -235,7 +235,7 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT), &req,
         &owner, IpcCallback);
     if (error != EC_SUCCESS) {
-        WIFI_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
+        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
             static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT), error);
         return DHCP_E_FAILED;
     }
