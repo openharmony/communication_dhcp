@@ -36,16 +36,16 @@ struct ArpPacket {
     uint8_t ar_tpa[IPV4_ALEN]; // target protocol address
 } __attribute__ ((__packed__));
 
-
 class DhcpArpChecker {
 public:
     DhcpArpChecker();
     ~DhcpArpChecker();
-    bool Start(std::string& ifname, uint8_t *mac, std::string& ipAddr);
+    bool Start(std::string& ifname, std::string& hwAddr, std::string& senderIp, std::string& targetIp);
     void Stop();
-    bool DoArpCheck(int32_t timeoutMillis);
+    bool DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint64_t &timeCost);
 
 private:
+    bool SetArpPacket(ArpPacket& arpPacket, bool isFillSenderIp);
     int32_t CreateSocket(const char *iface, uint16_t protocol);
     int32_t SendData(uint8_t *buff, int32_t count, uint8_t *destHwaddr);
     int32_t RecvData(uint8_t *buff, int32_t count, int32_t timeoutMillis);

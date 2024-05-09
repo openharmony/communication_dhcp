@@ -1889,13 +1889,13 @@ PDhcpServerContext InitializeServer(DhcpConfig *config)
         FreeServerContext(&context);
         return nullptr;
     }
-    DHCP_LOGI("server id: %{public}s", ParseStrIp(config->serverId));
-    DHCP_LOGI("netmask: %{public}s", ParseStrIp(config->netmask));
+    DHCP_LOGI("server id: %{private}s", ParseStrIp(config->serverId));
+    DHCP_LOGI("netmask: %{private}s", ParseStrIp(config->netmask));
     if (config->gateway) {
-        DHCP_LOGI("gateway: %{public}s", ParseStrIp(config->gateway));
+        DHCP_LOGI("gateway: %{private}s", ParseStrIp(config->gateway));
     }
-    DHCP_LOGI("address range begin of: %{public}s", ParseStrIp(config->pool.beginAddress));
-    DHCP_LOGI("address range end of: %{public}s", ParseStrIp(config->pool.endAddress));
+    DHCP_LOGI("address range begin of: %{private}s", ParseStrIp(config->pool.beginAddress));
+    DHCP_LOGI("address range end of: %{private}s", ParseStrIp(config->pool.endAddress));
     context->instance->initialized = 1;
     return context;
 }

@@ -30,6 +30,7 @@ local_base_include_dirs = [
   "$DHCP_ROOT_DIR/frameworks/native/src",
   "$DHCP_ROOT_DIR/services",
   "$DHCP_ROOT_DIR/services/dhcp_client/include",
+  "$DHCP_ROOT_DIR/services/utils/include",
   "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
 ]
 if (defined(ohos_lite)) {
@@ -68,7 +69,6 @@ if (defined(ohos_lite)) {
   }
 } else {
   local_base_sources = [
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
@@ -101,6 +101,9 @@ if (defined(ohos_lite)) {
     if (is_asan) {
       defines += [ "DTFUZZ_TEST" ]
     }
+
+    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
+
     external_deps = [
       "access_token:libaccesstoken_sdk",
       "access_token:libtokenid_sdk",
@@ -142,7 +145,6 @@ if (defined(ohos_lite)) {
     }
     install_enable = true
     sources = [
-      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_arp_checker.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub_lite.cpp",
@@ -167,7 +169,7 @@ if (defined(ohos_lite)) {
       "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
     ]
 
-    deps = []
+    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
 
     external_deps = [
       "bounds_checking_function:libsec_shared",
