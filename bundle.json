@@ -69,7 +69,8 @@
                     "//foundation/communication/dhcp/services/dhcp_client:dhcp_client",
                     "//foundation/communication/dhcp/services/dhcp_client:dhcp_updater_client",
                     "//foundation/communication/dhcp/services/dhcp_server:dhcp_server",
-                    "//foundation/communication/dhcp/services:dhcp_system_ability"
+                    "//foundation/communication/dhcp/services/sa_profile:wifi_standard_sa_profile",
+                    "//foundation/communication/dhcp/services/utils:dhcp_utils"
                 ],
                 "fwk_group": [],
                 "service_group": []
@@ -84,24 +85,17 @@
                 },
                 {
                     "header" : {
-                        "header_base": "//foundation/communication/dhcp/interfaces/kits/c",
-                        "header_files": [ ]
-                    },
-                    "name" : "//foundation/communication/dhcp/services/dhcp_client:dhcp_client"
-                },
-                {
-                    "header" : {
-                        "header_base": "//foundation/communication/dhcp/interfaces/kits/c",
-                        "header_files": [ ]
-                    },
-                    "name" : "//foundation/communication/dhcp/services/dhcp_server:dhcp_server"
-                },
-                {
-                    "header" : {
                         "header_base": "//foundation/communication/dhcp/services/dhcp_client/include",
                         "header_files": []
                     },
                     "name" : "//foundation/communication/dhcp/services/dhcp_client:dhcp_updater_client"
+                },
+                {
+                    "header" : {
+                        "header_base": "//foundation/communication/dhcp/services/utils/include",
+                        "header_files": []
+                    },
+                    "name" : "//foundation/communication/dhcp/services/utils:dhcp_utils"
                 }
             ],
             "test": [

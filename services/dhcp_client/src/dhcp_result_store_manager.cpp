@@ -17,10 +17,10 @@
 #include "dhcp_logger.h"
 #include "securec.h"
 
-DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultStoreManager");
-
 namespace OHOS {
 namespace DHCP {
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultStoreManager");
+
 DhcpResultStoreManager::DhcpResultStoreManager()
 {
     DHCP_LOGI("DhcpResultStoreManager()");
@@ -91,7 +91,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
         if (line.empty()) {
             continue;
         }
-        if (line[0] == '[' && line[line.length() - 1] == '{') {
+        if (line[0] == '[' && ((line.length() > 0) && (line[line.length() - 1] == '{'))) {
             ClearClass(item); /* template function, needing specialization */
             configError = ReadNetwork(item, fs, line);
             if (configError > 0) {
@@ -113,7 +113,7 @@ int32_t DhcpResultStoreManager::ReadNetworkSection(IpInfoCached &item, std::ifst
         if (line.empty()) {
             continue;
         }
-        if (line[0] == '<' && line[line.length() - 1] == '>') {
+        if (line[0] == '<' && ((line.length() > 0) && (line[line.length() - 1] == '>'))) {
             return sectionError;
         }
         std::string::size_type npos = line.find("=");
@@ -142,7 +142,7 @@ int32_t DhcpResultStoreManager::ReadNetwork(IpInfoCached &item, std::ifstream &f
         if (line.empty()) {
             continue;
         }
-        if (line[0] == '<' && line[line.length() - 1] == '>') {
+        if (line[0] == '<' && ((line.length() > 0) && (line[line.length() - 1] == '>'))) {
             networkError += ReadNetworkSection(item, fs, line);
         } else if (line.compare("}") == 0) {
             return networkError;
@@ -175,8 +175,8 @@ int32_t DhcpResultStoreManager::SaveConfig()
         ss << "}" << std::endl;
     }
     std::string content = ss.str();
-    int32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
-    if (ret != (int32_t)content.length()) {
+    uint32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
+    if (ret != static_cast<uint32_t>(content.length())) {
         DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", m_fileName.c_str());
     }
     (void)fflush(fp);
@@ -192,7 +192,7 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
     if (key == "bssid") {
         item.bssid = value;
     } else if (key == "absoluteLeasetime") {
-        item.absoluteLeasetime = std::stoi(value);
+        item.absoluteLeasetime = static_cast<uint32_t>(std::stoi(value));
     } else if (key == "strYiaddr") {
         if (strncpy_s(
             item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
@@ -229,7 +229,7 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
             errorKeyValue++;
         }
     } else if (key == "uOptLeasetime") {
-        item.ipResult.uOptLeasetime = std::stoi(value);
+        item.ipResult.uOptLeasetime = static_cast<uint32_t>(std::stoi(value));
     } else {
         DHCP_LOGE("Invalid config key value");
         errorKeyValue++;

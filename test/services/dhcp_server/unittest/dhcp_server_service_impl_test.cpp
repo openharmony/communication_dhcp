@@ -156,18 +156,6 @@ HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
     EXPECT_EQ(true, pServerServiceImpl->IsRemoteDied());
 }
 
-HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)
-{
-    DHCP_LOGI("enter StartServiceAbilityTest");
-    ASSERT_TRUE(pServerServiceImpl != nullptr);
-    int sleeps = 1;
-    pServerServiceImpl->StartServiceAbility(sleeps);
-    sleeps = 0;
-    pServerServiceImpl->StartServiceAbility(sleeps);
-    sleeps = -1;
-    pServerServiceImpl->StartServiceAbility(sleeps);
-}
-
 HWTEST_F(DhcpServerServiceTest, StopServerTest, TestSize.Level1)
 {
     DHCP_LOGI("enter StopServerTest");

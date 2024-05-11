@@ -223,18 +223,6 @@ HWTEST_F(DhcpClientServiceImplTest, CheckDhcpResultExistTest, TestSize.Level1)
     dhcpClientImpl->CheckDhcpResultExist(ifname, result);
 }
 
-HWTEST_F(DhcpClientServiceImplTest, StartServiceAbilityTest, TestSize.Level1)
-{
-    DHCP_LOGI("enter StartServiceAbilityTest");
-    ASSERT_TRUE(dhcpClientImpl != nullptr);
-    int sleeps = 1;
-    dhcpClientImpl->StartServiceAbility(sleeps);
-    sleeps = 0;
-    dhcpClientImpl->StartServiceAbility(sleeps);
-    sleeps = -1;
-    dhcpClientImpl->StartServiceAbility(sleeps);
-}
-
 HWTEST_F(DhcpClientServiceImplTest, DhcpIpv6ResultTimeOutTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpIpv6ResultTimeOutTest enter!");

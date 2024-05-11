@@ -45,13 +45,15 @@ HWTEST_F(DhcpArpCheckerTest, DoArpTest_SUCCESS, TestSize.Level1)
     DHCP_LOGE("enter DoArpTest_SUCCESS");
     DHCP::DhcpArpChecker dhcpArpChecker;
     std::string ifName = "wlantest";
-    unsigned char ifaceMac[MAC_ADDR_LEN] = {0xa0, 0x45, 0x56, 0x78, 0xa5, 0x70};
-    std::string ipAddr = "192.168.212.5";
+    std::string ifaceMac = "11:22:33:44:55:66";
+    std::string ipAddr = "0.0.0.1";
     int32_t timeoutMillis = TIMEOUT;
-    EXPECT_FALSE(dhcpArpChecker.Start(ifName, ifaceMac, ipAddr));
-    EXPECT_FALSE(dhcpArpChecker.DoArpCheck(timeoutMillis));
+    uint64_t timeCost = 0;
+    std::string senderIp =  "0.0.0.2";
+    EXPECT_FALSE(dhcpArpChecker.Start(ifName, ifaceMac, senderIp, ipAddr));
+    EXPECT_FALSE(dhcpArpChecker.DoArpCheck(timeoutMillis, false, timeCost));
     ifName = "wlan0";
-    dhcpArpChecker.Start(ifName, ifaceMac, ipAddr);
-    dhcpArpChecker.DoArpCheck(timeoutMillis);
+    dhcpArpChecker.Start(ifName, ifaceMac, senderIp, ipAddr);
+    dhcpArpChecker.DoArpCheck(timeoutMillis, false, timeCost);
 }
 }  // namespace OHOS

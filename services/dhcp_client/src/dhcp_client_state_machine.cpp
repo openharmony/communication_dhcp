@@ -33,6 +33,7 @@
 #include <string>
 
 #include "securec.h"
+#include "dhcp_common_utils.h"
 #include "dhcp_result.h"
 #include "dhcp_result_store_manager.h"
 #include "dhcp_options.h"
@@ -49,7 +50,9 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
 namespace OHOS {
 namespace DHCP {
 constexpr int32_t FAST_ARP_DETECTION_TIME_MS = 50;
-constexpr int32_t SLOW_ARP_DETECTION_TIME_MS = 4 * 1000;
+constexpr int32_t SLOW_ARP_DETECTION_TIME_MS = 80;
+constexpr int32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
+constexpr int32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -447,7 +450,6 @@ uint32_t DhcpClientStateMachine::GetDhcpTransID(void)
     return m_transID;
 }
 
-
 void DhcpClientStateMachine::SetSocketMode(uint32_t mode)
 {
     DHCP_LOGI("close m_sockFd:%{public}d", m_sockFd);
@@ -795,15 +797,6 @@ void DhcpClientStateMachine::Rebinding(time_t timestamp)
 
 void DhcpClientStateMachine::Declining(time_t timestamp)
 {
-    if (m_sentPacketNum > TIMEOUT_TIMES_MAX) {
-        /* Send packet timed out, now enter init state. */
-        m_dhcp4State = DHCP_STATE_INIT;
-        SetSocketMode(SOCKET_MODE_RAW);
-        m_sentPacketNum = 0;
-        m_timeoutTimestamp = timestamp;
-        return;
-    }
-
     if (++m_conflictCount > MAX_CONFLICTS_COUNT) {
         if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &m_dhcpIpResult) != DHCP_OPT_SUCCESS) {
             PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, nullptr);
@@ -815,20 +808,10 @@ void DhcpClientStateMachine::Declining(time_t timestamp)
         m_dhcp4State = DHCP_STATE_BOUND;
         return;
     }
-    if (m_dhcp4State == DHCP_STATE_DECLINE) {
-        DhcpDecline(m_transID, m_requestedIp4, m_serverIp4);
-    }
-    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
-    if (uTimeoutSec > MAX_WAIT_TIMES) {
-        uTimeoutSec = MAX_WAIT_TIMES;
-    }
-    m_timeoutTimestamp = timestamp + uTimeoutSec;
-    DHCP_LOGI("Declining() m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timeoutTimestamp:%{public}u.",
-        m_sentPacketNum,
-        uTimeoutSec,
-        m_timeoutTimestamp);
-
-    m_sentPacketNum++;
+    m_timeoutTimestamp = timestamp + TIMEOUT_WAIT_SEC;
+    DhcpDecline(m_transID, m_requestedIp4, m_serverIp4);
+    m_dhcp4State = DHCP_STATE_INIT;
+    m_sentPacketNum = 0;
 }
 
 void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
@@ -1026,7 +1009,8 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
 
     char *pReqIp = Ip4IntConToStr(m_requestedIp4, false);
     if (pReqIp != NULL) {
-        DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{private}s.", ntohl(m_requestedIp4), pReqIp);
+        DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{public}s.",
+            ntohl(m_requestedIp4), Ipv4Anonymize(pReqIp).c_str());
         if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, pReqIp, INET_ADDRSTRLEN - 1) != EOK) {
             DHCP_LOGI("ParseNetworkInfo() strncpy_s failed!");
             free(pReqIp);
@@ -1648,8 +1632,7 @@ int DhcpClientStateMachine::DhcpDecline(uint32_t transId, uint32_t clientIp, uin
     }
 
     /* Get packet header and common info. */
-    if ((GetPacketHeaderInfo(&packet, DHCP_DECLINE) != DHCP_OPT_SUCCESS) ||
-        (GetPacketCommonInfo(&packet) != DHCP_OPT_SUCCESS)) {
+    if (GetPacketHeaderInfo(&packet, DHCP_DECLINE) != DHCP_OPT_SUCCESS) {
         return -1;
     }
 
@@ -1706,6 +1689,8 @@ void DhcpClientStateMachine::StopGetIpTimer()
 void DhcpClientStateMachine::IpConflictDetect()
 {
     DHCP_LOGI("IpConflictDetect start");
+    m_sentPacketNum = 0;
+    m_timeoutTimestamp = 0;
     m_dhcp4State = DHCP_STATE_FAST_ARP;
     m_arpDectionTargetIp = Ip4IntConToStr(m_requestedIp4, false);
 }
@@ -1715,7 +1700,7 @@ void DhcpClientStateMachine::FastArpDetect()
     DHCP_LOGI("FastArpDetect() enter");
     if (IsArpReachable(FAST_ARP_DETECTION_TIME_MS, m_arpDectionTargetIp)) {
         m_dhcp4State = DHCP_STATE_DECLINE;
-        SetSocketMode(SOCKET_MODE_KERNEL);
+        SetSocketMode(SOCKET_MODE_RAW);
     } else {
         if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &m_dhcpIpResult) != DHCP_OPT_SUCCESS) {
             PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, nullptr);
@@ -1731,23 +1716,42 @@ void DhcpClientStateMachine::FastArpDetect()
 void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
 {
     DHCP_LOGI("SlowArpDetect() enter");
+    if (m_sentPacketNum >= SLOW_ARP_DETECTION_TRY_CNT) {
+        int32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
+        if (IsArpReachable(timeout, m_arpDectionTargetIp)) {
+            m_dhcp4State = DHCP_STATE_DECLINE;
+            SetSocketMode(SOCKET_MODE_RAW);
+        } else {
+            m_dhcp4State = DHCP_STATE_BOUND;
+            m_sentPacketNum = 0;
+            m_resendTimer = 0;
+            m_timeoutTimestamp = timestamp + m_renewalSec;
+            SetSocketMode(SOCKET_MODE_INVALID);
+            StopIpv4();
+        }
+        return;
+    }
+
     if (IsArpReachable(SLOW_ARP_DETECTION_TIME_MS, m_arpDectionTargetIp)) {
         m_dhcp4State = DHCP_STATE_DECLINE;
         SetSocketMode(SOCKET_MODE_KERNEL);
-    } else {
-        m_dhcp4State = DHCP_STATE_BOUND;
-        m_sentPacketNum = 0;
-        m_resendTimer = 0;
-        m_timeoutTimestamp = timestamp + m_renewalSec;
-        SetSocketMode(SOCKET_MODE_INVALID);
-        StopIpv4();
     }
+    m_sentPacketNum++;
 }
 
 bool DhcpClientStateMachine::IsArpReachable(uint32_t timeoutMillis, std::string ipAddress)
 {
-    m_dhcpArpChecker.Start(m_ifName, m_cltCnf.ifaceMac, ipAddress);
-    if (m_dhcpArpChecker.DoArpCheck(timeoutMillis)) {
+    std::string senderIp = "0.0.0.0";
+    char macAddr[MAC_ADDR_CHAR_NUM * MAC_ADDR_LEN];
+    if (memset_s(macAddr, sizeof(macAddr), 0, sizeof(macAddr)) != EOK) {
+        DHCP_LOGI("IsArpReachable memset_s error");
+        return false;
+    }
+    MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    std::string localMac = macAddr;
+    uint64_t timeCost = 0;
+    m_dhcpArpChecker.Start(m_ifName, localMac, senderIp, ipAddress);
+    if (m_dhcpArpChecker.DoArpCheck(timeoutMillis, false, timeCost)) {
         DHCP_LOGI("Arp detection get response");
         return true;
     }

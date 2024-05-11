@@ -28,15 +28,14 @@
 #include "securec.h"
 #include "dhcp_logger.h"
 
-DEFINE_DHCPLOG_DHCP_LABEL("DhcpArpChecker");
-
 namespace OHOS {
 namespace DHCP {
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpArpChecker");
 constexpr int32_t MAX_LENGTH = 1500;
 constexpr int32_t OPT_SUCC = 0;
 constexpr int32_t OPT_FAIL = -1;
 
-DhcpArpChecker::DhcpArpChecker()
+DhcpArpChecker::DhcpArpChecker() : m_isSocketCreated(false), m_socketFd(-1), m_ifaceIndex(0), m_protocol(0)
 {
     DHCP_LOGI("DhcpArpChecker()");
 }
@@ -47,22 +46,26 @@ DhcpArpChecker::~DhcpArpChecker()
     Stop();
 }
 
-bool DhcpArpChecker::Start(std::string& ifname, uint8_t *mac, std::string& ipAddr)
+bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string& senderIp, std::string& targetIp)
 {
     if (m_isSocketCreated) {
         Stop();
     }
+    uint8_t mac[ETH_ALEN + sizeof(uint32_t)];
+    if (sscanf_s(hwAddr.c_str(), "%02x:%02x:%02x:%02x:%02x:%02x",
+        &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) != ETH_ALEN) {
+        DHCP_LOGE("invalid hwAddr:%{private}s", hwAddr.c_str());
+        if (memset_s(mac, sizeof(mac), 0, sizeof(mac)) != EOK) {
+            DHCP_LOGE("ArpChecker memset fail");
+        }
+    }
+
     if (CreateSocket(ifname.c_str(), ETH_P_ARP) != 0) {
         DHCP_LOGE("DhcpArpChecker CreateSocket failed");
         m_isSocketCreated = false;
         return false;
     }
-    std::string senderIp = "0.0.0.0";
     inet_aton(senderIp.c_str(), &m_localIpAddr);
-    if (mac == nullptr) {
-        DHCP_LOGE("mac is unvalid");
-        return false;
-    }
     if (memcpy_s(m_localMacAddr, ETH_ALEN, mac, ETH_ALEN) != EOK) {
         DHCP_LOGE("DhcpArpChecker memcpy fail");
         return false;
@@ -71,7 +74,7 @@ bool DhcpArpChecker::Start(std::string& ifname, uint8_t *mac, std::string& ipAdd
         DHCP_LOGE("DhcpArpChecker memset fail");
         return false;
     }
-    inet_aton(ipAddr.c_str(), &m_targetIpAddr);
+    inet_aton(targetIp.c_str(), &m_targetIpAddr);
     m_isSocketCreated = true;
     return true;
 }
@@ -85,35 +88,57 @@ void DhcpArpChecker::Stop()
     m_isSocketCreated = false;
 }
 
-bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis)
+bool DhcpArpChecker::SetArpPacket(ArpPacket& arpPacket, bool isFillSenderIp)
+{
+    arpPacket.ar_hrd = htons(ARPHRD_ETHER);
+    arpPacket.ar_pro = htons(ETH_P_IP);
+    arpPacket.ar_hln = ETH_ALEN;
+    arpPacket.ar_pln = IPV4_ALEN;
+    arpPacket.ar_op = htons(ARPOP_REQUEST);
+    if (memcpy_s(arpPacket.ar_sha, ETH_ALEN, m_localMacAddr, ETH_ALEN) != EOK) {
+        DHCP_LOGE("DoArpCheck memcpy fail");
+        return false;
+    }
+    if (isFillSenderIp) {
+        if (memcpy_s(arpPacket.ar_spa, IPV4_ALEN, &m_localIpAddr, sizeof(m_localIpAddr)) != EOK) {
+            DHCP_LOGE("DoArpCheck memcpy fail");
+            return false;
+        }
+    } else {
+        if (memset_s(arpPacket.ar_spa, IPV4_ALEN, 0, IPV4_ALEN) != EOK) {
+            DHCP_LOGE("DoArpCheck memset fail");
+            return false;
+        }
+    }
+    if (memset_s(arpPacket.ar_tha, ETH_ALEN, 0, ETH_ALEN) != EOK) {
+        DHCP_LOGE("DoArpCheck memset fail");
+        return false;
+    }
+    if (memcpy_s(arpPacket.ar_tpa, IPV4_ALEN, &m_targetIpAddr, sizeof(m_targetIpAddr)) != EOK) {
+        DHCP_LOGE("DoArpCheck memcpy fail");
+        return false;
+    }
+    return true;
+}
+
+bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint64_t &timeCost)
 {
     if (!m_isSocketCreated) {
         DHCP_LOGE("DoArpCheck failed, socket not created");
         return false;
     }
     struct ArpPacket arpPacket;
-
-    arpPacket.ar_hrd = htons(ARPHRD_ETHER);
-    arpPacket.ar_pro = htons(ETH_P_IP);
-    arpPacket.ar_hln = ETH_ALEN;
-    arpPacket.ar_pln = IPV4_ALEN;
-    arpPacket.ar_op = htons(ARPOP_REQUEST);
-    if ((memcpy_s(arpPacket.ar_sha, ETH_ALEN, m_localMacAddr, ETH_ALEN) != EOK) ||
-       (memcpy_s(arpPacket.ar_spa, IPV4_ALEN, &m_localIpAddr, sizeof(m_localIpAddr)) != EOK)) {
-        return false;
-    }
-
-    if ((memset_s(arpPacket.ar_tha, ETH_ALEN, 0, ETH_ALEN) != EOK) ||
-        (memcpy_s(arpPacket.ar_tpa, IPV4_ALEN, &m_targetIpAddr, sizeof(m_targetIpAddr)) != EOK)) {
+    if (!SetArpPacket(arpPacket, isFillSenderIp)) {
+        DHCP_LOGE("SetArpPacket failed");
         return false;
     }
 
     if (SendData(reinterpret_cast<uint8_t *>(&arpPacket), sizeof(arpPacket), m_l2Broadcast) != 0) {
         return false;
     }
-
+    timeCost = 0;
     int32_t readLen = 0;
-    uint64_t elapsed = 0;
+    int64_t elapsed = 0;
     int32_t leftMillis = timeoutMillis;
     uint8_t recvBuff[MAX_LENGTH];
     std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
@@ -128,6 +153,9 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis)
                 ntohs(respPacket->ar_op) == ARPOP_REPLY &&
                 memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
                 memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
+                std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
+                timeCost = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+                DHCP_LOGI("doArp return true");
                 return true;
             }
         } else if (readLen < 0) {
@@ -138,6 +166,7 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis)
         elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
         leftMillis -= static_cast<int32_t>(elapsed);
     }
+    DHCP_LOGI("doArp return false");
     return false;
 }
 
@@ -148,7 +177,7 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
         return OPT_FAIL;
     }
 
-    uint32_t ifaceIndex = if_nametoindex(iface);
+    int32_t ifaceIndex = if_nametoindex(iface);
     if (ifaceIndex == 0) {
         DHCP_LOGE("get iface index fail: %{public}s", iface);
         return OPT_FAIL;
