@@ -343,7 +343,7 @@ HWTEST_F(DhcpIpv6ClientTest, UnRegisterTest, TestSize.Level1)
 HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest, TestSize.Level1)
 {
     DHCP_LOGI("AddIpv6Address enter!");
-    ipv6Client->AddIpv6Address(nullptr);
+    ipv6Client->AddIpv6Address(nullptr, 0);
 }
 }
 }
