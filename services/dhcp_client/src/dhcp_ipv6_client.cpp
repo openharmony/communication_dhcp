@@ -284,7 +284,7 @@ void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaInd
         GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
         DHCP_LOGD("onIpv6AddressAddEvent addr:%{private}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
             addr_str, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
-        AddIpv6Address(addr_str);
+        AddIpv6Address(addr_str, INET6_ADDRSTRLEN);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
         (void)memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN,
             0, DHCP_INET6_ADDRSTRLEN);
@@ -296,7 +296,7 @@ void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaInd
     }
 }
 
-void DhcpIpv6Client::AddIpv6Address(char *ipv6addr)
+void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
 {
     if (!ipv6addr) {
         DHCP_LOGE("AddIpv6Address ipv6addr is nullptr!");
@@ -306,13 +306,13 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr)
     if (first == NUMBER_TWO || first == NUMBER_THREE) { // begin '2' '3'
         if (strlen(dhcpIpv6Info.globalIpv6Addr) == 0) {
             DHCP_LOGI("AddIpv6Address add globalIpv6Addr, first=%{public}d", first);
-            if (memcpy_s(dhcpIpv6Info.globalIpv6Addr, INET6_ADDRSTRLEN, ipv6addr, INET6_ADDRSTRLEN) != EOK) {
+            if (memcpy_s(dhcpIpv6Info.globalIpv6Addr, len, ipv6addr, len) != EOK) {
                 DHCP_LOGE("AddIpv6Address memcpy_s failed!");
                 return;
             }
         }  else {
             DHCP_LOGI("AddIpv6Address add randIpv6Addr, first=%{public}d", first);
-            if (memcpy_s(dhcpIpv6Info.randIpv6Addr, INET6_ADDRSTRLEN, ipv6addr, INET6_ADDRSTRLEN) != EOK) {
+            if (memcpy_s(dhcpIpv6Info.randIpv6Addr, len, ipv6addr, len) != EOK) {
                 DHCP_LOGE("onIpv6AddressAddEvent memcpy_s failed!");
                 return;
             }
@@ -322,13 +322,13 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr)
         }
     } else if (first == NUMBER_FIFTY_FOUR) {  // begin 'f'->54
         if (strlen(dhcpIpv6Info.uniqueLocalAddr1) == 0) {
-            if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr1, INET6_ADDRSTRLEN, ipv6addr, INET6_ADDRSTRLEN) != EOK) {
+            if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr1, len, ipv6addr, len) != EOK) {
                 DHCP_LOGE("AddIpv6Address memcpy_s failed!");
                 return;
             }
             DHCP_LOGI("AddIpv6Address add uniqueLocalAddr1, first=%{public}d", first);
         }  else {
-            if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr2, INET6_ADDRSTRLEN, ipv6addr, INET6_ADDRSTRLEN) != EOK) {
+            if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr2, len, ipv6addr, len) != EOK) {
                 DHCP_LOGE("AddIpv6Address uniqueLocalAddr2 memcpy_s failed!");
                 return;
             }
