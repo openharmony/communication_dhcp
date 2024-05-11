@@ -53,7 +53,7 @@ public:
     void DhcpIPV6Stop(void);
     void Reset();
     void RunIpv6ThreadFunc();
-    void AddIpv6Address(char *ipv6addr);
+    void AddIpv6Address(char *ipv6addr, int len);
     int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
 #ifndef OHOS_ARCH_LITE
