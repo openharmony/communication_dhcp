@@ -354,7 +354,7 @@ struct UdpDhcpPacket {
 };
 
 struct DhcpIpResult{
-    uint32_t code;                          /* get result code */
+    int32_t code;                          /* get result code */
     std::string ifname;                     /* ifname */
     uint32_t uAddTime;                      /* addTime */
     uint32_t uOptLeasetime;                 /* dhcp option IP_ADDRESS_LEASE_TIME_OPTION */

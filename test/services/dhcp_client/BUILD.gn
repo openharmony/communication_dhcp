@@ -24,7 +24,6 @@ config("module_private_config") {
 ohos_unittest("dhcp_client_unittest") {
   module_out_path = module_output_path
   sources = [
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
@@ -37,6 +36,7 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "dhcp_arp_checker_test.cpp",
     "dhcp_client_callback_proxy_test.cpp",
     "dhcp_client_death_recipient_test.cpp",
@@ -70,6 +70,7 @@ ohos_unittest("dhcp_client_unittest") {
   ]
 
   deps = [
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
     "//third_party/openssl:libcrypto_shared",
