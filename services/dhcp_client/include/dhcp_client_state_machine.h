@@ -107,23 +107,6 @@ public:
     int CloseSignalHandle();
     ActionMode GetAction(void);
     void SetConfiguration(const std::string targetBssid);
-#ifndef OHOS_ARCH_LITE
-    class DhcpTimer {
-    public:
-        static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
-        using TimerCallback = std::function<void()>;
-        static DhcpTimer *GetInstance(void);
-
-        DhcpTimer();
-        ~DhcpTimer();
-        
-        EnumErrCode Register(const TimerCallback &callback, uint32_t &outTimerId, uint32_t interval = DEFAULT_TIMEROUT,
-            bool once = true);
-        void UnRegister(uint32_t timerId);
-    public:
-        std::unique_ptr<Utils::Timer> timer_{nullptr};
-    };
-#endif
 private:
     int m_dhcp4State;
     int m_sockFd;

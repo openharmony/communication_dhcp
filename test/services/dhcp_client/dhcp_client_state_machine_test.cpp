@@ -597,15 +597,6 @@ HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
     dhcpClient->Requesting(curTimestamp);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, UnRegisterTest, TestSize.Level1)
-{
-    DHCP_LOGI("UnRegisterTest enter!");
-    DhcpClientStateMachine::DhcpTimer dhcpTimer;
-    std::unique_ptr<Utils::Timer> timer_{nullptr};
-    uint32_t timerId = 1;
-    dhcpTimer.UnRegister(timerId);
-}
-
 HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
 {
     DHCP_LOGI("AddHostNameToOptsTest enter!");

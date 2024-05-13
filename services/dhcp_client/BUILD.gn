@@ -81,6 +81,7 @@ if (defined(ohos_lite)) {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
   ]
   config("dhcp_manager_service_header") {
     visibility = [ ":*" ]
@@ -115,6 +116,13 @@ if (defined(ohos_lite)) {
       "safwk:system_ability_fwk",
       "samgr:samgr_proxy",
     ]
+
+    if (defined(global_parts_info) &&
+        defined(global_parts_info.resourceschedule_ffrt)) {
+      external_deps += [ "ffrt:libffrt" ]
+      defines += [ "DHCP_FFRT_ENABLE" ]
+    }
+
     if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
       external_deps += [ "init:libbegetutil" ]
       defines += [ "INIT_LIB_ENABLE" ]
@@ -155,6 +163,7 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
     ]
     include_dirs = local_base_include_dirs
 
@@ -178,6 +187,13 @@ if (defined(ohos_lite)) {
       "netmanager_base:net_native_manager_if",
       "netmanager_base:netsys_controller",
     ]
+
+    if (defined(global_parts_info) &&
+        defined(global_parts_info.resourceschedule_ffrt)) {
+      external_deps += [ "ffrt:libffrt" ]
+      defines += [ "DHCP_FFRT_ENABLE" ]
+    }
+
     if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
       external_deps += [ "init:libbegetutil" ]
       defines += [ "INIT_LIB_ENABLE" ]

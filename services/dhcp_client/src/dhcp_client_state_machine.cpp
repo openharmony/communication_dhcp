@@ -40,6 +40,7 @@
 #include "dhcp_socket.h"
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
+#include "dhcp_thread.h"
 
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
@@ -1681,56 +1682,6 @@ void DhcpClientStateMachine::StopGetIpTimer()
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
     DhcpTimer::GetInstance()->UnRegister(getIpTimerId);
     getIpTimerId = 0;
-    return;
-}
-
-DhcpClientStateMachine::DhcpTimer * DhcpClientStateMachine::DhcpTimer::GetInstance()
-{
-    static DhcpTimer instance;
-    return &instance;
-}
-
-DhcpClientStateMachine::DhcpTimer::DhcpTimer() : timer_(std::make_unique<Utils::Timer>("DhcpGetIpTimer"))
-{
-    timer_->Setup();
-}
-
-DhcpClientStateMachine::DhcpTimer::~DhcpTimer()
-{
-    if (timer_) {
-        timer_->Shutdown(true);
-    }
-}
-
-EnumErrCode DhcpClientStateMachine::DhcpTimer::Register(const TimerCallback &callback, uint32_t &outTimerId,
-    uint32_t interval, bool once)
-{
-    if (timer_ == nullptr) {
-        DHCP_LOGI("timer_ is nullptr");
-        return DHCP_OPT_FAILED;
-    }
-
-    uint32_t ret = timer_->Register(callback, interval, once);
-    if (ret == Utils::TIMER_ERR_DEAL_FAILED) {
-        DHCP_LOGI("Register timer failed");
-        return DHCP_OPT_FAILED;
-    }
-    outTimerId = ret;
-    return DHCP_OPT_SUCCESS;
-}
-
-void DhcpClientStateMachine::DhcpTimer::UnRegister(uint32_t timerId)
-{
-    if (timerId == 0) {
-        DHCP_LOGI("timerId is 0, no register timer");
-        return;
-    }
-
-    if (timer_ == nullptr) {
-        DHCP_LOGI("timer_ is nullptr");
-        return;
-    }
-    timer_->Unregister(timerId);
     return;
 }
 #endif

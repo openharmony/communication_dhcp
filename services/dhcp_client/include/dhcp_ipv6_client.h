@@ -62,23 +62,6 @@ public:
     void StopIpv6Timer(void);
 #endif
 public:
-#ifndef OHOS_ARCH_LITE
-    class DhcpTimer {
-    public:
-        static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
-        using TimerCallback = std::function<void()>;
-        static DhcpTimer *GetInstance(void);
-
-        DhcpTimer();
-        ~DhcpTimer();
-        
-        EnumErrCode Register(const TimerCallback &callback, uint32_t &outTimerId, uint32_t interval = DEFAULT_TIMEROUT,
-            bool once = true);
-        void UnRegister(uint32_t timerId);
-    public:
-        std::unique_ptr<Utils::Timer> timer_{nullptr};
-    };
-#endif
 private:
     int32_t createKernelSocket(void);
     void GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen);

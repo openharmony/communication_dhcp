@@ -526,7 +526,7 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
 {
     DHCP_LOGI("DhcpServerProxy enter GetDhcpClientInfos mRemoteDied:%{public}d", mRemoteDied);
     if (remoteDied_ || remote_ == nullptr) {
-        WIFI_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
+        DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
             __func__, remoteDied_, remote_ == nullptr);
         return DHCP_E_FAILED;
     }
@@ -537,7 +537,7 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
 
     IpcIoInit(&request, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
     if (!WriteInterfaceToken(&request, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
-        WIFI_LOGE("Write interface token error: %{public}s", __func__);
+        DHCP_LOGE("Write interface token error: %{public}s", __func__);
         return DHCP_E_FAILED;
     }
     (void)WriteInt32(&request, 0);
@@ -548,7 +548,7 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
         static_cast<int32_t>(ScanInterfaceCode::DHCP_SERVER_SVR_CMD_GET_DHCP_CLIENT_INFO),
         &request, &owner, IpcCallback);
     if (error != DHCP_E_SUCCESS) {
-        WIFI_LOGW("Set Attr(%{public}d) failed",
+        DHCP_LOGW("Set Attr(%{public}d) failed",
             static_cast<int32_t>(ScanInterfaceCode::DHCP_SERVER_SVR_CMD_GET_DHCP_CLIENT_INFO));
         return DHCP_E_FAILED;
     }

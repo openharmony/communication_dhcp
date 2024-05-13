@@ -36,6 +36,7 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "dhcp_arp_checker_test.cpp",
     "dhcp_client_callback_proxy_test.cpp",
@@ -50,6 +51,7 @@ ohos_unittest("dhcp_client_unittest") {
     "dhcp_result_store_manager_test.cpp",
     "dhcp_result_test.cpp",
     "dhcp_socket_test.cpp",
+    "dhcp_thread_test.cpp",
     "mock_custom_func.cpp",
     "mock_system_func.cpp",
   ]
@@ -120,6 +122,12 @@ ohos_unittest("dhcp_client_unittest") {
     "protected = public",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
   ]
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_ffrt)) {
+    external_deps += [ "ffrt:libffrt" ]
+    defines += [ "DHCP_FFRT_ENABLE" ]
+  }
 
   part_name = "dhcp"
   subsystem_name = "communication"
