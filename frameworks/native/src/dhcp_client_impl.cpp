@@ -142,12 +142,5 @@ ErrCode DhcpClientImpl::StopDhcpClient(const std::string& ifname, bool bIpv6)
     RETURN_IF_FAIL(GetDhcpClientProxy());
     return client_->StopDhcpClient(ifname, bIpv6);
 }
-
-ErrCode DhcpClientImpl::RenewDhcpClient(const std::string& ifname)
-{
-    std::lock_guard<std::mutex> lock(mutex_);
-    RETURN_IF_FAIL(GetDhcpClientProxy());
-    return client_->RenewDhcpClient(ifname);
-}
 }  // namespace DHCP
 }  // namespace OHOS

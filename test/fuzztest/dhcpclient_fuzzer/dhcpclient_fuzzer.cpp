@@ -35,7 +35,6 @@ namespace DHCP {
         dhcpClient->SetConfiguration(ifname, routerConfig);
         dhcpClient->StartDhcpClient(ifname, true);
         dhcpClient->StopDhcpClient(ifname, true);
-        dhcpClient->RenewDhcpClient(ifname);
         dhcpClient->RegisterDhcpClientCallBack(ifname, dhcpClientCallBack);
 
         return true;

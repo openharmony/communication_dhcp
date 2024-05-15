@@ -58,7 +58,6 @@ HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
     EXPECT_EQ(DHCP_E_PERMISSION_DENIED, dhcpClientImpl->StartDhcpClient(ifname, bIpv6));
     bIpv6 = false;
     EXPECT_EQ(DHCP_E_PERMISSION_DENIED, dhcpClientImpl->StopDhcpClient(ifname, bIpv6));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, dhcpClientImpl->RenewDhcpClient(ifname));
 }
 
 HWTEST_F(DhcpClientServiceImplTest, OnStartTest, TestSize.Level1)
@@ -167,6 +166,25 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultTimeOutTest, TestSize.Level1)
     DhcpClient client;
     dhcpClientImpl->m_mapClientService.emplace(std::make_pair("wlan0", client));
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultTimeOut(ifname));
+    dhcpClientImpl->m_mapClientService.clear();
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultExpiredTest, TestSize.Level1)
+{
+    DHCP_LOGE("enter DhcpIpv4ResultExpiredTest");
+    ASSERT_TRUE(dhcpClientImpl != nullptr);
+    std::string ifname;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultExpired(ifname));
+    ifname = "wlan0";
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultExpired(ifname));
+
+    dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultExpired(ifname));
+    dhcpClientImpl->m_mapClientCallBack.clear();
+
+    DhcpClient client;
+    dhcpClientImpl->m_mapClientService.emplace(std::make_pair("wlan0", client));
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultExpired(ifname));
     dhcpClientImpl->m_mapClientService.clear();
 }
 

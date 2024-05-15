@@ -247,42 +247,5 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
     DHCP_LOGI("StopDhcpClient ok, exception:%{public}d", owner.exception);
     return DHCP_E_SUCCESS;
 }
-
-ErrCode DhcpClientProxy::RenewDhcpClient(const std::string& ifname)
-{
-    if (mRemoteDied) {
-        DHCP_LOGE("failed to `%{public}s`,remote service is died!", __func__);
-        return DHCP_E_FAILED;
-    }
-
-    IpcIo req;
-    char data[IPC_DATA_SIZE_SMALL];
-    struct IpcOwner owner = {.exception = -1, .retCode = 0, .variable = nullptr};
-    
-    IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
-    if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
-        DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_OPT_FAILED;
-    }
-
-    (void)WriteInt32(&req, 0);
-    (void)WriteString(&req, ifname.c_str());
-    owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT);
-    int error = remote_->Invoke(remote_,
-        static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT), &req,
-        &owner, IpcCallback);
-    if (error != EC_SUCCESS) {
-        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
-            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT), error);
-        return DHCP_E_FAILED;
-    }
-    
-    if (owner.exception) {
-        DHCP_LOGE("exception failed, exception:%{public}d", owner.exception);
-        return DHCP_E_FAILED;
-    }
-    DHCP_LOGI("RenewDhcpClient ok, exception:%{public}d", owner.exception);
-    return DHCP_E_SUCCESS;
-}
 }  // namespace DHCP
 }  // namespace OHOS

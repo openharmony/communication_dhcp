@@ -72,7 +72,7 @@ private:
 #ifdef DHCP_FFRT_ENABLE
 class DhcpTimer {
     public:
-        static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
+        static constexpr uint32_t DEFAULT_TIMEROUT = 18000;
         using TimerCallback = std::function<void()>;
         static DhcpTimer *GetInstance(void);
 
@@ -89,7 +89,7 @@ class DhcpTimer {
 #else
     class DhcpTimer {
     public:
-        static constexpr uint32_t DEFAULT_TIMEROUT = 15000;
+        static constexpr uint32_t DEFAULT_TIMEROUT = 18000;
         using TimerCallback = std::function<void()>;
         static DhcpTimer *GetInstance(void);
 

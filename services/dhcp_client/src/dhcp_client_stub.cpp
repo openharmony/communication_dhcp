@@ -77,8 +77,6 @@ void DhcpClientStub::InitHandleMap()
         &DhcpClientStub::OnStartDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT)] =
         &DhcpClientStub::OnStopDhcpClient;
-    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT)] =
-        &DhcpClientStub::OnRenewDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG)] =
         &DhcpClientStub::OnSetConfiguration;
 }
@@ -167,16 +165,5 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, MessageParcel &data, Message
     reply.WriteInt32(ret);
     return 0;
 }
-
-int DhcpClientStub::OnRenewDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
-{
-    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
-    std::string ifName = data.ReadString();
-    ErrCode ret = RenewDhcpClient(ifName);
-    reply.WriteInt32(0);
-    reply.WriteInt32(ret);
-    return 0;
-}
-
 }
 }

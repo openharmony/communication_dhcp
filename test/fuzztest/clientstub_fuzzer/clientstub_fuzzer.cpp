@@ -75,20 +75,6 @@ void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
 }
 
-
-void OnRenewDhcpClientTest(const std::string& ifname, size_t size)
-{
-    uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT);
-    MessageParcel datas;
-    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
-    datas.WriteInt32(0);
-    datas.WriteString(ifname);
-    datas.RewindRead(0);
-    MessageParcel reply;
-    MessageOption option;
-    pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
-}
-
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -99,8 +85,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OnRegisterCallBackTest(ifname, size);
     sleep(DHCP_SLEEP_1);
     OnStartDhcpClientTest(ifname, size, false); // max 15s timeout
-    sleep(DHCP_SLEEP_2);
-    OnRenewDhcpClientTest(ifname, size);  //  max 15s timeout
     sleep(DHCP_SLEEP_2);
     OnStopDhcpClientTest(ifname, size, false);
     sleep(DHCP_SLEEP_1);

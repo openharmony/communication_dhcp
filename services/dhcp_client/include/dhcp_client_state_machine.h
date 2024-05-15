@@ -94,9 +94,12 @@ private:
 
 public:
 #ifndef OHOS_ARCH_LITE
+    void StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once);
+    void StopTimer(uint32_t &timerId);
     void GetIpTimerCallback();
-    void StartGetIpTimer(void);
-    void StopGetIpTimer(void);
+    void RenewDelayCallback();
+    void RebindDelayCallback();
+    void RemainingDelayCallback();
 #endif
     int StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action);
     int InitStartIpv4Thread(const std::string &ifname, bool isIpv6);
@@ -109,6 +112,9 @@ public:
     int CloseSignalHandle();
     ActionMode GetAction(void);
     void SetConfiguration(const std::string targetBssid);
+    void ScheduleLeaseTimers(time_t timestamp);
+    void CloseAllRenewTimer();
+    int SendStopSignal();
 private:
     int m_dhcp4State;
     int m_sockFd;
@@ -126,12 +132,14 @@ private:
     uint32_t m_transID;
     DhcpClientCfg m_cltCnf;
     std::string m_ifName;  //对象服务的网卡名称
-    bool m_renewThreadIsRun; //续租时，对象的线程是否在已启动
     std::thread *m_pthread;
     ActionMode m_action;
 #ifndef OHOS_ARCH_LITE
-    uint32_t getIpTimerId;
     std::mutex getIpTimerMutex;
+    uint32_t getIpTimerId;
+    uint32_t renewDelayTimerId;
+    uint32_t rebindDelayTimerId;
+    uint32_t remainingDelayTimerId;
 #endif
     std::string m_arpDectionTargetIp;
     std::string m_targetBssid;

@@ -45,7 +45,6 @@ void DhcpClientStub::InitHandleMap()
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK)] = &DhcpClientStub::OnRegisterCallBack;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT)] = &DhcpClientStub::OnStartDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT)] = &DhcpClientStub::OnStopDhcpClient;
-    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_RENEW_DHCP_CLIENT)] = &DhcpClientStub::OnRenewDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG)] =
         &DhcpClientStub::OnSetConfiguration;
 }
@@ -186,29 +185,6 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
     return 0;
-}
-
-int DhcpClientStub::OnRenewDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
-{
-    DHCP_LOGI("run %{public}s code %{public}u", __func__, code);
-    ErrCode ret = DHCP_E_FAILED;
-    SvcIdentity sid;
-    bool readSid = ReadRemoteObject(req, &sid);
-    if (!readSid) {
-        DHCP_LOGE("read SvcIdentity failed");
-        (void)WriteInt32(reply, 0);
-        (void)WriteInt32(reply, ret);
-        return DHCP_OPT_FAILED;
-    }
-
-    size_t readLen;
-    std::string ifname = (char *)ReadString(req, &readLen);
-    DHCP_LOGI("ifname:%{public}s", ifname.c_str());
-
-    ret = RenewDhcpClient(ifname);
-    (void)WriteInt32(reply, 0);
-    (void)WriteInt32(reply, ret);
-    return DHCP_OPT_SUCCESS;
 }
 #endif
 }

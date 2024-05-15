@@ -39,7 +39,6 @@ private:
     int OnSetConfiguration(uint32_t code, IpcIo *req, IpcIo *reply);
     int OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply);
     int OnGetDhcpInfo(uint32_t code, IpcIo *req, IpcIo *reply);
-    int OnRenewDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply);
 private:
     HandleFuncMap handleFuncMap;
 #endif
