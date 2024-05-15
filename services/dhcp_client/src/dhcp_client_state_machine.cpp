@@ -1544,17 +1544,14 @@ int DhcpClientStateMachine::DhcpDiscover(uint32_t transid, uint32_t requestip)
     packet.xid = transid;
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); // 57
     AddParamaterRequestList(&packet); // 55
-
-    /* Begin broadcast dhcp discover packet. */
-    DHCP_LOGI("DhcpDiscover(), send DHCPDISCOVER, begin broadcast discover packet...");
+    DHCP_LOGI("DhcpDiscover begin broadcast discover packet, transid:%{public}u", transid);
     return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
 }
 
 /* Broadcast dhcp request packet, tell dhcp servers that which ip address to choose. */
 int DhcpClientStateMachine::DhcpRequest(uint32_t transid, uint32_t reqip, uint32_t servip)
 {
-    DHCP_LOGI("DhcpRequest(), send DHCPREQUEST transid:%{public}u,reqip:%{private}u.", transid, reqip);
-
+    PrintAnonymizIp(reqip, servip);
     struct DhcpPacket packet;
     if (memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) != EOK) {
         return -1;
@@ -1572,28 +1569,14 @@ int DhcpClientStateMachine::DhcpRequest(uint32_t transid, uint32_t reqip, uint32
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); // 54
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
     AddParamaterRequestList(&packet); // 55
-
-    /* Begin broadcast dhcp request packet. */
-    char *pReqIp = Ip4IntConToStr(reqip, false);
-    if (pReqIp != NULL) {
-        DHCP_LOGI("DhcpRequest() broadcast req packet, reqip: host %{private}u->%{private}s.", ntohl(reqip), pReqIp);
-        free(pReqIp);
-        pReqIp = NULL;
-    }
-    char *pSerIp = Ip4IntConToStr(servip, false);
-    if (pSerIp != NULL) {
-        DHCP_LOGI("DhcpRequest() broadcast req packet, servIp: host %{private}u->%{private}s.", ntohl(servip), pSerIp);
-        free(pSerIp);
-        pSerIp = NULL;
-    }
+    DHCP_LOGI("DhcpRequest begin broadcast dhcp request packet, transid:%{public}u", transid);
     return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
 }
 
 /* Unicast or broadcast dhcp request packet, request to extend the lease from the dhcp server. */
 int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint32_t serverip)
 {
-    DHCP_LOGI("DhcpRenew() enter, transid:%{public}u,clientip:%{public}u.", transid, clientip);
-
+    PrintAnonymizIp(clientip, serverip);
     struct DhcpPacket packet;
     if (memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) != EOK) {
         return -1;
@@ -1612,17 +1595,17 @@ int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint3
 
     /* Begin broadcast or unicast dhcp request packet. */
     if (serverip == 0) {
-        DHCP_LOGI("DhcpRenew() rebind, begin broadcast req packet");
+        DHCP_LOGI("DhcpRenew rebind, begin broadcast req packet, transid:%{public}u", transid);
         return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
     }
-    DHCP_LOGI("DhcpRenew() renew, begin unicast request packet");
+    DHCP_LOGI("DhcpRenew send renew, begin unicast request packet, transid:%{public}u", transid);
     return SendDhcpPacket(&packet, clientip, serverip);
 }
 
 /* Unicast dhcp release packet, releasing an ip address in Use from the dhcp server. */
 int DhcpClientStateMachine::DhcpRelease(uint32_t clientip, uint32_t serverip)
 {
-    DHCP_LOGI("DhcpRelease enter, clientip:%{private}u.", clientip);
+    PrintAnonymizIp(clientip, serverip);
     struct DhcpPacket packet;
     if (memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) != EOK) {
         return -1;
@@ -1638,13 +1621,13 @@ int DhcpClientStateMachine::DhcpRelease(uint32_t clientip, uint32_t serverip)
     packet.xid = GetRandomId();
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, clientip);
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, serverip);
-    DHCP_LOGI("DhcpRelease begin unicast release packet, clientip:%{private}u, serverip:%{private}u", clientip,
-        serverip);
+    DHCP_LOGI("DhcpRelease begin unicast release packet, transid:%{public}u", packet.xid);
     return SendDhcpPacket(&packet, clientip, serverip);
 }
 
 int DhcpClientStateMachine::DhcpDecline(uint32_t transId, uint32_t clientIp, uint32_t serverIp)
 {
+    PrintAnonymizIp(clientIp, serverIp);
     struct DhcpPacket packet;
     if (memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) != EOK) {
         return -1;
@@ -1661,9 +1644,22 @@ int DhcpClientStateMachine::DhcpDecline(uint32_t transId, uint32_t clientIp, uin
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, serverIp);
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, clientIp);
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, serverIp);
-    DHCP_LOGI("DhcpDecline(), send DHCPDECLINE, clientIp is: %{private}d, serverIp is: %{private}d",
-        clientIp, serverIp);
+    DHCP_LOGI("DhcpDecline send decline, transid:%{public}u", transId);
     return SendDhcpPacket(&packet, clientIp, serverIp);
+}
+
+void DhcpClientStateMachine::PrintAnonymizIp(uint32_t clientIp, uint32_t serverIp)
+{
+    char *pClientip = Ip4IntConToStr(clientIp, false);
+    char *pServerip = Ip4IntConToStr(serverIp, false);
+    if ((pClientip != nullptr) && (pServerip != nullptr)) {
+        DHCP_LOGI("PrintAnonymizIp clientip:%{public}s serverip:%{public}s", Ipv4Anonymize(pClientip).c_str(),
+            Ipv4Anonymize(pServerip).c_str());
+        free(pClientip);
+        pClientip = nullptr;
+        free(pServerip);
+        pServerip = nullptr;
+    }
 }
 
 #ifndef OHOS_ARCH_LITE

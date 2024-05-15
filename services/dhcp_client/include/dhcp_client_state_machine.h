@@ -110,6 +110,7 @@ public:
     int CloseSignalHandle();
     ActionMode GetAction(void);
     void SetConfiguration(const std::string targetBssid);
+    void PrintAnonymizIp(uint32_t clientIp, uint32_t serverIp);
 private:
     int m_dhcp4State;
     int m_sockFd;
