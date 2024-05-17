@@ -40,7 +40,6 @@
 #include "dhcp_socket.h"
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
-#include "dhcp_thread.h"
 
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
@@ -53,6 +52,7 @@ constexpr int32_t FAST_ARP_DETECTION_TIME_MS = 50;
 constexpr int32_t SLOW_ARP_DETECTION_TIME_MS = 80;
 constexpr int32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
 constexpr int32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
+constexpr int32_t RATE_S_MS = 1000;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -70,7 +70,8 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_transID(0),
     m_ifName(ifname),
     m_renewThreadIsRun(false),
-    m_pthread(nullptr)
+    m_pthread(nullptr),
+    m_slowArpDetecting(false)
 {
 #ifndef OHOS_ARCH_LITE
     getIpTimerId = 0;
@@ -79,6 +80,8 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.timeoutExit = false;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
+    m_arpCheckThread = std::make_unique<DhcpThread>("arpCheckThread");
+    m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
     DHCP_LOGI("DhcpClientStateMachine()");
 }
 
@@ -90,6 +93,10 @@ DhcpClientStateMachine::~DhcpClientStateMachine()
         delete m_pthread;
         m_pthread = nullptr;
         DHCP_LOGI("~DhcpClientStateMachine() delete m_pthread!");
+    }
+
+    if (m_arpCheckThread != nullptr) {
+        m_arpCheckThread.reset();
     }
 }
 
@@ -116,7 +123,6 @@ void DhcpClientStateMachine::RunGetIPThreadFunc()
 {
     DHCP_LOGI("RunGetIPThreadFunc begin.");
     if ((m_cltCnf.getMode == DHCP_IP_TYPE_ALL) || (m_cltCnf.getMode == DHCP_IP_TYPE_V4)) {
-        m_dhcpArpChecker.Stop();
         StartIpv4();  // Handle dhcp v4.
     }
     return;
@@ -132,6 +138,10 @@ int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
         DHCP_LOGE("InitConfig GetClientNetworkInfo failed!");
         return DHCP_OPT_FAILED;
     }
+    if (m_arpCheckThread != nullptr) {
+        m_arpCheckThread->RemoveAsyncTask("slowArp");
+    }
+    m_slowArpDetecting = false;
     return DHCP_OPT_SUCCESS;
 }
 
@@ -289,7 +299,7 @@ int DhcpClientStateMachine::StartIpv4(void)
     time_t curTimestamp;
  
     if (m_action != ACTION_RENEW) {
-         DhcpInit();
+        DhcpInit();
     }
     m_cltCnf.timeoutExit = false;
     DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
@@ -302,6 +312,10 @@ int DhcpClientStateMachine::StartIpv4(void)
         FD_ZERO(&exceptfds);
         timeout.tv_sec = m_timeoutTimestamp - time(NULL);
         timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
+
+        if (m_slowArpDetecting && (timeout.tv_sec > 0)) {
+            continue;
+        }
         InitSocketFd();
 
         if (m_sockFd >= 0) {
@@ -361,6 +375,11 @@ int DhcpClientStateMachine::ExitIpv4(void)
 int DhcpClientStateMachine::StopIpv4(void)
 {
     DHCP_LOGI("StopIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
+    m_slowArpDetecting = false;
+    m_timeoutTimestamp = 0;
+    if (m_arpCheckThread != nullptr) {
+        m_arpCheckThread->RemoveAsyncTask("slowArp");
+    }
     if (!m_cltCnf.timeoutExit) { // thread not exit
         int signum = SIG_STOP;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_STOP SignalReceiver
@@ -799,7 +818,7 @@ void DhcpClientStateMachine::Declining(time_t timestamp)
 {
     if (++m_conflictCount > MAX_CONFLICTS_COUNT) {
         if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &m_dhcpIpResult) != DHCP_OPT_SUCCESS) {
-            PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, nullptr);
+            PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, &m_dhcpIpResult);
             DHCP_LOGE("Declining publish dhcp result failed!");
             StopIpv4();
             return;
@@ -1372,7 +1391,7 @@ int DhcpClientStateMachine::PublishDhcpResultEvent(const char *ifname, const int
         DHCP_LOGE("PublishDhcpResultEvent ifname:%{public}s failed, code:%{public}d error!", ifname, code);
         return DHCP_OPT_FAILED;
     }
-    if ((code == PUBLISH_CODE_SUCCESS) && (result == nullptr)) {
+    if (result == nullptr) {
         DHCP_LOGE("PublishDhcpResultEvent ifname:%{public}s, code:%{public}d failed, result==nullptr!", ifname, code);
         return DHCP_OPT_FAILED;
     }
@@ -1662,6 +1681,7 @@ void DhcpClientStateMachine::GetIpTimerCallback()
     ipResult.code = PUBLISH_CODE_TIMEOUT;
     ipResult.ifname = m_cltCnf.ifaceName;
     PublishDhcpIpv4Result(ipResult);
+    StopIpv4();
 }
 
 void DhcpClientStateMachine::StartGetIpTimer()
@@ -1692,6 +1712,7 @@ void DhcpClientStateMachine::IpConflictDetect()
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
     m_dhcp4State = DHCP_STATE_FAST_ARP;
+    SetSocketMode(SOCKET_MODE_INVALID);
     m_arpDectionTargetIp = Ip4IntConToStr(m_requestedIp4, false);
 }
 
@@ -1703,7 +1724,7 @@ void DhcpClientStateMachine::FastArpDetect()
         SetSocketMode(SOCKET_MODE_RAW);
     } else {
         if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &m_dhcpIpResult) != DHCP_OPT_SUCCESS) {
-            PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, nullptr);
+            PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, &m_dhcpIpResult);
             DHCP_LOGE("FastArpDetect PublishDhcpResultEvent result failed!");
             StopIpv4();
             return;
@@ -1713,28 +1734,52 @@ void DhcpClientStateMachine::FastArpDetect()
     }
 }
 
+void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
+{
+    DHCP_LOGI("SlowArpDetectCallback() enter");
+    if (isReachable) {
+        m_dhcp4State = DHCP_STATE_DECLINE;
+        m_timeoutTimestamp = 0;
+        SetSocketMode(SOCKET_MODE_RAW);
+    } else {
+        m_dhcp4State = DHCP_STATE_BOUND;
+        m_sentPacketNum = 0;
+        m_resendTimer = 0;
+        m_timeoutTimestamp = m_renewalSec + time(NULL);
+        SetSocketMode(SOCKET_MODE_INVALID);
+        StopIpv4();
+    }
+    m_slowArpDetecting = false;
+}
+
 void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
 {
-    DHCP_LOGI("SlowArpDetect() enter");
-    if (m_sentPacketNum >= SLOW_ARP_DETECTION_TRY_CNT) {
-        int32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
-        if (IsArpReachable(timeout, m_arpDectionTargetIp)) {
-            m_dhcp4State = DHCP_STATE_DECLINE;
-            SetSocketMode(SOCKET_MODE_RAW);
-        } else {
-            m_dhcp4State = DHCP_STATE_BOUND;
-            m_sentPacketNum = 0;
-            m_resendTimer = 0;
-            m_timeoutTimestamp = timestamp + m_renewalSec;
-            SetSocketMode(SOCKET_MODE_INVALID);
-            StopIpv4();
+    DHCP_LOGI("SlowArpDetect() enter, %{public}d", m_sentPacketNum);
+    if (m_sentPacketNum > SLOW_ARP_DETECTION_TRY_CNT) {
+        m_dhcp4State = DHCP_STATE_BOUND;
+        m_sentPacketNum = 0;
+        m_resendTimer = 0;
+        m_timeoutTimestamp = timestamp + m_renewalSec;
+        SetSocketMode(SOCKET_MODE_INVALID);
+        StopIpv4();
+    } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
+        m_slowArpDetecting = true;
+        m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + time(NULL) + 1;
+        if (m_arpCheckThread == nullptr) {
+            DHCP_LOGE("SlowArpDetect() m_arpCheckThread is nullptr");
+            return;
         }
-        return;
-    }
-
-    if (IsArpReachable(SLOW_ARP_DETECTION_TIME_MS, m_arpDectionTargetIp)) {
-        m_dhcp4State = DHCP_STATE_DECLINE;
-        SetSocketMode(SOCKET_MODE_KERNEL);
+        m_arpCheckThread->PostAsyncTask([this]() {
+            int32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
+            bool ret = IsArpReachable(timeout, m_arpDectionTargetIp);
+            DHCP_LOGI("SlowArpDetect() result is %{public}d", ret);
+            m_slowArpCallback(ret);
+            }, "slowArp");
+    } else {
+        if (IsArpReachable(SLOW_ARP_DETECTION_TIME_MS, m_arpDectionTargetIp)) {
+            m_dhcp4State = DHCP_STATE_DECLINE;
+            SetSocketMode(SOCKET_MODE_KERNEL);
+        }
     }
     m_sentPacketNum++;
 }
@@ -1787,7 +1832,7 @@ void DhcpClientStateMachine::TryCachedIp()
         return;
     }
     if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &ipCached.ipResult) != DHCP_OPT_SUCCESS) {
-        PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, nullptr);
+        PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, &ipCached.ipResult);
         DHCP_LOGE("TryCachedIp publish dhcp result failed!");
     }
     StopIpv4();

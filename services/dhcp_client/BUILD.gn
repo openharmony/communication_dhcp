@@ -66,6 +66,11 @@ if (defined(ohos_lite)) {
       "OHOS_ARCH_LITE",
       "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
     ]
+    configs -= [ "//build/lite/config:language_cpp" ]
+    cflags = [
+      "-std=c++17",
+      "-fno-rtti",
+    ]
   }
 } else {
   local_base_sources = [
@@ -164,6 +169,8 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     ]
     include_dirs = local_base_include_dirs
 
@@ -178,7 +185,7 @@ if (defined(ohos_lite)) {
       "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
     ]
 
-    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
+    deps = []
 
     external_deps = [
       "bounds_checking_function:libsec_shared",
