@@ -1096,7 +1096,7 @@ static int NotBindingRequest(DhcpAddressPool *pool, PDhcpMsgInfo received, PDhcp
     lease->bindingTime = Tmspsec();
     lease->expireIn = lease->bindingTime + binding->leaseTime;
     reply->packet.yiaddr = lease->ipAddress;
-    DHCP_LOGI("NotBindingRequest REPLY_NONE");
+    DHCP_LOGI("NotBindingRequest REPLY_ACK");
     return REPLY_ACK;
 }
 
