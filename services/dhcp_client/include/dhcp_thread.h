@@ -84,7 +84,7 @@ class DhcpTimer {
         void UnRegister(uint32_t timerId);
     public:
         std::unique_ptr<DhcpThread> timer_{nullptr};
-        int32_t timerIdInit = 0;
+        uint32_t timerIdInit = 0;
 };
 #else
     class DhcpTimer {
