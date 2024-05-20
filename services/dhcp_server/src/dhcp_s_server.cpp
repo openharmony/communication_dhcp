@@ -1047,20 +1047,25 @@ static int NotBindingRequest(DhcpAddressPool *pool, PDhcpMsgInfo received, PDhcp
 {
     uint32_t yourIpAddr = 0;
     if (GetYourIpAddress(received, &yourIpAddr, pool) != RET_SUCCESS) {
+        DHCP_LOGI("GetYourIpAddress REPLY_NONE");
         return REPLY_NONE;
     }
     AddressBinding *lease = GetLease(pool, yourIpAddr);
     if (!lease) {
         if (SourceIpAddress()) {
+            DHCP_LOGI("SourceIpAddress True REPLY_ACK");
             return REPLY_ACK;
         }
+        DHCP_LOGI("SourceIpAddress REPLY_NONE");
         return REPLY_NONE;
     }
     int sameAddr = AddrEquels(lease->chaddr, received->packet.chaddr, MAC_ADDR_LENGTH);
     if (lease->bindingStatus == BIND_ASSOCIATED && !sameAddr) {
         if (!IsExpire(lease)) {
+            DHCP_LOGI("Not IsExpire REPLY_NAK");
             return REPLY_NAK;
         }
+        DHCP_LOGI("RemoveLease lease");
         RemoveLease(pool, lease);
     }
     AddressBinding *binding = pool->newBinding(received->packet.chaddr, &received->options);
@@ -1074,22 +1079,24 @@ static int NotBindingRequest(DhcpAddressPool *pool, PDhcpMsgInfo received, PDhcp
     }
     int replyType = Repending(pool, binding);
     if (replyType != REPLY_OFFER) {
+        DHCP_LOGI("replyType != REPLY_OFFER");
         return replyType;
     }
     lease = GetLease(pool, yourIpAddr);
     if (!lease) {
-        DHCP_LOGD("add new lease recoder.");
+        DHCP_LOGI("add new lease recoder.");
         AddLease(pool, binding);
         lease = GetLease(pool, binding->ipAddress);
     }
     if (!lease) {
-        DHCP_LOGD("failed to get lease.");
+        DHCP_LOGI("failed to get lease.");
         return REPLY_NONE;
     }
     lease->bindingStatus = BIND_ASSOCIATED;
     lease->bindingTime = Tmspsec();
     lease->expireIn = lease->bindingTime + binding->leaseTime;
     reply->packet.yiaddr = lease->ipAddress;
+    DHCP_LOGI("NotBindingRequest REPLY_NONE");
     return REPLY_ACK;
 }
 
