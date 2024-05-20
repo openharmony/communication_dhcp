@@ -257,7 +257,7 @@ EnumErrCode DhcpTimer::Register(const TimerCallback &callback, uint32_t &outTime
         return DHCP_OPT_FAILED;
     }
 
-    outTimerId = static_cast<uint32_t>(timerIdInit);
+    outTimerId = timerIdInit;
     return DHCP_OPT_SUCCESS;
 }
 
