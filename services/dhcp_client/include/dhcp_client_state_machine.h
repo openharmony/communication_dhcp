@@ -22,6 +22,8 @@
 #include "dhcp_arp_checker.h"
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
+#include "dhcp_thread.h"
+
 #ifndef OHOS_ARCH_LITE
 #include "common_timer_errors.h"
 #include "timer.h"
@@ -85,6 +87,7 @@ private:
     void IpConflictDetect();
     void FastArpDetect();
     void SlowArpDetect(time_t timestamp);
+    void SlowArpDetectCallback(bool isReachable);
     bool IsArpReachable(uint32_t timeoutMillis, std::string ipAddress);
     void SaveIpInfoInLocalFile(const DhcpIpResult ipResult);
     int32_t GetCachedDhcpResult(std::string targetBssid, IpInfoCached &ipCached);
@@ -136,6 +139,9 @@ private:
     uint32_t m_conflictCount;
     DhcpIpResult m_dhcpIpResult;
     DhcpArpChecker m_dhcpArpChecker;
+    std::unique_ptr<DhcpThread> m_arpCheckThread = nullptr;
+    std::function<void(bool isReachable)> m_slowArpCallback;
+    bool m_slowArpDetecting;
 };
 
 typedef struct{

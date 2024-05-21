@@ -677,5 +677,93 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level1)
     struct DhcpIpResult result1;
     dhcpClient->ParseNetworkDnsValue(&result1, uData, len, count);
 }
+
+/**
+* @tc.name: IpConflictDetectTest_SUCCESS
+* @tc.desc: IpConflictDetectTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, IpConflictDetectTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("IpConflictDetectTest_SUCCESS enter!");
+    dhcpClient->IpConflictDetect();
+}
+
+/**
+* @tc.name: FastArpDetectTest_SUCCESS
+* @tc.desc: FastArpDetectTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, FastArpDetectTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("FastArpDetectTest_SUCCESS enter!");
+    dhcpClient->FastArpDetect();
+}
+
+/**
+* @tc.name: SlowArpDetectTest_SUCCESS
+* @tc.desc: SlowArpDetectTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("SlowArpDetectTest_SUCCESS enter!");
+    dhcpClient->SlowArpDetect(1);
+}
+
+/**
+* @tc.name: SlowArpDetectCallbackTest_SUCCESS
+* @tc.desc: SlowArpDetectCallbackTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectCallbackTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("SlowArpDetectCallbackTest_SUCCESS enter!");
+    dhcpClient->SlowArpDetectCallback(true);
+    dhcpClient->SlowArpDetectCallback(false);
+}
+
+/**
+* @tc.name: IsArpReachableTest_SUCCESS
+* @tc.desc: IsArpReachableTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, IsArpReachableTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("IsArpReachableTest_SUCCESS enter!");
+    EXPECT_FALSE(dhcpClient->IsArpReachable(1, "0.0.0.0"));
+}
+
+/**
+* @tc.name: SaveIpInfoInLocalFileTest_SUCCESS
+* @tc.desc: SaveIpInfoInLocalFileTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("SaveIpInfoInLocalFileTest_SUCCESS enter!");
+    DhcpIpResult ipResult;
+    ipResult.code = 1;
+    dhcpClient->SaveIpInfoInLocalFile(ipResult);
+}
+
+/**
+* @tc.name: TryCachedIpTest_SUCCESS
+* @tc.desc: TryCachedIpTest.
+* @tc.type: FUNC
+* @tc.require: AR00000000
+*/
+HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
+{
+    DHCP_LOGI("TryCachedIpTest_SUCCESS enter!");
+    dhcpClient->TryCachedIp();
 }
 }
+}
+

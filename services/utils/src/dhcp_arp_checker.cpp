@@ -53,7 +53,7 @@ bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string
     }
     uint8_t mac[ETH_ALEN + sizeof(uint32_t)];
     if (sscanf_s(hwAddr.c_str(), "%02x:%02x:%02x:%02x:%02x:%02x",
-        &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) != ETH_ALEN) {
+        &mac[0], &mac[1], &mac[2], &mac[3], &mac[4], &mac[5]) != ETH_ALEN) {  // mac address
         DHCP_LOGE("invalid hwAddr:%{private}s", hwAddr.c_str());
         if (memset_s(mac, sizeof(mac), 0, sizeof(mac)) != EOK) {
             DHCP_LOGE("ArpChecker memset fail");

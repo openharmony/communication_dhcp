@@ -92,6 +92,13 @@
                 },
                 {
                     "header" : {
+                        "header_base": "//foundation/communication/dhcp/interfaces/kits/c",
+                        "header_files": [ ]
+                    },
+                    "name" : "//foundation/communication/dhcp/services/dhcp_client:dhcp_client"
+                },
+                {
+                    "header" : {
                         "header_base": "//foundation/communication/dhcp/services/utils/include",
                         "header_files": []
                     },
@@ -99,8 +106,7 @@
                 }
             ],
             "test": [
-                "//foundation/communication/dhcp/test/services/dhcp_client:unittest",
-                "//foundation/communication/dhcp/test/services/dhcp_server/unittest:unittest",
+                "//foundation/communication/dhcp/test/unittest:dhcp_unittest",
                 "//foundation/communication/dhcp/test/fuzztest:fuzztest"
             ]
         },

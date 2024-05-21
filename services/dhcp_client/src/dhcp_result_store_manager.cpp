@@ -192,7 +192,7 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
     if (key == "bssid") {
         item.bssid = value;
     } else if (key == "absoluteLeasetime") {
-        item.absoluteLeasetime = static_cast<uint32_t>(std::stoi(value));
+        item.absoluteLeasetime = static_cast<uint32_t>(std::stol(value));
     } else if (key == "strYiaddr") {
         if (strncpy_s(
             item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
@@ -229,7 +229,7 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
             errorKeyValue++;
         }
     } else if (key == "uOptLeasetime") {
-        item.ipResult.uOptLeasetime = static_cast<uint32_t>(std::stoi(value));
+        item.ipResult.uOptLeasetime = static_cast<uint32_t>(std::stol(value));
     } else {
         DHCP_LOGE("Invalid config key value");
         errorKeyValue++;
