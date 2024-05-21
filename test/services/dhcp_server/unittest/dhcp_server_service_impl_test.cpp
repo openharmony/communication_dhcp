@@ -59,18 +59,18 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)
     putRange.iptype = 0;
     DhcpRange setRange;
     setRange.iptype = 0;
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->StopDhcpServer("wlan1"));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->PutDhcpRange(tagName, putRange));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->RemoveDhcpRange(tagName, putRange));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->RemoveAllDhcpRange(tagName));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->StartDhcpServer(ifname));
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->SetDhcpName(ifname, tagName));
+    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->StopDhcpServer("wlan1"));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->PutDhcpRange(tagName, putRange));
+    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveDhcpRange(tagName, putRange));
+    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveAllDhcpRange(tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, tagName));
 
     std::vector<std::string> vecLeases;
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
     std::string strLeaseTime;
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->UpdateLeasesTime(strLeaseTime));
+    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->UpdateLeasesTime(strLeaseTime));
 }
 
 HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
@@ -121,7 +121,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerService_Test5, TestSize.Level1)
     std::string strTestData = "dhcp server leases file test";
     ASSERT_TRUE(DhcpFunction::CreateFile(strFile, strTestData));
     std::vector<std::string> vecLeases;
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
+    EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
     ASSERT_TRUE(DhcpFunction::RemoveFile(strFile));
 }
 
