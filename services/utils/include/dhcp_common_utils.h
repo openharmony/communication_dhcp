@@ -29,6 +29,9 @@ namespace DHCP {
  * @return std::string - Processed MAC
  */
 std::string Ipv4Anonymize(const std::string str);
+std::string IntIpv4ToAnonymizeStr(uint32_t ip);
+char *UintIp4ToStr(uint32_t uIp, bool bHost);
+
 }
 }
 #endif
