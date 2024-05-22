@@ -14,11 +14,13 @@
  */
 
 #include "dhcp_common_utils.h"
-#include <string>
+#include <arpa/inet.h>
+#include "securec.h"
+#include "dhcp_logger.h"
 
 namespace OHOS {
 namespace DHCP {
-
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpCommonUtils");
 std::string Ipv4Anonymize(const std::string str)
 {
     std::string strTemp = str;
