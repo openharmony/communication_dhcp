@@ -48,7 +48,7 @@ char *UintIp4ToStr(uint32_t uIp, bool bHost)
         DHCP_LOGE("UintIp4ToStr inet_ntop p == nullptr!");
         return nullptr;
     }
-    char *strIp = (char *)malloc(INET_ADDRSTRLEN);
+    char *strIp = static_cast<char *>malloc(INET_ADDRSTRLEN);
     if (strIp == nullptr) {
         DHCP_LOGE("UintIp4ToStr strIp malloc failed!");
         return nullptr;
