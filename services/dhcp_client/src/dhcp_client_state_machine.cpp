@@ -655,7 +655,8 @@ void DhcpClientStateMachine::AddParamaterRebootList(struct DhcpPacket *packet)
 
 int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
 {
-    DHCP_LOGI("DhcpReboot() enter, send DHCPREQUEST");
+    DHCP_LOGI("DhcpReboot send request, transid:%{public}u, clientip:%{public}s", transid,
+        IntIpv4ToAnonymizeStr(reqip).c_str());
     struct DhcpPacket packet;
     if (memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket)) != EOK) {
         DHCP_LOGE("DhcpReboot() memset_s failed!");
@@ -678,14 +679,7 @@ int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
     AddHostNameToOpts(&packet); // 60 12
     AddParamaterRebootList(&packet); // 55
-
-    /* Begin broadcast dhcp request packet. */
-    char *pReqIp = Ip4IntConToStr(reqip, false);
-    if (pReqIp != NULL) {
-        DHCP_LOGD("DhcpReboot() broadcast req packet, reqip: host %{private}u->%{private}s.", ntohl(reqip), pReqIp);
-        free(pReqIp);
-        pReqIp = NULL;
-    }
+    DHCP_LOGI("DhcpReboot begin broadcast dhcp request packet");
     return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
 }
 
