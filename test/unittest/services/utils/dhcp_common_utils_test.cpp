@@ -53,7 +53,7 @@ HWTEST_F(DhcpCommonUtilsTest, Ipv4AnonymizeTest_SUCCESS, TestSize.Level1)
 HWTEST_F(DhcpCommonUtilsTest, UintIp4ToStrTest, TestSize.Level1)
 {
     DHCP_LOGI("enter UintIp4ToStrTest");
-    uint32_t ip = "123456";
+    uint32_t ip = "4294967295";
     char *pIp = UintIp4ToStr(ip, false);
     if (pIp != nullptr) {
         DHCP_LOGI("pIp:%{public}s", pIp);
@@ -71,7 +71,7 @@ HWTEST_F(DhcpCommonUtilsTest, UintIp4ToStrTest, TestSize.Level1)
 HWTEST_F(DhcpCommonUtilsTest, IntIpv4ToAnonymizeStrTest, TestSize.Level1)
 {
     DHCP_LOGI("enter IntIpv4ToAnonymizeStrTest");
-    uint32_t ip = "123456";
+    uint32_t ip = "4294967295";
     std::string ret = IntIpv4ToAnonymizeStr(ip);
     EXPECT_TRUE(!ret.empty());
     DHCP_LOGI("ret is %{public}s", ret.c_str());
