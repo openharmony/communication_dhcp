@@ -764,14 +764,6 @@ HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
     DHCP_LOGI("TryCachedIpTest_SUCCESS enter!");
     dhcpClient->TryCachedIp();
 }
-
-HWTEST_F(DhcpClientStateMachineTest, PrintAnonymizIpTest, TestSize.Level1)
-{
-    DHCP_LOGI("PrintAnonymizIpTest enter!");
-    uint32_t clientIp = 123456;
-    uint32_t serverIP = 123458;
-    dhcpClient->PrintAnonymizIp(clientIp, serverIP);
-}
 }
 }
 
