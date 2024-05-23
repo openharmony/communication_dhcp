@@ -176,10 +176,10 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
 int SendToDhcpPacket(
     const struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destIp, int destIndex, const uint8_t *destHwaddr)
 {
-    DHCP_LOGI("SendToDhcpPacket() enter, destIndex:%{public}d, destHwaddr:%{public}d", destIndex, *destHwaddr);
+    DHCP_LOGI("SendToDhcpPacket enter, destIndex:%{public}d, destHwaddr:%{public}d", destIndex, *destHwaddr);
     int nFd = -1;
     if (CreateRawSocket(&nFd) != SOCKET_OPT_SUCCESS) {
-        DHCP_LOGE("SendToDhcpPacket() CreateRawSocket fail.");
+        DHCP_LOGE("SendToDhcpPacket CreateRawSocket fail.");
         return SOCKET_OPT_FAILED;
     }
 
@@ -187,7 +187,7 @@ int SendToDhcpPacket(
     if ((memset_s(&rawAddr, sizeof(rawAddr), 0, sizeof(rawAddr)) != EOK) ||
         (memcpy_s(rawAddr.sll_addr, sizeof(rawAddr.sll_addr), destHwaddr, MAC_ADDR_LEN) != EOK)) {
         close(nFd);
-        DHCP_LOGE("SendToDhcpPacket() memcpy_s fail.");
+        DHCP_LOGE("SendToDhcpPacket memcpy_s fail.");
         return SOCKET_OPT_FAILED;
     }
     rawAddr.sll_ifindex = destIndex;
@@ -196,7 +196,7 @@ int SendToDhcpPacket(
     rawAddr.sll_halen = MAC_ADDR_LEN;
     if (bind(nFd, (struct sockaddr *)&rawAddr, sizeof(rawAddr)) == -1) {
         close(nFd);
-        DHCP_LOGE("SendToDhcpPacket() bind fail.");
+        DHCP_LOGE("SendToDhcpPacket bind fail.");
         return SOCKET_OPT_FAILED;
     }
 
@@ -204,7 +204,7 @@ int SendToDhcpPacket(
     struct UdpDhcpPacket udpPackets;
     if (memset_s(&udpPackets, sizeof(udpPackets), 0, sizeof(udpPackets)) != EOK) {
         close(nFd);
-        DHCP_LOGE("SendToDhcpPacket() memset_s udpPackets fail.");
+        DHCP_LOGE("SendToDhcpPacket memset_s udpPackets fail.");
         return SOCKET_OPT_FAILED;
     }
     /* get append options length , include endpoint length(3) */
@@ -220,7 +220,7 @@ int SendToDhcpPacket(
     udpPackets.ip.daddr = destIp;
     if (memcpy_s(&(udpPackets.data), sizeof(struct DhcpPacket), sendPacket, sizeof(struct DhcpPacket)) != EOK) {
         close(nFd);
-        DHCP_LOGE("SendToDhcpPacket() memcpy_s sendPacket fail.");
+        DHCP_LOGE("SendToDhcpPacket memcpy_s sendPacket fail.");
         return SOCKET_OPT_FAILED;
     }
     udpPackets.udp.check = GetCheckSum((uint16_t *)&udpPackets, sizeof(struct UdpDhcpPacket));
@@ -232,13 +232,13 @@ int SendToDhcpPacket(
 
     ssize_t nBytes = sendto(nFd, &udpPackets, sendLen, 0, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
     if (nBytes <= 0) {
-        DHCP_LOGE("SendToDhcpPacket() optionLen:%{public}d sendLen:%{public}d, "
+        DHCP_LOGE("SendToDhcpPacket optionLen:%{public}d sendLen:%{public}d, "
             "dhcpPackLen:%{public}d fd:%{public}d failed, sendto error:%{public}d.",
             optionLen, sendLen, dhcpPackLen, nFd, errno);
     } else {
-        DHCP_LOGI("SendToDhcpPacket() optionLen:%{public}d sendLen:%{public}d, "
+        DHCP_LOGI("SendToDhcpPacket optionLen:%{public}d sendLen:%{public}d, "
             "dhcpPackLen:%{public}d fd:%{public}d, index:%{public}d, bytes:%{public}d.",
-            optionLen, sendLen, dhcpPackLen, nFd, destIndex, (int)nBytes);
+            optionLen, sendLen, dhcpPackLen, nFd, destIndex, static_cast<int>(nBytes));
     }
     close(nFd);
     return (nBytes <= 0) ? SOCKET_OPT_FAILED : SOCKET_OPT_SUCCESS;
@@ -249,7 +249,7 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
     int nFd = -1;
     if ((CreateKernelSocket(&nFd) != SOCKET_OPT_SUCCESS) ||
         (BindKernelSocket(nFd, NULL, srcIp, BOOTP_CLIENT, false) != SOCKET_OPT_SUCCESS)) {
-        DHCP_LOGE("SendDhcpPacket() fd:%{public}d,srcIp:%{public}u failed!", nFd, srcIp);
+        DHCP_LOGE("SendDhcpPacket fd:%{public}d failed!", nFd);
         return SOCKET_OPT_FAILED;
     }
 
@@ -263,16 +263,16 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
     kernelAddr.sin_family = AF_INET;
     int nRet = connect(nFd, (struct sockaddr *)&kernelAddr, sizeof(kernelAddr));
     if (nRet == -1) {
-        DHCP_LOGE("SendDhcpPacket() nFd:%{public}d failed, connect error:%{public}d.", nFd, errno);
+        DHCP_LOGE("SendDhcpPacket nFd:%{public}d failed, connect error:%{public}d.", nFd, errno);
         close(nFd);
         return SOCKET_OPT_FAILED;
     }
 
     ssize_t nBytes = write(nFd, sendPacket, sizeof(struct DhcpPacket));
     if (nBytes <= 0) {
-        DHCP_LOGE("SendDhcpPacket() fd:%{public}d failed, write error:%{public}d.", nFd, errno);
+        DHCP_LOGE("SendDhcpPacket fd:%{public}d failed, write error:%{public}d.", nFd, errno);
     } else {
-        DHCP_LOGI("SendDhcpPacket() fd:%{public}d, bytes:%{public}d.", nFd, static_cast<int>nBytes);
+        DHCP_LOGI("SendDhcpPacket fd:%{public}d, bytes:%{public}d.", nFd, static_cast<int>(nBytes));
     }
     close(nFd);
     return (nBytes <= 0) ? SOCKET_OPT_FAILED : SOCKET_OPT_SUCCESS;
