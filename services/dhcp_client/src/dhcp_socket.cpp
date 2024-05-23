@@ -176,8 +176,7 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
 int SendToDhcpPacket(
     const struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destIp, int destIndex, const uint8_t *destHwaddr)
 {
-    DHCP_LOGI("SendToDhcpPacket() enter, srcIp:%{public}u,destIp:%{public}u,destIndex:%{public}d,destHwaddr:%{public}d",
-        srcIp, destIp, destIndex, *destHwaddr);
+    DHCP_LOGI("SendToDhcpPacket() enter, destIndex:%{public}d, destHwaddr:%{public}d", destIndex, *destHwaddr);
     int nFd = -1;
     if (CreateRawSocket(&nFd) != SOCKET_OPT_SUCCESS) {
         DHCP_LOGE("SendToDhcpPacket() CreateRawSocket fail.");
@@ -273,7 +272,7 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
     if (nBytes <= 0) {
         DHCP_LOGE("SendDhcpPacket() fd:%{public}d failed, write error:%{public}d.", nFd, errno);
     } else {
-        DHCP_LOGI("SendDhcpPacket() fd:%{public}d, srcIp:%{public}u, bytes:%{public}d.", nFd, srcIp, (int)nBytes);
+        DHCP_LOGI("SendDhcpPacket() fd:%{public}d, bytes:%{public}d.", nFd, (int)nBytes);
     }
     close(nFd);
     return (nBytes <= 0) ? SOCKET_OPT_FAILED : SOCKET_OPT_SUCCESS;
