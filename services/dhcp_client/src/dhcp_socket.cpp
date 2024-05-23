@@ -272,7 +272,7 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
     if (nBytes <= 0) {
         DHCP_LOGE("SendDhcpPacket() fd:%{public}d failed, write error:%{public}d.", nFd, errno);
     } else {
-        DHCP_LOGI("SendDhcpPacket() fd:%{public}d, bytes:%{public}d.", nFd, (int)nBytes);
+        DHCP_LOGI("SendDhcpPacket() fd:%{public}d, bytes:%{public}d.", nFd, static_cast<int>nBytes);
     }
     close(nFd);
     return (nBytes <= 0) ? SOCKET_OPT_FAILED : SOCKET_OPT_SUCCESS;
