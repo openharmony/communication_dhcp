@@ -14,11 +14,13 @@
  */
 
 #include "dhcp_common_utils.h"
-#include <string>
+#include <arpa/inet.h>
+#include "securec.h"
+#include "dhcp_logger.h"
 
 namespace OHOS {
 namespace DHCP {
-
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpCommonUtils");
 std::string Ipv4Anonymize(const std::string str)
 {
     std::string strTemp = str;
@@ -28,6 +30,46 @@ std::string Ipv4Anonymize(const std::string str)
             strTemp[begin] = '*';
         }
         begin++;
+    }
+    return strTemp;
+}
+
+char *UintIp4ToStr(uint32_t uIp, bool bHost)
+{
+    char bufIp4[INET_ADDRSTRLEN] = {0};
+    struct in_addr addr4;
+    if (bHost) {
+        addr4.s_addr = htonl(uIp);
+    } else {
+        addr4.s_addr = uIp;
+    }
+    const char *p = inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN);
+    if (p == nullptr) {
+        DHCP_LOGE("UintIp4ToStr inet_ntop p == nullptr!");
+        return nullptr;
+    }
+    char *strIp = static_cast<char *>(malloc(INET_ADDRSTRLEN));
+    if (strIp == nullptr) {
+        DHCP_LOGE("UintIp4ToStr strIp malloc failed!");
+        return nullptr;
+    }
+    if (strncpy_s(strIp, INET_ADDRSTRLEN, bufIp4, strlen(bufIp4)) != EOK) {
+        DHCP_LOGE("UintIp4ToStr strIp strncpy_s failed!");
+        free(strIp);
+        strIp = nullptr;
+        return nullptr;
+    }
+    return strIp;
+}
+
+std::string IntIpv4ToAnonymizeStr(uint32_t ip)
+{
+    std::string strTemp = "";
+    char *pIp = UintIp4ToStr(ip, false);
+    if (pIp != nullptr) {
+        strTemp = Ipv4Anonymize(pIp);
+        free(pIp);
+        pIp = nullptr;
     }
     return strTemp;
 }
