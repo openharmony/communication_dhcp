@@ -40,6 +40,7 @@
 #include "dhcp_socket.h"
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
+#include "dhcp_thread.h"
 
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
@@ -71,7 +72,8 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_ifName(ifname),
     m_renewThreadIsRun(false),
     m_pthread(nullptr),
-    m_slowArpDetecting(false)
+    m_slowArpDetecting(false),
+    m_slowArpTaskId(0)
 {
 #ifndef OHOS_ARCH_LITE
     getIpTimerId = 0;
@@ -80,7 +82,6 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.timeoutExit = false;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
-    m_arpCheckThread = std::make_unique<DhcpThread>("arpCheckThread");
     m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
     DHCP_LOGI("DhcpClientStateMachine()");
 }
@@ -93,10 +94,6 @@ DhcpClientStateMachine::~DhcpClientStateMachine()
         delete m_pthread;
         m_pthread = nullptr;
         DHCP_LOGI("~DhcpClientStateMachine() delete m_pthread!");
-    }
-
-    if (m_arpCheckThread != nullptr) {
-        m_arpCheckThread.reset();
     }
 }
 
@@ -137,9 +134,6 @@ int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
     if (GetClientNetworkInfo() != DHCP_OPT_SUCCESS) {
         DHCP_LOGE("InitConfig GetClientNetworkInfo failed!");
         return DHCP_OPT_FAILED;
-    }
-    if (m_arpCheckThread != nullptr) {
-        m_arpCheckThread->RemoveAsyncTask("slowArp");
     }
     m_slowArpDetecting = false;
     return DHCP_OPT_SUCCESS;
@@ -377,9 +371,6 @@ int DhcpClientStateMachine::StopIpv4(void)
     DHCP_LOGI("StopIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     m_slowArpDetecting = false;
     m_timeoutTimestamp = 0;
-    if (m_arpCheckThread != nullptr) {
-        m_arpCheckThread->RemoveAsyncTask("slowArp");
-    }
     if (!m_cltCnf.timeoutExit) { // thread not exit
         int signum = SIG_STOP;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_STOP SignalReceiver
@@ -389,6 +380,9 @@ int DhcpClientStateMachine::StopIpv4(void)
     }
 #ifndef OHOS_ARCH_LITE
     StopGetIpTimer();
+    DHCP_LOGI("UnRegister slowArpTask: %{public}u", m_slowArpTaskId);
+    DhcpTimer::GetInstance()->UnRegister(m_slowArpTaskId);
+    m_slowArpTaskId = 0;
 #endif
     return DHCP_OPT_SUCCESS;
 }
@@ -1737,6 +1731,10 @@ void DhcpClientStateMachine::FastArpDetect()
 void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
 {
     DHCP_LOGI("SlowArpDetectCallback() enter");
+    if (!m_slowArpDetecting) {
+        DHCP_LOGI("it is not arpchecking");
+        return;
+    }
     if (isReachable) {
         m_dhcp4State = DHCP_STATE_DECLINE;
         m_timeoutTimestamp = 0;
@@ -1750,6 +1748,9 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         StopIpv4();
     }
     m_slowArpDetecting = false;
+#ifndef OHOS_ARCH_LITE
+    DhcpTimer::GetInstance()->UnRegister(m_slowArpTaskId);
+#endif
 }
 
 void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
@@ -1765,16 +1766,21 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_slowArpDetecting = true;
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + time(NULL) + 1;
-        if (m_arpCheckThread == nullptr) {
-            DHCP_LOGE("SlowArpDetect() m_arpCheckThread is nullptr");
-            return;
-        }
-        m_arpCheckThread->PostAsyncTask([this]() {
+    #ifndef OHOS_ARCH_LITE
+        std::function<void()> func = std::bind([this]() {
+            DHCP_LOGI("SlowArpDetectTask enter");
+            uint32_t tastId = m_slowArpTaskId;
             int32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
             bool ret = IsArpReachable(timeout, m_arpDectionTargetIp);
-            DHCP_LOGI("SlowArpDetect() result is %{public}d", ret);
+            if (tastId != m_slowArpTaskId) {
+                ret = false;
+                DHCP_LOGW("tastId != m_slowArpTaskId, %{public}u, %{public}u", tastId, m_slowArpTaskId);
+            }
             m_slowArpCallback(ret);
-            }, "slowArp");
+            });
+        DhcpTimer::GetInstance()->Register(func, m_slowArpTaskId, 0);
+        DHCP_LOGI("Register m_slowArpTaskId is %{public}u", m_slowArpTaskId);
+    #endif
     } else {
         if (IsArpReachable(SLOW_ARP_DETECTION_TIME_MS, m_arpDectionTargetIp)) {
             m_dhcp4State = DHCP_STATE_DECLINE;
