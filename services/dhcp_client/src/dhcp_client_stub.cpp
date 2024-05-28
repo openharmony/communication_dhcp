@@ -92,7 +92,6 @@ int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     int exception = data.ReadInt32();
     if (exception) {
         DHCP_LOGI("exception is ture, return failed");
-        reply.WriteInt32(0);
         return DHCP_OPT_FAILED;
     }
     HandleFuncMap::iterator iter = handleFuncMap.find(code);
