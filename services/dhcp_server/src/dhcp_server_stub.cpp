@@ -64,7 +64,7 @@ int DhcpServerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     HandleFuncMap::iterator iter = handleFuncMap.find(code);
     if (iter == handleFuncMap.end()) {
         DHCP_LOGI("not find function to deal, code %{public}u", code);
-        return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
+        return DHCP_OPT_FAILED;
     } else {
         int exception = data.ReadInt32();
         DHCP_LOGI("server rec, exception:%{public}d", exception);
