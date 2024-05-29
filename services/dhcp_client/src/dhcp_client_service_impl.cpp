@@ -463,15 +463,15 @@ int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultExpired not find ifname callback!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     if ((iter->second) == nullptr) {
         DHCP_LOGE("DhcpIpv4ResultExpired callback is nullptr!");
-        return OHOS::Wifi::DHCP_OPT_FAILED;
+        return OHOS::DHCP::DHCP_OPT_FAILED;
     }
     (iter->second)->OnIpFailChanged(DHCP_OPT_LEASE_EXPIRED, ifname.c_str(), "ifname ip lease expired!");
     DHCP_LOGI("DhcpIpv4ResultExpired OnIpFailChanged Lease Expired!");
-    return OHOS::Wifi::DHCP_OPT_SUCCESS;
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
