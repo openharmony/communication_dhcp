@@ -1883,7 +1883,7 @@ void DhcpClientStateMachine::CloseAllRenewTimer()
 #endif
 }
 
-void DhcpClientStateMachine::ScheduleLeaseTimers(time_t timestamp)
+void DhcpClientStateMachine::ScheduleLeaseTimers()
 {
     DHCP_LOGI("ScheduleLeaseTimers timeoutExit:%{public}d m_action:%{public}d", m_cltCnf.timeoutExit, m_action);
     time_t curTimestamp = time(nullptr);
