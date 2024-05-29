@@ -1639,6 +1639,7 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_timeoutTimestamp = m_renewalSec + time(NULL);
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
+        ScheduleLeaseTimers();
     }
     m_slowArpDetecting = false;
 #ifndef OHOS_ARCH_LITE
@@ -1656,7 +1657,6 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         m_timeoutTimestamp = timestamp + m_renewalSec;
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
-        ScheduleLeaseTimers(timestamp);
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_slowArpDetecting = true;
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + time(NULL) + 1;
@@ -1725,7 +1725,7 @@ void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
 
 void DhcpClientStateMachine::TryCachedIp()
 {
-    DHCP_LOGI("TryCachedIp() enter, action:%{public}d", m_action);
+    DHCP_LOGI("TryCachedIp() enter, action:%{public}d dhcpState:%{public}d", m_action, m_dhcp4State);
     IpInfoCached ipCached;
     if (GetCachedDhcpResult(m_targetBssid, ipCached) != 0) {
         DHCP_LOGE("TryCachedIp() not find cache ip");
