@@ -795,8 +795,7 @@ HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest, TestSize.Level1
 HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level1)
 {
     DHCP_LOGI("ScheduleLeaseTimersTest enter!");
-    time_t timestamp = time(nullptr);
-    dhcpClient->ScheduleLeaseTimers(timestamp);
+    dhcpClient->ScheduleLeaseTimers();
 }
 
 HWTEST_F(DhcpClientStateMachineTest, CloseAllRenewTimerTest, TestSize.Level1)
