@@ -112,7 +112,7 @@ public:
     int CloseSignalHandle();
     ActionMode GetAction(void);
     void SetConfiguration(const std::string targetBssid);
-    void ScheduleLeaseTimers(time_t timestamp);
+    void ScheduleLeaseTimers();
     void CloseAllRenewTimer();
     int SendStopSignal();
 private:
