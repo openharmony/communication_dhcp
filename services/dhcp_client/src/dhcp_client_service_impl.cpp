@@ -462,24 +462,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
-        DHCP_LOGE("DhcpIpv4ResultExpired map not find callback!");
-        return OHOS::DHCP::DHCP_OPT_FAILED;
-    }
-    if ((iter->second) == nullptr) {
-        DHCP_LOGE("DhcpIpv4ResultExpired callback is nullptr!");
-        return OHOS::DHCP::DHCP_OPT_FAILED;
-    }
-    (iter->second)->OnIpFailChanged(DHCP_OPT_LEASE_EXPIRED, ifname.c_str(), "ip lease expired!");
-    DHCP_LOGI("DhcpIpv4ResultExpired OnIpFailChanged ip Expired!");
-    return OHOS::DHCP::DHCP_OPT_SUCCESS;
-}
-
-int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
-{
-    DHCP_LOGI("DhcpIpv4ResultExpired ifname:%{public}s", ifname.c_str());
-    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
-    auto iter = m_mapClientCallBack.find(ifname);
-    if (iter == m_mapClientCallBack.end()) {
         DHCP_LOGE("DhcpIpv4ResultExpired not find ifname callback!");
         return OHOS::Wifi::DHCP_OPT_FAILED;
     }
