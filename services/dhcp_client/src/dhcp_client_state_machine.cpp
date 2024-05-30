@@ -49,11 +49,11 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
 
 namespace OHOS {
 namespace DHCP {
-constexpr int32_t FAST_ARP_DETECTION_TIME_MS = 50;
-constexpr int32_t SLOW_ARP_DETECTION_TIME_MS = 80;
-constexpr int32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
-constexpr int32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
-constexpr int32_t RATE_S_MS = 1000;
+constexpr uint32_t FAST_ARP_DETECTION_TIME_MS = 50;
+constexpr uint32_t SLOW_ARP_DETECTION_TIME_MS = 80;
+constexpr uint32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
+constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
+constexpr uint32_t RATE_S_MS = 1000;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -1767,12 +1767,12 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         StopIpv4();
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_slowArpDetecting = true;
-        m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + time(NULL) + 1;
+        m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
     #ifndef OHOS_ARCH_LITE
         std::function<void()> func = std::bind([this]() {
             DHCP_LOGI("SlowArpDetectTask enter");
             uint32_t tastId = m_slowArpTaskId;
-            int32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
+            uint32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
             bool ret = IsArpReachable(timeout, m_arpDectionTargetIp);
             if (tastId != m_slowArpTaskId) {
                 ret = false;
