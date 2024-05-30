@@ -308,7 +308,6 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
         DHCP_LOGE("StopDhcpServer:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
-    DeleteLeaseFile(ifname);
     if (ifname.empty()) {
         DHCP_LOGE("StopDhcpServer() error, ifname is empty!");
         return DHCP_E_FAILED;
