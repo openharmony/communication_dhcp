@@ -92,14 +92,11 @@ int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
     int exception = data.ReadInt32();
     if (exception) {
         DHCP_LOGI("exception is ture, return failed");
-        reply.WriteInt32(0);
         return DHCP_OPT_FAILED;
     }
     HandleFuncMap::iterator iter = handleFuncMap.find(code);
     if (iter == handleFuncMap.end()) {
         DHCP_LOGI("not find function to deal, code %{public}u", code);
-        reply.WriteInt32(0);
-        reply.WriteInt32(2);
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     } else {
         return (this->*(iter->second))(code, data, reply, option);
