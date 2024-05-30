@@ -371,6 +371,7 @@ int DhcpClientStateMachine::StopIpv4(void)
     DHCP_LOGI("StopIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
     m_slowArpDetecting = false;
     m_timeoutTimestamp = 0;
+    m_conflictCount = 0;
     if (!m_cltCnf.timeoutExit) { // thread not exit
         int signum = SIG_STOP;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_STOP SignalReceiver
@@ -679,13 +680,26 @@ int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
 
 void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
 {
-    m_requestedIp4 = targetIp;
-    m_transID = GetRandomId();
-    m_dhcp4State = DHCP_STATE_INITREBOOT;
-    m_sentPacketNum = 0;
+    if (m_sentPacketNum >= NUMBER_TWO) {
+        m_dhcp4State = DHCP_STATE_INIT;
+        SetSocketMode(SOCKET_MODE_RAW);
+        m_sentPacketNum = 0;
+        m_timeoutTimestamp = timestamp;
+        return;
+    }
+
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
+    if (uTimeoutSec > MAX_WAIT_TIMES) {
+        uTimeoutSec = MAX_WAIT_TIMES;
+    }
     m_timeoutTimestamp = timestamp + uTimeoutSec;
+    m_requestedIp4 = targetIp;
     DhcpReboot(m_transID, m_requestedIp4);
+    DHCP_LOGI("SendReboot() SendReboot m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timeoutTimestamp:%{public}u.",
+        m_sentPacketNum,
+        uTimeoutSec,
+        m_timeoutTimestamp);
+    m_sentPacketNum++;
 }
 
 void DhcpClientStateMachine::Reboot(time_t timestamp)
@@ -712,6 +726,9 @@ void DhcpClientStateMachine::Reboot(time_t timestamp)
     }
     
     if (lastAssignedIpv4Addr != 0) {
+        m_transID = GetRandomId();
+        m_dhcp4State = DHCP_STATE_INITREBOOT;
+        m_sentPacketNum = 0;
         SendReboot(lastAssignedIpv4Addr, timestamp);
     }
 }
@@ -804,15 +821,19 @@ void DhcpClientStateMachine::Rebinding(time_t timestamp)
 
 void DhcpClientStateMachine::Declining(time_t timestamp)
 {
+    DHCP_LOGI("Declining() m_conflictCount is :%{public}u", m_conflictCount);
     if (++m_conflictCount > MAX_CONFLICTS_COUNT) {
         if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &m_dhcpIpResult) != DHCP_OPT_SUCCESS) {
             PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, &m_dhcpIpResult);
             DHCP_LOGE("Declining publish dhcp result failed!");
-            StopIpv4();
-            return;
         }
         SaveIpInfoInLocalFile(m_dhcpIpResult);
+        StopIpv4();
         m_dhcp4State = DHCP_STATE_BOUND;
+        m_sentPacketNum = 0;
+        m_resendTimer = 0;
+        m_timeoutTimestamp = timestamp;
+        SetSocketMode(SOCKET_MODE_INVALID);
         return;
     }
     m_timeoutTimestamp = timestamp + TIMEOUT_WAIT_SEC;
@@ -845,7 +866,7 @@ void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
             Rebinding(timestamp);
             break;
         case DHCP_STATE_INITREBOOT:
-            m_dhcp4State = DHCP_STATE_INIT;
+            SendReboot(m_requestedIp4, timestamp);
             break;
         case DHCP_STATE_RELEASED:
             /* Ensure that the function select() is always blocked and don't need to receive ip from dhcp server. */
