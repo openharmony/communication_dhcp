@@ -774,7 +774,8 @@ void DhcpClientStateMachine::Declining(time_t timestamp)
 
 void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
 {
-    DHCP_LOGI("DhcpRequestHandle() m_dhcp4State:%{public}d", m_dhcp4State);
+    DHCP_LOGI("DhcpRequestHandle state:%{public}d[init-0 selecting-1 requesting-2 bound-3 renewing-4 rebinding-5 "
+        "initreboot-6 released-7 renewed-8 fastarp-9 slowarp-10 decline-11]", m_dhcp4State);
     switch (m_dhcp4State) {
         case DHCP_STATE_INIT:
         case DHCP_STATE_SELECTING:
@@ -1238,36 +1239,36 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
     uint8_t u8Message = 0;
 
     if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
-        DHCP_LOGE("DhcpResponseHandle() memset_s packet failed!");
+        DHCP_LOGE("DhcpResponseHandle memset_s packet failed!");
         return;
     }
     getLen = (m_socketMode == SOCKET_MODE_RAW) ? GetDhcpRawPacket(&packet, m_sockFd)
                                                : GetDhcpKernelPacket(&packet, m_sockFd);
     if (getLen < 0) {
         if ((getLen == SOCKET_OPT_ERROR) && (errno != EINTR)) {
-            DHCP_LOGI(" DhcpResponseHandle() get packet read error, reopening socket!");
+            DHCP_LOGI(" DhcpResponseHandle get packet read error, reopening socket!");
             /* Reopen m_sockFd. */
             SetSocketMode(m_socketMode);
         }
-        DHCP_LOGI("DhcpResponseHandle() get packet failed, error:%{public}d!", errno);
+        DHCP_LOGI("DhcpResponseHandle get packet failed, error:%{public}d len:%{public}d", errno, getLen);
         if (m_dhcp4State == DHCP_STATE_INITREBOOT) {
             m_dhcp4State = DHCP_STATE_INIT;
             m_timeoutTimestamp = timestamp;
         }
         return;
     }
-    DHCP_LOGI("DhcpResponseHandle() get packet success, getLen:%{public}d.", getLen);
+    DHCP_LOGI("DhcpResponseHandle get packet success, getLen:%{public}d.", getLen);
 
     /* Check packet data. */
     if (packet.xid != m_transID) {
-        DHCP_LOGW("DhcpResponseHandle() get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
+        DHCP_LOGW("DhcpResponseHandle get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
         return;
     }
     if (!GetDhcpOptionUint8(&packet, DHCP_MESSAGE_TYPE_OPTION, &u8Message)) {
-        DHCP_LOGE("DhcpResponseHandle() GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
+        DHCP_LOGE("DhcpResponseHandle GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
         return;
     }
-    DHCP_LOGI("DhcpResponseHandle() m_dhcp4State:%{public}d.", m_dhcp4State);
+    DHCP_LOGI("DhcpResponseHandle m_dhcp4State:%{public}d.", m_dhcp4State);
     switch (m_dhcp4State) {
         case DHCP_STATE_SELECTING:
             DhcpOfferPacketHandle(u8Message, &packet, timestamp);
