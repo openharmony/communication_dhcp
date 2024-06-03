@@ -25,6 +25,7 @@
 #include "dhcp_client_def.h"
 #include "dhcp_function.h"
 #include "securec.h"
+#include "dhcp_thread.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientStateMachineTest");
 
@@ -32,27 +33,35 @@ using namespace testing::ext;
 using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
+
+static std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient = nullptr;
+
 class DhcpClientStateMachineTest : public testing::Test {
 public:
     static void SetUpTestCase()
-    {}
-    static void TearDownTestCase()
-    {}
-    virtual void SetUp()
     {
         std::string ifnametest = "wlan0";
         dhcpClient = std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(ifnametest);
     }
-    virtual void TearDown()
+    static void TearDownTestCase()
     {
         if (dhcpClient != nullptr) {
             dhcpClient.reset(nullptr);
         }
+        DhcpTimer::GetInstance()->timer_.reset();
+    }
+    virtual void SetUp()
+    {}
+    virtual void TearDown()
+    {
         MockCustomFunc::GetInstance().SetMockFlag(false);
         MockSystemFunc::GetInstance().SetMockFlag(false);
     }
-public:
-    std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient;
+    
+    static void RunGetIPThreadFuncTest()
+    {
+        dhcpClient->RunGetIPThreadFunc();
+    }
 };
 
 HWTEST_F(DhcpClientStateMachineTest, ExecDhcpRenew_SUCCESS, TestSize.Level1)
@@ -564,10 +573,12 @@ HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
     DHCP_LOGI("RunGetIPThreadFuncTest enter!");
     DhcpClientCfg m_cltCnf;
     m_cltCnf.getMode = DHCP_IP_TYPE_ALL;
-    dhcpClient->RunGetIPThreadFunc();
-
-    m_cltCnf.getMode = DHCP_IP_TYPE_V4;
-    dhcpClient->RunGetIPThreadFunc();
+    std::thread t(&DhcpClientStateMachineTest::RunGetIPThreadFuncTest);
+    sleep(2);
+    dhcpClient->m_pthread = nullptr;
+    dhcpClient->InitSignalHandle();
+    dhcpClient->m_cltCnf.timeoutExit =true;
+    t.join();
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
