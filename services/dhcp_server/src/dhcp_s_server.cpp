@@ -1056,8 +1056,8 @@ static int NotBindingRequest(DhcpAddressPool *pool, PDhcpMsgInfo received, PDhcp
             DHCP_LOGI("SourceIpAddress True REPLY_ACK");
             return REPLY_ACK;
         }
-        DHCP_LOGI("SourceIpAddress REPLY_NONE");
-        return REPLY_NONE;
+        DHCP_LOGI("SourceIpAddress REPLY_NAK");
+        return REPLY_NAK;
     }
     int sameAddr = AddrEquels(lease->chaddr, received->packet.chaddr, MAC_ADDR_LENGTH);
     if (lease->bindingStatus == BIND_ASSOCIATED && !sameAddr) {
