@@ -34,7 +34,7 @@ using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
 
-static std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient = nullptr;
+static std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient = nullptr;
 
 class DhcpClientStateMachineTest : public testing::Test {
 public:
