@@ -128,7 +128,9 @@ constexpr int DHCP_IPV6_DISENABLE = 0;
 enum ActionMode {
     ACTION_START_NEW = 0,
     ACTION_START_OLD,
-    ACTION_RENEW,
+    ACTION_RENEW_T1,
+    ACTION_RENEW_T2,
+    ACTION_RENEW_T3,
     ACTION_INVALID  
 };
 
@@ -324,7 +326,9 @@ typedef enum EnumPublishEventCode {
     /* failed */
     PUBLISH_CODE_FAILED = -1,
     /* timeout */
-    PUBLISH_CODE_TIMEOUT = -2
+    PUBLISH_CODE_TIMEOUT = -2,
+    /* lease expired */
+    PUBLISH_CODE_EXPIRED = -3
 } DhcpEventCode;
 
 /* DhcpPacket Fields */
@@ -379,6 +383,7 @@ enum DHCP_IP_TYPE {
 typedef struct{
     int  ifaceIndex;                        /* Index of the network interface used by the current process. */
     bool timeoutExit;                       /* DHCP packet sending times out and exits automatically. */
+    bool isIpv6;                             /* IPv6 address of the network interface used to get. */
     unsigned int ifaceIpv4;                 /* IPv4 of the network interface used by the current process. */
     unsigned int getMode;                   /* Current process obtaining IPv4 address mode. */
     unsigned char ifaceMac[MAC_ADDR_LEN];   /* Mac addr of the network interface used by the current process. */
@@ -394,5 +399,13 @@ struct IpInfoCached {
     std::string bssid;
     uint32_t absoluteLeasetime;
     struct DhcpIpResult ipResult;
+};
+
+/* timer type */
+enum TimerType {
+    TIMER_GET_IP = 0,
+    TIMER_RENEW_DELAY,
+    TIMER_REBIND_DELAY,
+    TIMER_REMAINING_DELAY,
 };
 #endif

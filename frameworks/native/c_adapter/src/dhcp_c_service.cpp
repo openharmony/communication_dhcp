@@ -81,13 +81,6 @@ NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6)
     return  GetCErrorCode(dhcpClientPtr->StopDhcpClient(ifname, bIpv6));
 }
 
-NO_SANITIZE("cfi") DhcpErrorCode RenewDhcpClient(const char *ifname)
-{
-    CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
-    CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
-    return GetCErrorCode(dhcpClientPtr->RenewDhcpClient(ifname));
-}
-
 NO_SANITIZE("cfi") DhcpErrorCode RegisterDhcpServerCallBack(const char *ifname, const ServerCallBack *event)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);

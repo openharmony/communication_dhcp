@@ -357,6 +357,7 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
                 bIpv6);
             (iter2->second).pStaStateMachine->StopIpv4();
+            (iter2->second).pStaStateMachine->CloseAllRenewTimer();
         }
         if ((iter2->second).pipv6Client != nullptr) {
             DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
@@ -366,38 +367,6 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
             (iter2->second).pipv6Client->StopIpv6Timer();
 #endif
-        }
-    }
-    return DHCP_E_SUCCESS;
-}
-
-ErrCode DhcpClientServiceImpl::RenewDhcpClient(const std::string& ifname)
-{
-    DHCP_LOGI("RenewDhcpClient ifName:%{public}s", ifname.c_str());
-    if (!IsNativeProcess()) {
-        DHCP_LOGE("RenewDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
-        return DHCP_E_PERMISSION_DENIED;
-    }
-    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-    auto iter = m_mapClientService.find(ifname);
-    if (iter != m_mapClientService.end()) {
-        if ((iter->second).pStaStateMachine != nullptr) {
-            DHCP_LOGI("RenewDhcpClient StartIpv4Type, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
-                (iter->second).isIpv6);
-            (iter->second).pStaStateMachine->StartIpv4Type(ifname, (iter->second).isIpv6, ACTION_RENEW);
-        } else {
-            (iter->second).pStaStateMachine = new (std::nothrow)DhcpClientStateMachine(ifname);
-            if ((iter->second).pStaStateMachine == nullptr) {
-                DHCP_LOGE("RenewDhcpClient new pStaStateMachine failed!, ifname:%{public}s", ifname.c_str());
-                return DHCP_E_FAILED;
-            }
-            DHCP_LOGE("RenewDhcpClient new pStaStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
-                (iter->second).isIpv6);
-            (iter->second).pStaStateMachine->StartIpv4Type(ifname, (iter->second).isIpv6, ACTION_RENEW);
-        }
-
-        if (((iter->second).pipv6Client != nullptr) && ((iter->second).isIpv6)) {
-            DHCP_LOGI("RenewDhcpClient not supported!");
         }
     }
     return DHCP_E_SUCCESS;
@@ -478,9 +447,11 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
         DHCP_LOGE("DhcpIpv4ResultFail mclientCallback == nullptr!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
-    (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_FAILED, ifname.c_str(),
-        "get dhcp renew result failed!")) :
-        ((iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!"));
+    if ((action == ACTION_RENEW_T1) || (action == ACTION_RENEW_T2) || (action == ACTION_RENEW_T3)) {
+        (iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_FAILED, ifname.c_str(), "get dhcp renew result failed!");
+    } else {
+        (iter->second)->OnIpFailChanged(DHCP_OPT_FAILED, ifname.c_str(), "get dhcp ip result failed!");
+    }
     DHCP_LOGI("DhcpIpv4ResultFail OnIpFailChanged!, action:%{public}d", action);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
@@ -496,7 +467,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
             action = (iterlient->second).pStaStateMachine->GetAction();
         }
     }
-
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
@@ -507,10 +477,30 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         DHCP_LOGE("DhcpIpv4ResultTimeOut mclientCallback == nullptr!");
         return OHOS::DHCP::DHCP_OPT_FAILED;
     }
-    (action == ACTION_RENEW) ? ((iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_TIMEOUT, ifname.c_str(),
-        "get dhcp renew result timeout!")) :
-        ((iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!"));
+    if ((action == ACTION_RENEW_T1) || (action == ACTION_RENEW_T2) || (action == ACTION_RENEW_T2)) {
+        (iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_TIMEOUT, ifname.c_str(), "get dhcp renew result timeout!");
+    } else {
+        (iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!");
+    }
     DHCP_LOGI("DhcpIpv4ResultTimeOut OnIpFailChanged Timeout!, action:%{public}d", action);
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
+}
+
+int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
+{
+    DHCP_LOGI("DhcpIpv4ResultExpired ifname:%{public}s", ifname.c_str());
+    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+    auto iter = m_mapClientCallBack.find(ifname);
+    if (iter == m_mapClientCallBack.end()) {
+        DHCP_LOGE("DhcpIpv4ResultExpired not find ifname callback!");
+        return OHOS::DHCP::DHCP_OPT_FAILED;
+    }
+    if ((iter->second) == nullptr) {
+        DHCP_LOGE("DhcpIpv4ResultExpired callback is nullptr!");
+        return OHOS::DHCP::DHCP_OPT_FAILED;
+    }
+    (iter->second)->OnIpFailChanged(DHCP_OPT_LEASE_EXPIRED, ifname.c_str(), "ifname ip lease expired!");
+    DHCP_LOGI("DhcpIpv4ResultExpired OnIpFailChanged Lease Expired!");
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
 

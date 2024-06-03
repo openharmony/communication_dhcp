@@ -70,18 +70,21 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_socketMode(SOCKET_MODE_INVALID),
     m_transID(0),
     m_ifName(ifname),
-    m_renewThreadIsRun(false),
     m_pthread(nullptr),
     m_slowArpDetecting(false),
     m_slowArpTaskId(0)
 {
 #ifndef OHOS_ARCH_LITE
     getIpTimerId = 0;
+    renewDelayTimerId = 0;
+    rebindDelayTimerId = 0;
+    remainingDelayTimerId = 0;
 #endif
     m_cltCnf.ifaceIndex = 0;
     m_cltCnf.timeoutExit = false;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
+    m_cltCnf.isIpv6 = false;
     m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
     DHCP_LOGI("DhcpClientStateMachine()");
 }
@@ -141,51 +144,21 @@ int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
 
 int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action)
 {
-    DHCP_LOGI("StartIpv4 ifname:%{public}s isIpv6:%{public}d isExit:%{public}d threadRun:%{public}d action:%{public}d",
-        ifname.c_str(), isIpv6, m_cltCnf.timeoutExit, m_renewThreadIsRun, action);
+    DHCP_LOGI("StartIpv4Type ifname:%{public}s isIpv6:%{public}d threadIsExit:%{public}d action:%{public}d",
+        ifname.c_str(), isIpv6, m_cltCnf.timeoutExit, action);
     m_ifName = ifname;
     m_action = action;
+#ifndef OHOS_ARCH_LITE
+    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+#endif
     if (InitConfig(ifname, isIpv6) != DHCP_OPT_SUCCESS) {
+        DHCP_LOGE("StartIpv4Type InitConfig failed!");
         return DHCP_OPT_FAILED;
     }
-#ifndef OHOS_ARCH_LITE
-    StartGetIpTimer(); // statr get ip timer
-#endif
-    if (m_action == ACTION_START_NEW && !m_cltCnf.timeoutExit) {  // first, thread is exit
-        DHCP_LOGI("StartIpv4 start new InitStartIpv4Thread");
+    if ((m_action == ACTION_START_NEW) || (m_action == ACTION_START_OLD)) {
         InitStartIpv4Thread(ifname, isIpv6);
-    } else if (m_action == ACTION_START_OLD) {
-        if (!m_cltCnf.timeoutExit && m_renewThreadIsRun) {  // thread is running
-            int signum = SIG_START;
-            m_renewThreadIsRun = false;
-            if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) {  // SIG_START SignalReceiver
-                DHCP_LOGE("StartIpv4 start old sig send failed.");
-                return DHCP_OPT_FAILED;
-            }
-            while (!m_renewThreadIsRun) {
-                usleep(50000); // 50ms, waiting for socket select run SignalReceiver 
-                DHCP_LOGI("StartIpv4 waiting for socket select run, usleep 500ms"); 
-            }
-            DHCP_LOGI("StartIpv4 start old active Ipv4Thread, signum:%{public}d", signum);
-        } else {  // thread not exit
-            InitStartIpv4Thread(ifname, isIpv6);
-        }
-    } else { // renew  m_action == ACTION_RENEW
-        if (m_cltCnf.timeoutExit) { // thread not exit
-            DHCP_LOGI("StartIpv4 renew InitStartIpv4Thread");
-            m_renewThreadIsRun = false;
-            InitStartIpv4Thread(ifname, isIpv6);
-        }
-        int signum = SIG_RENEW;
-        if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_RENEW SignalReceiver
-            DHCP_LOGE("StartIpv4 renew sig send failed.");
-            return DHCP_OPT_FAILED;
-        }
-        while (!m_renewThreadIsRun) {
-            usleep(50000); // 50ms, waiting for socket select running...
-            DHCP_LOGI("StartIpv4 renew waiting for socket select run, usleep 50ms");
-        }
-        DHCP_LOGI("StartIpv4 renew active Ipv4Thread, signum:%{public}d", signum);
+    } else {
+        DHCP_LOGI("StartIpv4Type not supported m_action:%{public}d", m_action);
     }
     return DHCP_OPT_SUCCESS;
 }
@@ -243,6 +216,7 @@ int DhcpClientStateMachine::InitSpecifiedClientCfg(const std::string &ifname, bo
         return DHCP_OPT_FAILED;
     }
     m_cltCnf.getMode = DHCP_IP_TYPE_ALL;
+    m_cltCnf.isIpv6 = isIpv6;
     isIpv6 ? m_cltCnf.getMode = DHCP_IP_TYPE_ALL : m_cltCnf.getMode = DHCP_IP_TYPE_V4;
 
     DHCP_LOGD("InitSpecifiedClientCfg: ifaceName:%{public}s, workDir:%{public}s, confFile:%{public}s,"
@@ -292,8 +266,8 @@ int DhcpClientStateMachine::StartIpv4(void)
     struct timeval timeout;
     time_t curTimestamp;
  
-    if (m_action != ACTION_RENEW) {
-        DhcpInit();
+    if ((m_action != ACTION_RENEW_T1) && (m_action != ACTION_RENEW_T2) && (m_action != ACTION_RENEW_T3)) {
+         DhcpInit();
     }
     m_cltCnf.timeoutExit = false;
     DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
@@ -324,9 +298,7 @@ int DhcpClientStateMachine::StartIpv4(void)
             nRet = 0;
         } else {
             nMaxFds = (m_sigSockFds[0] > m_sockFd) ? m_sigSockFds[0] : m_sockFd;
-            m_renewThreadIsRun = true;
-            DHCP_LOGI("StartIpv4 waiting on select, m_dhcp4State:%{public}d m_renewThreadIsRun:%{public}d",
-                m_dhcp4State, m_renewThreadIsRun);
+            DHCP_LOGI("StartIpv4 waiting on select, m_dhcp4State:%{public}d", m_dhcp4State);
             nRet = select(nMaxFds + 1, &exceptfds, NULL, NULL, &timeout);
             DHCP_LOGI("StartIpv4 select nMaxFds:%{public}d,m_sigSockFds[0]:%{public}d,m_sigSockFds[1]:%{public}d",
                 nMaxFds, m_sigSockFds[0], m_sigSockFds[1]);
@@ -348,7 +320,7 @@ int DhcpClientStateMachine::StartIpv4(void)
         } else if (FD_ISSET(m_sigSockFds[0], &exceptfds)) {
             SignalReceiver();
         } else {
-            DHCP_LOGI("StartIpv4  nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
+            DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
         }
     }
     return m_cltCnf.timeoutExit ? ExitIpv4() : DHCP_OPT_SUCCESS;
@@ -362,13 +334,13 @@ int DhcpClientStateMachine::ExitIpv4(void)
         DHCP_LOGI("StopIpv4 delete m_pthread!");
     }
     CloseSignalHandle();
-    DHCP_LOGI("ExitIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
+    DHCP_LOGI("ExitIpv4 timeoutExit:%{public}d", m_cltCnf.timeoutExit);
     return DHCP_OPT_SUCCESS;
 }
 
 int DhcpClientStateMachine::StopIpv4(void)
 {
-    DHCP_LOGI("StopIpv4 timeoutExit:%{public}d threadIsRun:%{public}d", m_cltCnf.timeoutExit, m_renewThreadIsRun);
+    DHCP_LOGI("StopIpv4 timeoutExit:%{public}d", m_cltCnf.timeoutExit);
     m_slowArpDetecting = false;
     m_timeoutTimestamp = 0;
     m_conflictCount = 0;
@@ -380,7 +352,7 @@ int DhcpClientStateMachine::StopIpv4(void)
         }
     }
 #ifndef OHOS_ARCH_LITE
-    StopGetIpTimer();
+    StopTimer(getIpTimerId);
     DHCP_LOGI("UnRegister slowArpTask: %{public}u", m_slowArpTaskId);
     DhcpTimer::GetInstance()->UnRegister(m_slowArpTaskId);
     m_slowArpTaskId = 0;
@@ -604,7 +576,7 @@ void DhcpClientStateMachine::InitSelecting(time_t timestamp)
     m_dhcp4State = DHCP_STATE_SELECTING;
 
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
-    if (uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) {
+    if ((uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) && (m_action != ACTION_RENEW_T3)) {
         TryCachedIp();
     }
     if (uTimeoutSec > MAX_WAIT_TIMES) {
@@ -770,53 +742,32 @@ void DhcpClientStateMachine::Requesting(time_t timestamp)
 
 void DhcpClientStateMachine::Renewing(time_t timestamp)
 {
-    if ((m_renewalSec + TIME_INTERVAL_MAX) < m_rebindSec) {
-        /* Cur time is between renewal and rebind time, unicast dhcp request packet in the renew state. */
+    if (m_dhcp4State == DHCP_STATE_RENEWING) {
         DhcpRenew(m_transID, m_requestedIp4, m_serverIp4);
-
-        /* Set a new renewal time. */
-        m_renewalSec += (m_rebindSec - m_renewalSec) / NUMBER_TWO;
-        m_timeoutTimestamp = m_renewalTimestamp + m_renewalSec;
-        DHCP_LOGI("Renewing() DhcpRenew unicast renewalTime:%{public}u,renewal:%{public}u,timeoutTime:%{public}u, "
-                  "rebind:%{public}u.",
-            m_renewalTimestamp,
-            m_renewalSec,
-            m_timeoutTimestamp,
-            m_rebindSec);
-    } else {
-        /* Cur time reaches rebind time, now enter rebinding state. */
-        m_dhcp4State = DHCP_STATE_REBINDING;
-        DHCP_LOGI("Renewing() cur time reaches rebind time, now enter rebinding state...");
-        m_timeoutTimestamp = timestamp + (m_rebindSec - m_renewalSec);
-        DHCP_LOGI("Renewing() timestamp:%{public}d,rebind:%{public}u,renewal:%{public}u, timeoutTime:%{public}u.",
-            (int)timestamp, m_rebindSec, m_renewalSec, m_timeoutTimestamp);
     }
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
+    if (uTimeoutSec > MAX_WAIT_TIMES) {
+        uTimeoutSec = MAX_WAIT_TIMES;
+    }
+    m_timeoutTimestamp = timestamp + uTimeoutSec;
+    m_sentPacketNum++;
+    DHCP_LOGI("Renewing sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}u state:%{public}u",
+        m_sentPacketNum, uTimeoutSec, m_timeoutTimestamp, m_dhcp4State);
 }
 
 void DhcpClientStateMachine::Rebinding(time_t timestamp)
 {
-    if ((m_rebindSec + TIME_INTERVAL_MAX) < m_leaseTime) {
-        /* Cur time is between rebind and lease time, broadcast dhcp request packet in the rebind state. */
+    if (m_dhcp4State == DHCP_STATE_REBINDING) {
         DhcpRenew(m_transID, m_requestedIp4, 0);
-
-        /* Set a new rebind time. */
-        m_rebindSec += (m_leaseTime - m_rebindSec) / NUMBER_TWO;
-        m_timeoutTimestamp = m_renewalTimestamp + m_rebindSec;
-        DHCP_LOGI("Rebinding() DhcpRenew broadcast renewalTime:%{public}u,rebind:%{public}u,timeoutTime:%{public}u, "
-                  "lease:%{public}u.",
-            m_renewalTimestamp,
-            m_rebindSec,
-            m_timeoutTimestamp,
-            m_leaseTime);
-    } else {
-        /* Cur time reaches lease time, send packet timed out, now enter init state. */
-        DHCP_LOGI("Rebinding() 555 cur time reaches lease time, now enter init state...");
-        m_dhcp4State = DHCP_STATE_INIT;
-        SetSocketMode(SOCKET_MODE_RAW);
-        m_sentPacketNum = 0;
-        m_timeoutTimestamp = timestamp;
-        return;
     }
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
+    if (uTimeoutSec > MAX_WAIT_TIMES) {
+        uTimeoutSec = MAX_WAIT_TIMES;
+    }
+    m_timeoutTimestamp = timestamp + uTimeoutSec;
+    m_sentPacketNum++;
+    DHCP_LOGI("Rebinding sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}u state:%{public}u",
+        m_sentPacketNum, uTimeoutSec, m_timeoutTimestamp, m_dhcp4State);
 }
 
 void DhcpClientStateMachine::Declining(time_t timestamp)
@@ -844,7 +795,8 @@ void DhcpClientStateMachine::Declining(time_t timestamp)
 
 void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
 {
-    DHCP_LOGI("DhcpRequestHandle() m_dhcp4State:%{public}d", m_dhcp4State);
+    DHCP_LOGI("DhcpRequestHandle state:%{public}d[init-0 selecting-1 requesting-2 bound-3 renewing-4 rebinding-5 "
+        "initreboot-6 released-7 renewed-8 fastarp-9 slowarp-10 decline-11]", m_dhcp4State);
     switch (m_dhcp4State) {
         case DHCP_STATE_INIT:
         case DHCP_STATE_SELECTING:
@@ -1244,6 +1196,7 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
         return;
     }
     FormatString(&m_dhcpIpResult);
+    CloseAllRenewTimer();
     IpConflictDetect();
 }
 
@@ -1307,36 +1260,36 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
     uint8_t u8Message = 0;
 
     if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
-        DHCP_LOGE("DhcpResponseHandle() memset_s packet failed!");
+        DHCP_LOGE("DhcpResponseHandle memset_s packet failed!");
         return;
     }
     getLen = (m_socketMode == SOCKET_MODE_RAW) ? GetDhcpRawPacket(&packet, m_sockFd)
                                                : GetDhcpKernelPacket(&packet, m_sockFd);
     if (getLen < 0) {
         if ((getLen == SOCKET_OPT_ERROR) && (errno != EINTR)) {
-            DHCP_LOGI(" DhcpResponseHandle() get packet read error, reopening socket!");
+            DHCP_LOGI(" DhcpResponseHandle get packet read error, reopening socket!");
             /* Reopen m_sockFd. */
             SetSocketMode(m_socketMode);
         }
-        DHCP_LOGI("DhcpResponseHandle() get packet failed, error:%{public}d!", errno);
+        DHCP_LOGI("DhcpResponseHandle get packet failed, error:%{public}d len:%{public}d", errno, getLen);
         if (m_dhcp4State == DHCP_STATE_INITREBOOT) {
             m_dhcp4State = DHCP_STATE_INIT;
             m_timeoutTimestamp = timestamp;
         }
         return;
     }
-    DHCP_LOGI("DhcpResponseHandle() get packet success, getLen:%{public}d.", getLen);
+    DHCP_LOGI("DhcpResponseHandle get packet success, getLen:%{public}d.", getLen);
 
     /* Check packet data. */
     if (packet.xid != m_transID) {
-        DHCP_LOGW("DhcpResponseHandle() get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
+        DHCP_LOGW("DhcpResponseHandle get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
         return;
     }
     if (!GetDhcpOptionUint8(&packet, DHCP_MESSAGE_TYPE_OPTION, &u8Message)) {
-        DHCP_LOGE("DhcpResponseHandle() GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
+        DHCP_LOGE("DhcpResponseHandle GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
         return;
     }
-    DHCP_LOGI("DhcpResponseHandle() m_dhcp4State:%{public}d.", m_dhcp4State);
+    DHCP_LOGI("DhcpResponseHandle m_dhcp4State:%{public}d.", m_dhcp4State);
     switch (m_dhcp4State) {
         case DHCP_STATE_SELECTING:
             DhcpOfferPacketHandle(u8Message, &packet, timestamp);
@@ -1662,46 +1615,6 @@ int DhcpClientStateMachine::DhcpDecline(uint32_t transId, uint32_t clientIp, uin
     return SendDhcpPacket(&packet, clientIp, serverIp);
 }
 
-#ifndef OHOS_ARCH_LITE
-using TimeOutCallback = std::function<void()>;
-void DhcpClientStateMachine::GetIpTimerCallback()
-{
-    DHCP_LOGI("enter GetIpTimerCallback, getIpTimerId:%{public}u timeoutExit:%{public}d", getIpTimerId,
-        m_cltCnf.timeoutExit);
-    if (m_cltCnf.timeoutExit) {
-        DHCP_LOGE("GetIpTimerCallback return!");
-        return;
-    }
-    StopGetIpTimer();
-    struct DhcpIpResult ipResult;
-    ipResult.code = PUBLISH_CODE_TIMEOUT;
-    ipResult.ifname = m_cltCnf.ifaceName;
-    PublishDhcpIpv4Result(ipResult);
-    StopIpv4();
-}
-
-void DhcpClientStateMachine::StartGetIpTimer()
-{
-    DHCP_LOGI("StartGetIpTimer getIpTimerId:%{public}u", getIpTimerId);
-    std::unique_lock<std::mutex> lock(getIpTimerMutex);
-    if (getIpTimerId == 0) {
-        TimeOutCallback timeoutCallback = std::bind(&DhcpClientStateMachine::GetIpTimerCallback, this);
-        DhcpTimer::GetInstance()->Register(timeoutCallback, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT);
-        DHCP_LOGI("StartGetIpTimer success! getIpTimerId:%{public}u", getIpTimerId);
-    }
-    return;
-}
-
-void DhcpClientStateMachine::StopGetIpTimer()
-{
-    DHCP_LOGI("StopGetIpTimer getIpTimerId:%{public}u", getIpTimerId);
-    std::unique_lock<std::mutex> lock(getIpTimerMutex);
-    DhcpTimer::GetInstance()->UnRegister(getIpTimerId);
-    getIpTimerId = 0;
-    return;
-}
-#endif
-
 void DhcpClientStateMachine::IpConflictDetect()
 {
     DHCP_LOGI("IpConflictDetect start");
@@ -1748,6 +1661,7 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_timeoutTimestamp = m_renewalSec + time(NULL);
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
+        ScheduleLeaseTimers();
     }
     m_slowArpDetecting = false;
 #ifndef OHOS_ARCH_LITE
@@ -1833,7 +1747,7 @@ void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
 
 void DhcpClientStateMachine::TryCachedIp()
 {
-    DHCP_LOGI("TryCachedIp() enter");
+    DHCP_LOGI("TryCachedIp() enter, action:%{public}d dhcpState:%{public}d", m_action, m_dhcp4State);
     IpInfoCached ipCached;
     if (GetCachedDhcpResult(m_targetBssid, ipCached) != 0) {
         DHCP_LOGE("TryCachedIp() not find cache ip");
@@ -1849,6 +1763,171 @@ void DhcpClientStateMachine::TryCachedIp()
 void DhcpClientStateMachine::SetConfiguration(const std::string targetBssid)
 {
     m_targetBssid = targetBssid;
+}
+
+#ifndef OHOS_ARCH_LITE
+void DhcpClientStateMachine::GetIpTimerCallback()
+{
+    DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}u %{public}u %{public}u %{public}u",
+        m_cltCnf.timeoutExit, m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+    if (m_cltCnf.timeoutExit) {
+        DHCP_LOGE("GetIpTimerCallback return!");
+        return;
+    }
+    StopTimer(getIpTimerId);
+    SendStopSignal();
+    if (m_action == ACTION_RENEW_T1 || m_action == ACTION_RENEW_T2) {
+        DHCP_LOGI("GetIpTimerCallback T1 or T2 Timeout!");
+    } else if (m_action == ACTION_RENEW_T3) {
+        DHCP_LOGI("GetIpTimerCallback T3 Expired!");
+        struct DhcpIpResult ipResult;
+        ipResult.code = PUBLISH_CODE_EXPIRED;
+        ipResult.ifname = m_cltCnf.ifaceName;
+        PublishDhcpIpv4Result(ipResult);
+    } else {
+        struct DhcpIpResult ipResult;
+        ipResult.code = PUBLISH_CODE_TIMEOUT;
+        ipResult.ifname = m_cltCnf.ifaceName;
+        PublishDhcpIpv4Result(ipResult);
+    }
+}
+
+void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once)
+{
+    DhcpTimer::TimerCallback timeCallback = nullptr;
+    std::unique_lock<std::mutex> lock(getIpTimerMutex);
+    if (timerId != 0) {
+        StopTimer(timerId);
+    }
+    switch (type) {
+        case TIMER_GET_IP:
+            timeCallback = std::bind(&DhcpClientStateMachine::GetIpTimerCallback, this);
+            break;
+        case TIMER_RENEW_DELAY:
+            timeCallback = std::bind(&DhcpClientStateMachine::RenewDelayCallback, this);
+            break;
+        case TIMER_REBIND_DELAY:
+            timeCallback = std::bind(&DhcpClientStateMachine::RebindDelayCallback, this);
+            break;
+        case TIMER_REMAINING_DELAY:
+            timeCallback = std::bind(&DhcpClientStateMachine::RemainingDelayCallback, this);
+            break;
+        default:
+            DHCP_LOGE("StartTimer default timerId:%{public}u", timerId);
+            break;
+    }
+    if (timeCallback != nullptr && (timerId == 0)) {
+        DhcpTimer::GetInstance()->Register(timeCallback, timerId, interval, once);
+        DHCP_LOGI("StartTimer type:%{public}u timerId:%{public}u interval:%{public}u once:%{public}d"
+            "[%{public}u %{public}u %{public}u %{public}u]", type, timerId, interval, once, getIpTimerId,
+            renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+    }
+}
+
+void DhcpClientStateMachine::StopTimer(uint32_t &timerId)
+{
+    uint32_t stopTimerId = timerId;
+    if (timerId == 0) {
+        DHCP_LOGE("StopTimer timerId is 0, no unregister timer");
+        return;
+    }
+    std::unique_lock<std::mutex> lock(getIpTimerMutex);
+    DhcpTimer::GetInstance()->UnRegister(timerId);
+    timerId = 0;
+    DHCP_LOGI("StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
+        getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+}
+
+void DhcpClientStateMachine::RenewDelayCallback()
+{
+    DHCP_LOGI("RenewDelayCallback timerId:%{public}u", renewDelayTimerId);
+    StopTimer(renewDelayTimerId);
+    m_action = ACTION_RENEW_T1; // T1 begin renew
+    InitConfig(m_ifName, m_cltCnf.isIpv6);
+    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    m_dhcp4State = DHCP_STATE_RENEWING;
+    m_sentPacketNum = 0;
+    m_timeoutTimestamp = 0;
+    SetSocketMode(SOCKET_MODE_KERNEL); // Set socket mode, send unicast packet
+    InitStartIpv4Thread(m_ifName, m_cltCnf.isIpv6);
+}
+
+void DhcpClientStateMachine::RebindDelayCallback()
+{
+    DHCP_LOGI("RebindDelayCallback timerId:%{public}u", rebindDelayTimerId);
+    StopTimer(rebindDelayTimerId);
+    m_action = ACTION_RENEW_T2; // T2 begin rebind
+    InitConfig(m_ifName, m_cltCnf.isIpv6);
+    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    m_dhcp4State = DHCP_STATE_REBINDING;
+    m_sentPacketNum = 0;
+    m_timeoutTimestamp = 0;
+    SetSocketMode(SOCKET_MODE_RAW);
+    InitStartIpv4Thread(m_ifName, m_cltCnf.isIpv6);
+}
+
+void DhcpClientStateMachine::RemainingDelayCallback()
+{
+    DHCP_LOGI("RemainingDelayCallback timerId:%{public}u", remainingDelayTimerId);
+    StopTimer(remainingDelayTimerId);
+    m_action = ACTION_RENEW_T3;  // T3 expired,
+    InitConfig(m_ifName, m_cltCnf.isIpv6);
+    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    m_dhcp4State = DHCP_STATE_INIT;
+    m_sentPacketNum = 0;
+    m_timeoutTimestamp = 0;
+    SetSocketMode(SOCKET_MODE_RAW);
+    InitStartIpv4Thread(m_ifName, m_cltCnf.isIpv6);  // int discover
+}
+#endif
+
+int DhcpClientStateMachine::SendStopSignal()
+{
+    DHCP_LOGI("SendStopSignal isExit:%{public}d", m_cltCnf.timeoutExit);
+    if (!m_cltCnf.timeoutExit) {
+        int signum = SIG_STOP;
+        if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) {
+            DHCP_LOGE("SendStopSignal send SIG_STOP failed.");
+            return DHCP_OPT_FAILED;
+        }
+        DHCP_LOGE("SendStopSignal send SIG_STOP ok");
+    }
+    return DHCP_OPT_SUCCESS;
+}
+
+void DhcpClientStateMachine::CloseAllRenewTimer()
+{
+    DHCP_LOGI("CloseAllRenewTimer enter!");
+#ifndef OHOS_ARCH_LITE
+    StopTimer(renewDelayTimerId);
+    StopTimer(rebindDelayTimerId);
+    StopTimer(remainingDelayTimerId);
+#endif
+}
+
+void DhcpClientStateMachine::ScheduleLeaseTimers()
+{
+    DHCP_LOGI("ScheduleLeaseTimers timeoutExit:%{public}d m_action:%{public}d", m_cltCnf.timeoutExit, m_action);
+    time_t curTimestamp = time(nullptr);
+    if (curTimestamp == static_cast<time_t>(-1)) {
+        DHCP_LOGE("time return failed, errno:%{public}d", errno);
+        return;
+    }
+    uint32_t delay = static_cast<uint32_t>(curTimestamp) - m_renewalTimestamp;
+    DHCP_LOGI("ScheduleLeaseTimers m_renewalTimestamp:%{public}u curTimestamp:%{public}u delay:%{public}u"
+        "m_leaseTime:%{public}u m_renewalSec:%{public}u m_rebindSec:%{public}u", m_renewalTimestamp,
+        static_cast<uint32_t>(curTimestamp), delay, m_leaseTime, m_renewalSec, m_rebindSec);
+
+    uint32_t remainingDelay = m_leaseTime - delay;
+    uint32_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE;
+    uint32_t rebindSec = remainingDelay * REBIND_SEC_MULTIPLE;
+    DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}u rebindSec:%{public}u remainingDelay:%{public}u",
+        renewalSec, rebindSec, remainingDelay);
+#ifndef OHOS_ARCH_LITE
+    StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, renewalSec, true);
+    StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, rebindSec, true);
+    StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, remainingDelay, true);
+#endif
 }
 }  // namespace DHCP
 }  // namespace OHOS

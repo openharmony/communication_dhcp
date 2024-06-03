@@ -49,6 +49,11 @@ bool PublishDhcpIpv4Result(struct DhcpIpResult &ipResult)
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultTimeOut failed!");
             return false;
         }
+    } else if (ipResult.code == PUBLISH_CODE_EXPIRED) {
+        if (clientImpl->DhcpIpv4ResultExpired(ipResult.ifname) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+            DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultExpired failed!");
+            return false;
+        }
     } else { // PUBLISH_CODE_FAILED
         if (clientImpl->DhcpIpv4ResultFail(ipResult) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultFail failed!");

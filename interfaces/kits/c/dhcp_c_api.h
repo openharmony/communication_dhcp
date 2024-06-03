@@ -54,13 +54,6 @@ extern "C" {
      * @Return : success - DHCP_SUCCESS, failed - others.
      */
     DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6);
-    /**
-     * @Description : Renew dhcp client service of specified interface.
-     *
-     * @param ifname - interface name, eg:wlan0 [in]
-     * @Return : success - DHCP_SUCCESS, failed - others.
-     */
-    DhcpErrorCode RenewDhcpClient(const char *ifname);
 
     DhcpErrorCode RegisterDhcpServerCallBack(const char *ifname, const ServerCallBack *event);
     DhcpErrorCode StartDhcpServer(const char *ifname);
