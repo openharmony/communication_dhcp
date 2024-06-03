@@ -41,7 +41,7 @@ public:
     static void SetUpTestCase()
     {
         std::string ifnametest = "wlan0";
-        dhcpClient = std::make_unique<OHOS::Wifi::DhcpClientStateMachine>(ifnametest);
+        dhcpClient = std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(ifnametest);
     }
     static void TearDownTestCase()
     {
