@@ -1918,7 +1918,7 @@ void DhcpClientStateMachine::ScheduleLeaseTimers()
         "m_leaseTime:%{public}u m_renewalSec:%{public}u m_rebindSec:%{public}u", m_renewalTimestamp,
         static_cast<uint32_t>(curTimestamp), delay, m_leaseTime, m_renewalSec, m_rebindSec);
 
-    uint32_t remainingDelay = m_leaseTime - delay;
+    uint32_t remainingDelay = (m_leaseTime - delay) * USECOND_CONVERT;
     uint32_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE;
     uint32_t rebindSec = remainingDelay * REBIND_SEC_MULTIPLE;
     DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}u rebindSec:%{public}u remainingDelay:%{public}u",
