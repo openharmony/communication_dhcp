@@ -298,10 +298,10 @@ int DhcpClientStateMachine::StartIpv4(void)
             nRet = 0;
         } else {
             nMaxFds = (m_sigSockFds[0] > m_sockFd) ? m_sigSockFds[0] : m_sockFd;
-            DHCP_LOGI("StartIpv4 waiting on select, maxFds:%{public}d fds[0]:%{public}d fds[1]:%{public}d"
-                " tv_sec:%{public}d", nMaxFds, m_sigSockFds[0], m_sigSockFds[1], static_cast<int>(timeout.tv_sec));
+            DHCP_LOGI("StartIpv4 waiting on select, m_dhcp4State:%{public}d", m_dhcp4State);
             nRet = select(nMaxFds + 1, &exceptfds, NULL, NULL, &timeout);
-            DHCP_LOGI("StartIpv4 select dhcp4State:%{public}d sentPacketNum:%{public}d", m_dhcp4State, m_sentPacketNum);
+            DHCP_LOGI("StartIpv4 select nMaxFds:%{public}d,m_sigSockFds[0]:%{public}d,m_sigSockFds[1]:%{public}d",
+                nMaxFds, m_sigSockFds[0], m_sigSockFds[1]);
         }
 
         if (nRet < 0) {
