@@ -15,6 +15,7 @@
 
 #include "dhcp_address_pool.h"
 #include <map>
+#include <mutex>
 #include <securec.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,6 +31,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerAddressPool");
 
 static int g_releaseRemoveMode = DHCP_RELEASE_REMOVE_MODE;
 static std::map<std::size_t, AddressBinding> g_bindingRecoders;
+static std::mutex g_bindingMapMutex;
 static int g_distributeMode = 0;
 
 #define HASH_DEFAULT_VALUE 5381
@@ -48,6 +50,7 @@ std::size_t macAddrHash(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 AddressBinding *GetBindingByMac(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
     std::size_t hash = macAddrHash(macAddr);
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.count(hash) > 0) {
         return &g_bindingRecoders[hash];
     }
@@ -71,7 +74,10 @@ AddressBinding *AddNewBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionLi
     newBind.pendingTime = Tmspsec();
     newBind.expireIn = newBind.bindingTime + DHCP_LEASE_TIME;
     newBind.leaseTime = DHCP_LEASE_TIME;
-    g_bindingRecoders[macAddrHash(macAddr)] = newBind;
+    {
+        std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
+        g_bindingRecoders[macAddrHash(macAddr)] = newBind;
+    }
     return GetBindingByMac(macAddr);
 }
 
@@ -233,6 +239,7 @@ int InitAddressPool(DhcpAddressPool *pool, const char *ifname, PDhcpOptionList o
         DHCP_LOGD("failed to init options field for dhcp pool.");
         return RET_FAILED;
     }
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     g_bindingRecoders.clear();
 
     pool->distribue = AddressDistribute;
@@ -263,6 +270,7 @@ void FreeAddressPool(DhcpAddressPool *pool)
 
 AddressBinding *FindBindingByIp(uint32_t ipAddress)
 {
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.empty()) {
         return nullptr;
     }
@@ -277,6 +285,7 @@ AddressBinding *FindBindingByIp(uint32_t ipAddress)
 
 int IsReserved(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
         AddressBinding *binding = &g_bindingRecoders[macAddrHash(macAddr)];
         if (binding && binding->bindingMode == BIND_MODE_RESERVED) {
@@ -317,6 +326,7 @@ int AddBinding(AddressBinding *binding)
         DHCP_LOGE("binding ip is empty.");
         return RET_ERROR;
     }
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.count(macAddrHash(binding->chaddr)) > 0) {
         DHCP_LOGW("binding recoder exist.");
         return RET_FAILED;
@@ -335,6 +345,7 @@ int AddReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
         bind.bindingMode = BIND_MODE_RESERVED;
         bind.bindingTime = Tmspsec();
         bind.pendingTime = bind.bindingTime;
+        std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
         g_bindingRecoders[macAddrHash(macAddr)] = bind;
     }
     return RET_SUCCESS;
@@ -342,6 +353,7 @@ int AddReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 
 int RemoveBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
         g_bindingRecoders.erase(macAddrHash(macAddr));
         return RET_SUCCESS;
@@ -351,6 +363,7 @@ int RemoveBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 
 int RemoveReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
         AddressBinding *binding = &g_bindingRecoders[macAddrHash(macAddr)];
         if (binding && binding->bindingMode == BIND_MODE_RESERVED) {
@@ -364,6 +377,7 @@ int RemoveReservedBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 
 int ReleaseBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
+    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
     if (g_bindingRecoders.count(macAddrHash(macAddr)) > 0) {
         if (g_releaseRemoveMode) {
             g_bindingRecoders.erase(macAddrHash(macAddr));
