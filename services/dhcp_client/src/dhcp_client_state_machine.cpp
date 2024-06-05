@@ -262,6 +262,7 @@ int DhcpClientStateMachine::StartIpv4(void)
 {
     DHCP_LOGI("StartIpv4  function start");
     int nRet, nMaxFds;
+    fd_set readfds;
     fd_set exceptfds;
     struct timeval timeout;
     time_t curTimestamp;
@@ -277,6 +278,7 @@ int DhcpClientStateMachine::StartIpv4(void)
             break;
         }
         
+        FD_ZERO(&readfds);
         FD_ZERO(&exceptfds);
         timeout.tv_sec = m_timeoutTimestamp - time(NULL);
         timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
@@ -287,8 +289,10 @@ int DhcpClientStateMachine::StartIpv4(void)
         InitSocketFd();
 
         if (m_sockFd >= 0) {
+            FD_SET(m_sockFd, &readfds);
             FD_SET(m_sockFd, &exceptfds);
         }
+        FD_SET(m_sigSockFds[0], &readfds);
         FD_SET(m_sigSockFds[0], &exceptfds);
         DHCP_LOGD("StartIpv4 m_sigSockFds[0]:%{public}d m_sigSockFds[1]:%{public}d m_sentPacketNum:%{public}d",
             m_sigSockFds[0], m_sigSockFds[1], m_sentPacketNum);
@@ -299,7 +303,7 @@ int DhcpClientStateMachine::StartIpv4(void)
         } else {
             nMaxFds = (m_sigSockFds[0] > m_sockFd) ? m_sigSockFds[0] : m_sockFd;
             DHCP_LOGI("StartIpv4 waiting on select, m_dhcp4State:%{public}d", m_dhcp4State);
-            nRet = select(nMaxFds + 1, &exceptfds, NULL, NULL, &timeout);
+            nRet = select(nMaxFds + 1, &readfds, NULL, &exceptfds, &timeout);
             DHCP_LOGI("StartIpv4 select nMaxFds:%{public}d,m_sigSockFds[0]:%{public}d,m_sigSockFds[1]:%{public}d",
                 nMaxFds, m_sigSockFds[0], m_sigSockFds[1]);
         }
@@ -315,12 +319,21 @@ int DhcpClientStateMachine::StartIpv4(void)
         curTimestamp = time(NULL);
         if (nRet == 0) {
             DhcpRequestHandle(curTimestamp);
-        } else if ((m_socketMode != SOCKET_MODE_INVALID) && FD_ISSET(m_sockFd, &exceptfds)) {
+        } else if ((m_socketMode != SOCKET_MODE_INVALID) && FD_ISSET(m_sockFd, &readfds)) {
             DhcpResponseHandle(curTimestamp);
-        } else if (FD_ISSET(m_sigSockFds[0], &exceptfds)) {
+        } else if (FD_ISSET(m_sigSockFds[0], &readfds)) {
             SignalReceiver();
         } else {
             DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
+        }
+        if (FD_ISSET(m_sigSockFds[0], &exceptfds)) {
+            DHCP_LOGI("StartIpv4 exceptfds close socketpair!");
+            CloseSignalHandle();
+            InitSignalHandle();
+        } else if (FD_ISSET(m_sockFd, &exceptfds)) {
+            DHCP_LOGI("StartIpv4 exceptfds close m_sockFd:%{public}d", m_sockFd);
+            close(m_sockFd);
+            m_sockFd = -1;
         }
     }
     return m_cltCnf.timeoutExit ? ExitIpv4() : DHCP_OPT_SUCCESS;
@@ -1309,7 +1322,7 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
 /* Receive signals. */
 void DhcpClientStateMachine::SignalReceiver(void)
 {
-    int signum;
+    int signum = SIG_INVALID;
     if (read(m_sigSockFds[0], &signum, sizeof(signum)) < 0) {
         DHCP_LOGE("SignalReceiver read failed, m_sigSockFds[0]:%{public}d read error:%{public}d!", m_sigSockFds[0],
             errno);
