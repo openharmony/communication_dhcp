@@ -820,6 +820,7 @@ HWTEST_F(DhcpClientStateMachineTest, SendStopSignalTest, TestSize.Level1)
     DHCP_LOGI("SendStopSignalTest enter!");
     dhcpClient->SendStopSignal();
 }
+// duliqun
 }
 }
 
