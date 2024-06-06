@@ -328,7 +328,7 @@ int DhcpClientStateMachine::StartIpv4(void)
             DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
         }
         if ((m_socketMode != SOCKET_MODE_INVALID) && (FD_ISSET(m_sigSockFds[0], &exceptfds) ||
-            FD_ISSET(m_sigSockFds[1], &exceptfds)))) {
+            FD_ISSET(m_sigSockFds[1], &exceptfds))) {
             DHCP_LOGI("StartIpv4 exceptfds close socketpair, fds[0]:%{public}d fds[1]:%{public}d m_sockFd:%{public}d",
                 m_sigSockFds[0], m_sigSockFds[1], m_sockFd);
             CloseSignalHandle();
