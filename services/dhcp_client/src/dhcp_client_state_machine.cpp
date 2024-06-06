@@ -260,7 +260,7 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
 
 int DhcpClientStateMachine::StartIpv4(void)
 {
-    DHCP_LOGI("StartIpv4  function start");
+    DHCP_LOGI("StartIpv4 function start");
     int nRet, nMaxFds;
     fd_set readfds;
     fd_set exceptfds;
@@ -294,6 +294,7 @@ int DhcpClientStateMachine::StartIpv4(void)
         }
         FD_SET(m_sigSockFds[0], &readfds);
         FD_SET(m_sigSockFds[0], &exceptfds);
+        FD_SET(m_sigSockFds[1], &exceptfds);
         DHCP_LOGD("StartIpv4 m_sigSockFds[0]:%{public}d m_sigSockFds[1]:%{public}d m_sentPacketNum:%{public}d",
             m_sigSockFds[0], m_sigSockFds[1], m_sentPacketNum);
 
@@ -326,12 +327,15 @@ int DhcpClientStateMachine::StartIpv4(void)
         } else {
             DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
         }
-        if (FD_ISSET(m_sigSockFds[0], &exceptfds)) {
-            DHCP_LOGI("StartIpv4 exceptfds close socketpair!");
+        if ((m_socketMode != SOCKET_MODE_INVALID) && (FD_ISSET(m_sigSockFds[0], &exceptfds) ||
+            FD_ISSET(m_sigSockFds[1], &exceptfds)))) {
+            DHCP_LOGI("StartIpv4 exceptfds close socketpair, fds[0]:%{public}d fds[1]:%{public}d m_sockFd:%{public}d",
+                m_sigSockFds[0], m_sigSockFds[1], m_sockFd);
             CloseSignalHandle();
             InitSignalHandle();
         } else if (FD_ISSET(m_sockFd, &exceptfds)) {
-            DHCP_LOGI("StartIpv4 exceptfds close m_sockFd:%{public}d", m_sockFd);
+            DHCP_LOGI("StartIpv4 exceptfds close m_sockFd, fds[0]:%{public}d fds[1]:%{public}d m_sockFd:%{public}d",
+                m_sigSockFds[0], m_sigSockFds[1], m_sockFd);
             close(m_sockFd);
             m_sockFd = -1;
         }
