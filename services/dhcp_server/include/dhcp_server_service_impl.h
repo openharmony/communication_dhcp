@@ -99,10 +99,7 @@ private:
     int AddSpecifiedInterface(const std::string& ifname);
     int GetUsingIpRange(const std::string ifname, std::string& ipRange);
     int CreateDefaultConfigFile(const std::string strFile);
-    int StopServer(const pid_t& serverPid);
-    void UnregisterSignal() const;
     bool IsNativeProcess();
-    void ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos);
 
     bool mPublishFlag;
     static std::mutex g_instanceLock;
