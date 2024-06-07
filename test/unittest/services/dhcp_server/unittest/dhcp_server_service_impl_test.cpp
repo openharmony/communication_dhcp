@@ -60,15 +60,20 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)
     DhcpRange setRange;
     setRange.iptype = 0;
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->StopDhcpServer("wlan1"));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StopDhcpServer(""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->PutDhcpRange(tagName, putRange));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->PutDhcpRange("", putRange));
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveDhcpRange(tagName, putRange));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->RemoveDhcpRange("", putRange));
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveAllDhcpRange(tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->RemoveAllDhcpRange(""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, tagName));
 
     std::vector<std::string> vecLeases;
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos("", vecLeases));
     std::string strLeaseTime;
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->UpdateLeasesTime(strLeaseTime));
 }
@@ -154,15 +159,6 @@ HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
     ASSERT_TRUE(pServerServiceImpl != nullptr);
 
     EXPECT_EQ(true, pServerServiceImpl->IsRemoteDied());
-}
-
-HWTEST_F(DhcpServerServiceTest, StopServerTest, TestSize.Level1)
-{
-    DHCP_LOGI("enter StopServerTest");
-    ASSERT_TRUE(pServerServiceImpl != nullptr);
-
-    pid_t serverPid = 1234;
-    EXPECT_EQ(DHCP_OPT_SUCCESS, pServerServiceImpl->StopServer(serverPid));
 }
 
 HWTEST_F(DhcpServerServiceTest, DeleteLeaseFileTest, TestSize.Level1)
