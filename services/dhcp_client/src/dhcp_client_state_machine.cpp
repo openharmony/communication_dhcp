@@ -656,7 +656,7 @@ void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
         m_dhcp4State = DHCP_STATE_INIT;
         SetSocketMode(SOCKET_MODE_RAW);
         m_sentPacketNum = 0;
-        m_timeoutTimestamp = timestamp;
+        m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
         return;
     }
 
@@ -1658,7 +1658,7 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_dhcp4State = DHCP_STATE_BOUND;
         m_sentPacketNum = 0;
         m_resendTimer = 0;
-        m_timeoutTimestamp = m_renewalSec + time(NULL);
+        m_timeoutTimestamp = m_renewalSec + static_cast<uint32_t>(time(NULL));
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
         ScheduleLeaseTimers();
