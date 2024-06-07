@@ -748,27 +748,6 @@ int DhcpServerServiceImpl::CreateDefaultConfigFile(const std::string strFile)
     return DHCP_OPT_SUCCESS;
 }
 
-int DhcpServerServiceImpl::StopServer(const pid_t &serverPid)
-{
-    UnregisterSignal();
-    if (kill(serverPid, SIGTERM) == -1) {
-        if (ESRCH == errno) {
-            /* Normal. The subprocess is dead. The SIGCHLD signal triggers the stop hotspot. */
-            DHCP_LOGI("StopServer() kill [%{public}d] success, pro pid no exist, pro:%{public}s.",
-                serverPid, DHCP_SERVER_FILE.c_str());
-            return DHCP_OPT_SUCCESS;
-        }
-        DHCP_LOGE("StopServer() kill [%{public}d] failed, errno:%{public}d!", serverPid, errno);
-        return DHCP_OPT_FAILED;
-    }
-    if (DhcpFunction::WaitProcessExit(serverPid) == -1) {
-        DHCP_LOGE("StopServer() waitpid [%{public}d] failed, errno:%{public}d!", serverPid, errno);
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("StopServer() waitpid [%{public}d] success, pro:%{public}s!", serverPid, DHCP_SERVER_FILE.c_str());
-    return DHCP_OPT_SUCCESS;
-}
-
 int DhcpServerServiceImpl::DelSpecifiedInterface(const std::string& ifname)
 {
     if (ifname.empty()) {
