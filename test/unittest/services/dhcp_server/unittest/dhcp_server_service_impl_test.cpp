@@ -68,8 +68,15 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveAllDhcpRange(tagName));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->RemoveAllDhcpRange(""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
+    setRange.strStartip = "192.168.2.2";
+    setRange.strEndip = "192.168.2.200";
+    setRange.strSubnet = "255.255.255.0";
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(ifname));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, ""));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", ""));
 
     std::vector<std::string> vecLeases;
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
