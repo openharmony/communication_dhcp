@@ -73,6 +73,7 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)
     setRange.strSubnet = "255.255.255.0";
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, tagName));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", tagName));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, ""));
