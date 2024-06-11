@@ -100,6 +100,7 @@ private:
     int GetUsingIpRange(const std::string ifname, std::string& ipRange);
     int CreateDefaultConfigFile(const std::string strFile);
     bool IsNativeProcess();
+    void ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos);
 
     bool mPublishFlag;
     static std::mutex g_instanceLock;
