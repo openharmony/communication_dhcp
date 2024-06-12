@@ -76,6 +76,7 @@ ohos_unittest("dhcp_server_unittest") {
   cflags = []
 
   deps = [
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
   ]
