@@ -784,6 +784,23 @@ int DhcpServerServiceImpl::DelSpecifiedInterface(const std::string& ifname)
     return DHCP_OPT_SUCCESS;
 }
 
+void DhcpServerServiceImpl::UnregisterSignal() const
+{
+    struct sigaction newAction {};
+
+    if (sigemptyset(&newAction.sa_mask) == -1) {
+        DHCP_LOGE("UnregisterSignal() failed, sigemptyset error:%{public}d!", errno);
+    }
+
+    newAction.sa_handler = SIG_DFL;
+    newAction.sa_flags = SA_RESTART;
+    newAction.sa_restorer = nullptr;
+
+    if (sigaction(SIGCHLD, &newAction, nullptr) == -1) {
+        DHCP_LOGE("UnregisterSignal() sigaction SIGCHLD error:%{public}d!", errno);
+    }
+}
+
 bool DhcpServerServiceImpl::IsNativeProcess()
 {
 #ifndef DTFUZZ_TEST
