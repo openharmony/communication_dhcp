@@ -38,6 +38,7 @@
 #include "dhcp_server_ipv4.h"
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
+#include "dhcp_common_utils.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 
