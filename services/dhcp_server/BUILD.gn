@@ -63,7 +63,6 @@ if (defined(ohos_lite)) {
     ]
 
     deps = [
-      "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
       "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
     ]
