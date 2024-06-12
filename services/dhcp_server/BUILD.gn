@@ -32,6 +32,7 @@ local_base_include_dirs = [
   "$DHCP_ROOT_DIR/frameworks/native/src",
   "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
   "$DHCP_ROOT_DIR/services/dhcp_client/include",
+  "$DHCP_ROOT_DIR/services/utils/include",
 ]
 
 if (defined(ohos_lite)) {
