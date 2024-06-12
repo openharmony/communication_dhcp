@@ -60,15 +60,28 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)
     DhcpRange setRange;
     setRange.iptype = 0;
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->StopDhcpServer("wlan1"));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StopDhcpServer(""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->PutDhcpRange(tagName, putRange));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->PutDhcpRange("", putRange));
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveDhcpRange(tagName, putRange));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->RemoveDhcpRange("", putRange));
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->RemoveAllDhcpRange(tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->RemoveAllDhcpRange(""));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
+    setRange.strStartip = "192.168.2.2";
+    setRange.strEndip = "192.168.2.200";
+    setRange.strSubnet = "255.255.255.0";
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpRange(ifname, setRange));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(ifname));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->StartDhcpServer(""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, ""));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", ""));
 
     std::vector<std::string> vecLeases;
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos("", vecLeases));
     std::string strLeaseTime;
     EXPECT_EQ(DHCP_E_SUCCESS, pServerServiceImpl->UpdateLeasesTime(strLeaseTime));
 }
