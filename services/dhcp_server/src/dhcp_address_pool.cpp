@@ -68,6 +68,7 @@ AddressBinding *AddNewBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH], PDhcpOptionLi
     newBind.bindingMode = BIND_MODE_DYNAMIC;
     newBind.bindingStatus = BIND_PENDING;
     if (memcpy_s(newBind.chaddr, DHCP_HWADDR_LENGTH, macAddr, DHCP_HWADDR_LENGTH) != EOK) {
+        DHCP_LOGE("newBind chaddr memcpy_s failed!");
         return nullptr;
     }
     newBind.bindingTime = Tmspsec();
@@ -127,9 +128,11 @@ int CheckRangeAvailability(
     DhcpAddressPool *pool, uint8_t macAddr[DHCP_HWADDR_LENGTH], uint32_t distIp, int *outOfRange)
 {
     if (!pool || !pool->addressRange.beginAddress || !pool->addressRange.endAddress) {
+        DHCP_LOGE("pool beginAddress or endAddress pointer is null.");
         return RET_ERROR;
     }
     if (!pool->netmask || IsEmptyHWAddr(macAddr)) {
+        DHCP_LOGE("pool netmask empty hwaddr pointer is null.");
         return RET_ERROR;
     }
     uint32_t beginIp = pool->addressRange.beginAddress;
@@ -395,19 +398,21 @@ int ReleaseBinding(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 int AddLease(DhcpAddressPool *pool, AddressBinding *lease)
 {
     if (!pool) {
+        DHCP_LOGE("add lease pool pointer is null.");
         return RET_ERROR;
     }
 
     if (!lease || !lease->ipAddress || IsEmptyHWAddr(lease->chaddr)) {
+        DHCP_LOGE("add lease pool ipAddress or chaddr pointer is null.");
         return RET_ERROR;
     }
 
     if (pool->leaseTable.count(lease->ipAddress) > 0) {
-        DHCP_LOGD("update lease info.");
+        DHCP_LOGI("update lease info.");
         pool->leaseTable[lease->ipAddress] = *lease;
         return RET_SUCCESS;
     } else {
-        DHCP_LOGD("insert lease info.");
+        DHCP_LOGI("insert lease info.");
         pool->leaseTable[lease->ipAddress] = *lease;
         return RET_SUCCESS;
     }
@@ -416,41 +421,49 @@ int AddLease(DhcpAddressPool *pool, AddressBinding *lease)
 AddressBinding *GetLease(DhcpAddressPool *pool, uint32_t ipAddress)
 {
     if (!ipAddress) {
+        DHCP_LOGE("get lease ipAddress pointer is null.");
         return nullptr;
     }
     if (!pool) {
+        DHCP_LOGE("get lease pool pointer is null.");
         return nullptr;
     }
     int ipAddr = ipAddress;
     if (pool->leaseTable.count(ipAddr) > 0) {
         return &pool->leaseTable[ipAddr];
     }
+    DHCP_LOGE("get lease address binding pointer is null.");
     return nullptr;
 }
 
 int UpdateLease(DhcpAddressPool *pool, AddressBinding *lease)
 {
     if (!pool) {
+        DHCP_LOGE("update lease pool pointer is null.");
         return RET_ERROR;
     }
 
     if (!lease || !lease->ipAddress || IsEmptyHWAddr(lease->chaddr)) {
+        DHCP_LOGE("update lease pool ipAddress or chaddr pointer is null.");
         return RET_ERROR;
     }
     if (pool->leaseTable.count(lease->ipAddress) > 0) {
         pool->leaseTable[lease->ipAddress] = *lease;
         return RET_SUCCESS;
     }
+    DHCP_LOGE("update lease address binding pointer is null.");
     return RET_FAILED;
 }
 
 int RemoveLease(DhcpAddressPool *pool, AddressBinding *lease)
 {
     if (!pool) {
+        DHCP_LOGE("remove lease pool pointer is null.");
         return RET_ERROR;
     }
 
     if (!lease || !lease->ipAddress || IsEmptyHWAddr(lease->chaddr)) {
+        DHCP_LOGE("remove lease pool ipAddress or chaddr pointer is null.");
         return RET_ERROR;
     }
 
@@ -458,12 +471,14 @@ int RemoveLease(DhcpAddressPool *pool, AddressBinding *lease)
         pool->leaseTable.erase(lease->ipAddress);
         return RET_SUCCESS;
     }
+    DHCP_LOGE("remove lease address binding pointer is null.");
     return RET_FAILED;
 }
 
 int LoadBindingRecoders(DhcpAddressPool *pool)
 {
     if (pool == nullptr) {
+        DHCP_LOGE("loadbinding recorder pool pointer is null.");
         return RET_FAILED;
     }
     char filePath[DHCP_LEASE_FILE_LENGTH] = {0};

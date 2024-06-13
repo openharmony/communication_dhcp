@@ -38,6 +38,7 @@
 #include "dhcp_server_ipv4.h"
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
+#include "dhcp_common_utils.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 
@@ -908,9 +909,9 @@ AddressBinding *GetBinding(DhcpAddressPool *pool, PDhcpMsgInfo received)
             binding->leaseTime = pool->leaseTime;
         }
         binding->ipAddress = pool->distribue(pool, received->packet.chaddr);
-        DHCP_LOGD("new binding ip");
+        DHCP_LOGI("new binding ip");
     } else {
-        DHCP_LOGD("rebinding ip");
+        DHCP_LOGI("rebinding ip");
     }
     return binding;
 }
@@ -942,11 +943,13 @@ int ReplyCommontOption(PDhcpServerContext ctx, PDhcpMsgInfo reply)
 static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
     if (!received || !reply) {
+        DHCP_LOGE("receive or reply message pointer is null.");
         return REPLY_NONE;
     }
-    DHCP_LOGI("received 'Discover' message from: %s", ParseLogMac(received->packet.chaddr));
+    DHCP_LOGI("received 'Discover' message from:%{public}s", ParseLogMac(received->packet.chaddr));
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
+        DHCP_LOGE("get server instance is nullptr!");
         return REPLY_NONE;
     }
     uint32_t reqIp = 0;
@@ -954,13 +957,13 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     if (optReqIp) {
         reqIp = ParseIp(optReqIp->data);
         if (reqIp) {
-            DHCP_LOGD(" request ip: %s", ParseStrIp(reqIp));
+            DHCP_LOGI("Discover request ip:%{public}s", OHOS::DHCP::IntIpv4ToAnonymizeStr(reqIp).c_str());
         }
     }
     uint32_t srcIp = SourceIpAddress();
     if (!srvIns->broadCastFlagEnable) {
         if (srcIp) {
-            DHCP_LOGD(" client repending:%s", ParseStrIp(srcIp));
+            DHCP_LOGI("Discover client repending:%{public}s", OHOS::DHCP::IntIpv4ToAnonymizeStr(srcIp).c_str());
         } else {
             srcIp = INADDR_BROADCAST;
         }
@@ -968,26 +971,34 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     }
     AddressBinding *binding = GetBinding(&srvIns->addressPool, received);
     if (!binding) {
+        DHCP_LOGI("Discover binding is null, reply none");
         return REPLY_NONE;
     }
     if (!binding->ipAddress) {
+        DHCP_LOGI("Discover binding ipAddress is null, reply none");
         return REPLY_NONE;
     }
     if (reqIp != 0 && reqIp != binding->ipAddress) {
-        DHCP_LOGW("Discover package reqIp:%{public}x, binging ip:%{public}x.", reqIp, binding->ipAddress);
+        DHCP_LOGW("Discover package reqIp:%{public}s, binging ip:%{public}s",
+            OHOS::DHCP::IntIpv4ToAnonymizeStr(reqIp).c_str(),
+            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str());
     }
     DeleteMacInLease(&srvIns->addressPool, binding);
     AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     if (!lease) {
+        DHCP_LOGI("Discover add lease, binging ip:%{public}s mac:%{public}s",
+            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
         AddLease(&srvIns->addressPool, binding);
         lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     }
     if (!lease) {
+        DHCP_LOGI("Discover lease is null, reply none");
         return REPLY_NONE;
     }
     AddReplyMessageTypeOption(reply, DHCPOFFER);
     reply->packet.yiaddr = lease->ipAddress;
     ReplyCommontOption(ctx, reply);
+    DHCP_LOGI("Discover reply offer");
     return REPLY_OFFER;
 }
 
@@ -1009,6 +1020,9 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
     uint32_t cliIp = received->packet.ciaddr;
     uint32_t srcIp = SourceIpAddress();
     uint32_t reqIp = GetRequestIpAddress(received);
+    DHCP_LOGI("cliIp:%{public}s srcIp:%{public}s reqIp:%{public}s",
+        OHOS::DHCP::IntIpv4ToAnonymizeStr(cliIp).c_str(), OHOS::DHCP::IntIpv4ToAnonymizeStr(srcIp).c_str(),
+        OHOS::DHCP::IntIpv4ToAnonymizeStr(reqIp).c_str());
     if (cliIp && srcIp && cliIp != srcIp) {
         DHCP_LOGE("error dhcp request message, missing required request option.");
         return RET_FAILED;
@@ -1104,12 +1118,14 @@ static int ValidateRequestMessage(const PDhcpServerContext ctx, const PDhcpMsgIn
     PDhcpMsgInfo reply, uint32_t *yourIp)
 {
     if (!received || !reply) {
+        DHCP_LOGE("receive or reply message pointer is null.");
         return REPLY_NONE;
     }
-    DHCP_LOGI("received 'Request' message from: %s.", ParseLogMac(received->packet.chaddr));
+    DHCP_LOGI("received 'Request' message from:%{public}s", ParseLogMac(received->packet.chaddr));
     uint32_t yourIpAddr = INADDR_BROADCAST;
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
+        DHCP_LOGI("get server instance failed!");
         return RET_FAILED;
     }
     if (GetYourIpAddress(received, &yourIpAddr, &srvIns->addressPool) != RET_SUCCESS) {
@@ -1307,6 +1323,7 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     int ret;
     uint32_t yourIpAddr;
     if ((ret = ValidateRequestMessage(ctx, received, reply, &yourIpAddr)) != REPLY_ACK) {
+        DHCP_LOGE("Request validateRequestMessage ret:%{public}d", ret);
         return ret;
     }
     ServerContext *srvIns = GetServerInstance(ctx);
@@ -1316,35 +1333,40 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     }
     AddressBinding *binding = srvIns->addressPool.binding(received->packet.chaddr, &received->options);
     if (binding == nullptr) {
+        DHCP_LOGI("Request enter HasNobindgRequest!");
         return HasNobindgRequest(ctx, received, reply);
     }
     Rebinding(&srvIns->addressPool, binding);
     AddressBinding *lease = GetLease(&srvIns->addressPool, yourIpAddr);
     if (lease) {
         ParseDhcpOption(received, lease);
+        DHCP_LOGI("request in lease, yourIpAddr:%{public}s, mac:%{public}s",
+            OHOS::DHCP::IntIpv4ToAnonymizeStr(yourIpAddr).c_str(), ParseLogMac(lease->chaddr));
         int sameAddr = AddrEquels(lease->chaddr, received->packet.chaddr, MAC_ADDR_LENGTH);
         if (!sameAddr && !IsExpire(lease)) {
-            DHCP_LOGW("invalid request ip address.");
+            DHCP_LOGW("invalid request ip address, reply nak, sameAddr:%{public}d", sameAddr);
             return REPLY_NAK;
         }
         if (!sameAddr && IsExpire(lease)) {
             if (memcpy_s(lease->chaddr, DHCP_HWADDR_LENGTH, binding->chaddr, MAC_ADDR_LENGTH) != EOK) {
-                DHCP_LOGW("failed to update lease client address.");
+                DHCP_LOGW("failed to update lease client address, sameAddr:%{public}d", sameAddr);
             }
         }
         lease->bindingStatus = BIND_ASSOCIATED;
         lease->bindingTime = binding->bindingTime;
         lease->expireIn = binding->expireIn;
+        DHCP_LOGI("Request found lease recoder, sameAddr:%{public}d", sameAddr);
     } else {
-        DHCP_LOGW("can not found lease recoder.");
+        DHCP_LOGW("Request can not found lease recoder.");
     }
     uint32_t bindingIp = binding->ipAddress;
     if (bindingIp && yourIpAddr != INADDR_BROADCAST && yourIpAddr != bindingIp) {
-        DHCP_LOGE("error request ip binding.");
+        DHCP_LOGE("error request ip binding. reply nak");
         return REPLY_NAK;
     }
     reply->packet.yiaddr = bindingIp;
     ReplyCommontOption(ctx, reply);
+    DHCP_LOGI("Request reply ack!");
     return REPLY_ACK;
 }
 
@@ -1522,14 +1544,17 @@ static int SendDhcpOffer(PDhcpServerContext ctx, PDhcpMsgInfo reply)
 {
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
+        DHCP_LOGE("failed to get server instance");
         return RET_FAILED;
     }
     if (AppendReplyTypeOption(reply, REPLY_OFFER) != RET_SUCCESS) {
+        DHCP_LOGE("failed to append reply type options");
         return RET_FAILED;
     }
     if (AppendReplyTimeOptions(ctx, &reply->options) != RET_SUCCESS ||
         AddReplyServerIdOption(&reply->options, srvIns->addressPool.serverId) != RET_SUCCESS) {
-            return RET_FAILED;
+        DHCP_LOGE("failed to append reply time options");
+        return RET_FAILED;
     }
     if (AppendFixedOptions(ctx, reply) != RET_SUCCESS) {
         DHCP_LOGW("failed to append fixed reply options.");
@@ -1561,13 +1586,14 @@ static int SendDhcpOffer(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         DHCP_LOGD("failed to send dhcp offer message.");
         return RET_FAILED;
     }
-    DHCP_LOGI(" send reply offer, length:%d", reply->length);
+    DHCP_LOGI("send reply offer, length:%d", reply->length);
     return RET_SUCCESS;
 }
 
 static int SendDhcpAck(PDhcpServerContext ctx, PDhcpMsgInfo reply)
 {
     if (AppendReplyTypeOption(reply, REPLY_ACK) != RET_SUCCESS) {
+        DHCP_LOGE("failed to append reply type options");
         return RET_FAILED;
     }
     if (AppendFixedOptions(ctx, reply) != RET_SUCCESS) {
@@ -1580,12 +1606,15 @@ static int SendDhcpAck(PDhcpServerContext ctx, PDhcpMsgInfo reply)
     ServerContext *srvIns = GetServerInstance(ctx);
 
     if (AppendReplyTimeOptions(ctx, &reply->options) != RET_SUCCESS) {
+        DHCP_LOGE("failed to append reply time options");
         return RET_FAILED;
     }
     if (AddReplyServerIdOption(&reply->options, srvIns->addressPool.serverId) != RET_SUCCESS) {
+        DHCP_LOGE("failed to add reply server options");
         return RET_FAILED;
     }
     if (ParseReplyOptions(reply) != RET_SUCCESS) {
+        DHCP_LOGE("failed to parse reply options");
         return RET_FAILED;
     }
     sockaddr_in *destAddrIn = DestinationAddrIn();
@@ -1595,13 +1624,14 @@ static int SendDhcpAck(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         DHCP_LOGD("failed to send dhcp ack message.");
         return RET_FAILED;
     }
-    DHCP_LOGI(" send reply ack, size:%d", reply->length);
+    DHCP_LOGI("send reply ack, size:%d", reply->length);
     return RET_SUCCESS;
 }
 
 static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
 {
     if (AppendReplyTypeOption(reply, REPLY_NAK) != RET_SUCCESS) {
+        DHCP_LOGE("failed to append reply type options");
         return RET_FAILED;
     }
     ServerContext *srvIns = GetServerInstance(ctx);
@@ -1616,6 +1646,7 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
     DhcpOption optVendorInfo = {MESSAGE_OPTION, static_cast<uint8_t>(strlen("wrong network")), "wrong network"};
     PushBackOption(&reply->options, &optVendorInfo);
     if (ParseReplyOptions(reply) != RET_SUCCESS) {
+        DHCP_LOGE("failed to parse reply options");
         return RET_FAILED;
     }
 
@@ -1626,7 +1657,7 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         DHCP_LOGD("failed to send dhcp ack message.");
         return RET_FAILED;
     }
-    DHCP_LOGI(" send reply nak, size:%d", reply->length);
+    DHCP_LOGI("send reply nak, size:%d", reply->length);
     return RET_SUCCESS;
 }
 
