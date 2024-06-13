@@ -1624,12 +1624,17 @@ int DhcpClientStateMachine::DhcpDecline(uint32_t transId, uint32_t clientIp, uin
 
     /* Get packet not common info. */
     packet.xid = transId;
+    if (memcpy_s(packet.chaddr, sizeof(packet.chaddr), m_cltCnf.ifaceMac, MAC_ADDR_LEN) != EOK) {
+        DHCP_LOGE("DhcpDecline, memcpy_s error!");
+        return -1;
+    }
+    AddClientIdToOpts(&packet);
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, clientIp);
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, serverIp);
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, clientIp);
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, serverIp);
     DHCP_LOGI("DhcpDecline send decline, transid:%{public}u", transId);
-    return SendDhcpPacket(&packet, clientIp, serverIp);
+    return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
 }
 
 void DhcpClientStateMachine::IpConflictDetect()
@@ -1657,6 +1662,7 @@ void DhcpClientStateMachine::FastArpDetect()
         }
         SaveIpInfoInLocalFile(m_dhcpIpResult);
         m_dhcp4State = DHCP_STATE_SLOW_ARP;
+        m_slowArpDetecting = true;
     }
 }
 
@@ -1697,7 +1703,6 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
-        m_slowArpDetecting = true;
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
     #ifndef OHOS_ARCH_LITE
         std::function<void()> func = std::bind([this]() {
@@ -1717,7 +1722,8 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
     } else {
         if (IsArpReachable(SLOW_ARP_DETECTION_TIME_MS, m_arpDectionTargetIp)) {
             m_dhcp4State = DHCP_STATE_DECLINE;
-            SetSocketMode(SOCKET_MODE_KERNEL);
+            m_slowArpDetecting = false;
+            SetSocketMode(SOCKET_MODE_RAW);
         }
     }
     m_sentPacketNum++;
