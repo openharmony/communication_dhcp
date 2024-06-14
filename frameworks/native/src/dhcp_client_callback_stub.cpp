@@ -21,25 +21,25 @@ namespace OHOS {
 namespace DHCP {
 DhcpClientCallBackStub::DhcpClientCallBackStub() : callback_(nullptr), mRemoteDied(false)
 {
-    DHCP_LOGI("DhcpClientCallBackStub Enter DhcpClientCallBackStub");
+    DHCP_LOGD("Enter DhcpClientCallBackStub");
 }
 
 DhcpClientCallBackStub::~DhcpClientCallBackStub()
 {
-    DHCP_LOGI("DhcpClientCallBackStub Enter ~DhcpClientCallBackStub");
+    DHCP_LOGD("Enter ~DhcpClientCallBackStub");
 }
 
 int DhcpClientCallBackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply,
     MessageOption &option)
 {
-    DHCP_LOGI("DhcpClientCallBackStub::OnRemoteRequest, code:%{public}d", code);
+    DHCP_LOGI("OnRemoteRequest, code:%{public}d", code);
     if (data.ReadInterfaceToken() != GetDescriptor()) {
         DHCP_LOGE("Sta callback stub token verification error: %{public}d", code);
         return DHCP_E_FAILED;
     }
     int exception = data.ReadInt32();
     if (exception) {
-        DHCP_LOGE("DhcpClientCallBackStub::OnRemoteRequest, got exception: %{public}d!", exception);
+        DHCP_LOGE("OnRemoteRequest, got exception: %{public}d!", exception);
         return DHCP_E_FAILED;
     }
     int ret = -1;
@@ -57,14 +57,14 @@ int DhcpClientCallBackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
             break;
         }
     }
-    DHCP_LOGI("DhcpClientCallBackStub OnRemoteRequest, ret:%{public}d", ret);
+    DHCP_LOGI("OnRemoteRequest, ret:%{public}d", ret);
     return ret;
 }
 
 void DhcpClientCallBackStub::RegisterCallBack(const sptr<IDhcpClientCallBack> &callBack)
 {
     if (callBack == nullptr) {
-        DHCP_LOGE("DhcpClientCallBackStub:callBack is nullptr!");
+        DHCP_LOGE("callBack is nullptr!");
         return;
     }
     callback_ = callBack;
@@ -77,13 +77,13 @@ bool DhcpClientCallBackStub::IsRemoteDied() const
 
 void DhcpClientCallBackStub::SetRemoteDied(bool val)
 {
-    DHCP_LOGI("DhcpClientCallBackStub::SetRemoteDied, state:%{public}d!", val);
+    DHCP_LOGI("SetRemoteDied, state:%{public}d!", val);
     mRemoteDied = val;
 }
 
 void DhcpClientCallBackStub::OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result)
 {
-    DHCP_LOGI("DhcpClientCallBackStub::OnIpSuccessChanged, status:%{public}d!", status);
+    DHCP_LOGI("OnIpSuccessChanged, status:%{public}d!", status);
     if (callback_) {
         callback_->OnIpSuccessChanged(status, ifname, result);
     }
@@ -91,7 +91,7 @@ void DhcpClientCallBackStub::OnIpSuccessChanged(int status, const std::string& i
 
 void DhcpClientCallBackStub::OnIpFailChanged(int status, const std::string& ifname, const std::string& reason)
 {
-    DHCP_LOGI("DhcpClientCallBackStub::OnIpFailChanged, status:%{public}d!", status);
+    DHCP_LOGI("OnIpFailChanged, status:%{public}d!", status);
     if (callback_) {
         callback_->OnIpFailChanged(status, ifname, reason);
     }
