@@ -37,7 +37,7 @@ constexpr int32_t OPT_FAIL = -1;
 
 DhcpArpChecker::DhcpArpChecker() : m_isSocketCreated(false), m_socketFd(-1), m_ifaceIndex(0), m_protocol(0)
 {
-    DHCP_LOGI("DhcpArpChecker()");
+    DHCP_LOGD("DhcpArpChecker()");
 }
 
 DhcpArpChecker::~DhcpArpChecker()
