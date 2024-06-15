@@ -15,12 +15,16 @@
 
 #include "dhcp_common_utils.h"
 #include <arpa/inet.h>
+#include <netinet/if_ether.h>
 #include "securec.h"
 #include "dhcp_logger.h"
 
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpCommonUtils");
+
+constexpr int32_t GATEWAY_MAC_LENTH = 18;
+
 std::string Ipv4Anonymize(const std::string str)
 {
     std::string strTemp = str;
@@ -72,6 +76,23 @@ std::string IntIpv4ToAnonymizeStr(uint32_t ip)
         pIp = nullptr;
     }
     return strTemp;
+}
+
+std::string MacArray2Str(uint8_t *macArray, int32_t len)
+{
+    if ((macArray == nullptr) || (len != ETH_ALEN)) {
+        DHCP_LOGE("MacArray2Str arg is invalid!");
+        return "";
+    }
+
+    char gwMacAddr[GATEWAY_MAC_LENTH] = {0};
+    if (sprintf_s(gwMacAddr, sizeof(gwMacAddr), "%02x:%02x:%02x:%02x:%02x:%02x",
+        macArray[0], macArray[1], macArray[2], macArray[3], macArray[4], macArray[5]) < 0) {  // 0-5 is mac index
+        DHCP_LOGE("MacArray2Str sprintf_s err");
+        return "";
+    }
+    std::string ret = gwMacAddr;
+    return ret;
 }
 }
 }

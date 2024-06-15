@@ -21,8 +21,9 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpCommonUtilsTest");
 
 using namespace testing::ext;
 using namespace OHOS::DHCP;
-
 namespace OHOS {
+constexpr int32_t MAC_LENTH = 6;
+
 class DhcpCommonUtilsTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -75,5 +76,17 @@ HWTEST_F(DhcpCommonUtilsTest, IntIpv4ToAnonymizeStrTest, TestSize.Level1)
     std::string ret = IntIpv4ToAnonymizeStr(ip);
     EXPECT_TRUE(!ret.empty());
     DHCP_LOGI("ret is %{public}s", ret.c_str());
+}
+
+HWTEST_F(DhcpCommonUtilsTest, MacArray2StrTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter MacArray2StrTest");
+    uint8_t *macArray = nullptr;
+    int32_t len = 0;
+    EXPECT_TRUE(MacArray2Str(macArray, len).empty());
+    uint8_t mac[MAC_LENTH] = {12, 12, 33, 54, 56, 78};
+    EXPECT_TRUE(MacArray2Str(mac, len).empty());
+    len = MAC_LENTH;
+    EXPECT_TRUE(!MacArray2Str(mac, len).empty());
 }
 }
