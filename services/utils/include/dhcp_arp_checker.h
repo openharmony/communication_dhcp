@@ -43,6 +43,7 @@ public:
     bool Start(std::string& ifname, std::string& hwAddr, std::string& senderIp, std::string& targetIp);
     void Stop();
     bool DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint64_t &timeCost);
+    void GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists);
 
 private:
     bool SetArpPacket(ArpPacket& arpPacket, bool isFillSenderIp);
@@ -51,7 +52,7 @@ private:
     int32_t RecvData(uint8_t *buff, int32_t count, int32_t timeoutMillis);
     int32_t CloseSocket(void);
     bool SetNonBlock(int32_t fd);
-
+    void SaveGwMacAddr(std::string gwMacAddr, std::vector<std::string>& gwMacLists);
 private:
     bool m_isSocketCreated;
     struct in_addr m_localIpAddr;

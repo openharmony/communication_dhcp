@@ -26,6 +26,7 @@
 #include <unistd.h>
 
 #include "securec.h"
+#include "dhcp_common_utils.h"
 #include "dhcp_logger.h"
 
 namespace OHOS {
@@ -168,6 +169,56 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
     }
     DHCP_LOGI("doArp return false");
     return false;
+}
+
+void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists)
+{
+    gwMacLists.clear();
+    if (!m_isSocketCreated) {
+        DHCP_LOGE("GetGwMacAddrList failed, socket not created");
+        return;
+    }
+    struct ArpPacket arpPacket;
+    if (!SetArpPacket(arpPacket, isFillSenderIp)) {
+        DHCP_LOGE("GetGwMacAddrList SetArpPacket failed");
+        return;
+    }
+
+    if (SendData(reinterpret_cast<uint8_t *>(&arpPacket), sizeof(arpPacket), m_l2Broadcast) != 0) {
+        DHCP_LOGE("GetGwMacAddrList SendData failed");
+        return;
+    }
+    int32_t readLen = 0;
+    int32_t leftMillis = timeoutMillis;
+    uint8_t recvBuff[MAX_LENGTH];
+    std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+    while (leftMillis > 0) {
+        readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
+        if (readLen >= static_cast<int32_t>(sizeof(struct ArpPacket))) {
+            struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
+            if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER &&
+                ntohs(respPacket->ar_pro) == ETH_P_IP &&
+                respPacket->ar_hln == ETH_ALEN &&
+                respPacket->ar_pln == IPV4_ALEN &&
+                ntohs(respPacket->ar_op) == ARPOP_REPLY &&
+                memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
+                memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
+                std::string gwMacAddr = MacArray2Str(respPacket->ar_sha, ETH_ALEN);
+                SaveGwMacAddr(gwMacAddr, gwMacLists);
+            }
+        }
+        std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
+        int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+        leftMillis -= static_cast<int32_t>(elapsed);
+    }
+}
+
+void DhcpArpChecker::SaveGwMacAddr(std::string gwMacAddr, std::vector<std::string>& gwMacLists)
+{
+    auto it = std::find(gwMacLists.begin(), gwMacLists.end(), gwMacAddr);
+    if (!gwMacAddr.empty() && (it == gwMacLists.end())) {
+        gwMacLists.push_back(gwMacAddr);
+    }
 }
 
 int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
