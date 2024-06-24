@@ -328,7 +328,9 @@ typedef enum EnumPublishEventCode {
     /* timeout */
     PUBLISH_CODE_TIMEOUT = -2,
     /* lease expired */
-    PUBLISH_CODE_EXPIRED = -3
+    PUBLISH_CODE_EXPIRED = -3,
+    /* dhcp offer report*/
+    PUBLISH_DHCP_OFFER_REPORT = -4
 } DhcpEventCode;
 
 /* DhcpPacket Fields */

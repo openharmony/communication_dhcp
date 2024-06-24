@@ -119,6 +119,26 @@ void DhcpClientCallBack::OnIpFailChanged(int status, const std::string& ifname, 
     }
 }
 #ifndef OHOS_ARCH_LITE
+void DhcpClientCallBack::OnDhcpOfferReport(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result)
+{
+    DHCP_LOGI("OnDhcpOfferReport status:%{public}d,ifname:%{public}s", status, ifname.c_str());
+    DhcpResult dhcpResult;
+    dhcpResult.iptype = result.iptype;
+    dhcpResult.isOptSuc = result.isOptSuc;
+    dhcpResult.uOptLeasetime = result.uLeaseTime;
+    dhcpResult.uAddTime = result.uAddTime;
+    dhcpResult.uGetTime = result.uGetTime;
+    ResultInfoCopy(dhcpResult, result);
+    std::lock_guard<std::mutex> autoLock(callBackMutex);
+    auto iter = mapClientCallBack.find(ifname);
+    if ((iter != mapClientCallBack.end()) && (iter->second != nullptr) &&
+        (iter->second->OnDhcpOfferReport != nullptr)) {
+        iter->second->OnDhcpOfferReport(status, ifname.c_str(), &dhcpResult);
+    } else {
+        DHCP_LOGE("OnDhcpOfferReport callbackEvent failed!");
+    }
+}
+
 OHOS::sptr<OHOS::IRemoteObject> DhcpClientCallBack::AsObject() 
 {
     DHCP_LOGI("DhcpClientCallBack AsObject!");

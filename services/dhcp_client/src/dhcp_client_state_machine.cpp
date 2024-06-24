@@ -916,7 +916,7 @@ void DhcpClientStateMachine::ParseNetworkServerIdInfo(const struct DhcpPacket *p
         char *pSerIp = Ip4IntConToStr(m_serverIp4, false);
         if (pSerIp != NULL) {
             DHCP_LOGI("ParseNetworkServerIdInfo recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
-            if (strncpy_s(m_dhcpIpResult.strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
                 free(pSerIp);
                 pSerIp = NULL;
                 return;
@@ -1269,7 +1269,41 @@ void DhcpClientStateMachine::ParseDhcpNakPacket(const struct DhcpPacket *packet,
         }
     }
 }
+#ifndef OHOS_ARCH_LITE
+void DhcpClientStateMachine::GetDhcpOffer(DhcpPacket *packet, int64_t timestamp)
+{
+    DHCP_LOGI("GetDhcpOffer enter");
+    if (packet == nullptr) {
+        DHCP_LOGW("GetDhcpOffer() packet is nullptr!");
+        return;
+    }
+    uint8_t u8Message = 0;
+    if (!GetDhcpOptionUint8(packet, DHCP_MESSAGE_TYPE_OPTION, &u8Message)) {
+        DHCP_LOGE("GetDhcpOffer GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
+        return;
+    }
+    if (u8Message != DHCP_OFFER) {
+        DHCP_LOGW("GetDhcpOffer() not offer, type:%{public}d!", u8Message);
+        return;
+    }
 
+    uint32_t leaseTime = LEASETIME_DEFAULT * ONE_HOURS_SEC;
+    uint32_t u32Data = 0;
+    if (GetDhcpOptionUint32(packet, IP_ADDRESS_LEASE_TIME_OPTION, &u32Data)) {
+        leaseTime = u32Data;
+    }
+    m_requestedIp4 = packet->yiaddr;
+    DhcpIpResult dhcpIpResult;
+    dhcpIpResult.code = PUBLISH_DHCP_OFFER_REPORT;
+    dhcpIpResult.ifname = m_cltCnf.ifaceName;
+    dhcpIpResult.uOptLeasetime = leaseTime;
+    ParseNetworkServerIdInfo(packet, &dhcpIpResult);
+    ParseNetworkInfo(packet, &dhcpIpResult);
+    ParseNetworkDnsInfo(packet, &dhcpIpResult);
+    ParseNetworkVendorInfo(packet, &dhcpIpResult);
+    PublishDhcpIpv4Result(dhcpIpResult);
+}
+#endif
 void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
 {
     struct DhcpPacket packet;
@@ -1296,12 +1330,14 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
         return;
     }
     DHCP_LOGI("DhcpResponseHandle get packet success, getLen:%{public}d.", getLen);
-
     /* Check packet data. */
     if (packet.xid != m_transID) {
         DHCP_LOGW("DhcpResponseHandle get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
         return;
     }
+#ifndef OHOS_ARCH_LITE
+    GetDhcpOffer(&packet, timestamp);
+#endif
     if (!GetDhcpOptionUint8(&packet, DHCP_MESSAGE_TYPE_OPTION, &u8Message)) {
         DHCP_LOGE("DhcpResponseHandle GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
         return;

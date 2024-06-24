@@ -19,25 +19,100 @@ module_output_path = "dhcp/dhcp_util_test"
 ohos_unittest("dhcp_util_unittest") {
   module_out_path = module_output_path
 
-  sources = [ "dhcp_common_utils_test.cpp" ]
+  sources = [
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
+    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_custom_func.cpp",
+    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_system_func.cpp",
+    "dhcp_arp_checker_test.cpp",
+    "dhcp_common_utils_test.cpp",
+  ]
 
-  include_dirs = [ "$DHCP_ROOT_DIR/services" ]
+  include_dirs = [
+    "//third_party/openssl/include",
+    "$DHCP_ROOT_DIR/frameworks/native/include",
+    "$DHCP_ROOT_DIR/frameworks/native/interfaces",
+    "$DHCP_ROOT_DIR/frameworks/native/src",
+    "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
+    "$DHCP_ROOT_DIR/interfaces",
+    "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+    "$DHCP_ROOT_DIR/interfaces/kits/c",
+    "$DHCP_ROOT_DIR/services",
+    "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_server/include",
+    "$DHCP_ROOT_DIR/services/utils/include",
+    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client",
+  ]
 
   deps = [
     "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
     "//third_party/googletest:gmock_main",
     "//third_party/googletest:gtest_main",
+    "//third_party/openssl:libcrypto_shared",
   ]
 
+  ldflags = [
+    "-fPIC",
+    "-Wl,-E",
+    "--coverage",
+    "-Wl,-rpath=/vendor/lib64/hw",
+    "-Wl,--wrap=open",
+    "-Wl,--wrap=close",
+    "-Wl,--wrap=write",
+    "-Wl,--wrap=read",
+    "-Wl,--wrap=socket",
+    "-Wl,--wrap=setsockopt",
+    "-Wl,--wrap=ioctl",
+    "-Wl,--wrap=bind",
+    "-Wl,--wrap=listen",
+    "-Wl,--wrap=connect",
+    "-Wl,--wrap=select",
+    "-Wl,--wrap=sendto",
+    "-Wl,--wrap=socketpair",
+    "-Wl,--wrap=GetDhcpRawPacket",
+    "-Wl,--wrap=GetDhcpKernelPacket",
+    "-Wl,--wrap=GetSelectRet",
+  ]
+
+  cflags_cc = [ "-Wno-unused-variable" ]
+
   external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
     "c_utils:utils",
     "hilog:libhilog",
+    "ipc:ipc_single",
+    "netmanager_base:net_native_manager_if",
+    "netmanager_base:netsys_controller",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
   ]
 
   defines = [
     "private = public",
     "protected = public",
+    "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
   ]
+
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_ffrt)) {
+    external_deps += [ "ffrt:libffrt" ]
+    defines += [ "DHCP_FFRT_ENABLE" ]
+  }
 
   part_name = "dhcp"
   subsystem_name = "communication"

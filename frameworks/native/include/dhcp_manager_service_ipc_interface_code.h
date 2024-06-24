@@ -26,6 +26,7 @@ enum class  DhcpClientInterfaceCode {
     /* CLIENT CALL BACK code */
     DHCP_CLIENT_CBK_CMD_IP_SUCCESS_CHANGE = 0x6000,
     DHCP_CLIENT_CBK_CMD_IP_FAIL_CHANGE = 0x6001,
+    DHCP_CLIENT_CBK_CMD_DHCP_OFFER = 0x6002,
 };
 
 enum class  DhcpServerInterfaceCode {

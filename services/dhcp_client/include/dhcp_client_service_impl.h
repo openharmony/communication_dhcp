@@ -71,6 +71,9 @@ public:
     ErrCode StartNewClient(const std::string& ifname, bool bIpv6);
 
     int DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult);
+#ifndef OHOS_ARCH_LITE
+    int DhcpOfferResultSuccess(struct DhcpIpResult &ipResult);
+#endif
     int DhcpIpv4ResultFail(struct DhcpIpResult &ipResult);
     int DhcpIpv4ResultTimeOut(const std::string &ifname);
     int DhcpIpv4ResultExpired(const std::string &ifname);

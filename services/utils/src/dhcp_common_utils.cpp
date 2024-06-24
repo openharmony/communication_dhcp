@@ -24,6 +24,12 @@ namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpCommonUtils");
 
 constexpr int32_t GATEWAY_MAC_LENTH = 18;
+constexpr int32_t MAC_INDEX_0 = 0;
+constexpr int32_t MAC_INDEX_1 = 1;
+constexpr int32_t MAC_INDEX_2 = 2;
+constexpr int32_t MAC_INDEX_3 = 3;
+constexpr int32_t MAC_INDEX_4 = 4;
+constexpr int32_t MAC_INDEX_5 = 5;
 
 std::string Ipv4Anonymize(const std::string str)
 {
@@ -86,8 +92,9 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len)
     }
 
     char gwMacAddr[GATEWAY_MAC_LENTH] = {0};
-    if (sprintf_s(gwMacAddr, sizeof(gwMacAddr), "%02x:%02x:%02x:%02x:%02x:%02x",
-        macArray[0], macArray[1], macArray[2], macArray[3], macArray[4], macArray[5]) < 0) {  // 0-5 is mac index
+    if (sprintf_s(gwMacAddr, sizeof(gwMacAddr), "%02x:%02x:%02x:%02x:%02x:%02x", macArray[MAC_INDEX_0],
+        macArray[MAC_INDEX_1], macArray[MAC_INDEX_2], macArray[MAC_INDEX_3], macArray[MAC_INDEX_4],
+        macArray[MAC_INDEX_5]) < 0) {
         DHCP_LOGE("MacArray2Str sprintf_s err");
         return "";
     }

@@ -52,6 +52,10 @@ int DhcpClientCallBackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
             ret = RemoteOnIpFailChanged(code, data, reply);
             break;
         }
+        case static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_DHCP_OFFER): {
+            ret = RemoteOnDhcpOfferReport(code, data, reply);
+            break;
+        }
         default: {
             ret = IPCObjectStub::OnRemoteRequest(code, data, reply, option);
             break;
@@ -97,6 +101,13 @@ void DhcpClientCallBackStub::OnIpFailChanged(int status, const std::string& ifna
     }
 }
 
+void DhcpClientCallBackStub::OnDhcpOfferReport(int status, const std::string& ifname, DhcpResult& result)
+{
+    DHCP_LOGI("OnDhcpOfferReport, status:%{public}d!", status);
+    if (callback_) {
+        callback_->OnDhcpOfferReport(status, ifname, result);
+    }
+}
 
 int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
@@ -140,6 +151,41 @@ int DhcpClientCallBackStub::RemoteOnIpFailChanged(uint32_t code, MessageParcel &
     std::string ifname = data.ReadString();
     std::string reason = data.ReadString();
     OnIpFailChanged(state, ifname, reason);
+    reply.WriteInt32(0);
+    return 0;
+}
+
+int DhcpClientCallBackStub::RemoteOnDhcpOfferReport(uint32_t code, MessageParcel &data, MessageParcel &reply)
+{
+    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
+    int state = data.ReadInt32();
+    std::string ifname = data.ReadString();
+    DhcpResult result;
+    result.iptype = data.ReadInt32();
+    result.isOptSuc = data.ReadBool();
+    result.uLeaseTime = data.ReadInt32();
+    result.uAddTime = data.ReadInt32();
+    result.uGetTime = data.ReadInt32();
+    result.strYourCli = data.ReadString();
+    result.strServer = data.ReadString();
+    result.strSubnet = data.ReadString();
+    result.strDns1 = data.ReadString();
+    result.strDns2 = data.ReadString();
+    result.strRouter1 = data.ReadString();
+    result.strRouter2 = data.ReadString();
+    result.strVendor = data.ReadString();
+    result.strLinkIpv6Addr = data.ReadString();
+    result.strRandIpv6Addr = data.ReadString();
+    result.strLocalAddr1 = data.ReadString();
+    result.strLocalAddr2 = data.ReadString();
+    int size = reply.ReadInt32();
+    if (state == DHCP_E_SUCCESS) {
+        for (int i = 0; i < size; i++) {
+            std::string str = reply.ReadString();
+            result.vectorDnsAddr.push_back(str);
+        }
+    }
+    OnDhcpOfferReport(state, ifname, result);
     reply.WriteInt32(0);
     return 0;
 }

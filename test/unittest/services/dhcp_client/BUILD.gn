@@ -37,8 +37,6 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
-    "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
-    "dhcp_arp_checker_test.cpp",
     "dhcp_client_callback_proxy_test.cpp",
     "dhcp_client_death_recipient_test.cpp",
     "dhcp_client_service_impl_test.cpp",

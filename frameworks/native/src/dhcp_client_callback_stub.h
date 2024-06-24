@@ -35,9 +35,11 @@ public:
     void SetRemoteDied(bool val);
     void OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result) override;
     void OnIpFailChanged(int status, const std::string& ifname, const std::string& reason) override;
+    void OnDhcpOfferReport(int status, const std::string& ifname, DhcpResult& result) override;
 private:
     int RemoteOnIpSuccessChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int RemoteOnIpFailChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    int RemoteOnDhcpOfferReport(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
     sptr<IDhcpClientCallBack> callback_;
     bool mRemoteDied;
