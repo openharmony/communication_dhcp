@@ -1371,7 +1371,7 @@ int DhcpClientStateMachine::PublishDhcpResultEvent(const char *ifname, const int
         DHCP_LOGE("PublishDhcpResultEvent ifname:%{public}s failed, code:%{public}d error!", ifname, code);
         return DHCP_OPT_FAILED;
     }
-    if ((code == PUBLISH_CODE_SUCCESS) && (result == nullptr)) {
+    if (result == nullptr) {
         DHCP_LOGE("PublishDhcpResultEvent ifname:%{public}s, code:%{public}d failed, result==nullptr!", ifname, code);
         return DHCP_OPT_FAILED;
     }
