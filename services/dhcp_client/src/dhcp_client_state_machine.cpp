@@ -71,10 +71,10 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_transID(0),
     m_ifName(ifname),
     m_pthread(nullptr),
-    m_slowArpDetecting(false),
-    m_slowArpTaskId(0)
+    m_slowArpDetecting(false)
 {
 #ifndef OHOS_ARCH_LITE
+    m_slowArpTaskId =0 ;
     getIpTimerId = 0;
     renewDelayTimerId = 0;
     rebindDelayTimerId = 0;
