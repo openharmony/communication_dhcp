@@ -20,6 +20,7 @@ group("fuzztest") {
     "clientstub_fuzzer:ClientStubFuzzTest",
     "dhcpclient_fuzzer:DhcpClientFuzzTest",
     "dhcpclientcbkstub_fuzzer:DhcpClientCbkStubFuzzTest",
+    "dhcpclientfun_fuzzer:DhcpClientFunFuzzTest",
     "dhcpserver_fuzzer:DhcpServerFuzzTest",
     "dhcpservercbkstub_fuzzer:DhcpServerCbkStubFuzzTest",
     "serverstub_fuzzer:ServerStubFuzzTest",
