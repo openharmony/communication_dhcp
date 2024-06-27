@@ -149,6 +149,7 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
     m_ifName = ifname;
     m_action = action;
 #ifndef OHOS_ARCH_LITE
+    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
 #endif
     if (InitConfig(ifname, isIpv6) != DHCP_OPT_SUCCESS) {
@@ -1817,10 +1818,13 @@ void DhcpClientStateMachine::GetIpTimerCallback()
 
 void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once)
 {
+    DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}u once:%{public}d", timerId, type,
+        interval, once);
     DhcpTimer::TimerCallback timeCallback = nullptr;
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
     if (timerId != 0) {
-        StopTimer(timerId);
+        DHCP_LOGE("StartTimer timerId !=0 id:%{public}u", timerId);
+        return;
     }
     switch (type) {
         case TIMER_GET_IP:
@@ -1841,8 +1845,7 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
     }
     if (timeCallback != nullptr && (timerId == 0)) {
         DhcpTimer::GetInstance()->Register(timeCallback, timerId, interval, once);
-        DHCP_LOGI("StartTimer type:%{public}u timerId:%{public}u interval:%{public}u once:%{public}d"
-            "[%{public}u %{public}u %{public}u %{public}u]", type, timerId, interval, once, getIpTimerId,
+        DHCP_LOGI("StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
             renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     }
 }
@@ -1867,6 +1870,7 @@ void DhcpClientStateMachine::RenewDelayCallback()
     StopTimer(renewDelayTimerId);
     m_action = ACTION_RENEW_T1; // T1 begin renew
     InitConfig(m_ifName, m_cltCnf.isIpv6);
+    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
     m_dhcp4State = DHCP_STATE_RENEWING;
     m_sentPacketNum = 0;
@@ -1881,6 +1885,7 @@ void DhcpClientStateMachine::RebindDelayCallback()
     StopTimer(rebindDelayTimerId);
     m_action = ACTION_RENEW_T2; // T2 begin rebind
     InitConfig(m_ifName, m_cltCnf.isIpv6);
+    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
     m_dhcp4State = DHCP_STATE_REBINDING;
     m_sentPacketNum = 0;
@@ -1895,6 +1900,7 @@ void DhcpClientStateMachine::RemainingDelayCallback()
     StopTimer(remainingDelayTimerId);
     m_action = ACTION_RENEW_T3;  // T3 expired,
     InitConfig(m_ifName, m_cltCnf.isIpv6);
+    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
     m_dhcp4State = DHCP_STATE_INIT;
     m_sentPacketNum = 0;
@@ -1947,6 +1953,9 @@ void DhcpClientStateMachine::ScheduleLeaseTimers()
     DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}u rebindSec:%{public}u remainingDelay:%{public}u",
         renewalSec, rebindSec, remainingDelay);
 #ifndef OHOS_ARCH_LITE
+    StopTimer(renewDelayTimerId);
+    StopTimer(rebindDelayTimerId);
+    StopTimer(remainingDelayTimerId);
     StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, renewalSec, true);
     StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, rebindSec, true);
     StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, remainingDelay, true);
