@@ -140,6 +140,7 @@ private:
     uint32_t renewDelayTimerId;
     uint32_t rebindDelayTimerId;
     uint32_t remainingDelayTimerId;
+    uint32_t m_slowArpTaskId;
 #endif
     std::string m_arpDectionTargetIp;
     std::string m_targetBssid;
@@ -148,7 +149,6 @@ private:
     DhcpArpChecker m_dhcpArpChecker;
     std::function<void(bool isReachable)> m_slowArpCallback;
     bool m_slowArpDetecting;
-    uint32_t m_slowArpTaskId;
 };
 
 typedef struct{
