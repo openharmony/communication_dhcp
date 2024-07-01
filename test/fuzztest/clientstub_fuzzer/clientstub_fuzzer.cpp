@@ -31,8 +31,7 @@ constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t DHCP_SLEEP_2 = 4;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
-static sptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub =
-    sptr<DhcpClientCallBackStub>(new (std::nothrow)DhcpClientCallBackStub());
+std::shared_ptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub = std::make_shared<DhcpClientCallBackStub>();
 
 void OnRegisterCallBackTest(const std::string& ifname, size_t size)
 {
