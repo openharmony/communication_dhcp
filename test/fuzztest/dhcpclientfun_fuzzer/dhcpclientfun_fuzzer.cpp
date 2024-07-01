@@ -25,9 +25,9 @@ namespace OHOS {
 namespace Wifi {
 std::string ifname = "wlan0";
 constexpr size_t DHCP_SLEEP_2 = 2;
-std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient =
-    std::make_unique<OHOS::Wifi::DhcpClientStateMachine>(ifname);
-std::unique_ptr<OHOS::Wifi::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::Wifi::DhcpIpv6Client>("wlan0");
+std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient =
+    std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(ifname);
+std::unique_ptr<OHOS::DHCP::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::DHCP::DhcpIpv6Client>("wlan0");
 
 bool DhcpClientStateMachineFunFuzzerTest(const uint8_t* data, size_t size)
 {
@@ -66,5 +66,5 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     DhcpIpv6FunFuzzerTest(data, size);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
