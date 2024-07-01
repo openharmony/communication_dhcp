@@ -35,6 +35,9 @@ bool DhcpClientStateMachineFunFuzzerTest(const uint8_t* data, size_t size)
         return false;
     }
     time_t curTimestamp = time(nullptr);
+    if (curTimestamp == static_cast<time_t>(-1)) {
+        return;
+    }
     dhcpClient->DhcpRequestHandle(curTimestamp);
     sleep(DHCP_SLEEP_2);
     dhcpClient->DhcpResponseHandle(curTimestamp);
