@@ -54,6 +54,7 @@ constexpr uint32_t SLOW_ARP_DETECTION_TIME_MS = 80;
 constexpr uint32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
 constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
 constexpr uint32_t RATE_S_MS = 1000;
+constexpr uint32_t IP_CONFLICT_CHECK_SLEEP_INTERVAL_US = 5 * 1000;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -285,6 +286,7 @@ int DhcpClientStateMachine::StartIpv4(void)
         timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
 
         if (m_slowArpDetecting && (timeout.tv_sec > 0)) {
+            usleep(IP_CONFLICT_CHECK_SLEEP_INTERVAL_US);
             continue;
         }
         InitSocketFd();
@@ -360,7 +362,6 @@ int DhcpClientStateMachine::StopIpv4(void)
 {
     DHCP_LOGI("StopIpv4 timeoutExit:%{public}d", m_cltCnf.timeoutExit);
     m_slowArpDetecting = false;
-    m_timeoutTimestamp = 0;
     m_conflictCount = 0;
     if (!m_cltCnf.timeoutExit) { // thread not exit
         int signum = SIG_STOP;
@@ -1215,7 +1216,21 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
     }
     FormatString(&m_dhcpIpResult);
     CloseAllRenewTimer();
-    IpConflictDetect();
+    if (m_dhcp4State == DHCP_STATE_REQUESTING || m_dhcp4State == DHCP_STATE_INITREBOOT) {
+        IpConflictDetect();
+    } else {
+        if (PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_SUCCESS, &m_dhcpIpResult) != DHCP_OPT_SUCCESS) {
+            DHCP_LOGE("DhcpAckOrNakPacketHandle PublishDhcpResultEvent result failed!");
+            return;
+        }
+        m_dhcp4State = DHCP_STATE_BOUND;
+        m_sentPacketNum = 0;
+        m_resendTimer = 0;
+        m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
+        SetSocketMode(SOCKET_MODE_INVALID);
+        StopIpv4();
+        ScheduleLeaseTimers();
+    }
 }
 
 void DhcpClientStateMachine::ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp)
