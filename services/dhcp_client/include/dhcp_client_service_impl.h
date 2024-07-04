@@ -20,6 +20,7 @@
 #include <thread>
 #include <mutex>
 #include "i_dhcp_client_callback.h"
+#include "dhcp_client_def.h"
 #include "dhcp_client_state_machine.h"
 #ifdef OHOS_ARCH_LITE
 #include "dhcp_client_stub_lite.h"
@@ -108,6 +109,7 @@ private:
     static sptr<DhcpClientServiceImpl> g_instance;
 #endif
    std::string m_bssid;
+   RouterCfg m_routerCfg;
 };
 }  // namespace DHCP
 }  // namespace OHOS

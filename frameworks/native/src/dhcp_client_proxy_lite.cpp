@@ -193,6 +193,7 @@ ErrCode DhcpClientProxy::SetConfiguration(const std::string& ifname, const Route
     (void)WriteInt32(&req, 0);
     (void)WriteString(&req, ifname.c_str());
     (void)WriteString(&req, config.bssid.c_str());
+    (void)WriteString(&req, config.isPublicESS);
     owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG);
     int error = remote_->Invoke(remote_,
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), &req,
