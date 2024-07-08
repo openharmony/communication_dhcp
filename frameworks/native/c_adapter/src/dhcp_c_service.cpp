@@ -69,6 +69,7 @@ DhcpErrorCode SetConfiguration(const char *ifname, const RouterConfig config)
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
     OHOS::DHCP::RouterConfig routerConfig;
     routerConfig.bssid = config.bssid;
+    routerConfig.isPublicESS = config.isPublicESS;
     return GetCErrorCode(dhcpClientPtr->SetConfiguration(ifname, routerConfig));
 }
 

@@ -408,4 +408,9 @@ enum TimerType {
     TIMER_REBIND_DELAY,
     TIMER_REMAINING_DELAY,
 };
+
+struct RouterCfg {
+    std::string bssid;
+    bool isPublicESS;
+};
 #endif

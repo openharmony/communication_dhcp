@@ -111,7 +111,7 @@ public:
     int InitSignalHandle();
     int CloseSignalHandle();
     ActionMode GetAction(void);
-    void SetConfiguration(const std::string targetBssid);
+    void SetConfiguration(const RouterCfg routerCfg);
     void ScheduleLeaseTimers();
     void CloseAllRenewTimer();
     int SendStopSignal();
@@ -143,7 +143,7 @@ private:
     uint32_t m_slowArpTaskId;
 #endif
     std::string m_arpDectionTargetIp;
-    std::string m_targetBssid;
+    RouterCfg m_routerCfg;
     uint32_t m_conflictCount;
     DhcpIpResult m_dhcpIpResult;
     DhcpArpChecker m_dhcpArpChecker;

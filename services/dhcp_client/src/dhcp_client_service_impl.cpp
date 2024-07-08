@@ -257,7 +257,8 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool b
 ErrCode DhcpClientServiceImpl::SetConfiguration(const std::string& ifname, const RouterConfig& config)
 {
     DHCP_LOGI("SetConfiguration ifName:%{public}s", ifname.c_str());
-    m_bssid = config.bssid;
+    m_routerCfg.bssid = config.bssid;
+    m_routerCfg.isPublicESS = config.isPublicESS;
     return DHCP_E_SUCCESS;
 }
 
@@ -268,7 +269,7 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
         DHCP_LOGE("StartOldClient pStaStateMachine is null!");
         return DHCP_E_FAILED;
     }
-    dhcpClient.pStaStateMachine->SetConfiguration(m_bssid);
+    dhcpClient.pStaStateMachine->SetConfiguration(m_routerCfg);
     dhcpClient.pStaStateMachine->StartIpv4Type(ifname, bIpv6, ACTION_START_OLD);
     if (bIpv6) {
         if (dhcpClient.pipv6Client == nullptr) {
@@ -329,7 +330,7 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         m_mapClientService.emplace(std::make_pair(ifname, client));
     }
     DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
-    pStaState->SetConfiguration(m_bssid);
+    pStaState->SetConfiguration(m_routerCfg);
     pStaState->StartIpv4Type(ifname, bIpv6, ACTION_START_NEW);
     return DHCP_E_SUCCESS;
 }

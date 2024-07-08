@@ -695,14 +695,14 @@ void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
 
 void DhcpClientStateMachine::Reboot(time_t timestamp)
 {
-    if (m_targetBssid.empty()) {
-        DHCP_LOGE("m_targetBssid is empty, no need reboot");
+    if (m_routerCfg.bssid.empty()) {
+        DHCP_LOGE("m_routerCfg.bssid is empty, no need reboot");
         return;
     }
 
     IpInfoCached ipInfoCached;
-    if (GetCachedDhcpResult(m_targetBssid, ipInfoCached) != 0) {
-        DHCP_LOGE("not find cache ip for m_targetBssid");
+    if (GetCachedDhcpResult(m_routerCfg.bssid, ipInfoCached) != 0) {
+        DHCP_LOGE("not find cache ip for m_routerCfg.bssid");
         return;
     }
     if (timestamp > ipInfoCached.absoluteLeasetime) {
@@ -1773,12 +1773,12 @@ int32_t DhcpClientStateMachine::GetCachedDhcpResult(std::string targetBssid, IpI
 void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
 {
     DHCP_LOGI("SaveIpInfoInLocalFile() enter");
-    if (m_targetBssid.empty()) {
-        DHCP_LOGI("m_targetBssid is empty, no need save");
+    if (m_routerCfg.bssid.empty()) {
+        DHCP_LOGI("m_routerCfg.bssid is empty, no need save");
         return;
     }
     IpInfoCached ipInfoCached;
-    ipInfoCached.bssid = m_targetBssid;
+    ipInfoCached.bssid = m_routerCfg.bssid;
     ipInfoCached.absoluteLeasetime = ipResult.uOptLeasetime + time(NULL);
     ipInfoCached.ipResult = ipResult;
     DhcpResultStoreManager::GetInstance().SaveIpInfoInLocalFile(ipInfoCached);
@@ -1787,8 +1787,13 @@ void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
 void DhcpClientStateMachine::TryCachedIp()
 {
     DHCP_LOGI("TryCachedIp() enter, action:%{public}d dhcpState:%{public}d", m_action, m_dhcp4State);
+    if (m_routerCfg.isPublicESS) {
+        DHCP_LOGW("current network is public ESS, don make default IP");
+        return;
+    }
+
     IpInfoCached ipCached;
-    if (GetCachedDhcpResult(m_targetBssid, ipCached) != 0) {
+    if (GetCachedDhcpResult(m_routerCfg.bssid, ipCached) != 0) {
         DHCP_LOGE("TryCachedIp() not find cache ip");
         return;
     }
@@ -1799,9 +1804,9 @@ void DhcpClientStateMachine::TryCachedIp()
     StopIpv4();
 }
 
-void DhcpClientStateMachine::SetConfiguration(const std::string targetBssid)
+void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
 {
-    m_targetBssid = targetBssid;
+    m_routerCfg = routerCfg;
 }
 
 #ifndef OHOS_ARCH_LITE

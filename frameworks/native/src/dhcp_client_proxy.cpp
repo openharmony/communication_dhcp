@@ -190,6 +190,7 @@ ErrCode DhcpClientProxy::SetConfiguration(const std::string& ifname, const Route
     data.WriteInt32(0);
     data.WriteString(ifname);
     data.WriteString(config.bssid);
+    data.WriteInt32(config.isPublicESS);
     DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s", __func__, GetCallingUid(), ifname.c_str());
     int error = Remote()->SendRequest(
         static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), data, reply, option);
