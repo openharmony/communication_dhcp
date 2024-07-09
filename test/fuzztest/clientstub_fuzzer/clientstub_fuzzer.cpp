@@ -27,7 +27,7 @@
 namespace OHOS {
 namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
-constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t DHCP_SLEEP_1 = 1;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
 
