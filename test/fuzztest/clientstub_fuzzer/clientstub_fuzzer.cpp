@@ -31,7 +31,6 @@ constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t DHCP_SLEEP_2 = 4;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
-std::shared_ptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub = std::make_shared<DhcpClientCallBackStub>();
 
 void OnRegisterCallBackTest(const std::string& ifname, size_t size)
 {
@@ -39,7 +38,6 @@ void OnRegisterCallBackTest(const std::string& ifname, size_t size)
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
-    datas.WriteRemoteObject(g_dhcpClientCallBackStub->AsObject());
     datas.WriteString(ifname);
     datas.RewindRead(0);
     MessageParcel reply;
@@ -53,7 +51,7 @@ void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
-    datas.WriteString(ifname);
+    datas.WriteString("");
     datas.WriteBool(ipv6);
     datas.RewindRead(0);
     MessageParcel reply;
