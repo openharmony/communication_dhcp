@@ -27,11 +27,9 @@
 namespace OHOS {
 namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
-constexpr size_t DHCP_SLEEP_1 = 2;
-constexpr size_t DHCP_SLEEP_2 = 4;
+constexpr size_t DHCP_SLEEP_1 = 1;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
-std::shared_ptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub = std::make_shared<DhcpClientCallBackStub>();
 
 void OnRegisterCallBackTest(const std::string& ifname, size_t size)
 {
@@ -39,7 +37,6 @@ void OnRegisterCallBackTest(const std::string& ifname, size_t size)
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
-    datas.WriteRemoteObject(g_dhcpClientCallBackStub->AsObject());
     datas.WriteString(ifname);
     datas.RewindRead(0);
     MessageParcel reply;
@@ -53,7 +50,7 @@ void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
     datas.WriteInt32(0);
-    datas.WriteString(ifname);
+    datas.WriteString("");
     datas.WriteBool(ipv6);
     datas.RewindRead(0);
     MessageParcel reply;
@@ -98,8 +95,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     sleep(DHCP_SLEEP_1);
     OnSetConfigurationTest(ifname);
     sleep(DHCP_SLEEP_1);
-    OnStartDhcpClientTest(ifname, size, false); // max 18s timeout
-    sleep(DHCP_SLEEP_2);
+    OnStartDhcpClientTest(ifname, size, false);
+    sleep(DHCP_SLEEP_1);
     OnStopDhcpClientTest(ifname, size, false);
     sleep(DHCP_SLEEP_1);
     return 0;
