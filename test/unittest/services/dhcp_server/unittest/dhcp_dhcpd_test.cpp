@@ -53,6 +53,12 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
     std::string localIp = "192.77.1.232";
     EXPECT_EQ(1, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
 }
-//duliqun
+
+HWTEST_F(DhcpDhcpdTest, RegisterLeaseInfoCbksTest, TestSize.Level1)
+{
+    DHCP_LOGI("RegisterLeaseInfoCbksTest enter");
+    DhcpLeasesChangeFunc func = nullptr;
+    EXPECT_EQ(0, RegisterLeaseInfoCbks(func));
+}
 }
 }
