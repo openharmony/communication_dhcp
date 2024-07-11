@@ -250,6 +250,24 @@ HWTEST_F(DhcpServerTest, GetPortalUrlOptionTest, TestSize.Level1)
     ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
     EXPECT_EQ(REPLY_NONE, GetPortalUrlOption(received, nullptr));
 }
-//duliqun
+
+HWTEST_F(DhcpServerTest, CheckAndNotifyServerSuccessTest, TestSize.Level1)
+{
+    DhcpServerContext ctx;
+    int replyType = REPLY_NONE;
+    CheckAndNotifyServerSuccess(replyType, nullptr);
+    CheckAndNotifyServerSuccess(replyType, &ctx);
+    replyType = REPLY_NAK;
+    CheckAndNotifyServerSuccess(replyType, nullptr);
+    CheckAndNotifyServerSuccess(replyType, &ctx);
+}
+
+HWTEST_F(DhcpServerTest, RegisterLeasesChangedCallbackTest, TestSize.Level1)
+{
+    DhcpServerContext ctx;
+    LeasesChangeFunc func = nullptr;
+    RegisterLeasesChangedCallback(nullptr, func);
+    RegisterLeasesChangedCallback(&ctx, func);
+}
 }
 }
