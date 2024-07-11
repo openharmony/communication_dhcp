@@ -210,7 +210,9 @@ HWTEST_F(DhcpServerServiceTest, ConvertLeasesToStationInfosTest, TestSize.Level1
 HWTEST_F(DhcpServerServiceTest, GDealServerSuccessTest, TestSize.Level1)
 {
     DHCP_LOGI("enter GDealServerSuccessTest");
-    std::string ifname = "wlan0";
+    std::string ifname;
+    GDealServerSuccess(ifname.c_str());
+    ifname = "wlan0";
     GDealServerSuccess(ifname.c_str());
 }
 }
