@@ -264,7 +264,7 @@ int DhcpIpv6Client::GetIpFromS6Address(void* addr, int family, char* buf, int bu
 
 void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaIndex)
 {
-    int currIndex = if_nametoindex(interfaceName.c_str());
+    int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
     if (currIndex != ifaIndex) {
         DHCP_LOGE("address ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
         return;
@@ -345,7 +345,7 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
 
 void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
 {
-    int currIndex = if_nametoindex(interfaceName.c_str());
+    int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
     if (currIndex != ifaIndex) {
         DHCP_LOGE("dnsevent ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
         return;
@@ -395,7 +395,7 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
 
 void DhcpIpv6Client::onIpv6RouteAddEvent(char* gateway, char* dst, int ifaIndex)
 {
-    int currIndex = if_nametoindex(interfaceName.c_str());
+    int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
     if (currIndex != ifaIndex) {
         DHCP_LOGE("route ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
         return;

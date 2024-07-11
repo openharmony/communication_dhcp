@@ -199,7 +199,7 @@ static int InitLeaseTime(DhcpConfig *config)
 {
     ArgumentInfo *arg = GetArgument("lease");
     if (arg) {
-        config->leaseTime = atoi(arg->value);
+        config->leaseTime = static_cast<uint32_t>(atoi(arg->value));
     } else {
         if (!config->leaseTime) {
             config->leaseTime = DHCP_LEASE_TIME;
@@ -212,7 +212,7 @@ static int InitRenewalTime(DhcpConfig *config)
 {
     ArgumentInfo *arg = GetArgument("renewal");
     if (arg) {
-        config->renewalTime = atoi(arg->value);
+        config->renewalTime = static_cast<uint32_t>(atoi(arg->value));
     } else {
         if (!config->rebindingTime) {
             config->rebindingTime = DHCP_RENEWAL_TIME;
@@ -226,7 +226,7 @@ static int InitRebindingTime(DhcpConfig *config)
 {
     ArgumentInfo *arg = GetArgument("rebinding");
     if (arg) {
-        config->rebindingTime = atoi(arg->value);
+        config->rebindingTime = static_cast<uint32_t>(atoi(arg->value));
     } else {
         if (!config->rebindingTime) {
             config->rebindingTime =  DHCP_REBINDING_TIME;

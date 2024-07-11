@@ -268,7 +268,7 @@ int FillU32Option(PDhcpOption pOption, uint32_t u32)
 
 int FillOptionData(PDhcpOption pOption, const uint8_t *data, size_t len)
 {
-    int flen = len;
+    size_t flen = len;
     if (!pOption) {
         return RET_ERROR;
     }

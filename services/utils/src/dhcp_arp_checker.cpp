@@ -208,7 +208,8 @@ void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp
             }
         }
         std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-        int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+        int64_t elapsed =
+            static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
         leftMillis -= static_cast<int32_t>(elapsed);
     }
 }
@@ -228,7 +229,7 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
         return OPT_FAIL;
     }
 
-    int32_t ifaceIndex = if_nametoindex(iface);
+    int32_t ifaceIndex = static_cast<int32_t>(if_nametoindex(iface));
     if (ifaceIndex == 0) {
         DHCP_LOGE("get iface index fail: %{public}s", iface);
         return OPT_FAIL;
