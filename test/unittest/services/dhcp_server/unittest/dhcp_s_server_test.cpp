@@ -250,5 +250,6 @@ HWTEST_F(DhcpServerTest, GetPortalUrlOptionTest, TestSize.Level1)
     ASSERT_TRUE(memset_s(&received, sizeof(PDhcpMsgInfo), 0, sizeof(PDhcpMsgInfo)) == EOK);
     EXPECT_EQ(REPLY_NONE, GetPortalUrlOption(received, nullptr));
 }
+//duliqun
 }
 }
