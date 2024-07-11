@@ -185,5 +185,35 @@ HWTEST_F(DhcpServerServiceTest, DeleteLeaseFileTest, TestSize.Level1)
     std::string ifname;
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->DeleteLeaseFile(ifname));
 }
+HWTEST_F(DhcpServerServiceTest, DealServerSuccessTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter DealServerSuccessTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+    std::string ifname;
+    pServerServiceImpl->DealServerSuccess(ifname);
+    ifname = "wlan0";
+    pServerServiceImpl->DealServerSuccess(ifname);
+}
+
+HWTEST_F(DhcpServerServiceTest, ConvertLeasesToStationInfosTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter ConvertLeasesToStationInfosTest");
+    ASSERT_TRUE(pServerServiceImpl != nullptr);
+    std::vector<std::string> leases;
+    std::vector<DhcpStationInfo> stationInfos;
+    pServerServiceImpl->ConvertLeasesToStationInfos(leases, stationInfos);
+    std::string leasesInfo = "68:77:24:77:8f:6b 192.168.43.5 21600 1720428443 1720424415 0 1 2 DESKT-OSNYRBJKJ";
+    leases.push_back(leasesInfo);
+    pServerServiceImpl->ConvertLeasesToStationInfos(leases, stationInfos);
+}
+
+HWTEST_F(DhcpServerServiceTest, GDealServerSuccessTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter GDealServerSuccessTest");
+    std::string ifname;
+    GDealServerSuccess(ifname.c_str());
+    ifname = "wlan0";
+    GDealServerSuccess(ifname.c_str());
+}
 }
 }
