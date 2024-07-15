@@ -106,5 +106,52 @@ void DhcpClientCallbackProxy::OnIpFailChanged(int status, const std::string& ifn
     return;
 }
 
+void DhcpClientCallbackProxy::OnDhcpOfferReport(int status, const std::string& ifname, DhcpResult& result)
+{
+    DHCP_LOGI("WifiDeviceCallBackProxy::OnDhcpOfferReport");
+    MessageOption option;
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        DHCP_LOGE("Write interface token error: %{public}s", __func__);
+        return;
+    }
+    data.WriteInt32(0);
+    data.WriteInt32(status);
+    data.WriteString(ifname);
+    data.WriteInt32(result.iptype);
+    data.WriteBool(result.isOptSuc);
+    data.WriteInt32(result.uLeaseTime);
+    data.WriteInt32(result.uAddTime);
+    data.WriteInt32(result.uGetTime);
+    data.WriteString(result.strYourCli);
+    data.WriteString(result.strServer);
+    data.WriteString(result.strSubnet);
+    data.WriteString(result.strDns1);
+    data.WriteString(result.strDns2);
+    data.WriteString(result.strRouter1);
+    data.WriteString(result.strRouter2);
+    data.WriteString(result.strVendor);
+    data.WriteString(result.strLinkIpv6Addr);
+    data.WriteString(result.strRandIpv6Addr);
+    data.WriteString(result.strLocalAddr1);
+    data.WriteString(result.strLocalAddr2);
+    data.WriteInt32(result.vectorDnsAddr.size());
+    for (auto dns : result.vectorDnsAddr) {
+        data.WriteString(dns);
+    }
+    int error = Remote()->SendRequest(static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_DHCP_OFFER),
+        data, reply, option);
+    if (error != ERR_NONE) {
+        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
+            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_CBK_CMD_DHCP_OFFER), error);
+        return;
+    }
+    int exception = reply.ReadInt32();
+    if (exception) {
+        DHCP_LOGE("notify wifi dhcp offer failed!");
+    }
+    return;
+}
 }  // namespace DHCP
 }  // namespace OHOS

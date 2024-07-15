@@ -54,6 +54,13 @@ bool PublishDhcpIpv4Result(struct DhcpIpResult &ipResult)
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultExpired failed!");
             return false;
         }
+    } else if (ipResult.code == PUBLISH_DHCP_OFFER_REPORT) {
+    #ifndef OHOS_ARCH_LITE
+        if (clientImpl->DhcpOfferResultSuccess(ipResult) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+            DHCP_LOGE("PublishDhcpIpv4Result DhcpOfferReport failed!");
+            return false;
+        }
+    #endif
     } else { // PUBLISH_CODE_FAILED
         if (clientImpl->DhcpIpv4ResultFail(ipResult) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultFail failed!");

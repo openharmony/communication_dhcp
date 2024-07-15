@@ -34,7 +34,9 @@ public:
     virtual ~IDhcpClientCallBack() {}
     virtual void OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result) = 0;
     virtual void OnIpFailChanged(int status, const std::string& ifname, const std::string& reason) = 0;
+
 #ifndef OHOS_ARCH_LITE
+    virtual void OnDhcpOfferReport(int status, const std::string& ifname, DhcpResult& result) = 0;
 public:
     DECLARE_INTERFACE_DESCRIPTOR(u"ohos.wifi.IDhcpClientCallBack");
 #endif

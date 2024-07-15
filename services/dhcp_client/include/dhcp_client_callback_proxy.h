@@ -40,6 +40,7 @@ class DhcpClientCallbackProxy : public IRemoteProxy<IDhcpClientCallBack> {
 public:
     explicit DhcpClientCallbackProxy(const sptr<IRemoteObject> &impl);
     virtual ~DhcpClientCallbackProxy();
+    void OnDhcpOfferReport(int status, const std::string& ifname, DhcpResult& result) override;
 #endif
 
     void OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result) override;

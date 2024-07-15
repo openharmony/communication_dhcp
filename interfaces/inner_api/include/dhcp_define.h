@@ -111,6 +111,8 @@ typedef enum EnumErrCode {
     DHCP_OPT_RENEW_TIMEOUT,
     /* lease expired */
     DHCP_OPT_LEASE_EXPIRED,
+    /* dhcp offer */
+    DHCP_OPT_OFFER_REPORT,
     /* error */
     DHCP_OPT_ERROR,
 } DhcpErrCode;

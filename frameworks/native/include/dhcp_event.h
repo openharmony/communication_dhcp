@@ -37,6 +37,7 @@ public:
     void OnIpSuccessChanged(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result) override;
     void OnIpFailChanged(int status, const std::string& ifname, const std::string& reason) override;
 #ifndef OHOS_ARCH_LITE
+    void OnDhcpOfferReport(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result) override;
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif
     void RegisterCallBack(const std::string& ifname, const ClientCallBack *event);

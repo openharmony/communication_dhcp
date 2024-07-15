@@ -419,7 +419,42 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
     return OHOS::DHCP::DHCP_OPT_SUCCESS;
 }
+#ifndef OHOS_ARCH_LITE
+int DhcpClientServiceImpl::DhcpOfferResultSuccess(struct DhcpIpResult &ipResult)
+{
+    std::string ifname = ipResult.ifname;
+    OHOS::DHCP::DhcpResult result;
+    result.iptype = 0;
+    result.isOptSuc = true;
+    result.uGetTime = static_cast<uint32_t>(time(NULL));
+    result.uAddTime = ipResult.uAddTime;
+    result.uLeaseTime = ipResult.uOptLeasetime;
+    result.strYourCli = ipResult.strYiaddr;
+    result.strServer = ipResult.strOptServerId;
+    result.strSubnet = ipResult.strOptSubnet;
+    result.strDns1 = ipResult.strOptDns1;
+    result.strDns2 = ipResult.strOptDns2;
+    result.strRouter1 = ipResult.strOptRouter1;
+    result.strRouter2 = ipResult.strOptRouter2;
+    result.strVendor = ipResult.strOptVendor;
+    for (std::vector<std::string>::iterator it = ipResult.dnsAddr.begin(); it != ipResult.dnsAddr.end(); it++) {
+        result.vectorDnsAddr.push_back(*it);
+    }
 
+    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+    auto iter = m_mapClientCallBack.find(ifname);
+    if (iter == m_mapClientCallBack.end()) {
+        DHCP_LOGE("OnDhcpOfferReport m_mapClientCallBack not find callback!");
+        return OHOS::DHCP::DHCP_OPT_FAILED;
+    }
+    if ((iter->second) == nullptr) {
+        DHCP_LOGE("OnDhcpOfferReport mclientCallback is nullptr!");
+        return OHOS::DHCP::DHCP_OPT_FAILED;
+    }
+    (iter->second)->OnDhcpOfferReport(0, ifname, result);
+    return OHOS::DHCP::DHCP_OPT_SUCCESS;
+}
+#endif
 int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
 {
     std::string ifname = ipResult.ifname;
