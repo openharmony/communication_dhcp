@@ -18,12 +18,9 @@
 
 #include <string>
 
-typedef void(*DhcpLeasesChangeFunc)(const char *ifname);
-
+typedef void(*DhcpDeviceChangedCallback)(const char *ifname);
 int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, const std::string& ipRange,
     const std::string& localIp);
-
 int StopDhcpServerMain();
-
-int RegisterLeaseInfoCbks(DhcpLeasesChangeFunc func);
+int RegisterDeviceConnectCallBack(DhcpDeviceChangedCallback fun);
 #endif

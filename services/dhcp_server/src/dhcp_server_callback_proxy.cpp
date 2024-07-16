@@ -91,9 +91,9 @@ void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::ve
     int exception = reply.ReadInt32();
     if (exception) {
         DHCP_LOGE("notify wifi state change failed!");
+        return;
     }
     DHCP_LOGI("send server request success");
-
     return;
 }
 

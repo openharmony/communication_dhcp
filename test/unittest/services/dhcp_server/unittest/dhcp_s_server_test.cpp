@@ -251,23 +251,23 @@ HWTEST_F(DhcpServerTest, GetPortalUrlOptionTest, TestSize.Level1)
     EXPECT_EQ(REPLY_NONE, GetPortalUrlOption(received, nullptr));
 }
 
-HWTEST_F(DhcpServerTest, CheckAndNotifyServerSuccessTest, TestSize.Level1)
+HWTEST_F(DhcpServerTest, NotifyConnetDeviceChangedTest, TestSize.Level1) // duliqun
 {
     DhcpServerContext ctx;
     int replyType = REPLY_NONE;
-    CheckAndNotifyServerSuccess(replyType, nullptr);
-    CheckAndNotifyServerSuccess(replyType, &ctx);
+    NotifyConnetDeviceChanged(replyType, nullptr);
+    NotifyConnetDeviceChanged(replyType, &ctx);
     replyType = REPLY_NAK;
-    CheckAndNotifyServerSuccess(replyType, nullptr);
-    CheckAndNotifyServerSuccess(replyType, &ctx);
+    NotifyConnetDeviceChanged(replyType, nullptr);
+    NotifyConnetDeviceChanged(replyType, &ctx);
 }
 
-HWTEST_F(DhcpServerTest, RegisterLeasesChangedCallbackTest, TestSize.Level1)
+HWTEST_F(DhcpServerTest, RegisterDeviceChangedCallbackTest, TestSize.Level1) // duliqun
 {
     DhcpServerContext ctx;
-    LeasesChangeFunc func = nullptr;
-    RegisterLeasesChangedCallback(nullptr, func);
-    RegisterLeasesChangedCallback(&ctx, func);
+    DhcpDeviceChangedCallback func = nullptr;
+    RegisterDeviceChangedCallback(nullptr, func);
+    RegisterDeviceChangedCallback(&ctx, func);
 }
 }
 }

@@ -149,6 +149,5 @@ int DhcpServreCallBackStub::RemoteOnServerSerExitChanged(uint32_t code, MessageP
     reply.WriteInt32(0);
     return 0;
 }
-
 }  // namespace DHCP
 }  // namespace OHOS

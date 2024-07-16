@@ -241,7 +241,7 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
     DHCP_LOGD("localIp:%{public}s netmask:%{public}s  ipRange:%{public}s.", localIp.c_str(), netmask.c_str(),
         ipRange.c_str());
 
-    int ret = RegisterLeaseInfoCbks(GDealServerSuccess);
+    int ret = RegisterDeviceConnectCallBack(DeviceConnectCallBack);
     ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
     std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
@@ -257,8 +257,9 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
     return ErrCode(ret);
 }
 
-void DhcpServerServiceImpl::DealServerSuccess(const std::string & ifname)
+void DhcpServerServiceImpl::DeviceInfoCallBack(const std::string & ifname)
 {
+    DHCP_LOGI("DeviceInfoCallBack ifname:%{public}s.", ifname.c_str());
     DHCP_LOGI("DealServerSuccess ifname:%{public}s.", ifname.c_str());
     std::vector<std::string> leases;
     std::vector<DhcpStationInfo> stationInfos;
@@ -289,17 +290,24 @@ void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string>
         if (!(iss >> info.macAddr >> info.ipAddr >> info.deviceName)) {
             continue;
         }
-        DHCP_LOGI("leases:%s ", lease.c_str());
-        DHCP_LOGI("stationInfos:%s, %s, %s ", info.macAddr, info.ipAddr, info.deviceName);
+        DHCP_LOGI("stationInfos ifname:%{public}s.", info.deviceName);
         stationInfos.push_back(info);
     }
 }
 
-void GDealServerSuccess(const char* ifname)
+void DeviceConnectCallBack(const char* ifname)
 {
-    DHCP_LOGI("GDealServerSuccess ifname:%{public}s.", ifname);
+    DHCP_LOGI("DeviceConnectCallBack ifname:%{public}s.", ifname);
+    if (ifname == nullptr) {
+        DHCP_LOGE("DeviceConnectCallBack ifname is nullptr!");
+        return;
+    }
     auto instance = DhcpServerServiceImpl::GetInstance();
-    instance->DealServerSuccess(ifname);
+    if (instance == nullptr) {
+        DHCP_LOGE("DeviceConnectCallBack instance is nullptr!");
+        return;
+    }
+    instance->DeviceInfoCallBack(ifname);
 }
 
 ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)

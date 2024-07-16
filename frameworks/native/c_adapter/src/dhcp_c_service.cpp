@@ -115,6 +115,17 @@ NO_SANITIZE("cfi") DhcpErrorCode StopDhcpServer(const char *ifname)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
+#ifdef OHOS_ARCH_LITE
+    if (dhcpServerCallBack == nullptr) {
+        dhcpServerCallBack = std::shared_ptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
+    }
+#else
+    if (dhcpServerCallBack == nullptr) {
+        dhcpServerCallBack = OHOS::sptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
+    }
+#endif
+    CHECK_PTR_RETURN(dhcpServerCallBack, DHCP_INVALID_PARAM);
+    dhcpServerCallBack->UnRegisterCallBack(ifname);
     return GetCErrorCode(dhcpServerPtr->StopDhcpServer(ifname));
 }
 

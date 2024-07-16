@@ -187,18 +187,22 @@ DhcpServerCallBack::~DhcpServerCallBack()
 {
     DHCP_LOGI("~DhcpServerCallBack");
 }
+
 void DhcpServerCallBack::OnServerStatusChanged(int status)
 {
     DHCP_LOGI("DhcpServerCallBack OnServerStatusChanged status:%{public}d", status);
 }
+
 void DhcpServerCallBack::OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases) 
 {
     DHCP_LOGI("DhcpServerCallBack OnServerLeasesChanged ifname:%{public}s", ifname.c_str());
 }
+
 void DhcpServerCallBack::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServerCallBack OnServerSerExitChanged ifname:%{public}s", ifname.c_str());
 }
+
 void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
 {
     DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s", ifname.c_str());
@@ -220,6 +224,8 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
         }
         mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
         free(infos);
+        infos = nullptr;
+        DHCP_LOGE("OnServerSuccess callbackEvent ok!");
     }
 }
 
@@ -236,6 +242,7 @@ void DhcpServerCallBack::RegisterCallBack(const std::string& ifname, const Serve
         DHCP_LOGE("DhcpServerCallBack event is nullptr!");
         return;
     }
+    std::lock_guard<std::mutex> autoLock(callBackServerMutex);
     auto iter = mapServerCallBack.find(ifname);
     if (iter != mapServerCallBack.end()) {
         iter->second = event;
@@ -243,5 +250,21 @@ void DhcpServerCallBack::RegisterCallBack(const std::string& ifname, const Serve
     } else {
         mapServerCallBack.emplace(std::make_pair(ifname, event));
         DHCP_LOGI("Server RegisterCallBack add event, ifname:%{public}s", ifname.c_str());
+    }
+}
+
+void DhcpServerCallBack::UnRegisterCallBack(const std::string& ifname)
+{
+    if (ifname.empty()) {
+        DHCP_LOGE("Server UnRegisterCallBack ifname is empty!");
+        return;
+    }
+    std::lock_guard<std::mutex> autoLock(callBackServerMutex);
+    auto iter = mapServerCallBack.find(ifname);
+    if (iter != mapServerCallBack.end()) {
+        mapServerCallBack.erase(iter);
+        DHCP_LOGI("Server UnRegisterCallBack erase ifname:%{public}s", ifname.c_str());
+    } else {
+        DHCP_LOGI("Server UnRegisterCallBack not find, ifname:%{public}s", ifname.c_str());
     }
 }
