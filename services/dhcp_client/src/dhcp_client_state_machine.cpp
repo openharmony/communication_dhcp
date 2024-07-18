@@ -41,7 +41,7 @@
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
 #include "dhcp_thread.h"
-
+//duliqun
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
 #endif
@@ -1874,6 +1874,7 @@ void DhcpClientStateMachine::GetIpTimerCallback()
 
 void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once)
 {
+    //duliqun
     DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}u once:%{public}d", timerId, type,
         interval, once);
     DhcpTimer::TimerCallback timeCallback = nullptr;
@@ -1908,6 +1909,7 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
 
 void DhcpClientStateMachine::StopTimer(uint32_t &timerId)
 {
+    //duliqun
     uint32_t stopTimerId = timerId;
     if (timerId == 0) {
         DHCP_LOGE("StopTimer timerId is 0, no unregister timer");

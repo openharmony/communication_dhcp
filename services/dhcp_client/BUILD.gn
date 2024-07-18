@@ -120,6 +120,7 @@ if (defined(ohos_lite)) {
       "netmanager_base:netsys_controller",
       "safwk:system_ability_fwk",
       "samgr:samgr_proxy",
+      //duliqun
     ]
 
     if (defined(global_parts_info) &&

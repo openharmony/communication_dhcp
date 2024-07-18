@@ -59,6 +59,7 @@
                 "access_token",
                 "samgr",
                 "ffrt"
+                //duliqun
             ],
             "third_party": [ "openssl" ]
         },

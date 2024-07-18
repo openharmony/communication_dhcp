@@ -111,6 +111,7 @@ ohos_unittest("dhcp_client_unittest") {
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    //duliqun
   ]
 
   configs = [ ":module_private_config" ]
