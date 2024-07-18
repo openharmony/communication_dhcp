@@ -53,6 +53,7 @@ int GetUserClassOption(PDhcpMsgInfo received, AddressBinding *bindin);
 int GetRapidCommitOption(PDhcpMsgInfo received, AddressBinding *bindin);
 int GetOnlyIpv6Option(PDhcpMsgInfo received, AddressBinding *bindin);
 int GetPortalUrlOption(PDhcpMsgInfo received, AddressBinding *bindin);
+//duliqun
 #ifdef __cplusplus
 }
 #endif

@@ -269,5 +269,6 @@ HWTEST_F(DhcpServerTest, RegisterLeasesChangedCallbackTest, TestSize.Level1)
     RegisterLeasesChangedCallback(nullptr, func);
     RegisterLeasesChangedCallback(&ctx, func);
 }
+//duliqun
 }
 }

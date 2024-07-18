@@ -1367,6 +1367,7 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     reply->packet.yiaddr = bindingIp;
     ReplyCommontOption(ctx, reply);
     DHCP_LOGI("Request reply ack!");
+    //duliqun
     return REPLY_ACK;
 }
 
