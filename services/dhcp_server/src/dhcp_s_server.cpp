@@ -962,7 +962,7 @@ int DiscoverReplyLeaseMessage(PDhcpServerContext ctx, PDhcpMsgInfo reply, Server
     AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     if (!lease) {
         DHCP_LOGI("Discover add lease, binging ip:%{public}s mac:%{public}s",
-            OHOS::Wifi::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
+            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
         AddLease(&srvIns->addressPool, binding);
         lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     }
