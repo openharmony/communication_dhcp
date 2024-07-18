@@ -64,9 +64,10 @@ if (defined(ohos_lite)) {
     ]
     deps = []
     external_deps = [
+      "ability_runtime:wantagent_innerkits",
       "c_utils:utils",
       "hilog:libhilog",
-      //duliqun
+      "time_service:time_client",
     ]
 
     cflags = [
