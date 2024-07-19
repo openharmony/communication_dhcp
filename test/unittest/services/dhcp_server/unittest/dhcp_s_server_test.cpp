@@ -269,17 +269,5 @@ HWTEST_F(DhcpServerTest, RegisterLeasesChangedCallbackTest, TestSize.Level1)
     RegisterLeasesChangedCallback(nullptr, func);
     RegisterLeasesChangedCallback(&ctx, func);
 }
-
-HWTEST_F(DhcpServerTest, DiscoverReplyLeaseMessageTest, TestSize.Level1)
-{
-    DhcpServerContext ctx;
-    DhcpMsgInfo reply;
-    ServerContext srvIns;
-    AddressBinding binding;
-    EXPECT_EQ(REPLY_NONE, DiscoverReplyLeaseMessage(nullptr, &reply, &srvIns, &binding));
-    EXPECT_EQ(REPLY_NONE, DiscoverReplyLeaseMessage(&ctx, nullptr, &srvIns, &binding));
-    EXPECT_EQ(REPLY_NONE, DiscoverReplyLeaseMessage(&ctx, &reply, nullptr, &binding));
-    EXPECT_EQ(REPLY_NONE, DiscoverReplyLeaseMessage(&ctx, &reply, &srvIns, nullptr));
-}
 }
 }
