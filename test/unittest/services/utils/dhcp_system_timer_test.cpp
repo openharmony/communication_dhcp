@@ -19,7 +19,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSystemTimerTest");
 using namespace testing::ext;
-using namespace OHOS::Wifi;
+using namespace OHOS::DHCP;
 
 namespace OHOS {
 constexpr uint64_t SLEEP_TIME = 2;
