@@ -270,7 +270,7 @@ HWTEST_F(DhcpServerTest, RegisterLeasesChangedCallbackTest, TestSize.Level1)
     RegisterLeasesChangedCallback(&ctx, func);
 }
 
-HWTEST_F(DhcpServerTest, DiscoverReplyLeaseMessageTest, TestSize.Level1) // duliqun
+HWTEST_F(DhcpServerTest, DiscoverReplyLeaseMessageTest, TestSize.Level1)
 {
     DhcpServerContext ctx;
     DhcpMsgInfo reply;
