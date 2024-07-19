@@ -24,7 +24,7 @@ using namespace OHOS::DHCP;
 namespace OHOS {
 constexpr uint64_t SLEEP_TIME = 2;
 constexpr int TIMER_TYPE = 1;
-class SystemTimerTest : public testing::Test {
+class DhcpSystemTimerTest : public testing::Test {
 public:
     static void SetUpTestCase()
     {}
@@ -41,7 +41,7 @@ void SystemTimerTimeOut()
     DHCP_LOGI("SystemTimerTimeOut enter!");
 }
 
-HWTEST_F(SystemTimerTest, SystemTimer1Test, TestSize.Level1)
+HWTEST_F(DhcpSystemTimerTest, SystemTimer1Test, TestSize.Level1)
 {
     DHCP_LOGI("SystemTimer1Test enter!");
     DhcpSysTimer dhcpSysTimer;
@@ -50,7 +50,7 @@ HWTEST_F(SystemTimerTest, SystemTimer1Test, TestSize.Level1)
     dhcpSysTimer.SetInterval(SLEEP_TIME);
 }
 
-HWTEST_F(SystemTimerTest, SystemTimer2Test, TestSize.Level1)
+HWTEST_F(DhcpSystemTimerTest, SystemTimer2Test, TestSize.Level1)
 {
     DHCP_LOGI("SystemTimer2Test enter!");
     DhcpSysTimer dhcpSysTimer(false, 0, false, false);
