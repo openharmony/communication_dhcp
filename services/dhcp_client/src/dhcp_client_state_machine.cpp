@@ -41,7 +41,11 @@
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
 #include "dhcp_thread.h"
-//duliqun
+
+#ifndef OHOS_ARCH_LITE
+#include "dhcp_system_timer.h"
+#endif
+
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
 #endif
@@ -1838,6 +1842,13 @@ void DhcpClientStateMachine::TryCachedIp()
         DHCP_LOGE("TryCachedIp publish dhcp result failed!");
     }
     StopIpv4();
+    m_leaseTime = ipCached.ipResult.uOptLeasetime;
+    m_renewalSec = ipCached.ipResult.uOptLeasetime * RENEWAL_SEC_MULTIPLE;
+    m_rebindSec = ipCached.ipResult.uOptLeasetime * REBIND_SEC_MULTIPLE;
+    m_renewalTimestamp = ipCached.ipResult.uAddTime;
+    DHCP_LOGI("TryCachedIp m_renewalTimestamp:%{public}u m_leaseTime:%{public}u %{public}u %{public}u",
+        m_renewalTimestamp, m_leaseTime, m_renewalSec, m_rebindSec);
+    ScheduleLeaseTimers();
 }
 
 void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
@@ -1874,11 +1885,10 @@ void DhcpClientStateMachine::GetIpTimerCallback()
 
 void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once)
 {
-    //duliqun
     DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}u once:%{public}d", timerId, type,
         interval, once);
-    DhcpTimer::TimerCallback timeCallback = nullptr;
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
+    std::function<void()> timeCallback = nullptr;
     if (timerId != 0) {
         DHCP_LOGE("StartTimer timerId !=0 id:%{public}u", timerId);
         return;
@@ -1901,24 +1911,29 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
             break;
     }
     if (timeCallback != nullptr && (timerId == 0)) {
-        DhcpTimer::GetInstance()->Register(timeCallback, timerId, interval, once);
-        DHCP_LOGI("StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
+        std::shared_ptr<OHOS::Wifi::DhcpSysTimer> dhcpSysTimer =
+            std::make_shared<OHOS::Wifi::DhcpSysTimer>(false, 0, false, false);
+        dhcpSysTimer->SetCallbackInfo(timeCallback);
+        timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
+        int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
+        MiscServices::TimeServiceClient::GetInstance()->StartTimer(timerId, currentTime + interval);
+        DHCP_LOGI("duliqun 0718 StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
             renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     }
 }
 
 void DhcpClientStateMachine::StopTimer(uint32_t &timerId)
 {
-    //duliqun
     uint32_t stopTimerId = timerId;
     if (timerId == 0) {
         DHCP_LOGE("StopTimer timerId is 0, no unregister timer");
         return;
     }
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
-    DhcpTimer::GetInstance()->UnRegister(timerId);
+    MiscServices::TimeServiceClient::GetInstance()->StopTimer(timerId);
+    MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(timerId);
     timerId = 0;
-    DHCP_LOGI("StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
+    DHCP_LOGI("duliqun 0718 StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
         getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
 }
 
