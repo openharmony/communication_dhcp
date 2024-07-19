@@ -940,7 +940,7 @@ int ReplyCommontOption(PDhcpServerContext ctx, PDhcpMsgInfo reply)
     return REPLY_OFFER;
 }
 
-int DiscoverReplyLeaseMessage(PDhcpServerContext ctx, PDhcpMsgInfo reply, ServerContext *srvIns,
+static int DiscoverReplyLeaseMessage(PDhcpServerContext ctx, PDhcpMsgInfo reply, ServerContext *srvIns,
     AddressBinding *binding)
 {
     if (!ctx) {
