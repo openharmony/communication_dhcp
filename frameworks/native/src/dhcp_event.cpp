@@ -212,15 +212,30 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
             DHCP_LOGE("stationInfos size = %zu", size);
             return;
         }
-        DhcpStationInfo* infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
+        DhcpStationInfo *infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
         if (infos == nullptr) {
             DHCP_LOGE("malloc failed");
             return;
         }
         for (size_t i = 0; i < size; i++) {
-            strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr);
-            strcpy_s(infos[i].macAddr, sizeof(infos[i].macAddr), stationInfos[i].macAddr);
-            strcpy_s(infos[i].deviceName, sizeof(infos[i].deviceName), stationInfos[i].deviceName);
+            if (strcpy_s(infos[i].ipAddr, sizeof(infos[i].ipAddr), stationInfos[i].ipAddr) != EOK) {
+                DHCP_LOGE("OnServerSuccess strcpy_s ipAddr failed!");
+                free(infos);
+                infos = nullptr;
+                return;
+            }
+            if (strcpy_s(infos[i].macAddr, sizeof(infos[i].macAddr), stationInfos[i].macAddr) != EOK) {
+                DHCP_LOGE("OnServerSuccess strcpy_s macAddr failed!");
+                free(infos);
+                infos = nullptr;
+                return;
+            }
+            if (strcpy_s(infos[i].deviceName, sizeof(infos[i].deviceName), stationInfos[i].deviceName) != EOK) {
+                DHCP_LOGE("OnServerSuccess strcpy_s deviceName failed!");
+                free(infos);
+                infos = nullptr;
+                return;
+            }
         }
         mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
         free(infos);
