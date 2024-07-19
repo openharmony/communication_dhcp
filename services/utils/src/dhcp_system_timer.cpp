@@ -18,7 +18,7 @@
 #include "common_timer_errors.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSystemTimer");
 DhcpSysTimer::DhcpSysTimer()
 {
@@ -75,5 +75,5 @@ void DhcpSysTimer::SetWantAgent(std::shared_ptr<OHOS::AbilityRuntime::WantAgent:
     this->wantAgent = wantAgent;
 }
 } // namespace Wifi
-} // namespace OHOS
+} // namespace DHCP
 #endif
