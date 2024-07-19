@@ -23,6 +23,7 @@ using namespace OHOS::Wifi;
 
 namespace OHOS {
 constexpr uint64_t SLEEP_TIME = 2;
+constexpr int TIMER_TYPE = 1;
 class SystemTimerTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -37,23 +38,26 @@ public:
 
 void SystemTimerTimeOut() 
 {
-    DHCP_LOGI("SystemTimerStart SystemTimerTimeOut enter!");
+    DHCP_LOGI("SystemTimerTimeOut enter!");
 }
 
-HWTEST_F(DhcpCommonUtilsTest, SystemTimerTest, TestSize.Level1)
+HWTEST_F(SystemTimerTest, SystemTimer1Test, TestSize.Level1)
 {
-    uint32_t timerId = 0;
+    DHCP_LOGI("SystemTimer1Test enter!");
     DhcpSysTimer dhcpSysTimer;
     dhcpSysTimer.OnTrigger();
-    
-    DhcpSysTimer dhcpSysTimer2(false, 0, false, false);
-    dhcpSysTimer2->SetCallbackInfo(SystemTimerTimeOut);
-    dhcpSysTimer2.OnTrigger();
-    dhcpSysTimer2.SetType(TIMER_TYPE_REALTIME);
-    dhcpSysTimer2.SetRepeat(false);
-    dhcpSysTimer2.SetInterval(SLEEP_TIME);
-    std::shared_ptr<OHOS::AbilityRuntime::WantAgent::WantAgent> wantAgent =
-        std::make_shared<OHOS::AbilityRuntime::WantAgent::WantAgen>();
-    dhcpSysTimer2.SetWantAgent(wantAgent);
+    dhcpSysTimer.SetRepeat(false);
+    dhcpSysTimer.SetInterval(SLEEP_TIME);
+}
+
+HWTEST_F(SystemTimerTest, SystemTimer2Test, TestSize.Level1)
+{
+    DHCP_LOGI("SystemTimer2Test enter!");
+    DhcpSysTimer dhcpSysTimer(false, 0, false, false);
+    dhcpSysTimer.SetCallbackInfo(SystemTimerTimeOut);
+    dhcpSysTimer.OnTrigger();
+    dhcpSysTimer.SetType(TIMER_TYPE);
+    dhcpSysTimer.SetRepeat(false);
+    dhcpSysTimer.SetInterval(SLEEP_TIME);
 }
 }
