@@ -26,7 +26,7 @@
 #include "timer.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 class DhcpSysTimer : public MiscServices::ITimerInfo {
 public:
     DhcpSysTimer();
@@ -42,6 +42,6 @@ private:
     std::function<void()> callBack_ = nullptr;
 };
 } // namespace Wifi
-} // namespace OHOS
+} // namespace DHCP
 #endif
 #endif
