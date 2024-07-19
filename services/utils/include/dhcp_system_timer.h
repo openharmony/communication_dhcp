@@ -41,7 +41,7 @@ public:
 private:
     std::function<void()> callBack_ = nullptr;
 };
-} // namespace Wifi
 } // namespace DHCP
+} // namespace OHOS
 #endif
 #endif
