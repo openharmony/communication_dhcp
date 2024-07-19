@@ -1911,8 +1911,8 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
             break;
     }
     if (timeCallback != nullptr && (timerId == 0)) {
-        std::shared_ptr<OHOS::Wifi::DhcpSysTimer> dhcpSysTimer =
-            std::make_shared<OHOS::Wifi::DhcpSysTimer>(false, 0, false, false);
+        std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer =
+            std::make_shared<OHOS::DHCP::DhcpSysTimer>(false, 0, false, false);
         dhcpSysTimer->SetCallbackInfo(timeCallback);
         timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
         int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
