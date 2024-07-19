@@ -74,6 +74,6 @@ void DhcpSysTimer::SetWantAgent(std::shared_ptr<OHOS::AbilityRuntime::WantAgent:
 {
     this->wantAgent = wantAgent;
 }
-} // namespace Wifi
 } // namespace DHCP
+} // namespace OHOS
 #endif
