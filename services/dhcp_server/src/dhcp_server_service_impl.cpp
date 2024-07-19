@@ -286,11 +286,19 @@ void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string>
     DHCP_LOGI("ConvertLeasesToStationInfos ");
     for (const std::string& lease : leases) {
         DhcpStationInfo info;
+        std::string leaseTime;
+        std::string bindingTime;
+        std::string pendingTime;
+        std::string pendingInterval;
+        std::string bindingMode;
+        std::string bindingStatus;
         std::istringstream iss(lease);
-        if (!(iss >> info.macAddr >> info.ipAddr >> info.deviceName)) {
+        if (!(iss >> info.macAddr >> info.ipAddr >> leaseTime >> bindingTime >> pendingTime >> pendingInterval >>
+            bindingMode >> bindingStatus >> info.deviceName)) {
+            DHCP_LOGE("ConvertLeasesToStationInfos iss failed, continue!");
             continue;
         }
-        DHCP_LOGI("stationInfos ifname:%{public}s.", info.deviceName);
+        DHCP_LOGI("stationInfos deviceName:%{public}s", info.deviceName);
         stationInfos.push_back(info);
     }
 }
