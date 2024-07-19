@@ -1,3 +1,6 @@
+#ifndef OHOS_ARCH_LITE
+#include "dhcp_system_timer.h"
+#endif
 /*
  * Copyright (C) 2021-2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
