@@ -36,7 +36,7 @@ public:
     {}
 };
 
-void SystemTimerTimeOut() 
+void SystemTimerTimeOut()
 {
     DHCP_LOGI("SystemTimerTimeOut enter!");
 }
