@@ -1917,7 +1917,7 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
         timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
         int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
         MiscServices::TimeServiceClient::GetInstance()->StartTimer(timerId, currentTime + interval);
-        DHCP_LOGI("duliqun 0718 StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
+        DHCP_LOGI("StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
             renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     }
 }
@@ -1933,7 +1933,7 @@ void DhcpClientStateMachine::StopTimer(uint32_t &timerId)
     MiscServices::TimeServiceClient::GetInstance()->StopTimer(timerId);
     MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(timerId);
     timerId = 0;
-    DHCP_LOGI("duliqun 0718 StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
+    DHCP_LOGI("StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
         getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
 }
 
