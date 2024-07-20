@@ -206,7 +206,6 @@ HWTEST_F(DhcpServerServiceTest, ConvertLeasesToStationInfosTest, TestSize.Level1
     std::string leasesInfo = "68:77:24:77:8f:6b 192.168.43.5 21600 1720428443 1720424415 0 1 2 DESKT-OSNYRBJKJ";
     leases.push_back(leasesInfo);
     pServerServiceImpl->ConvertLeasesToStationInfos(leases, stationInfos);
-    pServerServiceImpl->DeviceInfoCallBack(ifname);
 }
 
 HWTEST_F(DhcpServerServiceTest, DeviceConnectCallBackTest, TestSize.Level1)
