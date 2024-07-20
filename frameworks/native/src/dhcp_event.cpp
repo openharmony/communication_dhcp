@@ -240,7 +240,7 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
         mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
         free(infos);
         infos = nullptr;
-        DHCP_LOGE("OnServerSuccess callbackEvent ok!");
+        DHCP_LOGI("OnServerSuccess callbackEvent ok!");
     }
 }
 
