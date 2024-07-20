@@ -940,6 +940,43 @@ int ReplyCommontOption(PDhcpServerContext ctx, PDhcpMsgInfo reply)
     return REPLY_OFFER;
 }
 
+static int DiscoverReplyLeaseMessage(PDhcpServerContext ctx, PDhcpMsgInfo reply, ServerContext *srvIns,
+    AddressBinding *binding)
+{
+    if (!ctx) {
+        DHCP_LOGE("ctx pointer is null.");
+        return REPLY_NONE;
+    }
+    if (!reply) {
+        DHCP_LOGE("reply message pointer is null.");
+        return REPLY_NONE;
+    }
+    if (!srvIns) {
+        DHCP_LOGE("get server instance is nullptr!");
+        return REPLY_NONE;
+    }
+    if (!binding) {
+        DHCP_LOGI("Discover binding is null, reply none");
+        return REPLY_NONE;
+    }
+    AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
+    if (!lease) {
+        DHCP_LOGI("Discover add lease, binging ip:%{public}s mac:%{public}s",
+            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
+        AddLease(&srvIns->addressPool, binding);
+        lease = GetLease(&srvIns->addressPool, binding->ipAddress);
+    }
+    if (!lease) {
+        DHCP_LOGI("Discover lease is null, reply none");
+        return REPLY_NONE;
+    }
+    AddReplyMessageTypeOption(reply, DHCPOFFER);
+    reply->packet.yiaddr = lease->ipAddress;
+    ReplyCommontOption(ctx, reply);
+    DHCP_LOGI("Discover reply offer");
+    return REPLY_OFFER;
+}
+
 static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
     if (!received || !reply) {
@@ -984,22 +1021,7 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
             OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str());
     }
     DeleteMacInLease(&srvIns->addressPool, binding);
-    AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
-    if (!lease) {
-        DHCP_LOGI("Discover add lease, binging ip:%{public}s mac:%{public}s",
-            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
-        AddLease(&srvIns->addressPool, binding);
-        lease = GetLease(&srvIns->addressPool, binding->ipAddress);
-    }
-    if (!lease) {
-        DHCP_LOGI("Discover lease is null, reply none");
-        return REPLY_NONE;
-    }
-    AddReplyMessageTypeOption(reply, DHCPOFFER);
-    reply->packet.yiaddr = lease->ipAddress;
-    ReplyCommontOption(ctx, reply);
-    DHCP_LOGI("Discover reply offer");
-    return REPLY_OFFER;
+    return DiscoverReplyLeaseMessage(ctx, reply, srvIns, binding);
 }
 
 static uint32_t GetRequestIpAddress(PDhcpMsgInfo received)
