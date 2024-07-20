@@ -56,6 +56,24 @@ NO_SANITIZE("cfi")  DhcpErrorCode RegisterDhcpClientCallBack(const char *ifname,
     return GetCErrorCode(dhcpClientPtr->RegisterDhcpClientCallBack(ifname, dhcpClientCallBack));
 }
 
+DhcpErrorCode RegisterDhcpClientReportCallBack(const char *ifname, const DhcpClientReport *event)
+{
+    CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(event, DHCP_INVALID_PARAM);
+#ifdef OHOS_ARCH_LITE
+    if (dhcpClientCallBack == nullptr) {
+        dhcpClientCallBack = std::make_shared<DhcpClientCallBack>();
+    }
+#else
+    if (dhcpClientCallBack == nullptr) {
+        dhcpClientCallBack = OHOS::sptr<DhcpClientCallBack>(new (std::nothrow)DhcpClientCallBack());
+    }
+#endif
+    CHECK_PTR_RETURN(dhcpClientCallBack, DHCP_INVALID_PARAM);
+    dhcpClientCallBack->RegisterDhcpClientReportCallBack(ifname, event);
+    return DHCP_SUCCESS;
+}
+
 NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const char *ifname, bool bIpv6)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);

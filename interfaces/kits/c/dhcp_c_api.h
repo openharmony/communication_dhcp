@@ -30,6 +30,15 @@ extern "C" {
      * @Return : success - DHCP_SUCCESS, failed - others.
      */
     DhcpErrorCode RegisterDhcpClientCallBack(const char *ifname, const ClientCallBack *event);
+
+    /**
+     * @Description : Obtain the dhcp offer result of specified interface asynchronously.
+     *
+     * @param ifname - interface name, eg:wlan0 [in]
+     * @param event - dhcp offer result notify [out]
+     * @Return : success - DHCP_SUCCESS, failed - others.
+     */
+    DhcpErrorCode RegisterDhcpClientReportCallBack(const char *ifname, const DhcpClientReport *event);
     /**
      * @Description : Start dhcp client service of specified interface.
      *

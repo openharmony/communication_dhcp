@@ -129,11 +129,11 @@ void DhcpClientCallBack::OnDhcpOfferReport(int status, const std::string& ifname
     dhcpResult.uAddTime = result.uAddTime;
     dhcpResult.uGetTime = result.uGetTime;
     ResultInfoCopy(dhcpResult, result);
-    std::lock_guard<std::mutex> autoLock(callBackMutex);
-    auto iter = mapClientCallBack.find(ifname);
-    if ((iter != mapClientCallBack.end()) && (iter->second != nullptr) &&
-        (iter->second->OnDhcpOfferReport != nullptr)) {
-        iter->second->OnDhcpOfferReport(status, ifname.c_str(), &dhcpResult);
+    std::lock_guard<std::mutex> autoLock(mapReportMutex_);
+    auto iter = mapDhcpClientReport_.find(ifname);
+    if ((iter != mapDhcpClientReport_.end()) && (iter->second != nullptr) &&
+        (iter->second->OnDhcpClientReport != nullptr)) {
+        iter->second->OnDhcpClientReport(status, ifname.c_str(), &dhcpResult);
     } else {
         DHCP_LOGE("OnDhcpOfferReport callbackEvent failed!");
     }
@@ -175,6 +175,23 @@ void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
         DHCP_LOGI("Client UnRegisterCallBack erase ifname:%{public}s", ifname.c_str());
     } else {
         DHCP_LOGI("Client UnRegisterCallBack not find, ifname:%{public}s", ifname.c_str());
+    }
+}
+
+void DhcpClientCallBack::RegisterDhcpClientReportCallBack(const std::string& ifname, const DhcpClientReport *event)
+{
+    if (event == nullptr) {
+        DHCP_LOGE("RegisterDhcpClientReportCallBack event is nullptr!");
+        return;
+    }
+    std::lock_guard<std::mutex> autoLock(mapReportMutex_);
+    auto iter = mapDhcpClientReport_.find(ifname);
+    if (iter != mapDhcpClientReport_.end()) {
+        iter->second = event;
+        DHCP_LOGI("RegisterDhcpClientReportCallBack update event, ifname:%{public}s", ifname.c_str());
+    } else {
+        mapDhcpClientReport_.emplace(std::make_pair(ifname, event));
+        DHCP_LOGI("RegisterDhcpClientReportCallBack add event, ifname:%{public}s", ifname.c_str());
     }
 }
 
