@@ -145,7 +145,7 @@ int DhcpServreCallBackStub::RemoteOnServerLeasesChanged(uint32_t code, IpcIo *da
     return 0;
 }
 
-int DhcpServreCallBackStub::RemoteOnOnServerSuccess(uint32_t code, IpcIo *data)
+int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, IpcIo *data)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     return 0;
