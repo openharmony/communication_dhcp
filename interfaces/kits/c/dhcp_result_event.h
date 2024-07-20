@@ -77,8 +77,11 @@ typedef struct DhcpStationInfo{
 typedef struct {
     void (*OnIpSuccessChanged)(int status, const char *ifname, DhcpResult *result);
     void (*OnIpFailChanged)(int status, const char *ifname, const char *reason);
-    void (*OnDhcpOfferReport)(int status, const char *ifname, DhcpResult *result);
 }ClientCallBack;
+
+typedef struct {
+    void (*OnDhcpClientReport)(int status, const char *ifname, DhcpResult *result);
+}DhcpClientReport;
 
 typedef struct {
     void (*OnServerStatusChanged)(int status);

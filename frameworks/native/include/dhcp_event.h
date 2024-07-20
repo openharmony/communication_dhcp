@@ -42,9 +42,12 @@ public:
 #endif
     void RegisterCallBack(const std::string& ifname, const ClientCallBack *event);
     void UnRegisterCallBack(const std::string& ifname);
+    void RegisterDhcpClientReportCallBack(const std::string& ifname, const DhcpClientReport *event);
     void ResultInfoCopy(DhcpResult &dhcpResult, OHOS::DHCP::DhcpResult& result);
     std::mutex callBackMutex;
     std::map<std::string, const ClientCallBack *> mapClientCallBack;
+    std::mutex mapReportMutex_;
+    std::map<std::string, const DhcpClientReport *> mapDhcpClientReport_;
 };
 
 class DhcpServerCallBack : public OHOS::DHCP::IDhcpServerCallBack {
