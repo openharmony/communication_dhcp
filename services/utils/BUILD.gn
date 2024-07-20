@@ -56,6 +56,7 @@ if (defined(ohos_lite)) {
     sources = [
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
     ]
 
     include_dirs = [
@@ -64,8 +65,10 @@ if (defined(ohos_lite)) {
     ]
     deps = []
     external_deps = [
+      "ability_runtime:wantagent_innerkits",
       "c_utils:utils",
       "hilog:libhilog",
+      "time_service:time_client",
     ]
 
     cflags = [

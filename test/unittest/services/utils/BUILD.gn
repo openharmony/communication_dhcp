@@ -39,6 +39,7 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_system_func.cpp",
     "dhcp_arp_checker_test.cpp",
     "dhcp_common_utils_test.cpp",
+    "dhcp_system_timer_test.cpp",
   ]
 
   include_dirs = [
@@ -91,6 +92,7 @@ ohos_unittest("dhcp_util_unittest") {
   cflags_cc = [ "-Wno-unused-variable" ]
 
   external_deps = [
+    "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
     "c_utils:utils",
@@ -100,6 +102,7 @@ ohos_unittest("dhcp_util_unittest") {
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "time_service:time_client",
   ]
 
   defines = [

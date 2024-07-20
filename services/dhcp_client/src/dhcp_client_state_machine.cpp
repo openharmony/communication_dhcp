@@ -42,6 +42,10 @@
 #include "dhcp_logger.h"
 #include "dhcp_thread.h"
 
+#ifndef OHOS_ARCH_LITE
+#include "dhcp_system_timer.h"
+#endif
+
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
 #endif
@@ -1838,6 +1842,13 @@ void DhcpClientStateMachine::TryCachedIp()
         DHCP_LOGE("TryCachedIp publish dhcp result failed!");
     }
     StopIpv4();
+    m_leaseTime = ipCached.ipResult.uOptLeasetime;
+    m_renewalSec = ipCached.ipResult.uOptLeasetime * RENEWAL_SEC_MULTIPLE;
+    m_rebindSec = ipCached.ipResult.uOptLeasetime * REBIND_SEC_MULTIPLE;
+    m_renewalTimestamp = ipCached.ipResult.uAddTime;
+    DHCP_LOGI("TryCachedIp m_renewalTimestamp:%{public}u m_leaseTime:%{public}u %{public}u %{public}u",
+        m_renewalTimestamp, m_leaseTime, m_renewalSec, m_rebindSec);
+    ScheduleLeaseTimers();
 }
 
 void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
@@ -1876,8 +1887,8 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
 {
     DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}u once:%{public}d", timerId, type,
         interval, once);
-    DhcpTimer::TimerCallback timeCallback = nullptr;
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
+    std::function<void()> timeCallback = nullptr;
     if (timerId != 0) {
         DHCP_LOGE("StartTimer timerId !=0 id:%{public}u", timerId);
         return;
@@ -1900,7 +1911,12 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
             break;
     }
     if (timeCallback != nullptr && (timerId == 0)) {
-        DhcpTimer::GetInstance()->Register(timeCallback, timerId, interval, once);
+        std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer =
+            std::make_shared<OHOS::DHCP::DhcpSysTimer>(false, 0, false, false);
+        dhcpSysTimer->SetCallbackInfo(timeCallback);
+        timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
+        int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
+        MiscServices::TimeServiceClient::GetInstance()->StartTimer(timerId, currentTime + interval);
         DHCP_LOGI("StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
             renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     }
@@ -1914,7 +1930,8 @@ void DhcpClientStateMachine::StopTimer(uint32_t &timerId)
         return;
     }
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
-    DhcpTimer::GetInstance()->UnRegister(timerId);
+    MiscServices::TimeServiceClient::GetInstance()->StopTimer(timerId);
+    MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(timerId);
     timerId = 0;
     DHCP_LOGI("StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
         getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);

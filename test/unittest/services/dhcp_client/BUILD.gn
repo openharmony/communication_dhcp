@@ -102,6 +102,7 @@ ohos_unittest("dhcp_client_unittest") {
   cflags_cc = [ "-Wno-unused-variable" ]
 
   external_deps = [
+    "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
     "access_token:libtokenid_sdk",
     "c_utils:utils",
@@ -111,6 +112,7 @@ ohos_unittest("dhcp_client_unittest") {
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
+    "time_service:time_client",
   ]
 
   configs = [ ":module_private_config" ]

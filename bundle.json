@@ -49,6 +49,7 @@
         "ram": "",
         "deps": {
             "components": [
+                "ability_runtime",
                 "bounds_checking_function",
                 "c_utils",
                 "hilog",
@@ -58,7 +59,8 @@
                 "safwk",
                 "access_token",
                 "samgr",
-                "ffrt"
+                "ffrt",
+                "time_service"
             ],
             "third_party": [ "openssl" ]
         },
