@@ -201,7 +201,7 @@ static int InitLeaseTime(DhcpConfig *config)
     ArgumentInfo *arg = GetArgument("lease");
     if (arg) {
         std::string strValue = arg->value;
-        config->leaseTime = static_cast<uint32_t>(OHOS::Wifi::CheckDataLegal(strValue));
+        config->leaseTime = static_cast<uint32_t>(OHOS::DHCP::CheckDataLegal(strValue));
     } else {
         if (!config->leaseTime) {
             config->leaseTime = DHCP_LEASE_TIME;
@@ -215,7 +215,7 @@ static int InitRenewalTime(DhcpConfig *config)
     ArgumentInfo *arg = GetArgument("renewal");
     if (arg) {
         std::string strValue = arg->value;
-        config->renewalTime = static_cast<uint32_t>(OHOS::Wifi::CheckDataLegal(strValue));
+        config->renewalTime = static_cast<uint32_t>(OHOS::DHCP::CheckDataLegal(strValue));
     } else {
         if (!config->rebindingTime) {
             config->rebindingTime = DHCP_RENEWAL_TIME;
@@ -230,7 +230,7 @@ static int InitRebindingTime(DhcpConfig *config)
     ArgumentInfo *arg = GetArgument("rebinding");
     if (arg) {
         std::string strValue = arg->value;
-        config->rebindingTime = static_cast<uint32_t>(OHOS::Wifi::CheckDataLegal(strValue));
+        config->rebindingTime = static_cast<uint32_t>(OHOS::DHCP::CheckDataLegal(strValue));
     } else {
         if (!config->rebindingTime) {
             config->rebindingTime =  DHCP_REBINDING_TIME;
