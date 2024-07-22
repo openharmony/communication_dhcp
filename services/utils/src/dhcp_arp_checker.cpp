@@ -155,7 +155,7 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
                 memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
                 memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
                 std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-                timeCost = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+                timeCost = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
                 DHCP_LOGI("doArp return true");
                 return true;
             }
@@ -208,8 +208,7 @@ void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp
             }
         }
         std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-        int64_t elapsed =
-            static_cast<int64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
+        int32_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
         leftMillis -= static_cast<int32_t>(elapsed);
     }
 }
