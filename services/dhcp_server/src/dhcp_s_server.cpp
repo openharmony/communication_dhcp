@@ -498,8 +498,7 @@ static int ContinueReceive(PDhcpMsgInfo from, int recvRet)
     if (recvRet != RET_SUCCESS) {
         return DHCP_TRUE;
     }
-    int recLength = from->length;
-    DHCP_LOGD("received, length:%{public}d", recLength);
+    DHCP_LOGD("received, length:%{public}d", from->length);
     if (ParseMessageOptions(from) != 0) {
         DHCP_LOGE("invalid dhcp message.");
         return DHCP_TRUE;
