@@ -208,7 +208,7 @@ void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp
             }
         }
         std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-        int32_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+        int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
         leftMillis -= static_cast<int32_t>(elapsed);
     }
 }
