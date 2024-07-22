@@ -31,8 +31,8 @@ namespace DHCP {
 std::string Ipv4Anonymize(const std::string str);
 char *UintIp4ToStr(uint32_t uIp, bool bHost);
 std::string IntIpv4ToAnonymizeStr(uint32_t ip);
-
 std::string MacArray2Str(uint8_t *macArray, int32_t len);
+int CheckDataLegal(std::string &data);
 }
 }
 #endif
