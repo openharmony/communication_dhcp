@@ -162,7 +162,12 @@ int32_t DhcpResultStoreManager::SaveConfig()
         DHCP_LOGE("File name is empty.");
         return -1;
     }
-    FILE* fp = fopen(m_fileName.c_str(), "w");
+    char realPath[PATH_MAX] = {0};
+    if (realpath(m_fileName.c_str(), realPath) == nullptr) {
+        DHCP_LOGE("SaveConfig() m_fileName:%{public}s err:%{public}d!", m_fileName.c_str(), errno);
+        return -1;
+    }
+    FILE* fp = fopen(realPath, "w");
     if (!fp) {
         DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
         return -1;

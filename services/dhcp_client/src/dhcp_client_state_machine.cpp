@@ -1053,7 +1053,8 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
             free(pRouterIp);
             pRouterIp = NULL;
         }
-        if ((u32Data2 > 0) && ((pRouterIp = Ip4IntConToStr(u32Data2, true)) != NULL)) {
+        pRouterIp = Ip4IntConToStr(u32Data2, true);
+        if ((u32Data2 > 0) && (pRouterIp != NULL)) {
             DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router2: %{private}u->%{private}s.", u32Data2, pRouterIp);
             if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
                 free(pRouterIp);

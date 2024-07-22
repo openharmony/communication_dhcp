@@ -217,7 +217,7 @@ int DhcpIpv6Client::getAddrScope(const struct in6_addr *addr)
         DHCP_LOGE("getAddrType failed, data invalid.");
         return IPV6_ADDR_LINKLOCAL;
     }
-    return getAddrType(addr) & IPV6_ADDR_SCOPE_MASK;
+    return static_cast<unsigned int>(getAddrType(addr)) & IPV6_ADDR_SCOPE_MASK;
 }
 
 void DhcpIpv6Client::GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen)

@@ -38,7 +38,7 @@ struct DhcpIpv6Info {
     char dnsAddr2[DHCP_INET6_ADDRSTRLEN];
     char uniqueLocalAddr1[DHCP_INET6_ADDRSTRLEN];
     char uniqueLocalAddr2[DHCP_INET6_ADDRSTRLEN];
-    int status;   // 1 ipv4 getted, 2 dns getted, 3 ipv4 and dns getted
+    unsigned int status;   // 1 ipv4 getted, 2 dns getted, 3 ipv4 and dns getted
     std::vector<std::string> vectorDnsAddr;
 };
 

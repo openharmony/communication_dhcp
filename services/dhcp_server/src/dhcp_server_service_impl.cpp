@@ -574,7 +574,12 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
     }
     leases.clear();
     std::ifstream inFile;
-    inFile.open(strFile);
+    char realPath[PATH_MAX] = {0};
+    if (realpath(strFile.c_str(), realPath) == nullptr) {
+        DHCP_LOGE("GetDhcpClientInfos() strFile:%{public}s err:%{public}d!", strFile.c_str(), errno);
+        return DHCP_E_FAILED;
+    }
+    inFile.open(realPath);
     std::string strTemp = "";
     char tmpLineData[FILE_LINE_MAX_SIZE] = {0};
     while (inFile.getline(tmpLineData, sizeof(tmpLineData))) {
