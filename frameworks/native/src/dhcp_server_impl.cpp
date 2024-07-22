@@ -36,10 +36,13 @@ namespace DHCP {
     } while (0)
 
 DhcpServerImpl::DhcpServerImpl() : client_(nullptr)
-{}
+{
+    DHCP_LOGI("DhcpServerImpl()");
+}
 
 DhcpServerImpl::~DhcpServerImpl()
 {
+    DHCP_LOGI("~DhcpServerImpl()");
 #ifdef OHOS_ARCH_LITE
     DhcpServerProxy::ReleaseInstance();
 #endif   

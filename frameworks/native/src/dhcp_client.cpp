@@ -34,7 +34,7 @@ NO_SANITIZE("cfi") std::shared_ptr<DhcpClient> DhcpClient::GetInstance(int syste
 
 DhcpClient::~DhcpClient()
 {
-    DelayedSingleton<DhcpClientImpl>::DestroyInstance();
+    DHCP_LOGI("~DhcpClient()");
 }
 }  // namespace DHCP
 }  // namespace OHOS
