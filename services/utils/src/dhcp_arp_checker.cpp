@@ -234,7 +234,10 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
         DHCP_LOGE("get iface index fail: %{public}s", iface);
         return OPT_FAIL;
     }
-
+    if (ifaceIndex > INTEGER_MAX) {
+        DHCP_LOGE("ifaceIndex > max interger, fail:%{public}s ifaceIndex:%{public}d", iface, ifaceIndex);
+        return OPT_FAIL;
+    }
     int32_t socketFd = socket(PF_PACKET, SOCK_DGRAM, htons(protocol));
     if (socketFd < 0) {
         DHCP_LOGE("create socket fail");
