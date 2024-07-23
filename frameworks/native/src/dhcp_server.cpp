@@ -34,7 +34,7 @@ NO_SANITIZE("cfi") std::shared_ptr<DhcpServer> DhcpServer::GetInstance(int syste
 
 NO_SANITIZE("cfi") DhcpServer::~DhcpServer()
 {
-    DelayedSingleton<DhcpServerImpl>::DestroyInstance();
+    DHCP_LOGI("~DhcpServer()");
 }
 }  // namespace DHCP
 }  // namespace OHOS
