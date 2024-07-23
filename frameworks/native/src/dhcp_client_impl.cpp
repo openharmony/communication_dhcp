@@ -37,7 +37,7 @@ namespace DHCP {
 
 DhcpClientImpl::DhcpClientImpl() : systemAbilityId_(0), client_(nullptr)
 {
-     DHCP_LOGI("DhcpClientImpl()");
+    DHCP_LOGI("DhcpClientImpl()");
 }
 
 DhcpClientImpl::~DhcpClientImpl()
