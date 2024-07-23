@@ -211,7 +211,7 @@ bool GetDhcpOptionUint8(const struct DhcpPacket *packet, int code, uint8_t *data
         DHCP_LOGW("GetDhcpOptionUint8 GetDhcpOption nullptr, code:%{public}d!", code);
         return false;
     }
-    if (len < (ssize_t)sizeof(uint8_t)) {
+    if (len < static_cast<size_t>(sizeof(uint8_t))) {
         DHCP_LOGE("GetDhcpOptionUint8 failed, len:%{public}zu less data:%{public}zu, code:%{public}d!",
             len, sizeof(uint8_t), code);
         return false;
@@ -232,7 +232,7 @@ bool GetDhcpOptionUint32(const struct DhcpPacket *packet, int code, uint32_t *da
         return false;
     }
     uint32_t uData = 0;
-    if (len < (ssize_t)sizeof(uData)) {
+    if (len < static_cast<size_t>(sizeof(uData))) {
         DHCP_LOGE("GetDhcpOptionUint32 failed, len:%{public}zu less uData:%{public}zu, code:%{public}d!",
             len, sizeof(uData), code);
         return false;
@@ -256,7 +256,7 @@ bool GetDhcpOptionUint32n(const struct DhcpPacket *packet, int code, uint32_t *d
         return false;
     }
     uint32_t uData = 0;
-    if ((len < (ssize_t)sizeof(uData)) || (len % (ssize_t)sizeof(uData) != 0)) {
+    if ((len < static_cast<size_t>(sizeof(uData))) || (len % static_cast<size_t>(sizeof(uData)) != 0)) {
         DHCP_LOGE("GetDhcpOptionUint32n failed, len:%{public}zu is not %{public}zu * n, code:%{public}d!",
             len, sizeof(uData), code);
         return false;
@@ -267,7 +267,7 @@ bool GetDhcpOptionUint32n(const struct DhcpPacket *packet, int code, uint32_t *d
     if (uData > 0) {
         *data1 = ntohl(uData);
     }
-    if (len > (ssize_t)sizeof(uData)) {
+    if (len > static_cast<size_t>(sizeof(uData))) {
         p += sizeof(uData);
         uData = 0;
         if (memcpy_s(&uData, sizeof(uData), p, sizeof(uData)) != EOK) {
@@ -289,7 +289,7 @@ char *GetDhcpOptionString(const struct DhcpPacket *packet, int code)
         DHCP_LOGW("GetDhcpOptionString GetDhcpOption nullptr, code:%{public}d!", code);
         return nullptr;
     }
-    if (len < (ssize_t)sizeof(uint8_t)) {
+    if (len < static_cast<size_t>(sizeof(uint8_t))) {
         DHCP_LOGE("GetDhcpOptionString failed, len:%{public}zu less data:%{public}zu, code:%{public}d!",
             len, sizeof(uint8_t), code);
         return nullptr;

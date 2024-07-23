@@ -248,7 +248,7 @@ int ParseMacAddress(const char *strMac, uint8_t macAddr[DHCP_HWADDR_LENGTH])
                 return 0;
             }
             tmp <<= shiftNum;
-            tmp |= v;
+            tmp |= static_cast<unsigned char>(v);
             ++j;
         } else {
             if (strMac[i] != ':') {

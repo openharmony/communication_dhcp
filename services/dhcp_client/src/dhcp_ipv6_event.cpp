@@ -123,7 +123,7 @@ void DhcpIpv6Client::parseNewneighMessage(void* msg)
     if (ndm->ndm_family == KERNEL_SOCKET_IFA_FAMILY &&
         ndm->ndm_state == NUD_REACHABLE) {
         struct rtattr *rta = RTM_RTA(ndm);
-        int rtl = RTM_PAYLOAD(nlh);
+        int rtl = static_cast<int>(RTM_PAYLOAD(nlh));
         while (RTA_OK(rta, rtl)) {
             if (rta->rta_type == NDA_DST) {
                 struct in6_addr *addr = (struct in6_addr *)RTA_DATA(rta);
@@ -149,11 +149,11 @@ void DhcpIpv6Client::fillRouteData(char* buff, int &len)
         return;
     }
     struct nlmsghdr *nlh = (struct nlmsghdr *)buff;
-    nlh->nlmsg_len = NLMSG_SPACE(sizeof(struct ndmsg));
+    nlh->nlmsg_len = NLMSG_SPACE(static_cast<unsigned int>(sizeof(struct ndmsg)));
     nlh->nlmsg_type = RTM_GETNEIGH;
     nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
     nlh->nlmsg_seq = 1;
-    nlh->nlmsg_pid = getpid();
+    nlh->nlmsg_pid = static_cast<unsigned int>(getpid());
     len = nlh->nlmsg_len;
 }
 
@@ -168,12 +168,12 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
         return;
     }
     struct nlmsghdr *nlh = (struct nlmsghdr*)data;
-    while (NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
+    while (nlh && NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
         DHCP_LOGD("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
         if (nlh->nlmsg_type == RTM_NEWADDR) {
             struct ifaddrmsg *ifa = (struct ifaddrmsg*)NLMSG_DATA(nlh);
             struct rtattr *rth = IFA_RTA(ifa);
-            int rtl = IFA_PAYLOAD(nlh);
+            int rtl = static_cast<int>(IFA_PAYLOAD(nlh));
             while (rtl && RTA_OK(rth, rtl)) {
                 if (rth->rta_type != IFA_ADDRESS || ifa->ifa_family != KERNEL_SOCKET_IFA_FAMILY) {
                     rth = RTA_NEXT(rth, rtl);
@@ -183,7 +183,12 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
                 rth = RTA_NEXT(rth, rtl);
             }
         } else if (nlh->nlmsg_type == RTM_NEWNDUSEROPT) {
-            int optLen = nlh->nlmsg_len - sizeof(*nlh);
+            unsigned int optLen = 0;
+            if ((nlh->nlmsg_len - sizeof(*nlh)) >= 0) {
+                optLen = nlh->nlmsg_len - sizeof(*nlh);
+            } else {
+                return;
+            }
             struct nduseroptmsg* ndmsg = (struct nduseroptmsg*)NLMSG_DATA(nlh);
             if (sizeof(*ndmsg) > (size_t)optLen) {
                 DHCP_LOGE("ndoption get invalid length.");

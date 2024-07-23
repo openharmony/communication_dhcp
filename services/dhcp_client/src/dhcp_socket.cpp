@@ -413,8 +413,12 @@ int GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
 
     /* Check udp dhcp packet sum. */
     nBytes = (int)ntohs(udpPackets.ip.tot_len);
-    if (((nRet = CheckPacketIpSum(&udpPackets, nBytes)) != SOCKET_OPT_SUCCESS) ||
-        ((nRet = CheckPacketUdpSum(&udpPackets, nBytes)) != SOCKET_OPT_SUCCESS)) {
+    nRet = CheckPacketIpSum(&udpPackets, nBytes);
+    if (nRet != SOCKET_OPT_SUCCESS) {
+        return nRet;
+    }
+    nRet = CheckPacketUdpSum(&udpPackets, nBytes);
+    if (nRet != SOCKET_OPT_SUCCESS) {
         return nRet;
     }
 

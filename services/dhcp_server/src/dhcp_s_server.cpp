@@ -125,7 +125,7 @@ static struct ServerContext *GetServerInstance(const DhcpServerContext *ctx)
 int HasFixSocket(int fd)
 {
     int flags;
-    if ((flags = fcntl(fd, F_GETFL)) == -1 || fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1) {
+    if ((flags = fcntl(fd, F_GETFL)) == -1 || fcntl(fd, F_SETFL, static_cast<unsigned int>(flags) | O_NONBLOCK) == -1) {
         return DHCP_FALSE;
     }
     return DHCP_TRUE;
