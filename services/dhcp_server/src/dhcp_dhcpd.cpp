@@ -379,7 +379,7 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
     }
 
     RegisterDhcpCallback(g_dhcpServer, ServerActionCallback);
-    RegisterDeviceChangedCallback(g_dhcpServer, deviceChangedCallBack);
+    RegisterDeviceChangedCallback(g_dhcpServer, deviceConnectFun);
     if (StartDhcpServer(g_dhcpServer) != RET_SUCCESS) {
         FreeSeverResources();
         return 1;
