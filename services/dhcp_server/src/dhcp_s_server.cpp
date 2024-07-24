@@ -574,9 +574,9 @@ void NotifyConnetDeviceChanged(int replyType, PDhcpServerContext ctx)
         if (saveRet != RET_SUCCESS && saveRet != RET_WAIT_SAVE) {
             DHCP_LOGW("SaveBindingRecoders failed to save lease recoders.");
         }
-        if (replyType == REPLY_ACK && srvIns->deviceChangedCallback != nullptr) {
-            DHCP_LOGI("NotifyConnetDeviceChanged deviceChangedCallback");
-            srvIns->deviceChangedCallback(ctx->ifname);
+        if (replyType == REPLY_ACK && srvIns->deviceConnectFun != nullptr) {
+            DHCP_LOGI("NotifyConnetDeviceChanged deviceConnectFun");
+            srvIns->deviceConnectFun(ctx->ifname);
         }
     }
 }
