@@ -22,7 +22,7 @@
 
 enum DhcpServerState { ST_IDEL = 0, ST_STARTING, ST_RUNNING, ST_RELOADNG, ST_STOPING, ST_STOPED };
 typedef int (*DhcpServerCallback)(int, int, const char *ifname);
-typedef void(*DhcpDeviceChangedCallback)(const char *ifname);
+typedef void(*DeviceConnectFun)(const char *ifname);
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -38,7 +38,7 @@ int StartDhcpServer(PDhcpServerContext ctx);
 int StopDhcpServer(PDhcpServerContext ctx);
 int GetServerStatus(PDhcpServerContext ctx);
 void RegisterDhcpCallback(PDhcpServerContext ctx, DhcpServerCallback callback);
-void RegisterDeviceChangedCallback(PDhcpServerContext ctx, DhcpDeviceChangedCallback func);
+void RegisterDeviceChangedCallback(PDhcpServerContext ctx, DeviceConnectFun func);
 int FreeServerContext(PDhcpServerContext *ctx);
 int SaveLease(PDhcpServerContext ctx);
 int ReceiveDhcpMessage(int sock, PDhcpMsgInfo msgInfo);
