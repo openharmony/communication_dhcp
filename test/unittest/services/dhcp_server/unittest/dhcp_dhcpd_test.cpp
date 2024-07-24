@@ -57,7 +57,7 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
 HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level1) // duliqun
 {
     DHCP_LOGI("RegisterDeviceConnectCallBackTest enter");
-    DhcpDeviceChangedCallback func = nullptr;
+    DeviceConnectFun func = nullptr;
     EXPECT_EQ(0, RegisterDeviceConnectCallBack(func));
 }
 }
