@@ -18,9 +18,9 @@
 
 #include <string>
 
-typedef void(*DhcpDeviceChangedCallback)(const char *ifname);
+typedef void(*DeviceConnectFun)(const char *ifname);
 int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, const std::string& ipRange,
     const std::string& localIp);
 int StopDhcpServerMain();
-int RegisterDeviceConnectCallBack(DhcpDeviceChangedCallback fun);
+int RegisterDeviceConnectCallBack(DeviceConnectFun fun);
 #endif
