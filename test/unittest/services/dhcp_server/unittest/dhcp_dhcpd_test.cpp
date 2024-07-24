@@ -54,7 +54,7 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
     EXPECT_EQ(1, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
 }
 
-HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level1) // duliqun
+HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level1)
 {
     DHCP_LOGI("RegisterDeviceConnectCallBackTest enter");
     DeviceConnectFun func = nullptr;
