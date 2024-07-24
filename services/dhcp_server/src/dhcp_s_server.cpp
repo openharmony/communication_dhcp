@@ -84,7 +84,7 @@ struct ServerContext {
     int broadCastFlagEnable;
     DhcpAddressPool addressPool;
     DhcpServerCallback callback;
-    DhcpDeviceChangedCallback deviceChangedCallback;
+    DeviceConnectFun deviceConnectFun;
     DhcpConfig config;
     int serverFd;
     int looperState;
@@ -1805,7 +1805,7 @@ void RegisterDhcpCallback(PDhcpServerContext ctx, DhcpServerCallback callback)
     srvIns->callback = callback;
 }
 
-void RegisterDeviceChangedCallback(PDhcpServerContext ctx, DhcpDeviceChangedCallback func)
+void RegisterDeviceChangedCallback(PDhcpServerContext ctx, DeviceConnectFun func)
 {
     DHCP_LOGI("start %{public}s %{public}d.", __func__, __LINE__);
     ServerContext *srvIns = GetServerInstance(ctx);
@@ -1813,7 +1813,7 @@ void RegisterDeviceChangedCallback(PDhcpServerContext ctx, DhcpDeviceChangedCall
         DHCP_LOGE("dhcp server context pointer is null.");
         return;
     }
-    srvIns->deviceChangedCallback = func;
+    srvIns->deviceConnectFun = func;
 }
 
 static int InitServerContext(DhcpConfig *config, DhcpServerContext *ctx)
