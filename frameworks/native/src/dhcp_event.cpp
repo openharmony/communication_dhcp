@@ -205,13 +205,12 @@ void DhcpServerCallBack::OnServerSerExitChanged(const std::string& ifname)
 
 void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
 {
-    DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s", ifname.c_str());
-    if (mapServerCallBack[ifname]) {
-        size_t size = stationInfos.size();
-        if (size <= 0) {
-            DHCP_LOGE("stationInfos size = %zu", size);
-            return;
-        }
+    size_t size = stationInfos.size();
+    DHCP_LOGI("DhcpServerCallBack OnServerSuccess ifname:%{public}s size:%{public}zu", ifname.c_str(), size);
+    std::lock_guard<std::mutex> autoLock(callBackServerMutex);
+    auto iter = mapServerCallBack.find(ifname);
+    if ((iter != mapServerCallBack.end()) && (iter->second != nullptr) && (iter->second->OnServerSuccess != nullptr) &&
+        (size > 0)) {
         DhcpStationInfo *infos = (struct DhcpStationInfo*)malloc(size * sizeof(DhcpStationInfo));
         if (infos == nullptr) {
             DHCP_LOGE("malloc failed");
@@ -237,10 +236,12 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
                 return;
             }
         }
-        mapServerCallBack[ifname]->OnServerSuccess(ifname.c_str(), infos, size);
+        iter->second->OnServerSuccess(ifname.c_str(), infos, size);
         free(infos);
         infos = nullptr;
         DHCP_LOGI("OnServerSuccess callbackEvent ok!");
+    } else {
+        DHCP_LOGE("OnServerSuccess not find callback!");
     }
 }
 
