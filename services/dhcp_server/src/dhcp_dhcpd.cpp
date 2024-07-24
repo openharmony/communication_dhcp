@@ -29,6 +29,7 @@
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
 #include "dhcp_s_server.h"
+#include "dhcp_common_utils.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerMain");
 
@@ -199,7 +200,8 @@ static int InitLeaseTime(DhcpConfig *config)
 {
     ArgumentInfo *arg = GetArgument("lease");
     if (arg) {
-        config->leaseTime = atoi(arg->value);
+        std::string strValue = arg->value;
+        config->leaseTime = static_cast<uint32_t>(OHOS::DHCP::CheckDataLegal(strValue));
     } else {
         if (!config->leaseTime) {
             config->leaseTime = DHCP_LEASE_TIME;
@@ -212,7 +214,8 @@ static int InitRenewalTime(DhcpConfig *config)
 {
     ArgumentInfo *arg = GetArgument("renewal");
     if (arg) {
-        config->renewalTime = atoi(arg->value);
+        std::string strValue = arg->value;
+        config->renewalTime = static_cast<uint32_t>(OHOS::DHCP::CheckDataLegal(strValue));
     } else {
         if (!config->rebindingTime) {
             config->rebindingTime = DHCP_RENEWAL_TIME;
@@ -226,7 +229,8 @@ static int InitRebindingTime(DhcpConfig *config)
 {
     ArgumentInfo *arg = GetArgument("rebinding");
     if (arg) {
-        config->rebindingTime = atoi(arg->value);
+        std::string strValue = arg->value;
+        config->rebindingTime = static_cast<uint32_t>(OHOS::DHCP::CheckDataLegal(strValue));
     } else {
         if (!config->rebindingTime) {
             config->rebindingTime =  DHCP_REBINDING_TIME;

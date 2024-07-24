@@ -619,7 +619,7 @@ void DhcpClientServiceImpl::PushDhcpResult(const std::string &ifname, OHOS::DHCP
     std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     auto iterResult = m_mapDhcpResult.find(ifname);
     if (iterResult != m_mapDhcpResult.end()) {
-        for (int i = 0; i < iterResult->second.size(); i++) {
+        for (size_t i = 0; i < iterResult->second.size(); i++) {
             if (iterResult->second[i].iptype != result.iptype) {
                 continue;
             }
@@ -650,7 +650,7 @@ bool DhcpClientServiceImpl::CheckDhcpResultExist(const std::string &ifname, OHOS
     std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
     auto iterResult = m_mapDhcpResult.find(ifname);
     if (iterResult != m_mapDhcpResult.end()) {
-        for (int i = 0; i < iterResult->second.size(); i++) {
+        for (size_t i = 0; i < iterResult->second.size(); i++) {
             if (iterResult->second[i].iptype != result.iptype) {
                 continue;
             }

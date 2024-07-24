@@ -155,7 +155,8 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
                 memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
                 memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
                 std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-                timeCost = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+                timeCost = static_cast<uint64_t>(
+                    std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
                 DHCP_LOGI("doArp return true");
                 return true;
             }
@@ -228,12 +229,15 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
         return OPT_FAIL;
     }
 
-    int32_t ifaceIndex = if_nametoindex(iface);
+    int32_t ifaceIndex = static_cast<int32_t>(if_nametoindex(iface));
     if (ifaceIndex == 0) {
         DHCP_LOGE("get iface index fail: %{public}s", iface);
         return OPT_FAIL;
     }
-
+    if (ifaceIndex > INTEGER_MAX) {
+        DHCP_LOGE("ifaceIndex > max interger, fail:%{public}s ifaceIndex:%{public}d", iface, ifaceIndex);
+        return OPT_FAIL;
+    }
     int32_t socketFd = socket(PF_PACKET, SOCK_DGRAM, htons(protocol));
     if (socketFd < 0) {
         DHCP_LOGE("create socket fail");

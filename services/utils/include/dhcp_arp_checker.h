@@ -23,6 +23,7 @@
 namespace OHOS {
 namespace DHCP {
 constexpr int32_t IPV4_ALEN = 4;
+constexpr int32_t INTEGER_MAX = 0x7FFFFFFF;
 
 struct ArpPacket {
     uint16_t ar_hrd; // hardware type

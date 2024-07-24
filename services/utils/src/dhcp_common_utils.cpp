@@ -16,6 +16,7 @@
 #include "dhcp_common_utils.h"
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
+#include <regex>
 #include "securec.h"
 #include "dhcp_logger.h"
 
@@ -100,6 +101,15 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len)
     }
     std::string ret = gwMacAddr;
     return ret;
+}
+
+int CheckDataLegal(std::string &data)
+{
+    std::regex hex("^[0-9]+$");
+    if (std::regex_search(data, hex)) {
+        return std::stoi(data);
+    }
+    return 0;
 }
 }
 }
