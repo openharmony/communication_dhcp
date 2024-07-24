@@ -37,7 +37,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerMain");
 static DhcpConfig g_dhcpConfig;
 
 static PDhcpServerContext g_dhcpServer = 0;
-static DhcpDeviceChangedCallback deviceChangedCallBack;
+static DeviceConnectFun deviceConnectFun;
 enum SignalEvent {
     EXIT = 0,
     RELOAD,
@@ -398,9 +398,9 @@ int StopDhcpServerMain()
     return 0;
 }
 
-int RegisterDeviceConnectCallBack(DhcpDeviceChangedCallback fun)
+int RegisterDeviceConnectCallBack(DeviceConnectFun fun)
 {
     DHCP_LOGI("RegisterDeviceConnectCallBack enter!");
-    deviceChangedCallBack = fun;
+    deviceConnectFun = fun;
     return 0;
 }
