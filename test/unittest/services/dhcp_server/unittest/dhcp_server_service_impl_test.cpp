@@ -185,14 +185,15 @@ HWTEST_F(DhcpServerServiceTest, DeleteLeaseFileTest, TestSize.Level1)
     std::string ifname;
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->DeleteLeaseFile(ifname));
 }
-HWTEST_F(DhcpServerServiceTest, DealServerSuccessTest, TestSize.Level1)
+
+HWTEST_F(DhcpServerServiceTest, DeviceInfoCallBackTest, TestSize.Level1)
 {
     DHCP_LOGI("enter DealServerSuccessTest");
     ASSERT_TRUE(pServerServiceImpl != nullptr);
     std::string ifname;
-    pServerServiceImpl->DealServerSuccess(ifname);
+    pServerServiceImpl->DeviceInfoCallBack(ifname);
     ifname = "wlan0";
-    pServerServiceImpl->DealServerSuccess(ifname);
+    pServerServiceImpl->DeviceInfoCallBack(ifname);
 }
 
 HWTEST_F(DhcpServerServiceTest, ConvertLeasesToStationInfosTest, TestSize.Level1)
@@ -207,13 +208,13 @@ HWTEST_F(DhcpServerServiceTest, ConvertLeasesToStationInfosTest, TestSize.Level1
     pServerServiceImpl->ConvertLeasesToStationInfos(leases, stationInfos);
 }
 
-HWTEST_F(DhcpServerServiceTest, GDealServerSuccessTest, TestSize.Level1)
+HWTEST_F(DhcpServerServiceTest, DeviceConnectCallBackTest, TestSize.Level1)
 {
     DHCP_LOGI("enter GDealServerSuccessTest");
     std::string ifname;
-    GDealServerSuccess(ifname.c_str());
+    DeviceConnectCallBack(ifname.c_str());
     ifname = "wlan0";
-    GDealServerSuccess(ifname.c_str());
+    DeviceConnectCallBack(ifname.c_str());
 }
 }
 }

@@ -87,7 +87,7 @@ typedef struct {
     void (*OnServerStatusChanged)(int status);
     void (*OnServerLeasesChanged)(const char *ifname, const char *leases);
     void (*OnSerExitChanged)(const char *ifname);
-    void (*OnServerSuccess)(const char *ifname, DhcpStationInfo* stationInfos, size_t size);
+    void (*OnServerSuccess)(const char *ifname, DhcpStationInfo *stationInfos, size_t size);
 }ServerCallBack;
 
 typedef struct RouterConfig {

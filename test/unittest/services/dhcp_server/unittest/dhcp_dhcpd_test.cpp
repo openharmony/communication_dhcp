@@ -54,11 +54,11 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
     EXPECT_EQ(1, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
 }
 
-HWTEST_F(DhcpDhcpdTest, RegisterLeaseInfoCbksTest, TestSize.Level1)
+HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level1)
 {
-    DHCP_LOGI("RegisterLeaseInfoCbksTest enter");
-    DhcpLeasesChangeFunc func = nullptr;
-    EXPECT_EQ(0, RegisterLeaseInfoCbks(func));
+    DHCP_LOGI("RegisterDeviceConnectCallBackTest enter");
+    DeviceConnectFun func = nullptr;
+    EXPECT_EQ(0, RegisterDeviceConnectCallBack(func));
 }
 }
 }

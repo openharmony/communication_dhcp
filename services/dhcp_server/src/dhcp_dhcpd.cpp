@@ -38,8 +38,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerMain");
 static DhcpConfig g_dhcpConfig;
 
 static PDhcpServerContext g_dhcpServer = 0;
-
-static LeasesChangeFunc leasesChangeFunc;
+static DeviceConnectFun deviceConnectFun;
 enum SignalEvent {
     EXIT = 0,
     RELOAD,
@@ -384,7 +383,7 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
     }
 
     RegisterDhcpCallback(g_dhcpServer, ServerActionCallback);
-    RegisterLeasesChangedCallback(g_dhcpServer, leasesChangeFunc);
+    RegisterDeviceChangedCallback(g_dhcpServer, deviceConnectFun);
     if (StartDhcpServer(g_dhcpServer) != RET_SUCCESS) {
         FreeSeverResources();
         return 1;
@@ -403,8 +402,9 @@ int StopDhcpServerMain()
     return 0;
 }
 
-int RegisterLeaseInfoCbks(DhcpLeasesChangeFunc func)
+int RegisterDeviceConnectCallBack(DeviceConnectFun fun)
 {
-    leasesChangeFunc = func;
+    DHCP_LOGI("RegisterDeviceConnectCallBack enter!");
+    deviceConnectFun = fun;
     return 0;
 }

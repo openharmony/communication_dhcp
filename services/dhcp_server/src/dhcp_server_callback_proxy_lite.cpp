@@ -65,16 +65,17 @@ void DhcpServerCallbackProxy::OnServerLeasesChanged(const std::string& ifname, s
     DHCP_LOGI("DhcpServerCallbackProxy::OnServerLeasesChanged");
     return;
 }
+
 void DhcpServerCallbackProxy::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");
     return;
 }
+
 void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::vector<DhcpStationInfo>& stationInfos)
 {
-    DHCP_LOGI("DhcpServerCallbackProxy::OnServerSerExitChanged");
+    DHCP_LOGI("DhcpServerCallbackProxy::OnServerSuccess");
     return;
 }
-
 }  // namespace DHCP
 }  // namespace OHOS

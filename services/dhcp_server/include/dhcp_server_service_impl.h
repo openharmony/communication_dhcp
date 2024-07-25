@@ -33,8 +33,7 @@ namespace DHCP {
 constexpr int MAXRETRYTIMEOUT = 10;
 
 enum ServerServiceRunningState { STATE_NOT_START, STATE_RUNNING };
-
-void GDealServerSuccess(const char* ifname);
+void DeviceConnectCallBack(const char* ifname);
 
 class DhcpServerServiceImpl :
 #ifndef OHOS_ARCH_LITE
@@ -87,11 +86,8 @@ public:
      * @Return : success - DHCP_OPT_SUCCESS, failed - others.
      */
     int ForkExecProcess(const std::string ifname, const std::string ip, const std::string mask, const std::string pool);
-
     int DelSpecifiedInterface(const std::string& ifname);
-
-    void DealServerSuccess(const std::string& ifname);
-
+    void DeviceInfoCallBack(const std::string& ifname);
 private:
     bool Init();
     int CheckAndUpdateConf(const std::string& ifname);

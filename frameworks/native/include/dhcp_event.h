@@ -63,6 +63,8 @@ public:
     OHOS::sptr<OHOS::IRemoteObject> AsObject() override;
 #endif
     void RegisterCallBack(const std::string& ifname, const ServerCallBack *event);
+    void UnRegisterCallBack(const std::string& ifname);
+    std::mutex callBackServerMutex;
     std::map<std::string, const ServerCallBack *> mapServerCallBack;
 };
 #endif

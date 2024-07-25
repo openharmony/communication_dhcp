@@ -84,7 +84,7 @@ struct ServerContext {
     int broadCastFlagEnable;
     DhcpAddressPool addressPool;
     DhcpServerCallback callback;
-    LeasesChangeFunc leasesfunc;
+    DeviceConnectFun deviceConnectFun;
     DhcpConfig config;
     int serverFd;
     int looperState;
@@ -549,7 +549,7 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
         if (replyType && SendDhcpReply(ctx, replyType, &reply) != RET_SUCCESS) {
             DHCP_LOGE("failed to send reply message.");
         }
-        CheckAndNotifyServerSuccess(replyType, ctx);
+        NotifyConnetDeviceChanged(replyType, ctx);
     }
     FreeOptionList(&from.options);
     FreeOptionList(&reply.options);
@@ -560,20 +560,24 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
     return nullptr;
 }
 
-void CheckAndNotifyServerSuccess(int replyType, PDhcpServerContext ctx)
+void NotifyConnetDeviceChanged(int replyType, PDhcpServerContext ctx)
 {
-    ServerContext *srvIns = GetServerInstance(ctx);
+    DHCP_LOGI("NotifyConnetDeviceChanged replyType:%{public}d", replyType);
     if (replyType == REPLY_ACK || replyType == REPLY_OFFER) {
+        ServerContext *srvIns = GetServerInstance(ctx);
+        if (srvIns == nullptr) {
+            DHCP_LOGE("NotifyConnetDeviceChanged srvIns is nullptr");
+            return;
+        }
         int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
         if (saveRet != RET_SUCCESS && saveRet != RET_WAIT_SAVE) {
-            DHCP_LOGW("failed to save lease recoders.");
+            DHCP_LOGW("SaveBindingRecoders failed to save lease recoders.");
         }
-        if (replyType == REPLY_ACK && srvIns->leasesfunc != NULL) {
-            DHCP_LOGI("REPLY_ACK trigger OnServerSuccess");
-            srvIns->leasesfunc(ctx->ifname);
+        if (replyType == REPLY_ACK && srvIns->deviceConnectFun != nullptr) {
+            DHCP_LOGI("NotifyConnetDeviceChanged deviceConnectFun");
+            srvIns->deviceConnectFun(ctx->ifname);
         }
     }
-    return;
 }
 
 static int CheckAddressRange(DhcpAddressPool *pool)
@@ -1822,15 +1826,15 @@ void RegisterDhcpCallback(PDhcpServerContext ctx, DhcpServerCallback callback)
     srvIns->callback = callback;
 }
 
-void RegisterLeasesChangedCallback(PDhcpServerContext ctx, LeasesChangeFunc func)
+void RegisterDeviceChangedCallback(PDhcpServerContext ctx, DeviceConnectFun func)
 {
-    DHCP_LOGI("start %{public}s   %{public}d.", __func__, __LINE__);
+    DHCP_LOGI("start %{public}s %{public}d.", __func__, __LINE__);
     ServerContext *srvIns = GetServerInstance(ctx);
     if (!srvIns) {
         DHCP_LOGE("dhcp server context pointer is null.");
         return;
     }
-    srvIns->leasesfunc = func;
+    srvIns->deviceConnectFun = func;
 }
 
 static int InitServerContext(DhcpConfig *config, DhcpServerContext *ctx)
