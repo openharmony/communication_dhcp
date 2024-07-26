@@ -123,7 +123,7 @@ ErrCode DhcpServerProxy::RegisterDhcpServerCallBack(const std::string& ifname,
     data.WriteInt32(pid);
     data.WriteInt32(tokenId);
     data.WriteString(ifname);
-    DHCP_LOGI("%{public}s, calling uid:%{public}d, pid:%{public}d, tokenId:%{public}d ifname:%{public}s",
+    DHCP_LOGI("%{public}s, calling uid:%{public}d, pid:%{public}d, tokenId:%{private}d ifname:%{public}s",
         __func__, GetCallingUid(), pid, tokenId, ifname.c_str());
     int error = Remote()->SendRequest(static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK),
         data, reply, option);
@@ -161,7 +161,7 @@ ErrCode DhcpServerProxy::StartDhcpServer(const std::string& ifname)
     data.WriteInt32(pid);
     data.WriteInt32(tokenId);
     data.WriteString(ifname);
-    DHCP_LOGI("%{public}s, calling uid:%{public}d, pid:%{public}d, tokenId:%{public}d ifname:%{public}s",
+    DHCP_LOGI("%{public}s, calling uid:%{public}d, pid:%{public}d, tokenId:%{private}d ifname:%{public}s",
         __func__, GetCallingUid(), pid, tokenId, ifname.c_str());
     int error = Remote()->SendRequest(
         static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_START_DHCP_SERVER), data, reply, option);
