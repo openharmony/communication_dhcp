@@ -1,3 +1,11 @@
+/**
+     * Device config status: 0 - enabled, 1 - disabled, 2 - permanent disabled, 3 - unknown.
+     * @type { ?number }
+     * @syscap SystemCapability.Communication.WiFi.STA
+     * @systemapi Hide this for inner system use.
+     * @since 12
+     */
+    configStatus?: number;
 /*
  * Copyright (C) 2021-2022 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
