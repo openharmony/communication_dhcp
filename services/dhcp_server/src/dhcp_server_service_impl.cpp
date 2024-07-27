@@ -834,7 +834,7 @@ bool DhcpServerServiceImpl::IsNativeProcess()
     if (callingType == Security::AccessToken::TOKEN_NATIVE) {
         return true;
     }
-    DHCP_LOGE("The caller tokenId:%{private}d, callingType:%{public}d is not a native process.", tokenId, callingType);
+    DHCP_LOGE("The caller, callingType:%{public}d is not a native process.", callingType);
     return false;
 #else
     return true;
