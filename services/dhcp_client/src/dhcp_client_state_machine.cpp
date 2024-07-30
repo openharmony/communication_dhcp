@@ -1828,8 +1828,8 @@ void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
 void DhcpClientStateMachine::TryCachedIp()
 {
     DHCP_LOGI("TryCachedIp() enter, action:%{public}d dhcpState:%{public}d", m_action, m_dhcp4State);
-    if (m_routerCfg.isPublicESS) {
-        DHCP_LOGW("current network is public ESS, don make default IP");
+    if (m_routerCfg.prohibitUseCacheIp) {
+        DHCP_LOGW("don not make default IP");
         return;
     }
 

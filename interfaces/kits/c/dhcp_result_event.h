@@ -92,7 +92,7 @@ typedef struct {
 
 typedef struct RouterConfig {
     char bssid[MAC_ADDR_MAX_LEN];
-    bool isPublicESS;
+    bool prohibitUseCacheIp;
 }RouterConfig;
 #ifdef __cplusplus
 }
