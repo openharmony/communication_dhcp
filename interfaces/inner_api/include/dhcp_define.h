@@ -233,7 +233,7 @@ struct DhcpRange {
 
 struct RouterConfig {
     std::string bssid;
-    bool isPublicESS;
+    bool prohibitUseCacheIp;
 };
 }  // namespace DHCP
 }  // namespace OHOS

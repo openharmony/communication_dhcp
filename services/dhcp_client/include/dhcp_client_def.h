@@ -413,6 +413,6 @@ enum TimerType {
 
 struct RouterCfg {
     std::string bssid;
-    bool isPublicESS;
+    bool prohibitUseCacheIp;
 };
 #endif

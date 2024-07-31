@@ -258,7 +258,7 @@ ErrCode DhcpClientServiceImpl::SetConfiguration(const std::string& ifname, const
 {
     DHCP_LOGI("SetConfiguration ifName:%{public}s", ifname.c_str());
     m_routerCfg.bssid = config.bssid;
-    m_routerCfg.isPublicESS = config.isPublicESS;
+    m_routerCfg.prohibitUseCacheIp = config.prohibitUseCacheIp;
     return DHCP_E_SUCCESS;
 }
 
