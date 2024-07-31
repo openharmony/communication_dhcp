@@ -115,6 +115,9 @@ if (defined(ohos_lite)) {
       "src/dhcp_server_callback_proxy.cpp",
       "src/dhcp_server_stub.cpp",
     ]
+    if (is_asan) {
+      defines += [ "DTFUZZ_TEST" ]
+    }
 
     include_dirs = local_base_include_dirs
     deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
