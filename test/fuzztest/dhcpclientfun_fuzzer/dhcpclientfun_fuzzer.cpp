@@ -25,14 +25,14 @@
 #include <netinet/icmp6.h>
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 std::string g_ifname = "wlan0";
 constexpr size_t DHCP_SLEEP_2 = 2;
 constexpr int TWO = 2;
 constexpr int THREE = 3;
-std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient =
-    std::make_unique<OHOS::Wifi::DhcpClientStateMachine>(g_ifname);
-std::unique_ptr<OHOS::Wifi::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::Wifi::DhcpIpv6Client>("wlan0");
+std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient =
+    std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(g_ifname);
+std::unique_ptr<OHOS::DHCP::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::DHCP::DhcpIpv6Client>("wlan0");
 
 bool DhcpClientStateMachineFunFuzzerTest(const uint8_t *data, size_t size)
 {
