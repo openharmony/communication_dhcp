@@ -20,7 +20,7 @@
 #include "dhcp_client_state_machine.h"
 #include "dhcp_ipv6_client.h"
 #include "securec.h"
-
+1
 namespace OHOS {
 namespace Wifi {
 std::string ifname = "wlan0";
