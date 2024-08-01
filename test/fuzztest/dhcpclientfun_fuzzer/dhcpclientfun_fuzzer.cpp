@@ -526,7 +526,7 @@ void SendRebootFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->m_sentPacketNum = 1;
     dhcpClient->SendReboot(targetIp, timestamp);
 
-    dhcpClient->m_sentPacketNum = 2;
+    dhcpClient->m_sentPacketNum = TWO;
     dhcpClient->SendReboot(targetIp, timestamp);
 }
 
