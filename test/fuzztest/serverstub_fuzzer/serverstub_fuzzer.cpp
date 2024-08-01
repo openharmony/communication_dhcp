@@ -50,6 +50,7 @@ void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
     pDhcpServerStub->OnRemoteRequest(code, datas, reply, option);
 }
 
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
