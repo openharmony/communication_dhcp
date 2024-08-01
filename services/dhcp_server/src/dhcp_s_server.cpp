@@ -782,7 +782,7 @@ int AppendReplyTimeOptions(PDhcpServerContext ctx, PDhcpOptionList options)
         t1Time = HostToNetwork(srvIns->addressPool.renewalTime);
     }
     DhcpOption optRenewTime = {RENEWAL_TIME_VALUE_OPTION, OPT_TIME_LENGTH, {0}};
-    FillU32Option(&optLeaseTime, t1Time);
+    FillU32Option(&optRenewTime, t1Time);
     PushBackOption(options, &optRenewTime);
 
     uint32_t t2Time = HostToNetwork(DHCP_REBINDING_TIME);
