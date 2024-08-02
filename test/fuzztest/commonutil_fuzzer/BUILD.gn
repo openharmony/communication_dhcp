@@ -1,0 +1,86 @@
+# Copyright (C) 2024 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+#####################hydra-fuzz###################
+import("//build/config/features.gni")
+import("//build/test.gni")
+import("//foundation/communication/dhcp/dhcp.gni")
+
+##############################fuzztest##########################################
+ohos_fuzztest("CommonUtilFuzzTest") {
+  module_out_path = dhcp_fuzz_output_path
+  fuzz_config_file = "$DHCP_ROOT_DIR/test/fuzztest/commonutil_fuzzer"
+
+  include_dirs = [
+    "$DHCP_ROOT_DIR/services",
+    "$DHCP_ROOT_DIR/services/dhcp_server/include",
+    "$DHCP_ROOT_DIR/interfaces",
+    "$DHCP_ROOT_DIR/interfaces/kits/c",
+    "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
+    "$DHCP_ROOT_DIR/frameworks/native/include",
+    "$DHCP_ROOT_DIR/frameworks/native/interfaces",
+    "$DHCP_ROOT_DIR/frameworks/native/src",
+    "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
+    "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/utils/include",
+  ]
+
+  cflags = [
+    "-g",
+    "-O0",
+    "-Wno-unused-variable",
+    "-fno-omit-frame-pointer",
+  ]
+  sources = [
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/address_utils.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/common_util.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_address_pool.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_argument.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_binding.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_config.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_dhcpd.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_function.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_option.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_s_server.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_death_recipient.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_service_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_server/src/dhcp_server_stub.cpp",
+    "commonutil_fuzzer.cpp",
+  ]
+
+  deps = [
+    "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
+    "$DHCP_ROOT_DIR/services/dhcp_server:dhcp_server",
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
+  ]
+
+  external_deps = [
+    "access_token:libaccesstoken_sdk",
+    "access_token:libtokenid_sdk",
+    "c_utils:utils",
+    "hilog:libhilog",
+    "ipc:ipc_single",
+    "safwk:system_ability_fwk",
+    "samgr:samgr_proxy",
+  ]
+
+  defines = [
+    "DTFUZZ_TEST",
+    "private=public",
+  ]
+
+  part_name = "dhcp"
+  subsystem_name = "communication"
+}

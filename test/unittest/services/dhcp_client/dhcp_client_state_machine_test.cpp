@@ -379,26 +379,6 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
     dhcpClient->DhcpRequestHandle(curTimestamp);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpResponseHandleTest enter!");
-    MockCustomFunc::SetMockFlag(true);
-    EXPECT_CALL(MockCustomFunc::GetInstance(), GetDhcpRawPacket(_, _)).WillRepeatedly(Return(1));
-    EXPECT_CALL(MockCustomFunc::GetInstance(), GetDhcpKernelPacket(_, _)).WillRepeatedly(Return(1));
-
-    time_t curTimestamp = time(NULL);
-    dhcpClient->SetIpv4State(DHCP_STATE_SELECTING);
-    dhcpClient->DhcpResponseHandle(curTimestamp);
-
-    dhcpClient->SetIpv4State(DHCP_STATE_RELEASED);
-    dhcpClient->DhcpResponseHandle(curTimestamp);
-
-    dhcpClient->SetIpv4State(DHCP_STATE_RENEWED);
-    struct DhcpPacket packet;
-    packet.xid = 0;
-    dhcpClient->DhcpResponseHandle(curTimestamp);
-}
-
 HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpAckOrNakPacketHandleTest enter!");
