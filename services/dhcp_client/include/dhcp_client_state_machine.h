@@ -1,8 +1,3 @@
- ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
- if (ipv4Thread_) {
-        DHCP_LOGI("~DhcpClientStateMachine ipv4Thread_ reset!");
-        ipv4Thread_.reset();
- }
  /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -28,6 +23,7 @@
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
 #include "dhcp_thread.h"
+
 #ifndef OHOS_ARCH_LITE
 #include "common_timer_errors.h"
 #include "timer.h"
