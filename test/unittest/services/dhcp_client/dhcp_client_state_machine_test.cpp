@@ -555,9 +555,8 @@ HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
     m_cltCnf.getMode = DHCP_IP_TYPE_ALL;
     std::thread t(&DhcpClientStateMachineTest::RunGetIPThreadFuncTest);
     sleep(2);
-    dhcpClient->m_pthread = nullptr;
     dhcpClient->InitSignalHandle();
-    dhcpClient->m_cltCnf.timeoutExit =true;
+    dhcpClient->m_cltCnf.threadExit =true;
     t.join();
 }
 

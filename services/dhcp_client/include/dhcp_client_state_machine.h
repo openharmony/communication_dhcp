@@ -135,7 +135,7 @@ private:
     uint32_t m_transID;
     DhcpClientCfg m_cltCnf;
     std::string m_ifName;  //对象服务的网卡名称
-    std::thread *m_pthread;
+    std::thread *m_pthread; //duliqun
     ActionMode m_action;
 #ifndef OHOS_ARCH_LITE
     std::mutex getIpTimerMutex;
