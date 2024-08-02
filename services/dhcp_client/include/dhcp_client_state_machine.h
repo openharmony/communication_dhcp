@@ -22,7 +22,7 @@
 #include "dhcp_arp_checker.h"
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
-
+#include "dhcp_thread.h"
 #ifndef OHOS_ARCH_LITE
 #include "common_timer_errors.h"
 #include "timer.h"
