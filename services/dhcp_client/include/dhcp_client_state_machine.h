@@ -1,33 +1,4 @@
-int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool isIpv6)
-{
-    DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d, threadExit:%{public}d", ifname.c_str(),
-        isIpv6, m_cltCnf.threadExit);
-    if (!m_cltCnf.threadExit) {
-        DHCP_LOGI("InitStartIpv4Thread ipv4Thread is run!");
-        return DHCP_OPT_FAILED;
- 
- 
- 
- 
- 
-    }
-    InitSignalHandle();
-    if (!ipv4Thread_) {
-        DHCP_LOGI("InitStartIpv4Thread make_unique ipv4Thread_");
-        ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
-    }
-    std::function<void()> func = std::bind([this]() {
-        RunGetIPThreadFunc(std::ref(*this));
-    });
-    int delayTime = 0;
-    bool result = ipv4Thread_->PostAsyncTask(func, delayTime);
-    if (!result) {
-        DHCP_LOGE("InitStartIpv4Thread ipv4Thread_ RunGetIPThreadFunc failed!");
-        return DHCP_OPT_FAILED;
-    }
-
-
-/*
+ /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
