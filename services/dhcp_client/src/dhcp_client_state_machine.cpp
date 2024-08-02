@@ -191,6 +191,7 @@ int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool 
         DHCP_LOGE("InitStartIpv4Thread ipv4Thread_ RunGetIPThreadFunc failed!");
         return DHCP_OPT_FAILED;
     }
+    DHCP_LOGE("InitStartIpv4Thread ipv4Thread_ RunGetIPThreadFunc ok");
     return DHCP_OPT_SUCCESS;
 }
 
