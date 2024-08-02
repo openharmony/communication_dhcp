@@ -18,12 +18,14 @@ group("fuzztest") {
 
   deps += [
     "clientstub_fuzzer:ClientStubFuzzTest",
+    "dhcpargument_fuzzer:DhcpArgumentFuzzTest",
     "dhcpclient_fuzzer:DhcpClientFuzzTest",
     "dhcpclientcbkstub_fuzzer:DhcpClientCbkStubFuzzTest",
     "dhcpclientfun_fuzzer:DhcpClientFunFuzzTest",
+    "dhcpfunction_fuzzer:DhcpFunctionFuzzTest",
     "dhcpserver_fuzzer:DhcpServerFuzzTest",
     "dhcpservercbkstub_fuzzer:DhcpServerCbkStubFuzzTest",
+    "dhcpserverimpl_fuzzer:DhcpServerImplFuzzTest",
     "serverstub_fuzzer:ServerStubFuzzTest",
-	
   ]
 }
