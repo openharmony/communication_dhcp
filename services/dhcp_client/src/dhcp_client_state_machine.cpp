@@ -75,7 +75,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_socketMode(SOCKET_MODE_INVALID),
     m_transID(0),
     m_ifName(ifname),
-    m_pthread(nullptr),//duliqun
+    ipv4Thread_(nullptr),
     m_slowArpDetecting(false)
 {
 #ifndef OHOS_ARCH_LITE
@@ -86,24 +86,21 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     remainingDelayTimerId = 0;
 #endif
     m_cltCnf.ifaceIndex = 0;
-    m_cltCnf.threadExit = false; //duliqun
+    m_cltCnf.threadExit = true;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.isIpv6 = false;
     m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
     DHCP_LOGI("DhcpClientStateMachine()");
-    //duliqun
+    ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
 }
 
 DhcpClientStateMachine::~DhcpClientStateMachine()
 {
     DHCP_LOGI("~DhcpClientStateMachine()");
-    //duliqun
-    if (m_pthread != nullptr) {
-        m_pthread->join();
-        delete m_pthread;
-        m_pthread = nullptr;
-        DHCP_LOGI("~DhcpClientStateMachine() delete m_pthread!");
+    if (ipv4Thread_) {
+        DHCP_LOGI("~DhcpClientStateMachine ipv4Thread_ reset!");
+        ipv4Thread_.reset();
     }
 }
 
@@ -126,7 +123,7 @@ int DhcpClientStateMachine::CloseSignalHandle()
     return DHCP_OPT_SUCCESS;
 }
 
-void DhcpClientStateMachine::RunGetIPThreadFunc()
+void DhcpClientStateMachine::RunGetIPThreadFunc(const DhcpClientStateMachine &instance)
 {
     DHCP_LOGI("RunGetIPThreadFunc begin.");
     if ((m_cltCnf.getMode == DHCP_IP_TYPE_ALL) || (m_cltCnf.getMode == DHCP_IP_TYPE_V4)) {
@@ -151,7 +148,7 @@ int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
 
 int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action)
 {
-    DHCP_LOGI("StartIpv4Type ifname:%{public}s isIpv6:%{public}d threadIsExit:%{public}d action:%{public}d",
+    DHCP_LOGI("StartIpv4Type ifname:%{public}s isIpv6:%{public}d threadExit:%{public}d action:%{public}d",
         ifname.c_str(), isIpv6, m_cltCnf.threadExit, action);
     m_ifName = ifname;
     m_action = action;
@@ -174,17 +171,25 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
 
 int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool isIpv6)
 {
-    DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d", ifname.c_str(), isIpv6);
-    //duliqun
-    if (m_pthread == nullptr) {
-        InitSignalHandle();
-        m_pthread = new std::thread(&DhcpClientStateMachine::RunGetIPThreadFunc, this);
-        if (m_pthread == nullptr) {
-            DHCP_LOGE("InitStartIpv4Thread thread RunGetIPThreadFunc failed!");
-            return DHCP_OPT_FAILED;
-        }
-        m_pthread->detach();
-        DHCP_LOGI("InitStartIpv4Thread create thread ok");
+    DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d, threadExit:%{public}d", ifname.c_str(),
+        isIpv6, m_cltCnf.threadExit);
+    if (!m_cltCnf.threadExit) {
+        DHCP_LOGI("InitStartIpv4Thread ipv4Thread is run!");
+        return DHCP_OPT_FAILED;
+    }
+    InitSignalHandle();
+    if (!ipv4Thread_) {
+        DHCP_LOGI("InitStartIpv4Thread make_unique ipv4Thread_");
+        ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
+    }
+    std::function<void()> func = std::bind([this]() {
+        RunGetIPThreadFunc(std::ref(*this));
+    });
+    int delayTime = 0;
+    bool result = ipv4Thread_->PostAsyncTask(func, delayTime);
+    if (!result) {
+        DHCP_LOGE("InitStartIpv4Thread ipv4Thread_ RunGetIPThreadFunc failed!");
+        return DHCP_OPT_FAILED;
     }
     return DHCP_OPT_SUCCESS;
 }
@@ -355,12 +360,6 @@ int DhcpClientStateMachine::StartIpv4(void)
 
 int DhcpClientStateMachine::ExitIpv4(void)
 {
-    //duliqun
-    if (m_pthread != nullptr) {
-        delete m_pthread;
-        m_pthread = nullptr;
-        DHCP_LOGI("StopIpv4 delete m_pthread!");
-    }
     CloseSignalHandle();
     DHCP_LOGI("ExitIpv4 threadExit:%{public}d", m_cltCnf.threadExit);
     return DHCP_OPT_SUCCESS;
