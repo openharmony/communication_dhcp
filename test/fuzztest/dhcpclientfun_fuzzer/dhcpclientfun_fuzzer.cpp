@@ -373,7 +373,8 @@ void CloseSignalHandleFuzzerTest(const uint8_t *data, size_t size)
 void RunGetIPThreadFuncFuzzerTest(const uint8_t *data, size_t size)
 {
     dhcpClient->m_cltCnf.getMode = 0;
-    dhcpClient->RunGetIPThreadFunc();
+    DhcpClientStateMachine machine("wlan0");
+    dhcpClient->RunGetIPThreadFunc(machine);
 }
 
 void InitConfigFuzzerTest(const uint8_t *data, size_t size)

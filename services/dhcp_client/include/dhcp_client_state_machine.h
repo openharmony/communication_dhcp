@@ -22,6 +22,7 @@
 #include "dhcp_arp_checker.h"
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
+#include "dhcp_thread.h"
 
 #ifndef OHOS_ARCH_LITE
 #include "common_timer_errors.h"
@@ -79,7 +80,7 @@ private:
     void AddParamaterRebootList(struct DhcpPacket *packet);
     void InitSelecting(time_t timestamp);
     void SignalReceiver(void);
-    void RunGetIPThreadFunc();
+    void RunGetIPThreadFunc(const DhcpClientStateMachine &instance);
     void FormatString(struct DhcpIpResult *result);
     uint32_t GetRandomId(void);
     uint32_t GetDhcpTransID(void);
@@ -135,7 +136,7 @@ private:
     uint32_t m_transID;
     DhcpClientCfg m_cltCnf;
     std::string m_ifName;  //对象服务的网卡名称
-    std::thread *m_pthread;
+    std::unique_ptr<DhcpThread> ipv4Thread_ = nullptr;
     ActionMode m_action;
 #ifndef OHOS_ARCH_LITE
     std::mutex getIpTimerMutex;
