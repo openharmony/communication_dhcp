@@ -162,6 +162,7 @@ void DhcpClientCallBack::RegisterCallBack(const std::string& ifname, const Clien
     }
 }
 
+//duliqun 
 void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
 {
     if (ifname.empty()) {
@@ -174,6 +175,7 @@ void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
         mapClientCallBack.erase(iter);
         DHCP_LOGI("Client UnRegisterCallBack erase ifname:%{public}s", ifname.c_str());
     } else {
+        //duliqun
         DHCP_LOGI("Client UnRegisterCallBack not find, ifname:%{public}s", ifname.c_str());
     }
 }
