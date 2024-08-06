@@ -21,12 +21,15 @@ group("fuzztest") {
     "clientstub_fuzzer:ClientStubFuzzTest",
     "commonutil_fuzzer:CommonUtilFuzzTest",
     "dhcpaddresspool_fuzzer:DhcpAddressPoolFuzzTest",
+    "dhcpargument_fuzzer:DhcpArgumentFuzzTest",
     "dhcpbinding_fuzzer:DhcpBindingFuzzTest",
     "dhcpclient_fuzzer:DhcpClientFuzzTest",
     "dhcpclientcbkstub_fuzzer:DhcpClientCbkStubFuzzTest",
     "dhcpclientfun_fuzzer:DhcpClientFunFuzzTest",
+    "dhcpfunction_fuzzer:DhcpFunctionFuzzTest",
     "dhcpserver_fuzzer:DhcpServerFuzzTest",
     "dhcpservercbkstub_fuzzer:DhcpServerCbkStubFuzzTest",
+    "dhcpserverimpl_fuzzer:DhcpServerImplFuzzTest",
     "serverstub_fuzzer:ServerStubFuzzTest",
   ]
 }

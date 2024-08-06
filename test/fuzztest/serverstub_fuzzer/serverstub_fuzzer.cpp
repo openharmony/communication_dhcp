@@ -50,6 +50,123 @@ void OnGetSupportedFeaturesTest(const uint8_t* data, size_t size)
     pDhcpServerStub->OnRemoteRequest(code, datas, reply, option);
 }
 
+void OnRegisterCallBackTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK), datas, reply, option);
+}
+
+void OnStopDhcpServerTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_STOP_DHCP_SERVER), datas, reply, option);
+}
+
+void OnSetDhcpNameTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_SET_DHCP_NAME), datas, reply, option);
+}
+
+void OnSetDhcpRangeTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_SET_DHCP_RANGE), datas, reply, option);
+}
+
+void OnRemoveAllDhcpRangeTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REMOVE_ALL_DHCP_RANGE), datas, reply, option);
+}
+
+void OnRemoveDhcpRangeTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REMOVE_DHCP_RANGE), datas, reply, option);
+}
+
+void OnGetDhcpClientInfosTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_GET_DHCP_CLIENT_INFO), datas, reply, option);
+}
+
+void OnUpdateLeasesTimeTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_UPDATE_RENEW_TIME), datas, reply, option);
+}
+
+void OnPutDhcpRangeTest(const uint8_t* data, size_t size)
+{
+    MessageParcel datas;
+    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
+    datas.WriteInt32(0);
+    datas.WriteBuffer(data, size);
+    datas.RewindRead(0);
+    MessageParcel reply;
+    MessageOption option;
+    pDhcpServerStub->OnRemoteRequest(static_cast<uint32_t>
+        (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_PUT_DHCP_RANGE), datas, reply, option);
+}
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -58,6 +175,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
+    OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
+    OHOS::DHCP::OnRegisterCallBackTest(data, size);
+    OHOS::DHCP::OnStopDhcpServerTest(data, size);
+    OHOS::DHCP::OnSetDhcpNameTest(data, size);
+    OHOS::DHCP::OnSetDhcpRangeTest(data, size);
+    OHOS::DHCP::OnRemoveAllDhcpRangeTest(data, size);
+    OHOS::DHCP::OnRemoveDhcpRangeTest(data, size);
+    OHOS::DHCP::OnGetDhcpClientInfosTest(data, size);
+    OHOS::DHCP::OnUpdateLeasesTimeTest(data, size);
+    OHOS::DHCP::OnPutDhcpRangeTest(data, size);
     return 0;
 }
 }  // namespace DHCP
