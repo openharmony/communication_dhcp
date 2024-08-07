@@ -162,6 +162,11 @@ void DhcpClientCallBack::RegisterCallBack(const std::string& ifname, const Clien
     }
 }
 
+static bool MatchSubStr(const std::string &key, const std::string &pattern)
+{
+    return key.find(pattern) != std::string::npos;
+}
+
 void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
 {
     if (ifname.empty()) {
@@ -174,7 +179,15 @@ void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
         mapClientCallBack.erase(iter);
         DHCP_LOGI("Client UnRegisterCallBack erase ifname:%{public}s", ifname.c_str());
     } else {
-        DHCP_LOGI("Client UnRegisterCallBack not find, ifname:%{public}s", ifname.c_str());
+        auto it = std::find_if(mapClientCallBack.begin(), mapClientCallBack.end(),
+            [&](const auto &kv) { return MatchSubStr(kv.first, ifname); });
+        if (it != mapClientCallBack.end()) {
+            DHCP_LOGI("Client UnRegisterCallBack find match ifname:%{public}s key:%{public}s",
+                ifname.c_str(), it->first.c_str());
+            mapClientCallBack.erase(it);
+        } else {
+            DHCP_LOGI("Client UnRegisterCallBack no match ifname:%{public}s", ifname.c_str());
+        }
     }
 }
 
