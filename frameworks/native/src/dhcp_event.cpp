@@ -164,7 +164,7 @@ void DhcpClientCallBack::RegisterCallBack(const std::string& ifname, const Clien
 
 static bool MatchSubStr(const std::string &key, const std::string &pattern)
 {
-  	return key.find(pattern) != std::string::npos;
+    return key.find(pattern) != std::string::npos;
 }
 
 void DhcpClientCallBack::UnRegisterCallBack(const std::string& ifname)
