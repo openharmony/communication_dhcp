@@ -25,15 +25,15 @@
 #include <netinet/icmp6.h>
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 std::string g_ifname = "wlan0";
 constexpr size_t DHCP_SLEEP_2 = 2;
 constexpr int TWO = 2;
 constexpr int THREE = 3;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
-std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient =
-    std::make_unique<OHOS::Wifi::DhcpClientStateMachine>(g_ifname);
-std::unique_ptr<OHOS::Wifi::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::Wifi::DhcpIpv6Client>("wlan0");
+std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient =
+    std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(g_ifname);
+std::unique_ptr<OHOS::DHCP::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::DHCP::DhcpIpv6Client>("wlan0");
 
 bool DhcpClientStateMachineFunFuzzerTest(const uint8_t *data, size_t size)
 {
@@ -371,6 +371,8 @@ void CloseSignalHandleFuzzerTest(const uint8_t *data, size_t size)
 void RunGetIPThreadFuncFuzzerTest(const uint8_t *data, size_t size)
 {
     dhcpClient->m_cltCnf.getMode = 0;
+    DhcpClientStateMachine machine("wlan0");
+    dhcpClient->RunGetIPThreadFunc(machine);
     dhcpClient->RunGetIPThreadFunc();
 }
 
@@ -524,7 +526,7 @@ void SendRebootFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->m_sentPacketNum = 1;
     dhcpClient->SendReboot(targetIp, timestamp);
 
-    dhcpClient->m_sentPacketNum = 2;
+    dhcpClient->m_sentPacketNum = TWO;
     dhcpClient->SendReboot(targetIp, timestamp);
 }
 
