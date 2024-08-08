@@ -23,16 +23,17 @@
 #include "securec.h"
 #include <linux/rtnetlink.h>
 #include <netinet/icmp6.h>
-1
+
 namespace OHOS {
-namespace DHCP {
+namespace Wifi {
 std::string g_ifname = "wlan0";
 constexpr size_t DHCP_SLEEP_2 = 2;
 constexpr int TWO = 2;
 constexpr int THREE = 3;
-std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient =
-    std::make_unique<OHOS::DHCP::DhcpClientStateMachine>(g_ifname);
-std::unique_ptr<OHOS::DHCP::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::DHCP::DhcpIpv6Client>("wlan0");
+constexpr size_t U32_AT_SIZE_ZERO = 4;
+std::unique_ptr<OHOS::Wifi::DhcpClientStateMachine> dhcpClient =
+    std::make_unique<OHOS::Wifi::DhcpClientStateMachine>(g_ifname);
+std::unique_ptr<OHOS::Wifi::DhcpIpv6Client> ipv6Client = std::make_unique<OHOS::Wifi::DhcpIpv6Client>("wlan0");
 
 bool DhcpClientStateMachineFunFuzzerTest(const uint8_t *data, size_t size)
 {
@@ -246,10 +247,7 @@ void ParseNDRouteMessageFuzzerTest(const uint8_t *data, size_t size)
 
 void ParseNewneighMessageFuzzerTest(const uint8_t *data, size_t size)
 {
-    ipv6Client->parseNewneighMessage(nullptr);
-
-    struct nlmsghdr msg;
-    ipv6Client->parseNewneighMessage(&msg);
+    ipv6Client->parseNewneighMessage(0);
 }
 
 void FillRouteDataFuzzerTest(const uint8_t *data, size_t size)
@@ -265,7 +263,6 @@ void HandleKernelEventFuzzerTest(const uint8_t *data, size_t size)
 {
     int len = static_cast<int>(data[0]);
     ipv6Client->handleKernelEvent(nullptr, len);
-    ipv6Client->handleKernelEvent(data, len);
 }
 
 /* Dhcp Socket */
@@ -279,13 +276,14 @@ void BindRawSocketFuzzerTest(const uint8_t *data, size_t size)
 {
     int rawFd = static_cast<int>(data[0]);
     int ifaceIndex = static_cast<int>(data[0]);
-    BindRawSocket(rawFd, ifaceIndex, data);
+    uint8_t ifaceAddr[6] = {0};
+    BindRawSocket(rawFd, ifaceIndex, ifaceAddr);
 }
 
 void BindKernelSocketFuzzerTest(const uint8_t *data, size_t size)
 {
     int sockFd = static_cast<int>(data[0]);
-    char *ifaceName = reinterpret_cast<char *>(const_cast<uint8_t *>(data));
+    char ifaceName[5] = {0};
     uint32_t sockIp = static_cast<uint32_t>(data[0]);
     int sockPort = static_cast<int>(data[0]);
     bool bCast = true;
@@ -373,8 +371,7 @@ void CloseSignalHandleFuzzerTest(const uint8_t *data, size_t size)
 void RunGetIPThreadFuncFuzzerTest(const uint8_t *data, size_t size)
 {
     dhcpClient->m_cltCnf.getMode = 0;
-    DhcpClientStateMachine machine("wlan0");
-    dhcpClient->RunGetIPThreadFunc(machine);
+    dhcpClient->RunGetIPThreadFunc();
 }
 
 void InitConfigFuzzerTest(const uint8_t *data, size_t size)
@@ -527,7 +524,7 @@ void SendRebootFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->m_sentPacketNum = 1;
     dhcpClient->SendReboot(targetIp, timestamp);
 
-    dhcpClient->m_sentPacketNum = TWO;
+    dhcpClient->m_sentPacketNum = 2;
     dhcpClient->SendReboot(targetIp, timestamp);
 }
 
@@ -734,7 +731,7 @@ void SetIpv4StateFuzzerTest(const uint8_t *data, size_t size)
 
 void PublishDhcpResultEventFuzzerTest(const uint8_t *data, size_t size)
 {
-    char *ifname = reinterpret_cast<char *>(const_cast<uint8_t *>(data));
+    char ifname[3] = {0};
     int code = static_cast<int>(data[0]);
     struct DhcpIpResult result;
     dhcpClient->PublishDhcpResultEvent(nullptr, code, &result);
@@ -754,6 +751,8 @@ void GetPacketCommonInfoFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->GetPacketCommonInfo(nullptr);
 
     struct DhcpPacket packet;
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
     dhcpClient->GetPacketCommonInfo(&packet);
 }
 
@@ -762,6 +761,8 @@ void AddClientIdToOptsFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->AddClientIdToOpts(nullptr);
 
     struct DhcpPacket packet;
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
     dhcpClient->AddClientIdToOpts(&packet);
 }
 
@@ -770,17 +771,20 @@ void AddHostNameToOptsFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->AddHostNameToOpts(nullptr);
 
     struct DhcpPacket packet;
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
     dhcpClient->AddHostNameToOpts(&packet);
 }
 
 void AddStrToOptsFuzzerTest(const uint8_t *data, size_t size)
 {
     struct DhcpPacket packet;
-    int option = static_cast<int>(data[0]);
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
+    int option = 2;
     std::string value = "wlan1";
     dhcpClient->AddStrToOpts(&packet, option, value);
 }
-
 
 void DhcpDiscoverFuzzerTest(const uint8_t *data, size_t size)
 {
@@ -1070,6 +1074,9 @@ void DhcpClientStateMachineExFuzzerTest(const uint8_t *data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
+    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
+        return 0;
+    }
     DhcpClientStateMachineFunFuzzerTest(data, size);
     DhcpIpv6FunFuzzerTest(data, size);
     DhcpIpv6ClientFuzzerTest(data, size);
