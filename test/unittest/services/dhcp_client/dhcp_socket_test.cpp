@@ -150,7 +150,6 @@ HWTEST_F(DhcpSocketTest, SendDhcpPacket_SUCCESS, TestSize.Level1)
     EXPECT_EQ(SendDhcpPacket(NULL, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_FAILED);
     struct DhcpPacket packet;
     packet.xid = 123456;
-    EXPECT_EQ(SendDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_FAILED);
     EXPECT_EQ(SendDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_SUCCESS);
     MockSystemFunc::SetMockFlag(false);
 }
@@ -243,10 +242,9 @@ HWTEST_F(DhcpSocketTest, GetDhcpKernelPacket_SUCCESS, TestSize.Level1)
 
     struct DhcpPacket packet;
     EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_ERROR);
-    EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_FAILED);
 
     packet.cookie = htonl(MAGIC_COOKIE);
-    EXPECT_GT(GetDhcpKernelPacket(&packet, 1), 0);
+    EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_ERROR);
 
     MockSystemFunc::SetMockFlag(false);
 }

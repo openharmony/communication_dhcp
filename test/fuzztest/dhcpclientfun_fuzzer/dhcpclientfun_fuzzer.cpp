@@ -23,7 +23,7 @@
 #include "securec.h"
 #include <linux/rtnetlink.h>
 #include <netinet/icmp6.h>
-
+1
 namespace OHOS {
 namespace DHCP {
 std::string g_ifname = "wlan0";

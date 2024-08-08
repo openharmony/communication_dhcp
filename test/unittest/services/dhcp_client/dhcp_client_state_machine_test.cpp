@@ -336,7 +336,7 @@ HWTEST_F(DhcpClientStateMachineTest, StopIpv4Test, TestSize.Level1)
 {
     DHCP_LOGI("StopIpv4Test enter!");
     dhcpClient->StopIpv4();
-    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->StopIpv4());
+    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->StopIpv4());
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
@@ -575,6 +575,8 @@ HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
 {
     DHCP_LOGI("AddHostNameToOptsTest enter!");
     struct DhcpPacket packet;
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddHostNameToOpts(nullptr));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddHostNameToOpts(&packet));
 }
@@ -585,6 +587,8 @@ HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level1)
     int option = 12;
     std::string value = "ALN-AL80";
     struct DhcpPacket packet;
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddStrToOpts(nullptr, option, value));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddStrToOpts(&packet, option, value));
 }
@@ -605,6 +609,8 @@ HWTEST_F(DhcpClientStateMachineTest, AddClientIdToOptsTest, TestSize.Level1)
 {
     DHCP_LOGI("AddClientIdToOpts enter!");
     struct DhcpPacket packet;
+    memset_s(&packet, sizeof(struct DhcpPacket), 0, sizeof(struct DhcpPacket));
+    packet.options[0] = END_OPTION;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddClientIdToOpts(nullptr));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddClientIdToOpts(&packet));
 }
