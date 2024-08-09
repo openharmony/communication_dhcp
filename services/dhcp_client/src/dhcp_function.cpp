@@ -382,14 +382,8 @@ pid_t GetPID(const char *pidFile)
     }
     DHCP_LOGI("GetPID() pidFile:%{public}s stat st_size:%{public}d.", pidFile, (int)sb.st_size);
 
-    char realPath[PATH_MAX] = {0};
-    if (realpath(pidFile, realPath) == nullptr) {
-        DHCP_LOGE("GetPID() pidFile:%{public}s err:%{public}d!", pidFile, errno);
-        return -1;
-    }
-
     int fd;
-    if ((fd = open(realPath, O_RDONLY)) < 0) {
+    if ((fd = open(pidFile, O_RDONLY)) < 0) {
         DHCP_LOGE("GetPID() failed, open pidFile:%{public}s error!", pidFile);
         return -1;
     }
