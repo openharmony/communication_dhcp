@@ -198,6 +198,7 @@ void WaitProcessExitTest(const uint8_t* data, size_t size)
     pDhcpFunction->WaitProcessExit(serverPid);
 }
 
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
