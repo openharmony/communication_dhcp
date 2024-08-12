@@ -18,4 +18,6 @@ dhcp_fuzz_output_path = "dhcp/dhcp/dhcp_fuzz"
 
 declare_args() {
   VENDOR_NAME = "HUAWEI:openharmony"
+  IPV4_DNS_PRI = "8.8.8.8"
+  IPV4_DNS_SEC = "8.8.4.4"
 }
