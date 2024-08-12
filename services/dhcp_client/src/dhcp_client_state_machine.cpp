@@ -948,7 +948,7 @@ void DhcpClientStateMachine::SetIpv4DefaultDns(struct DhcpIpResult *result)
         return;
     }
     if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, DEFAULT_IPV4_DNS_SEC, INET_ADDRSTRLEN - 1) != EOK) {
-        DHCP_LOGE("SetIpv4DefaultDns strncpy_s defult strOptDns1 Failed.");
+        DHCP_LOGE("SetIpv4DefaultDns strncpy_s defult strOptDns2 Failed.");
         return;
     }
     result->dnsAddr.clear();
