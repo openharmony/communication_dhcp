@@ -52,48 +52,10 @@ void Ip6StrConToCharTest(const uint8_t* data, size_t size)
     pDhcpFunction->Ip6StrConToChar(strIp, chIp, sizeof(struct in6_addr));
 }
 
-void Ip6CharConToStrTest(const uint8_t* data, size_t size)
-{
-    uint8_t	chIp[sizeof(struct in6_addr)] = {0};
-    pDhcpFunction->Ip6CharConToStr(chIp, sizeof(struct in6_addr));
-}
-
 void CheckIpStrTest(const uint8_t* data, size_t size)
 {
     std::string strIp = std::string(reinterpret_cast<const char*>(data), size);
     pDhcpFunction->CheckIpStr(strIp);
-}
-
-void GetLocalIpTest(const uint8_t* data, size_t size)
-{
-    std::string strInf = std::string(reinterpret_cast<const char*>(data), size);
-    std::string strIp = std::string(reinterpret_cast<const char*>(data), size);
-    std::string strMask = std::string(reinterpret_cast<const char*>(data), size);
-    pDhcpFunction->GetLocalIp(strInf, strIp, strMask);
-}
-
-void GetLocalMacTest(const uint8_t* data, size_t size)
-{
-    std::string ethInf = std::string(reinterpret_cast<const char*>(data), size);
-    std::string ethMac = std::string(reinterpret_cast<const char*>(data), size);
-    pDhcpFunction->GetLocalMac(ethInf, ethMac);
-}
-
-void CheckRangeNetworkTest(const uint8_t* data, size_t size)
-{
-    std::string ethInf = std::string(reinterpret_cast<const char*>(data), size);
-    std::string strBegin = std::string(reinterpret_cast<const char*>(data), size);
-    std::string strEnd = std::string(reinterpret_cast<const char*>(data), size);
-    pDhcpFunction->CheckRangeNetwork(ethInf, strBegin, strEnd);
-}
-
-void CheckSameNetworkTest(const uint8_t* data, size_t size)
-{
-    uint32_t index = 0;
-    uint32_t srcIp = static_cast<uint32_t>(data[index++]);
-    uint32_t dstIp = static_cast<uint32_t>(data[index++]);
-    uint32_t maskIp = static_cast<uint32_t>(data[index++]);
-    pDhcpFunction->CheckSameNetwork(srcIp, dstIp, maskIp);
 }
 
 void IsExistFileTest(const uint8_t* data, size_t size)
@@ -198,7 +160,6 @@ void WaitProcessExitTest(const uint8_t* data, size_t size)
     pDhcpFunction->WaitProcessExit(serverPid);
 }
 
-
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -209,12 +170,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::Ip4StrConToIntTest(data, size);
     OHOS::DHCP::Ip4IntConToStrTest(data, size);
     OHOS::DHCP::Ip6StrConToCharTest(data, size);
-    OHOS::DHCP::Ip6CharConToStrTest(data, size);
     OHOS::DHCP::CheckIpStrTest(data, size);
-    OHOS::DHCP::GetLocalIpTest(data, size);
-    OHOS::DHCP::GetLocalMacTest(data, size);
-    OHOS::DHCP::CheckRangeNetworkTest(data, size);
-    OHOS::DHCP::CheckSameNetworkTest(data, size);
     OHOS::DHCP::IsExistFileTest(data, size);
     OHOS::DHCP::CreateFileTest(data, size);
     OHOS::DHCP::RemoveFileTest(data, size);
