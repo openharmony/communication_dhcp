@@ -175,7 +175,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
-    OHOS::DHCP::OnGetSupportedFeaturesTest(data, size);
     OHOS::DHCP::OnRegisterCallBackTest(data, size);
     OHOS::DHCP::OnStopDhcpServerTest(data, size);
     OHOS::DHCP::OnSetDhcpNameTest(data, size);
