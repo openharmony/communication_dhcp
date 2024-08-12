@@ -105,7 +105,7 @@ if (defined(ohos_lite)) {
     install_enable = true
     sources = local_base_sources
     include_dirs = local_base_include_dirs
-    defines = [ 
+    defines = [
       "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
       "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
       "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
