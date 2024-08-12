@@ -65,6 +65,8 @@ if (defined(ohos_lite)) {
       "_GNU_SOURCE",
       "OHOS_ARCH_LITE",
       "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
+      "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
+      "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
     ]
     configs -= [ "//build/lite/config:language_cpp" ]
     cflags = [
@@ -103,7 +105,11 @@ if (defined(ohos_lite)) {
     install_enable = true
     sources = local_base_sources
     include_dirs = local_base_include_dirs
-    defines = [ "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"" ]
+    defines = [ 
+      "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
+      "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
+      "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
+    ]
     if (is_asan) {
       defines += [ "DTFUZZ_TEST" ]
     }
@@ -185,6 +191,8 @@ if (defined(ohos_lite)) {
       "OHOS_ARCH_LITE",
       "OHOS_EUPDATER",
       "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
+      "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
+      "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
     ]
 
     deps = []
