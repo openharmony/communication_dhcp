@@ -1,25 +1,3 @@
-SetIpv4DefaultDns(result);
-void SetIpv4DefaultDns(struct DhcpIpResult *result);
-void DhcpClientStateMachine::SetIpv4DefaultDns(struct DhcpIpResult *result)
-{
-    if (result == nullptr) {
-        DHCP_LOGE("SetIpv4DefaultDns result == nullptr!");
-        return;
-    }
-    if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, DEFAULT_IPV4_DNS_PRI, INET_ADDRSTRLEN - 1) != EOK) {
-        DHCP_LOGE("SetIpv4DefaultDns strncpy_s defult strOptDns1 Failed.");
-        return;
-    }
-    if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, DEFAULT_IPV4_DNS_SEC, INET_ADDRSTRLEN - 1) != EOK) {
-        DHCP_LOGE("SetIpv4DefaultDns strncpy_s defult strOptDns1 Failed.");
-        return;
-    }
-    result->dnsAddr.clear();
-    result->dnsAddr.push_back(DEFAULT_IPV4_DNS_PRI);
-    result->dnsAddr.push_back(DEFAULT_IPV4_DNS_SEC);
-    DHCP_LOGI("SetIpv4DefaultDns make defult dns!");
-}
-
 /*
  * Copyright (C) 2021 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -91,7 +69,7 @@ private:
     void ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkDnsInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
-    xxxx
+    void SetIpv4DefaultDns(struct DhcpIpResult *result);
     void ParseNetworkDnsValue(struct DhcpIpResult *result, uint32_t uData, size_t &len, int &count);
     void DhcpOfferPacketHandle(uint8_t type, const struct DhcpPacket *packet, time_t timestamp);
     void DhcpRequestHandle(time_t timestamp);
