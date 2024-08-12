@@ -937,6 +937,11 @@ void DhcpClientStateMachine::ParseNetworkServerIdInfo(const struct DhcpPacket *p
     }
 }
 
+void DhcpClientStateMachine::sddddddd(const struct DhcpPacket *packet, struct DhcpIpResult *result)
+{
+
+}
+
 void DhcpClientStateMachine::ParseNetworkDnsInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
 {
     if ((packet == nullptr) || (result == nullptr)) {
@@ -947,6 +952,7 @@ void DhcpClientStateMachine::ParseNetworkDnsInfo(const struct DhcpPacket *packet
     const uint8_t *p = GetDhcpOption(packet, DOMAIN_NAME_SERVER_OPTION, &len);
     if (p == nullptr) {
         DHCP_LOGE("ParseNetworkDnsInfo nullptr!");
+        sddddddd xxxxxx
         return;
     }
     uint32_t uData = 0;
@@ -954,6 +960,7 @@ void DhcpClientStateMachine::ParseNetworkDnsInfo(const struct DhcpPacket *packet
     if ((len < (ssize_t)sizeof(uData)) || (len % (ssize_t)sizeof(uData) != 0)) {
         DHCP_LOGE("ParseNetworkDnsInfo failed, len:%{public}zu is not %{public}zu * n, code:%{public}d!",
             len, sizeof(uData), DOMAIN_NAME_SERVER_OPTION);
+        sddddddd xxxxxx
         return;
     }
     DHCP_LOGI("ParseNetworkDnsInfo len:%{public}zu count:%{public}d", len, count);
