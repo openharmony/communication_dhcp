@@ -17,4 +17,6 @@ DHCP_ROOT_DIR = "$SUBSYSTEM_DIR/dhcp"
 
 declare_args() {
   VENDOR_NAME = "HUAWEI:openharmony"
+  IPV4_DNS_PRI = "8.8.8.8"
+  IPV4_DNS_SEC = "8.8.4.4"
 }

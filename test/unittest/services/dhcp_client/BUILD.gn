@@ -121,6 +121,8 @@ ohos_unittest("dhcp_client_unittest") {
     "private = public",
     "protected = public",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
+    "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
+    "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
   ]
 
   if (defined(global_parts_info) &&
