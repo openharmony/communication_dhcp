@@ -309,13 +309,8 @@ bool DhcpFunction::CheckSameNetwork(const uint32_t srcIp, const uint32_t dstIp, 
 bool DhcpFunction::IsExistFile(const std::string& filename)
 {
     bool bExist = false;
-    char realPath[PATH_MAX] = {0};
-    if (realpath(filename.c_str(), realPath) == nullptr) {
-        DHCP_LOGE("IsExistFile() filename:%{public}s err:%{public}d!", filename.c_str(), errno);
-        return -1;
-    }
     std::fstream ioFile;
-    ioFile.open(realPath, std::ios::in);
+    ioFile.open(filename.c_str(), std::ios::in);
     if (ioFile) {
         bExist = true;
     }
@@ -327,13 +322,8 @@ bool DhcpFunction::IsExistFile(const std::string& filename)
 
 bool DhcpFunction::CreateFile(const std::string& filename, const std::string& filedata)
 {
-    char realPath[PATH_MAX] = {0};
-    if (realpath(filename.c_str(), realPath) == nullptr) {
-        DHCP_LOGE("CreateFile() filename:%{public}s err:%{public}d!", filename.c_str(), errno);
-        return -1;
-    }
     std::ofstream outFile;
-    outFile.open(realPath);
+    outFile.open(filename.c_str());
     outFile.flush();
     outFile << filedata << std::endl;
     outFile.close();
@@ -353,13 +343,8 @@ bool DhcpFunction::RemoveFile(const std::string& filename)
 bool DhcpFunction::AddFileLineData(const std::string& filename, const std::string& prevdata, const std::string& linedata)
 {
     bool bAdd = false;
-    char realPath[PATH_MAX] = {0};
-    if (realpath(filename.c_str(), realPath) == nullptr) {
-        DHCP_LOGE("AddFileLineData() filename:%{public}s err:%{public}d!", filename.c_str(), errno);
-        return -1;
-    }
     std::ifstream inFile;
-    inFile.open(realPath);
+    inFile.open(filename.c_str());
     std::string strFileData = "";
     std::string strTemp = "";
     char tmpLineData[1024] = {0};
@@ -376,7 +361,7 @@ bool DhcpFunction::AddFileLineData(const std::string& filename, const std::strin
 
     if (bAdd) {
         std::ofstream outFile;
-        outFile.open(realPath);
+        outFile.open(filename.c_str());
         outFile.flush();
         DHCP_LOGI("AddFileLineData Reflush filename:%{public}s, strFileData:%{public}s.",
             filename.c_str(), strFileData.c_str());
@@ -389,13 +374,8 @@ bool DhcpFunction::AddFileLineData(const std::string& filename, const std::strin
 bool DhcpFunction::DelFileLineData(const std::string& filename, const std::string& linedata)
 {
     bool bDel = false;
-    char realPath[PATH_MAX] = {0};
-    if (realpath(filename.c_str(), realPath) == nullptr) {
-        DHCP_LOGE("DelFileLineData() filename:%{public}s err:%{public}d!", filename.c_str(), errno);
-        return -1;
-    }
     std::ifstream inFile;
-    inFile.open(realPath);
+    inFile.open(filename.c_str());
     std::string strFileData = "";
     std::string strTemp = "";
     char tmpLineData[1024] = {0};
@@ -412,7 +392,7 @@ bool DhcpFunction::DelFileLineData(const std::string& filename, const std::strin
 
     if (bDel) {
         std::ofstream outFile;
-        outFile.open(realPath);
+        outFile.open(filename.c_str());
         outFile.flush();
         DHCP_LOGI("DelFileLineData Reflush filename:%{public}s, strFileData:%{public}s.",
             filename.c_str(), strFileData.c_str());
@@ -426,13 +406,8 @@ bool DhcpFunction::ModifyFileLineData(const std::string& filename, const std::st
     const std::string& dstdata)
 {
     bool bModify = false;
-    char realPath[PATH_MAX] = {0};
-    if (realpath(filename.c_str(), realPath) == nullptr) {
-        DHCP_LOGE("ModifyFileLineData() filename:%{public}s err:%{public}d!", filename.c_str(), errno);
-        return -1;
-    }
     std::ifstream inFile;
-    inFile.open(realPath);
+    inFile.open(filename.c_str());
     std::string strFileData = "";
     std::string strTemp = "";
     char tmpLineData[1024] = {0};
@@ -451,7 +426,7 @@ bool DhcpFunction::ModifyFileLineData(const std::string& filename, const std::st
 
     if (bModify) {
         std::ofstream outFile;
-        outFile.open(realPath);
+        outFile.open(filename.c_str());
         outFile.flush();
         DHCP_LOGI("ModifyFileLineData Reflush filename:%{public}s, strFileData:%{public}s.",
             filename.c_str(), strFileData.c_str());
@@ -604,18 +579,13 @@ pid_t DhcpFunction::GetPID(const std::string& pidfile)
     /* Check pidfile is or not exists. */
     struct stat sb;
     if (stat(pidfile.c_str(), &sb) != 0) {
-        DHCP_LOGE("GetPID() pidfile:%{public}s stat:%{public}d!", pidfile.c_str(), errno);
+        DHCP_LOGW("GetPID() pidfile:%{public}s stat:%{public}d!", pidfile.c_str(), errno);
         return -1;
     }
     DHCP_LOGI("GetPID() pidfile:%{public}s stat st_size:%{public}d.", pidfile.c_str(), (int)sb.st_size);
 
-    char realPath[PATH_MAX] = {0};
-    if (realpath(pidfile.c_str(), realPath) == nullptr) {
-        DHCP_LOGE("GetPID() pidfile:%{public}s err:%{public}d!", pidfile.c_str(), errno);
-        return -1;
-    }
     int fd;
-    if ((fd = open(realPath, O_RDONLY)) < 0) {
+    if ((fd = open(pidfile.c_str(), O_RDONLY)) < 0) {
         DHCP_LOGE("GetPID() failed, open pidfile:%{public}s error!", pidfile.c_str());
         return -1;
     }
