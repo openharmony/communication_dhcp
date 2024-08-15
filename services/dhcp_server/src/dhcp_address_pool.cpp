@@ -482,12 +482,7 @@ int LoadBindingRecoders(DhcpAddressPool *pool)
         return RET_FAILED;
     }
     char filePath[DHCP_LEASE_FILE_LENGTH] = {0};
-    char realPath[PATH_MAX] = {0};
-    if (realpath(DHCPD_LEASE_FILE, realPath) == nullptr) {
-        DHCP_LOGE("Failed to get real path of DHCPD_LEASE_FILE");
-        return -1;
-    }
-    if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s.%s", realPath, pool->ifname) < 0) {
+    if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s.%s", DHCPD_LEASE_FILE, pool->ifname) < 0) {
         DHCP_LOGE("Failed to get dhcp lease file path!");
         return RET_FAILED;
     }
@@ -532,12 +527,7 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         return RET_WAIT_SAVE;
     }
     char filePath[DHCP_LEASE_FILE_LENGTH] = {0};
-    char realPath[PATH_MAX] = {0};
-    if (realpath(DHCPD_LEASE_FILE, realPath) == nullptr) {
-        DHCP_LOGE("Failed to get real path of DHCPD_LEASE_FILE");
-        return -1;
-    }
-    if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s.%s", realPath, pool->ifname) < 0) {
+    if (snprintf_s(filePath, sizeof(filePath), sizeof(filePath) - 1, "%s.%s", DHCPD_LEASE_FILE, pool->ifname) < 0) {
         DHCP_LOGE("Failed to set dhcp lease file path!");
         return RET_FAILED;
     }
