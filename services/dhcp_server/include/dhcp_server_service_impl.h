@@ -70,6 +70,7 @@ public:
     ErrCode RemoveAllDhcpRange(const std::string& tagName) override;
     ErrCode SetDhcpRange(const std::string& ifname, const DhcpRange& range) override;
     ErrCode SetDhcpName(const std::string& ifname, const std::string& tagName) override;
+    ErrCode SetDhcpNameExt(const std::string& ifname, const std::string& tagName);
     ErrCode GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& leases) override;
     ErrCode UpdateLeasesTime(const std::string& leaseTime) override;
     bool IsRemoteDied(void) override;
@@ -97,7 +98,6 @@ private:
     int CreateDefaultConfigFile(const std::string strFile);
     int StopServer(const pid_t& serverPid);
     void UnregisterSignal() const;
-    bool IsNativeProcess();
     void ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos);
 
     bool mPublishFlag;

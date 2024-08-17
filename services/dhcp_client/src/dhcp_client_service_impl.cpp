@@ -30,6 +30,7 @@
 #include "dhcp_define.h"
 #include "dhcp_errcode.h"
 #include "dhcp_logger.h"
+#include "dhcp_permission_utils.h"
 #ifndef OHOS_ARCH_LITE
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
@@ -212,8 +213,12 @@ ErrCode DhcpClientServiceImpl::RegisterDhcpClientCallBack(const std::string& ifn
     const sptr<IDhcpClientCallBack> &clientCallback)
 #endif
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("RegisterDhcpClientCallBack:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("RegisterDhcpClientCallBack:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
@@ -236,8 +241,12 @@ ErrCode DhcpClientServiceImpl::RegisterDhcpClientCallBack(const std::string& ifn
 ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool bIpv6)
 {
     DHCP_LOGI("StartDhcpClient ifName:%{public}s bIpv6:%{public}d", ifname.c_str(), bIpv6);
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("StartDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("StartDhcpClient:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (ifname.empty()) {
@@ -257,6 +266,14 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool b
 ErrCode DhcpClientServiceImpl::SetConfiguration(const std::string& ifname, const RouterConfig& config)
 {
     DHCP_LOGI("SetConfiguration ifName:%{public}s", ifname.c_str());
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
+        DHCP_LOGE("SetConfiguration:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("SetConfiguration:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
     m_routerCfg.bssid = config.bssid;
     m_routerCfg.prohibitUseCacheIp = config.prohibitUseCacheIp;
     return DHCP_E_SUCCESS;
@@ -338,8 +355,12 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
 ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bIpv6)
 {
     DHCP_LOGI("StopDhcpClient ifName:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("StopDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("StopDhcpClient:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (ifname.empty()) {
@@ -667,25 +688,6 @@ bool DhcpClientServiceImpl::IsRemoteDied(void)
 {
     DHCP_LOGD("IsRemoteDied");
     return true;
-}
-
-bool DhcpClientServiceImpl::IsNativeProcess()
-{
-#ifdef DTFUZZ_TEST
-    return true;
-#endif
-#ifndef OHOS_ARCH_LITE
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    Security::AccessToken::ATokenTypeEnum callingType =
-        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
-    if (callingType == Security::AccessToken::TOKEN_NATIVE) {
-        return true;
-    }
-    DHCP_LOGE("The caller callingType:%{public}d is not a native process.", callingType);
-    return false;
-#else
-    return true;
-#endif
 }
 
 bool DhcpClientServiceImpl::IsGlobalIPv6Address(std::string ipAddress)

@@ -39,6 +39,7 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_system_func.cpp",
     "dhcp_arp_checker_test.cpp",
     "dhcp_common_utils_test.cpp",
+    "dhcp_permission_utils_test.cpp",
     "dhcp_system_timer_test.cpp",
   ]
 
