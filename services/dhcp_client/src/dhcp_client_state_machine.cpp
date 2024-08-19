@@ -1785,6 +1785,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
+        ScheduleLeaseTimers();
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
     #ifndef OHOS_ARCH_LITE
