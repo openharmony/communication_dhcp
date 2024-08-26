@@ -25,6 +25,7 @@ namespace OHOS {
 namespace Wifi {
 constexpr size_t DHCP_SLEEP_1 = 2;
 
+
 void HasArgumentTest(const uint8_t* data, size_t size)
 {
     char argument;

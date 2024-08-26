@@ -208,6 +208,7 @@ void AddrEquelsTest(const uint8_t* data, size_t size)
     AddrEquels(&firstAddr[0], &secondAddr[0], addrLength);
 }
 
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {

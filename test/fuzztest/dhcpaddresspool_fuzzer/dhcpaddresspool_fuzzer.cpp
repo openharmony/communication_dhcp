@@ -95,6 +95,7 @@ void DhcpMacAddrFuzzTest(const uint8_t* data, size_t size)
     IsReserved((testMac3));
 }
 
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
