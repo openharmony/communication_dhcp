@@ -24,70 +24,62 @@
 namespace OHOS {
 namespace Wifi {
 constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t U32_AT_SIZE_ZERO = 4;
+constexpr int CFG_DATA_MAX_BYTES = 20;
 
 void NextPendingIntervalTest(const uint8_t* data, size_t size)
 {
-    uint64_t index = 0;
-    uint64_t pendingInterval = static_cast<uint64_t>(data[index++]);
+    uint64_t pendingInterval = static_cast<uint64_t>(data[0]);
     NextPendingInterval(pendingInterval);
 }
 
 void IsExpireTest(const uint8_t* data, size_t size)
 {
     AddressBinding binding;
-    uint64_t index = 0;
-    binding.ipAddress = static_cast<uint32_t>(data[index++]);
-    binding.clientId = static_cast<uint32_t>(data[index++]);
-    binding.bindingTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingTime = static_cast<uint64_t>(data[index++]);
-    binding.expireIn = static_cast<uint64_t>(data[index++]);
-    binding.leaseTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingInterval = static_cast<uint64_t>(data[index++]);
+    binding.ipAddress = static_cast<uint32_t>(data[0]);
+    binding.clientId = static_cast<uint32_t>(data[0]);
+    binding.bindingTime = static_cast<uint64_t>(data[0]);
+    binding.pendingTime = static_cast<uint64_t>(data[0]);
+    binding.expireIn = static_cast<uint64_t>(data[0]);
+    binding.leaseTime = static_cast<uint64_t>(data[0]);
+    binding.pendingInterval = static_cast<uint64_t>(data[0]);
     IsExpire(&binding);
 }
 
 void WriteAddressBindingTest(const uint8_t* data, size_t size)
 {
     AddressBinding binding;
-    uint64_t index = 0;
-    uint32_t size_t = static_cast<uint64_t>(data[index++]);
-    binding.ipAddress = static_cast<uint32_t>(data[index++]);
-    binding.clientId = static_cast<uint32_t>(data[index++]);
-    binding.bindingTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingTime = static_cast<uint64_t>(data[index++]);
-    binding.expireIn = static_cast<uint64_t>(data[index++]);
-    binding.leaseTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingInterval = static_cast<uint64_t>(data[index++]);
-    char out;
-    if (size > 0) {
-        out = static_cast<char>(data[0]);
-    }
-    WriteAddressBinding(&binding, &out, size_t);
+    uint32_t size_t = static_cast<uint64_t>(data[0]);
+    binding.ipAddress = static_cast<uint32_t>(data[0]);
+    binding.clientId = static_cast<uint32_t>(data[0]);
+    binding.bindingTime = static_cast<uint64_t>(data[0]);
+    binding.pendingTime = static_cast<uint64_t>(data[0]);
+    binding.expireIn = static_cast<uint64_t>(data[0]);
+    binding.leaseTime = static_cast<uint64_t>(data[0]);
+    binding.pendingInterval = static_cast<uint64_t>(data[0]);
+    char *out = nullptr;
+    (void)memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1);
+    WriteAddressBinding(&binding, out, size_t);
 }
 
 void ParseAddressBindingTest(const uint8_t* data, size_t size)
 {
     AddressBinding binding;
-    uint64_t index = 0;
-    binding.ipAddress = static_cast<uint32_t>(data[index++]);
-    binding.clientId = static_cast<uint32_t>(data[index++]);
-    binding.bindingTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingTime = static_cast<uint64_t>(data[index++]);
-    binding.expireIn = static_cast<uint64_t>(data[index++]);
-    binding.leaseTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingInterval = static_cast<uint64_t>(data[index++]);
-    char buf;
-    if (size > 0) {
-        buf = static_cast<char>(data[0]);
-    }
-    ParseAddressBinding(&binding, &buf);
+    binding.ipAddress = static_cast<uint32_t>(data[0]);
+    binding.clientId = static_cast<uint32_t>(data[0]);
+    binding.bindingTime = static_cast<uint64_t>(data[0]);
+    binding.pendingTime = static_cast<uint64_t>(data[0]);
+    binding.expireIn = static_cast<uint64_t>(data[0]);
+    binding.leaseTime = static_cast<uint64_t>(data[0]);
+    binding.pendingInterval = static_cast<uint64_t>(data[0]);
+    const char *buf = "Text";
+    ParseAddressBinding(&binding, buf);
 }
-
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
