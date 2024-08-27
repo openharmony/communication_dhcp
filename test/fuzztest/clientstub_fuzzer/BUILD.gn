@@ -49,6 +49,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
 
   external_deps = [
     "c_utils:utils",
+    "hilog:libhilog",
     "ipc:ipc_single",
     "netmanager_base:net_native_manager_if",
     "netmanager_base:netsys_controller",
