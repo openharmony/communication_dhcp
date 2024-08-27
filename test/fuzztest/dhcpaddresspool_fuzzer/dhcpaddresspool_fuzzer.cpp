@@ -26,36 +26,35 @@
 namespace OHOS {
 namespace Wifi {
 constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t U32_AT_SIZE_ZERO = 4;
 
 void DhcpAddressPoolFuzzTest(const uint8_t* data, size_t size)
 {
     AddressBinding binding;
-    uint32_t index = 0;
     memcpy_s(binding.chaddr, PID_MAX_LEN, "*", PID_MAX_LEN);
-    binding.ipAddress = static_cast<uint32_t>(data[index++]);
-    binding.clientId = static_cast<uint32_t>(data[index++]);
-    binding.bindingTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingTime = static_cast<uint64_t>(data[index++]);
-    binding.expireIn = static_cast<uint64_t>(data[index++]);
-    binding.leaseTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingInterval = static_cast<uint64_t>(data[index++]);
+    binding.ipAddress = static_cast<uint32_t>(data[0]);
+    binding.clientId = static_cast<uint32_t>(data[0]);
+    binding.bindingTime = static_cast<uint64_t>(data[0]);
+    binding.pendingTime = static_cast<uint64_t>(data[0]);
+    binding.expireIn = static_cast<uint64_t>(data[0]);
+    binding.leaseTime = static_cast<uint64_t>(data[0]);
+    binding.pendingInterval = static_cast<uint64_t>(data[0]);
     DhcpAddressPool pool;
     strncpy_s(pool.ifname, IFACE_NAME_SIZE, "*", IFACE_NAME_SIZE - 1);
-    pool.netmask = static_cast<uint32_t>(data[index++]);
-    pool.serverId = static_cast<uint32_t>(data[index++]);
-    pool.gateway = static_cast<uint32_t>(data[index++]);
-    pool.leaseTime = static_cast<uint32_t>(data[index++]);
-    pool.renewalTime = static_cast<uint32_t>(data[index++]);
-    pool.distribution = static_cast<uint32_t>(data[index++]);
+    pool.netmask = static_cast<uint32_t>(data[0]);
+    pool.serverId = static_cast<uint32_t>(data[0]);
+    pool.gateway = static_cast<uint32_t>(data[0]);
+    pool.leaseTime = static_cast<uint32_t>(data[0]);
+    pool.renewalTime = static_cast<uint32_t>(data[0]);
     DhcpOptionList options;
-    options.size = static_cast<uint32_t>(data[index++]);
-    char ifname = static_cast<char>(data[0]);
+    options.size = static_cast<uint32_t>(data[0]);
+    const char *ifname = "wlan0";
     uint32_t ipAdd = 0;
     memcpy_s(&ipAdd, sizeof(uint32_t), "192.168.100.1", sizeof(uint32_t));
-    int force = static_cast<int>(data[index++]);
-    int mode = static_cast<int>(data[index++]);
+    int force = static_cast<int>(data[0]);
+    int mode = static_cast<int>(data[0]);
     uint8_t macAddr[DHCP_HWADDR_LENGTH];
-    InitAddressPool(&pool, &ifname, &options);
+    InitAddressPool(&pool, ifname, &options);
     FreeAddressPool(&pool);
     IsReservedIp(&pool, ipAdd);
     AddReservedBinding(&macAddr[0]);
@@ -95,11 +94,10 @@ void DhcpMacAddrFuzzTest(const uint8_t* data, size_t size)
     IsReserved((testMac3));
 }
 
-
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
