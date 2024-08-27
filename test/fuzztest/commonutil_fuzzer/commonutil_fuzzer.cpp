@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace Wifi {
 constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t U32_AT_SIZE_ZERO = 4;
 
 void CommonUtilFuzzTest(const uint8_t* data, size_t size)
 {
@@ -40,37 +41,27 @@ void CommonUtilFuzzTest(const uint8_t* data, size_t size)
 
 void GetFilePathTest(const uint8_t* data, size_t size)
 {
-    char fileName;
-    if (size > 0) {
-        fileName = static_cast<char>(data[0]);
-    }
-    (void)GetFilePath(&fileName);
+    const char *fileName = "wlan0";
+    (void)GetFilePath(fileName);
 }
 
 void GetLeaseFileTest(const uint8_t* data, size_t size)
 {
-    char fileName;
-    char ifname;
-    if (size > 0) {
-        fileName = static_cast<char>(data[0]);
-        ifname = static_cast<char>(data[0]);
-    }
-    (void)GetLeaseFile(&fileName, &ifname);
+    const char *fileName = "wlan0";
+    const char *ifname = "wlan1";
+    (void)GetLeaseFile(fileName, ifname);
 }
 
 void CreatePathTest(const uint8_t* data, size_t size)
 {
-    char fileName;
-    if (size > 0) {
-        fileName = static_cast<char>(data[0]);
-    }
-    (void)CreatePath(&fileName);
+    const char *fileName = "wlan0";
+    (void)CreatePath(fileName);
 }
 
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);

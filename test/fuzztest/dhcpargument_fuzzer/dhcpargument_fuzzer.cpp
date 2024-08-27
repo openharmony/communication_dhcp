@@ -24,34 +24,25 @@
 namespace OHOS {
 namespace Wifi {
 constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t U32_AT_SIZE_ZERO = 4;
 
 void HasArgumentTest(const uint8_t* data, size_t size)
 {
-    char argument;
-    if (size > 0) {
-        argument = static_cast<char>(data[0]);
-    }
-    HasArgument(&argument);
+    const char *argument = "TEXT";
+    HasArgument(argument);
 }
 
 void GetArgumentTest(const uint8_t* data, size_t size)
 {
-    char name;
-    if (size > 0) {
-        name = static_cast<char>(data[0]);
-    }
-    GetArgument(&name);
+    const char *name = "TEXT";
+    GetArgument(name);
 }
 
 void PutArgumentTest(const uint8_t* data, size_t size)
 {
-    char argument;
-    char val;
-    if (size > 0) {
-        argument = static_cast<char>(data[0]);
-        val = static_cast<char>(data[0]);
-    }
-    PutArgument(&argument, &val);
+    const char *argument = "TEXT";
+    const char *val = "TEXT";
+    PutArgument(argument, val);
 }
 
 void ParseArgumentsTest(const uint8_t* data, size_t size)
@@ -83,7 +74,7 @@ void PrintRequiredArgumentsTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
