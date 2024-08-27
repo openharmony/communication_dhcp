@@ -25,12 +25,14 @@
 namespace OHOS {
 namespace Wifi {
 constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t U32_AT_SIZE_ZERO = 4;
+constexpr int CFG_DATA_MAX_BYTES = 20;
 
 void NetworkAddressTest(const uint8_t* data, size_t size)
 {
     uint32_t index = 0;
     uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     NetworkAddress(ip, netmask);
 }
 
@@ -38,7 +40,7 @@ void FirstIpAddressTest(const uint8_t* data, size_t size)
 {
     uint32_t index = 0;
     uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     FirstIpAddress(ip, netmask);
 }
 
@@ -46,7 +48,7 @@ void NextIpAddressTest(const uint8_t* data, size_t size)
 {
     uint32_t index = 0;
     uint32_t currIp = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     uint32_t offset = static_cast<uint32_t>(data[index++]);
     NextIpAddress(currIp, netmask, offset);
 }
@@ -62,7 +64,7 @@ void LastIpAddressTest(const uint8_t* data, size_t size)
 {
     uint32_t index = 0;
     uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     LastIpAddress(ip, netmask);
 }
 
@@ -71,7 +73,7 @@ void IpInNetworkTest(const uint8_t* data, size_t size)
     uint32_t index = 0;
     uint32_t ip = static_cast<uint32_t>(data[index++]);
     uint32_t network = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     IpInNetwork(ip, network, netmask);
 }
 
@@ -81,7 +83,7 @@ void IpInRangeTest(const uint8_t* data, size_t size)
     uint32_t ip = static_cast<uint32_t>(data[index++]);
     uint32_t beginIp = static_cast<uint32_t>(data[index++]);
     uint32_t endIp = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     IpInRange(ip, beginIp, endIp, netmask);
 }
 
@@ -89,61 +91,45 @@ void BroadCastAddressTest(const uint8_t* data, size_t size)
 {
     uint32_t index = 0;
     uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     BroadCastAddress(ip, netmask);
 }
 
 void ParseIpAddrTest(const uint8_t* data, size_t size)
 {
-    char strIp;
-    if (size > 0) {
-        strIp = static_cast<char>(data[0]);
-    }
-    (void)ParseIpAddr(&strIp);
+    const char *strIp = "TEXT";
+    (void)ParseIpAddr(strIp);
 }
 
 void ParseIpHtonlTest(const uint8_t* data, size_t size)
 {
-    char strIp;
-    if (size > 0) {
-        strIp = static_cast<char>(data[0]);
-    }
-    (void)ParseIpHtonl(&strIp);
+    const char *strIp = "TEXT";
+    (void)ParseIpHtonl(strIp);
 }
 
 void NetworkBitsTest(const uint8_t* data, size_t size)
 {
-    uint32_t index = 0;
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     NetworkBits(netmask);
 }
 
 void HostBitsTest(const uint8_t* data, size_t size)
 {
-    uint32_t index = 0;
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     HostBits(netmask);
 }
 
 void HostTotalTest(const uint8_t* data, size_t size)
 {
-    uint32_t index = 0;
-    uint32_t netmask = static_cast<uint32_t>(data[index++]);
+    uint32_t netmask = static_cast<uint32_t>(data[0]);
     HostTotal(netmask);
 }
 
 void ParseIpTest(const uint8_t* data, size_t size)
 {
-    uint8_t index = 0;
-    uint8_t ipAddr = static_cast<uint8_t>(data[index++]);
-    ParseIp(&ipAddr);
-}
-
-void ParseStrIpTest(const uint8_t* data, size_t size)
-{
-    uint32_t index = 0;
-    uint32_t ipAddr = static_cast<uint32_t>(data[index++]);
-    ParseStrIp(ipAddr);
+    uint8_t *ipAddr = NULL;
+    (void)memcpy_s(ipAddr, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1);
+    ParseIp(ipAddr);
 }
 
 void IsEmptyHWAddrTest(const uint8_t* data, size_t size)
@@ -161,22 +147,16 @@ void ParseStrMacTest(const uint8_t* data, size_t size)
 
 void ParseMacAddressTest(const uint8_t* data, size_t size)
 {
-    char strMac;
+    const char *strMac = "TEXT";
     uint8_t macAddr[DHCP_HWADDR_LENGTH];
-    if (size > 0) {
-        strMac = static_cast<char>(data[0]);
-    }
-    (void)ParseMacAddress(&strMac, &macAddr[0]);
+    (void)ParseMacAddress(strMac, &macAddr[0]);
 }
 
 void ParseHostNameTest(const uint8_t* data, size_t size)
 {
-    char strHostName;
+    const char *strHostName = "TEXT";
     char hostName[DHCP_BOOT_FILE_LENGTH];
-    if (size > 0) {
-        strHostName = static_cast<char>(data[0]);
-    }
-    (void)ParseHostName(&strHostName, &hostName[0]);
+    (void)ParseHostName(strHostName, &hostName[0]);
 }
 
 void HostToNetworkTest(const uint8_t* data, size_t size)
@@ -208,11 +188,10 @@ void AddrEquelsTest(const uint8_t* data, size_t size)
     AddrEquels(&firstAddr[0], &secondAddr[0], addrLength);
 }
 
-
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
@@ -230,7 +209,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::Wifi::HostBitsTest(data, size);
     OHOS::Wifi::HostTotalTest(data, size);
     OHOS::Wifi::ParseIpTest(data, size);
-    OHOS::Wifi::ParseStrIpTest(data, size);
     OHOS::Wifi::IsEmptyHWAddrTest(data, size);
     OHOS::Wifi::ParseStrMacTest(data, size);
     OHOS::Wifi::ParseMacAddressTest(data, size);
