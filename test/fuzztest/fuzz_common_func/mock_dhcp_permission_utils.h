@@ -1,6 +1,3 @@
-test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.h
-310
-0 → 100644
 /*
  * Copyright (C) 2024 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
