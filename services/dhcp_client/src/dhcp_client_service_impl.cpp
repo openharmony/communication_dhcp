@@ -288,8 +288,8 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
         dhcpClient.pipv6Client->StartIpv6Timer();
 #endif
         dhcpClient.pipv6Client->Reset();
-        dhcpClient.pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
-            std::placeholders::_1, std::placeholders::_2));1
+        dhcpClient.pipv6Client->SetCallback(
+            [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
         dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
     }
     return DHCP_E_SUCCESS;
@@ -313,8 +313,8 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         pipv6Client->StartIpv6Timer();
 #endif
         pipv6Client->Reset();
-        pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this, std::placeholders::_1,
-            std::placeholders::_2));
+        pipv6Client->SetCallback(
+            [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
         pipv6Client->StartIpv6Thread(ifname, bIpv6);
     }
     DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
