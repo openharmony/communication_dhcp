@@ -90,7 +90,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.isIpv6 = false;
-    m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
+    m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);1
     DHCP_LOGI("DhcpClientStateMachine()");
     ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
 }

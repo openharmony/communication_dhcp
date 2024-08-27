@@ -70,7 +70,7 @@ void DhcpClientStub::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
 #endif
 
 void DhcpClientStub::InitHandleMap()
-{
+{1
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK)] =
         &DhcpClientStub::OnRegisterCallBack;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT)] =

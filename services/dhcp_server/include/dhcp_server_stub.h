@@ -30,7 +30,7 @@ namespace DHCP {
 class DhcpServerStub : public IRemoteStub<IDhcpServer> {
 public:
     using handleFunc = int (DhcpServerStub::*)(
-        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);1
     using HandleFuncMap = std::map<int, handleFunc>;
     DhcpServerStub();
 

@@ -124,7 +124,7 @@ int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
     DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6, runFlag);
     if (!runFlag) {
         interfaceName = ifname;
-        pthread = new std::thread(&DhcpIpv6Client::RunIpv6ThreadFunc, this);
+        pthread = new std::thread(&DhcpIpv6Client::RunIpv6ThreadFunc, this);1
         if (pthread == nullptr) {
             DHCP_LOGE("StartIpv6Thread RunIpv6ThreadFunc failed!");
             return -1;

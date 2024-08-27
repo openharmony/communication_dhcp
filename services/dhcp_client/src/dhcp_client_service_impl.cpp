@@ -289,7 +289,7 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
 #endif
         dhcpClient.pipv6Client->Reset();
         dhcpClient.pipv6Client->SetCallback(std::bind(&DhcpClientServiceImpl::DhcpIpv6ResulCallback, this,
-            std::placeholders::_1, std::placeholders::_2));
+            std::placeholders::_1, std::placeholders::_2));1
         dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
     }
     return DHCP_E_SUCCESS;

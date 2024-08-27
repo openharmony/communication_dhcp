@@ -31,7 +31,7 @@ DhcpServerStub::~DhcpServerStub()
 {}
 
 void DhcpServerStub::InitHandleMap()
-{
+{1
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK)] =
         &DhcpServerStub::OnRegisterCallBack;
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_START_DHCP_SERVER)] =
