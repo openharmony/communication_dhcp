@@ -124,7 +124,7 @@ int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
     DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6, runFlag);
     if (!runFlag) {
         interfaceName = ifname;
-        pthread = new std::thread(&DhcpIpv6Client::RunIpv6ThreadFunc, this);1
+        pthread = new std::thread([this]() { this->RunIpv6ThreadFunc(); });
         if (pthread == nullptr) {
             DHCP_LOGE("StartIpv6Thread RunIpv6ThreadFunc failed!");
             return -1;
@@ -565,7 +565,7 @@ void DhcpIpv6Client::StartIpv6Timer()
     DHCP_LOGI("StartIpv6Timer ipv6TimerId:%{public}u", ipv6TimerId);
     std::unique_lock<std::mutex> lock(ipv6TimerMutex);
     if (ipv6TimerId == 0) {
-        TimeOutCallback timeoutCallback = std::bind(&DhcpIpv6Client::Ipv6TimerCallback, this);
+        TimeOutCallback timeoutCallback = [this] { this->Ipv6TimerCallback(); };
         DhcpTimer::GetInstance()->Register(timeoutCallback, ipv6TimerId, DhcpTimer::DEFAULT_TIMEROUT);
         DHCP_LOGI("StartIpv6Timer success! ipv6TimerId:%{public}u", ipv6TimerId);
     }
