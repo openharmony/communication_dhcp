@@ -16,8 +16,8 @@
 #include "dhcp_logger.h"
  
 DEFINE_DHCPLOG_DHCP_LABEL("MockDhcpPermissionUtils");
+namespace OHOS {
 namespace DHCP {
-namespace Wifi {
 DhcpPermissionUtils &DhcpPermissionUtils::GetInstance()
 {
     static DhcpPermissionUtils gPermissionUtils;
