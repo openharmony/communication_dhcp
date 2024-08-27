@@ -17,8 +17,8 @@
  
 #include <string>
  
+namespace OHOS {
 namespace DHCP {
-namespace Wifi {
 class DhcpPermissionUtils {
 public:
     static DhcpPermissionUtils &GetInstance();
