@@ -58,7 +58,9 @@ void WriteAddressBindingTest(const uint8_t* data, size_t size)
     binding.leaseTime = static_cast<uint64_t>(data[0]);
     binding.pendingInterval = static_cast<uint64_t>(data[0]);
     char *out = nullptr;
-    (void)memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1);
+    if (memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
+        return;
+    }
     WriteAddressBinding(&binding, out, size_t);
 }
 
