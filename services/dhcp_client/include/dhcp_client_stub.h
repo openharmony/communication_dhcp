@@ -31,8 +31,7 @@ namespace OHOS {
 namespace DHCP {
 class DhcpClientStub : public IRemoteStub<IDhcpClient> {
 public:
-    using handleFunc = int (DhcpClientStub::*)(
-        uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);1
+    using handleFunc = std::function<int(uint32_t &, MessageParcel &, MessageParcel &, MessageOption &)>;
     using HandleFuncMap = std::map<int, handleFunc>;
     using RemoteDeathMap = std::map<sptr<IRemoteObject>, sptr<IRemoteObject::DeathRecipient>>;
     DhcpClientStub();
