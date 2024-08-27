@@ -44,8 +44,7 @@ bool DhcpPermissionUtils::VerifyIsNativeProcess()
     if (callingType == Security::AccessToken::TOKEN_NATIVE) {
         return true;
     }
-    DHCP_LOGE("VerifyIsNativeProcess false, tokenId:%{public}d, callingType:%{public}d is not a native process.",
-        tokenId, callingType);
+    DHCP_LOGE("VerifyIsNativeProcess false, callingType:%{public}d is not a native process.", callingType);
     return false;
 #else
     DHCP_LOGI("VerifyIsNativeProcess OHOS_ARCH_LITE permission granted!");
