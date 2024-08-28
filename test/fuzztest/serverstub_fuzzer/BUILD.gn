@@ -37,7 +37,10 @@ ohos_fuzztest("ServerStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "serverstub_fuzzer.cpp" ]
+  sources = [
+    "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
+    "serverstub_fuzzer.cpp"
+  ]
 
   deps = [
     "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
