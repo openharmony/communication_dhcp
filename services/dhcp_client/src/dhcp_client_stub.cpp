@@ -72,13 +72,21 @@ void DhcpClientStub::OnRemoteDied(const wptr<IRemoteObject> &remoteObject)
 void DhcpClientStub::InitHandleMap()
 {
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK)] =
-        &DhcpClientStub::OnRegisterCallBack;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnRegisterCallBack(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT)] =
-        &DhcpClientStub::OnStartDhcpClient;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnStartDhcpClient(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT)] =
-        &DhcpClientStub::OnStopDhcpClient;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnStopDhcpClient(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG)] =
-        &DhcpClientStub::OnSetConfiguration;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnSetConfiguration(code, data, reply, option);
+        };
 }
 
 int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -97,7 +105,7 @@ int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
         DHCP_LOGI("not find function to deal, code %{public}u", code);
         return IPCObjectStub::OnRemoteRequest(code, data, reply, option);
     } else {
-        return (this->*(iter->second))(code, data, reply, option);
+        return (iter->second)(code, data, reply, option);
     }
 }
 

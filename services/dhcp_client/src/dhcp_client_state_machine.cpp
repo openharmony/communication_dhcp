@@ -90,7 +90,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.isIpv6 = false;
-    m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
+    m_slowArpCallback = [this](bool isReachable) { this->SlowArpDetectCallback(isReachable); };
     DHCP_LOGI("DhcpClientStateMachine()");
     ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
 }
@@ -182,9 +182,7 @@ int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool 
         DHCP_LOGI("InitStartIpv4Thread make_unique ipv4Thread_");
         ipv4Thread_ = std::make_unique<DhcpThread>("InnerIpv4Thread");
     }
-    std::function<void()> func = std::bind([this]() {
-        RunGetIPThreadFunc(std::ref(*this));
-    });
+    std::function<void()> func = [this]() { RunGetIPThreadFunc(std::ref(*this)); };
     int delayTime = 0;
     bool result = ipv4Thread_->PostAsyncTask(func, delayTime);
     if (!result) {
@@ -1789,7 +1787,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
     #ifndef OHOS_ARCH_LITE
-        std::function<void()> func = std::bind([this]() {
+        std::function<void()> func = [this]() {
             DHCP_LOGI("SlowArpDetectTask enter");
             uint32_t tastId = m_slowArpTaskId;
             uint32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
@@ -1799,7 +1797,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
                 DHCP_LOGW("tastId != m_slowArpTaskId, %{public}u, %{public}u", tastId, m_slowArpTaskId);
             }
             m_slowArpCallback(ret);
-            });
+            };
         DhcpTimer::GetInstance()->Register(func, m_slowArpTaskId, 0);
         DHCP_LOGI("Register m_slowArpTaskId is %{public}u", m_slowArpTaskId);
     #endif
@@ -1923,16 +1921,16 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
     }
     switch (type) {
         case TIMER_GET_IP:
-            timeCallback = std::bind(&DhcpClientStateMachine::GetIpTimerCallback, this);
+            timeCallback = [this] { this->GetIpTimerCallback(); };
             break;
         case TIMER_RENEW_DELAY:
-            timeCallback = std::bind(&DhcpClientStateMachine::RenewDelayCallback, this);
+            timeCallback = [this] { this->RenewDelayCallback(); };
             break;
         case TIMER_REBIND_DELAY:
-            timeCallback = std::bind(&DhcpClientStateMachine::RebindDelayCallback, this);
+            timeCallback = [this] { this->RebindDelayCallback(); };
             break;
         case TIMER_REMAINING_DELAY:
-            timeCallback = std::bind(&DhcpClientStateMachine::RemainingDelayCallback, this);
+            timeCallback = [this] { this->RemainingDelayCallback(); };
             break;
         default:
             DHCP_LOGE("StartTimer default timerId:%{public}u", timerId);
