@@ -39,7 +39,7 @@ ohos_fuzztest("ServerStubFuzzTest") {
   ]
   sources = [
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
-    "serverstub_fuzzer.cpp"
+    "serverstub_fuzzer.cpp",
   ]
 
   deps = [
