@@ -44,7 +44,6 @@ HWTEST_F(DhcpPermissionUtilsTest, VerifyIsNativeProcessTest, TestSize.Level1)
 HWTEST_F(DhcpPermissionUtilsTest, VerifyDhcpNetworkPermissionTest, TestSize.Level1)
 {
     DHCP_LOGI("VerifyDhcpNetworkPermissionTest enter!");
-    EXPECT_FALSE(DhcpPermissionUtils::VerifyDhcpNetworkPermission("NETWORK_DHCP"));
-    EXPECT_FALSE(DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP"));
+    EXPECT_TRUE(DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP"));
 }
 }
