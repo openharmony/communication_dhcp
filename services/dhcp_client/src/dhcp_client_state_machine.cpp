@@ -297,11 +297,6 @@ int DhcpClientStateMachine::StartIpv4(void)
         FD_ZERO(&exceptfds);
         timeout.tv_sec = m_timeoutTimestamp - time(NULL);
         timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
-
-        if (m_slowArpDetecting && (timeout.tv_sec > 0)) {
-            usleep(IP_CONFLICT_CHECK_SLEEP_INTERVAL_US);
-            continue;
-        }
         InitSocketFd();
 
         if (m_sockFd >= 0) {
@@ -1726,7 +1721,6 @@ void DhcpClientStateMachine::IpConflictDetect()
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
     m_dhcp4State = DHCP_STATE_FAST_ARP;
-    SetSocketMode(SOCKET_MODE_INVALID);
     m_arpDectionTargetIp = Ip4IntConToStr(m_requestedIp4, false);
 }
 
