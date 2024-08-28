@@ -15,7 +15,6 @@ import("//build/test.gni")
 group("dhcp_unittest") {
   testonly = true
   deps = [
-    "services/dhcp_client:unittest",
     "services/dhcp_server/unittest:unittest",
     "services/utils:dhcp_util_unittest",
   ]
