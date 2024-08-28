@@ -1360,7 +1360,7 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
                                                : GetDhcpKernelPacket(&packet, m_sockFd);
     if (getLen < 0) {
         if ((getLen == SOCKET_OPT_ERROR) && (errno != EINTR)) {
-            DHCP_LOGI(" DhcpResponseHandle get packet read error, reopening socket!");
+            DHCP_LOGD(" DhcpResponseHandle get packet read error, reopening socket!");
             /* Reopen m_sockFd. */
             SetSocketMode(m_socketMode);
         }
