@@ -179,6 +179,7 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_permission_utils.cpp",
     ]
     include_dirs = local_base_include_dirs
 

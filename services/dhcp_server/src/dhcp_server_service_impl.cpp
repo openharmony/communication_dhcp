@@ -32,6 +32,7 @@
 #include "dhcp_dhcpd.h"
 #include "securec.h"
 #include "dhcp_function.h"
+#include "dhcp_permission_utils.h"
 #ifndef OHOS_ARCH_LITE
 #include "ipc_skeleton.h"
 #include "tokenid_kit.h"
@@ -185,8 +186,12 @@ ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifn
 #endif
 {
     DHCP_LOGI("RegisterDhcpServerCallBack");
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("RegisterDhcpServerCallBack:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("RegisterDhcpServerCallBack:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
@@ -208,18 +213,19 @@ ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifn
 
 ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
 {
-    DHCP_LOGI("%{public}s  %{public}d  start", __func__, __LINE__);
-    if (!IsNativeProcess()) {
+    DHCP_LOGI("StartDhcpServer ifname:%{public}s", ifname.c_str());
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("StartDhcpServer:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("StartDhcpServer:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (ifname.empty()) {
         DHCP_LOGE("StartDhcpServer error, ifname is empty!");
         return DHCP_E_FAILED;
     }
-
-    DHCP_LOGI("StartDhcpServer ifname:%{public}s.", ifname.c_str());
-
     /* Add the specified interface. */
     if (AddSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
         return DHCP_E_FAILED;
@@ -320,8 +326,12 @@ void DeviceConnectCallBack(const char* ifname)
 
 ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("StopDhcpServer:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("StopDhcpServer:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (ifname.empty()) {
@@ -353,8 +363,12 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
 
 ErrCode DhcpServerServiceImpl::PutDhcpRange(const std::string& tagName, const DhcpRange& range)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("PutDhcpRange:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("PutDhcpRange:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (tagName.empty()) {
@@ -403,8 +417,12 @@ ErrCode DhcpServerServiceImpl::PutDhcpRange(const std::string& tagName, const Dh
 
 ErrCode DhcpServerServiceImpl::RemoveDhcpRange(const std::string& tagName, const DhcpRange& range)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("RemoveDhcpRange:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("RemoveDhcpRange:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (tagName.empty()) {
@@ -440,8 +458,12 @@ ErrCode DhcpServerServiceImpl::RemoveDhcpRange(const std::string& tagName, const
 
 ErrCode DhcpServerServiceImpl::RemoveAllDhcpRange(const std::string& tagName)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("RemoveAllDhcpRange:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("RemoveAllDhcpRange:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (tagName.empty()) {
@@ -463,8 +485,12 @@ ErrCode DhcpServerServiceImpl::RemoveAllDhcpRange(const std::string& tagName)
 
 ErrCode DhcpServerServiceImpl::SetDhcpRange(const std::string& ifname, const DhcpRange& range)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("SetDhcpRange:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("SetDhcpRange:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     /* put dhcp range */
@@ -513,15 +539,23 @@ ErrCode DhcpServerServiceImpl::SetDhcpRange(const std::string& ifname, const Dhc
 
 ErrCode DhcpServerServiceImpl::SetDhcpName(const std::string& ifname, const std::string& tagName)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("SetDhcpName:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("SetDhcpName:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (ifname.empty() || tagName.empty()) {
         DHCP_LOGE("SetDhcpName failed, ifname or tagName is empty!");
         return DHCP_E_FAILED;
     }
+    return SetDhcpNameExt(ifname, tagName);
+}
 
+ErrCode DhcpServerServiceImpl::SetDhcpNameExt(const std::string& ifname, const std::string& tagName)
+{
     auto iterTag = m_mapTagDhcpRange.find(tagName);
     if (iterTag == m_mapTagDhcpRange.end()) {
         DHCP_LOGE("SetDhcpName tag m_mapTagDhcpRange no find tagName:%{public}s.", tagName.c_str());
@@ -568,14 +602,17 @@ ErrCode DhcpServerServiceImpl::SetDhcpName(const std::string& ifname, const std:
         DHCP_LOGE("SetDhcpName tag CheckAndUpdateConf failed, ifname:%{public}s.", ifname.c_str());
         return DHCP_E_FAILED;
     }
-
     return DHCP_E_SUCCESS;
 }
 
 ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& leases)
 {
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("GetDhcpClientInfos:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("GetDhcpClientInfos:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     if (ifname.empty()) {
@@ -608,8 +645,12 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
 ErrCode DhcpServerServiceImpl::UpdateLeasesTime(const std::string& leaseTime)
 {
     DHCP_LOGI("UpdateLeasesTime");
-    if (!IsNativeProcess()) {
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("UpdateLeasesTime:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("UpdateLeasesTime:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
     std::string strData = "leaseTime=" + leaseTime + "\n";
@@ -816,25 +857,6 @@ void DhcpServerServiceImpl::UnregisterSignal() const
     if (sigaction(SIGCHLD, &newAction, nullptr) == -1) {
         DHCP_LOGE("UnregisterSignal() sigaction SIGCHLD error:%{public}d!", errno);
     }
-}
-
-bool DhcpServerServiceImpl::IsNativeProcess()
-{
-#ifndef DTFUZZ_TEST
-    return true;
-#endif
-#ifndef OHOS_ARCH_LITE
-    uint32_t tokenId = IPCSkeleton::GetCallingTokenID();
-    Security::AccessToken::ATokenTypeEnum callingType =
-        Security::AccessToken::AccessTokenKit::GetTokenTypeFlag(tokenId);
-    if (callingType == Security::AccessToken::TOKEN_NATIVE) {
-        return true;
-    }
-    DHCP_LOGE("The caller, callingType:%{public}d is not a native process.", callingType);
-    return false;
-#else
-    return true;
-#endif
 }
 
 ErrCode DhcpServerServiceImpl::DeleteLeaseFile(const std::string& ifname)

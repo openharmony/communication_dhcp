@@ -78,6 +78,10 @@ HWTEST_F(DhcpServerServiceTest, DhcpServerServiceImplTest, TestSize.Level1)
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", tagName));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName(ifname, ""));
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpName("", ""));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpNameExt(ifname, tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpNameExt("", tagName));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpNameExt(ifname, ""));
+    EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->SetDhcpNameExt("", ""));
 
     std::vector<std::string> vecLeases;
     EXPECT_EQ(DHCP_E_FAILED, pServerServiceImpl->GetDhcpClientInfos(ifname, vecLeases));

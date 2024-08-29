@@ -177,11 +177,6 @@ void UnregisterSignalTest(const uint8_t* data, size_t size)
     pDhcpServerServiceImpl->UnregisterSignal();
 }
 
-void IsNativeProcessTest(const uint8_t* data, size_t size)
-{
-    pDhcpServerServiceImpl->IsNativeProcess();
-}
-
 void DelSpecifiedInterfaceTest(const uint8_t* data, size_t size)
 {
     std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
@@ -228,7 +223,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::GetUsingIpRangeTest(data, size);
     OHOS::DHCP::CreateDefaultConfigFileTest(data, size);
     OHOS::DHCP::UnregisterSignalTest(data, size);
-    OHOS::DHCP::IsNativeProcessTest(data, size);
     OHOS::DHCP::DelSpecifiedInterfaceTest(data, size);
     OHOS::DHCP::RegisterDhcpServerCallBackTest(data, size);
     OHOS::DHCP::StartServiceAbilityTest(data, size);
