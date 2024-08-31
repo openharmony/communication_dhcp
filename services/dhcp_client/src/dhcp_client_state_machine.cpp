@@ -58,7 +58,6 @@ constexpr uint32_t SLOW_ARP_DETECTION_TIME_MS = 80;
 constexpr uint32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
 constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
 constexpr uint32_t RATE_S_MS = 1000;
-constexpr uint32_t IP_CONFLICT_CHECK_SLEEP_INTERVAL_US = 5 * 1000;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -295,11 +294,6 @@ int DhcpClientStateMachine::StartIpv4(void)
         FD_ZERO(&exceptfds);
         timeout.tv_sec = m_timeoutTimestamp - time(NULL);
         timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
-
-        if (m_slowArpDetecting && (timeout.tv_sec > 0)) {
-            usleep(IP_CONFLICT_CHECK_SLEEP_INTERVAL_US);
-            continue;
-        }
         InitSocketFd();
 
         if (m_sockFd >= 0) {
@@ -317,9 +311,9 @@ int DhcpClientStateMachine::StartIpv4(void)
             nRet = 0;
         } else {
             nMaxFds = (m_sigSockFds[0] > m_sockFd) ? m_sigSockFds[0] : m_sockFd;
-            DHCP_LOGI("StartIpv4 waiting on select, m_dhcp4State:%{public}d", m_dhcp4State);
+            DHCP_LOGD("StartIpv4 waiting on select, m_dhcp4State:%{public}d", m_dhcp4State);
             nRet = select(nMaxFds + 1, &readfds, NULL, &exceptfds, &timeout);
-            DHCP_LOGI("StartIpv4 select nMaxFds:%{public}d,m_sigSockFds[0]:%{public}d,m_sigSockFds[1]:%{public}d",
+            DHCP_LOGD("StartIpv4 select nMaxFds:%{public}d,m_sigSockFds[0]:%{public}d,m_sigSockFds[1]:%{public}d",
                 nMaxFds, m_sigSockFds[0], m_sigSockFds[1]);
         }
 
@@ -327,7 +321,7 @@ int DhcpClientStateMachine::StartIpv4(void)
             if ((nRet == -1) && (errno == EINTR)) {
                 DHCP_LOGI("StartIpv4 select err:%{public}d, a signal was caught!", errno);
             } else {
-                DHCP_LOGI("StartIpv4 failed, select maxFds:%{public}d error:%{public}d!", nMaxFds, errno);
+                DHCP_LOGD("StartIpv4 failed, select maxFds:%{public}d error:%{public}d!", nMaxFds, errno);
             }
             continue;
         }
@@ -1367,7 +1361,7 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
             /* Reopen m_sockFd. */
             SetSocketMode(m_socketMode);
         }
-        DHCP_LOGI("DhcpResponseHandle get packet failed, error:%{public}d len:%{public}d", errno, getLen);
+        DHCP_LOGD("DhcpResponseHandle get packet failed, error:%{public}d len:%{public}d", errno, getLen);
         if (m_dhcp4State == DHCP_STATE_INITREBOOT) {
             m_dhcp4State = DHCP_STATE_INIT;
             m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
@@ -1724,7 +1718,6 @@ void DhcpClientStateMachine::IpConflictDetect()
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
     m_dhcp4State = DHCP_STATE_FAST_ARP;
-    SetSocketMode(SOCKET_MODE_INVALID);
     m_arpDectionTargetIp = Ip4IntConToStr(m_requestedIp4, false);
 }
 
