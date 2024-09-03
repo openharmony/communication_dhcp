@@ -815,7 +815,40 @@ HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
     dhcpClient->SetIpv4DefaultDns(nullptr);
     dhcpClient->SetIpv4DefaultDns(&result);
 }
-1
+
+HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
+{
+    DHCP_LOGI("SetDefaultNetMaskTest enter!");
+    struct DhcpIpResult result;
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "8.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "88.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "127.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "191.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "223.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "225.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+
+    result.strOptSubnet[0] = 0;
+    strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "240.168.0.8");
+    dhcpClient->SetDefaultNetMask(&result);
+}
 }
 }
 
