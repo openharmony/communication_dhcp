@@ -815,6 +815,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
     dhcpClient->SetIpv4DefaultDns(nullptr);
     dhcpClient->SetIpv4DefaultDns(&result);
 }
+1
 }
 }
 

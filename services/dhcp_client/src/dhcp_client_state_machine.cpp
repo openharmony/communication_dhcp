@@ -58,6 +58,10 @@ constexpr uint32_t SLOW_ARP_DETECTION_TIME_MS = 80;
 constexpr uint32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
 constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
 constexpr uint32_t RATE_S_MS = 1000;
+constexpr int DHCP_IP_TYPE_A = 128;
+constexpr int DHCP_IP_TYPE_B = 192;
+constexpr int DHCP_IP_TYPE_C = 224;
+constexpr int DECIMAL_NOTATION = 10;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -1021,6 +1025,42 @@ void DhcpClientStateMachine::ParseNetworkDnsValue(struct DhcpIpResult *result, u
     }
 }
 
+void DhcpClientStateMachine::SetDefaultNetMask(struct DhcpIpResult *result)
+{
+    if (result == nullptr) {
+        DHCP_LOGE("SetDefaultNetMask result is nullptr!");
+        return;
+    }
+    std::string strYiaddr = result->strYiaddr;
+    std::string strNetmask = result->strOptSubnet;
+    size_t pos = strYiaddr.find(".");
+    char *errptr = nullptr;
+    int firstByte = static_cast<int>(std::strtol(strYiaddr.substr(0, pos).c_str(), &errptr, DECIMAL_NOTATION));
+    if ((!strYiaddr.empty()) && strNetmask.empty()) {
+        if (firstByte < DHCP_IP_TYPE_A) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.0.0.0", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        } else if (firstByte < DHCP_IP_TYPE_B) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.255.0.0", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        } else if (firstByte < DHCP_IP_TYPE_C) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.255.255.0", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        } else {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.255.255.255", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        }
+    }
+}
+
 void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
 {
     if ((packet == NULL) || (result == NULL)) {
@@ -1048,13 +1088,21 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
         if (pSubIp != NULL) {
             DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.", u32Data, pSubIp);
             if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp, INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("strncpy_s strOptSubnet failed!");
+                SetDefaultNetMask(result);
                 free(pSubIp);
                 pSubIp = NULL;
                 return;
             }
             free(pSubIp);
             pSubIp = NULL;
+        } else {
+            DHCP_LOGE("Ip4IntConToStr() failed!");
+            SetDefaultNetMask(result);
         }
+    } else {
+        DHCP_LOGE("GetDhcpOptionUint32() failed!");
+        SetDefaultNetMask(result);
     }
 
     u32Data = 0;
