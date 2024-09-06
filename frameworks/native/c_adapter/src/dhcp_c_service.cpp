@@ -124,6 +124,9 @@ NO_SANITIZE("cfi") DhcpErrorCode RegisterDhcpServerCallBack(const char *ifname, 
 
 NO_SANITIZE("cfi") DhcpErrorCode StartDhcpServer(const char *ifname)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
     return GetCErrorCode(dhcpServerPtr->StartDhcpServer(ifname));
@@ -131,6 +134,9 @@ NO_SANITIZE("cfi") DhcpErrorCode StartDhcpServer(const char *ifname)
 
 NO_SANITIZE("cfi") DhcpErrorCode StopDhcpServer(const char *ifname)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
 #ifdef OHOS_ARCH_LITE
@@ -149,6 +155,9 @@ NO_SANITIZE("cfi") DhcpErrorCode StopDhcpServer(const char *ifname)
 
 NO_SANITIZE("cfi") DhcpErrorCode SetDhcpRange(const char *ifname, const DhcpRange *range)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(range, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
@@ -163,6 +172,9 @@ NO_SANITIZE("cfi") DhcpErrorCode SetDhcpRange(const char *ifname, const DhcpRang
 
 NO_SANITIZE("cfi") DhcpErrorCode SetDhcpName(const char *ifname, const char *tagName)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(tagName, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
@@ -171,6 +183,9 @@ NO_SANITIZE("cfi") DhcpErrorCode SetDhcpName(const char *ifname, const char *tag
 
 NO_SANITIZE("cfi") DhcpErrorCode PutDhcpRange(const char *tagName, const DhcpRange *range)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(tagName, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(range, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
@@ -185,6 +200,9 @@ NO_SANITIZE("cfi") DhcpErrorCode PutDhcpRange(const char *tagName, const DhcpRan
 
 NO_SANITIZE("cfi") DhcpErrorCode RemoveAllDhcpRange(const char *tagName)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(tagName, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
     return GetCErrorCode(dhcpServerPtr->RemoveAllDhcpRange(tagName));
@@ -192,6 +210,9 @@ NO_SANITIZE("cfi") DhcpErrorCode RemoveAllDhcpRange(const char *tagName)
 
 DhcpErrorCode RemoveDhcpRange(const char *tagName, const void *range)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(tagName, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(range, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
@@ -245,6 +266,9 @@ DhcpErrorCode ParseClientInfos(int staNumber, DhcpStationInfo *staInfo, int *sta
 
 DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationInfo *staInfo, int *staSize)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(staInfo, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(staSize, DHCP_INVALID_PARAM);
@@ -260,6 +284,9 @@ DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationI
 
 NO_SANITIZE("cfi") DhcpErrorCode UpdateLeasesTime(const char *leaseTime)
 {
+    if (dhcpServerPtr == nullptr) {
+        dhcpServerPtr = OHOS::DHCP::DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
+    }
     CHECK_PTR_RETURN(leaseTime, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
     return GetCErrorCode(dhcpServerPtr->UpdateLeasesTime(leaseTime));
