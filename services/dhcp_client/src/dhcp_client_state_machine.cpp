@@ -1766,7 +1766,12 @@ void DhcpClientStateMachine::IpConflictDetect()
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
     m_dhcp4State = DHCP_STATE_FAST_ARP;
-    m_arpDectionTargetIp = Ip4IntConToStr(m_requestedIp4, false);
+    char *tmepIp = Ip4IntConToStr(m_requestedIp4, false);
+    if (tmepIp != NULL) {
+        m_arpDectionTargetIp = tmepIp;
+        free(tmepIp);
+        tmepIp = NULL;
+    }
 }
 
 void DhcpClientStateMachine::FastArpDetect()
