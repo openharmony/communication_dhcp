@@ -59,6 +59,10 @@ constexpr uint32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
 constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
 constexpr uint32_t RATE_S_MS = 1000;
 constexpr uint32_t IP_CONFLICT_CHECK_SLEEP_INTERVAL_US = 5 * 1000;
+constexpr int DHCP_IP_TYPE_A = 128;
+constexpr int DHCP_IP_TYPE_B = 192;
+constexpr int DHCP_IP_TYPE_C = 224;
+constexpr int DECIMAL_NOTATION = 10;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -90,7 +94,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.isIpv6 = false;
-    m_slowArpCallback = std::bind(&DhcpClientStateMachine::SlowArpDetectCallback, this, std::placeholders::_1);
+    m_slowArpCallback = [this](bool isReachable) { this->SlowArpDetectCallback(isReachable); };
     DHCP_LOGI("DhcpClientStateMachine()");
 }
 
@@ -1025,6 +1029,42 @@ void DhcpClientStateMachine::ParseNetworkDnsValue(struct DhcpIpResult *result, u
     }
 }
 
+void DhcpClientStateMachine::SetDefaultNetMask(struct DhcpIpResult *result)
+{
+    if (result == nullptr) {
+        DHCP_LOGE("SetDefaultNetMask result is nullptr!");
+        return;
+    }
+    std::string strYiaddr = result->strYiaddr;
+    std::string strNetmask = result->strOptSubnet;
+    size_t pos = strYiaddr.find(".");
+    char *errptr = nullptr;
+    int firstByte = static_cast<int>(std::strtol(strYiaddr.substr(0, pos).c_str(), &errptr, DECIMAL_NOTATION));
+    if ((!strYiaddr.empty()) && strNetmask.empty()) {
+        if (firstByte < DHCP_IP_TYPE_A) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.0.0.0", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        } else if (firstByte < DHCP_IP_TYPE_B) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.255.0.0", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        } else if (firstByte < DHCP_IP_TYPE_C) {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.255.255.0", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        } else {
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.255.255.255", INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("SetDefaultNetMask strncpy_s failed!");
+                return;
+            }
+        }
+    }
+}
+
 void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
 {
     if ((packet == NULL) || (result == NULL)) {
@@ -1052,13 +1092,21 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
         if (pSubIp != NULL) {
             DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.", u32Data, pSubIp);
             if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp, INET_ADDRSTRLEN - 1) != EOK) {
+                DHCP_LOGE("strncpy_s strOptSubnet failed!");
+                SetDefaultNetMask(result);
                 free(pSubIp);
                 pSubIp = NULL;
                 return;
             }
             free(pSubIp);
             pSubIp = NULL;
+        } else {
+            DHCP_LOGE("Ip4IntConToStr() failed!");
+            SetDefaultNetMask(result);
         }
+    } else {
+        DHCP_LOGE("GetDhcpOptionUint32() failed!");
+        SetDefaultNetMask(result);
     }
 
     u32Data = 0;
@@ -1784,7 +1832,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
     #ifndef OHOS_ARCH_LITE
-        std::function<void()> func = std::bind([this]() {
+        std::function<void()> func = [this]() {
             DHCP_LOGI("SlowArpDetectTask enter");
             uint32_t tastId = m_slowArpTaskId;
             uint32_t timeout = SLOW_ARP_TOTAL_TIME_MS - SLOW_ARP_DETECTION_TIME_MS * SLOW_ARP_DETECTION_TRY_CNT;
@@ -1794,7 +1842,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
                 DHCP_LOGW("tastId != m_slowArpTaskId, %{public}u, %{public}u", tastId, m_slowArpTaskId);
             }
             m_slowArpCallback(ret);
-            });
+            };
         DhcpTimer::GetInstance()->Register(func, m_slowArpTaskId, 0);
         DHCP_LOGI("Register m_slowArpTaskId is %{public}u", m_slowArpTaskId);
     #endif
@@ -1918,16 +1966,16 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint3
     }
     switch (type) {
         case TIMER_GET_IP:
-            timeCallback = std::bind(&DhcpClientStateMachine::GetIpTimerCallback, this);
+            timeCallback = [this] { this->GetIpTimerCallback(); };
             break;
         case TIMER_RENEW_DELAY:
-            timeCallback = std::bind(&DhcpClientStateMachine::RenewDelayCallback, this);
+            timeCallback = [this] { this->RenewDelayCallback(); };
             break;
         case TIMER_REBIND_DELAY:
-            timeCallback = std::bind(&DhcpClientStateMachine::RebindDelayCallback, this);
+            timeCallback = [this] { this->RebindDelayCallback(); };
             break;
         case TIMER_REMAINING_DELAY:
-            timeCallback = std::bind(&DhcpClientStateMachine::RemainingDelayCallback, this);
+            timeCallback = [this] { this->RemainingDelayCallback(); };
             break;
         default:
             DHCP_LOGE("StartTimer default timerId:%{public}u", timerId);

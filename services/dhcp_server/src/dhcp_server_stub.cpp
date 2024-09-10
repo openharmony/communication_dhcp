@@ -33,25 +33,45 @@ DhcpServerStub::~DhcpServerStub()
 void DhcpServerStub::InitHandleMap()
 {
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REG_CALL_BACK)] =
-        &DhcpServerStub::OnRegisterCallBack;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnRegisterCallBack(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_START_DHCP_SERVER)] =
-        &DhcpServerStub::OnStartDhcpServer;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnStartDhcpServer(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_STOP_DHCP_SERVER)] =
-        &DhcpServerStub::OnStopDhcpServer;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnStopDhcpServer(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_SET_DHCP_RANGE)] =
-        &DhcpServerStub::OnSetDhcpRange;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnSetDhcpRange(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_SET_DHCP_NAME)] =
-        &DhcpServerStub::OnSetDhcpName;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnSetDhcpName(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_PUT_DHCP_RANGE)] =
-        &DhcpServerStub::OnPutDhcpRange;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnPutDhcpRange(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REMOVE_ALL_DHCP_RANGE)] =
-        &DhcpServerStub::OnRemoveAllDhcpRange;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnRemoveAllDhcpRange(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_REMOVE_DHCP_RANGE)] =
-        &DhcpServerStub::OnRemoveDhcpRange;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnRemoveDhcpRange(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_UPDATE_RENEW_TIME)] =
-        &DhcpServerStub::OnUpdateLeasesTime;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnUpdateLeasesTime(code, data, reply, option);
+        };
     handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_GET_DHCP_CLIENT_INFO)] =
-        &DhcpServerStub::OnGetDhcpClientInfos;
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnGetDhcpClientInfos(code, data, reply, option);
+        };
 }
 
 int DhcpServerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -71,7 +91,7 @@ int DhcpServerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
         if (exception) {
             return DHCP_OPT_FAILED;
         }
-        return (this->*(iter->second))(code, data, reply, option);
+        return (iter->second)(code, data, reply, option);
     }
 }
 

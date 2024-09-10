@@ -92,6 +92,7 @@ private:
     void SaveIpInfoInLocalFile(const DhcpIpResult ipResult);
     int32_t GetCachedDhcpResult(std::string targetBssid, IpInfoCached &ipCached);
     void TryCachedIp();
+    void SetDefaultNetMask(struct DhcpIpResult *result);
 #ifndef OHOS_ARCH_LITE
     void GetDhcpOffer(DhcpPacket *getPacket, int64_t timestamp);
 #endif
