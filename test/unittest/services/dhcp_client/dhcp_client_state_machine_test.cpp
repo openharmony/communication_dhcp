@@ -801,6 +801,14 @@ HWTEST_F(DhcpClientStateMachineTest, SendStopSignalTest, TestSize.Level1)
     dhcpClient->SendStopSignal();
 }
 
+HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
+{
+    DHCP_LOGI("SetIpv4DefaultDnsTest enter!");
+    struct DhcpIpResult result;
+    dhcpClient->SetIpv4DefaultDns(nullptr);
+    dhcpClient->SetIpv4DefaultDns(&result);
+}
+
 HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
 {
     DHCP_LOGI("SetDefaultNetMaskTest enter!");

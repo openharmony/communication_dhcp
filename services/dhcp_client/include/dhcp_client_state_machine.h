@@ -68,6 +68,7 @@ private:
     void ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkDnsInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
+    void SetIpv4DefaultDns(struct DhcpIpResult *result);
     void ParseNetworkDnsValue(struct DhcpIpResult *result, uint32_t uData, size_t &len, int &count);
     void DhcpOfferPacketHandle(uint8_t type, const struct DhcpPacket *packet, time_t timestamp);
     void DhcpRequestHandle(time_t timestamp);
