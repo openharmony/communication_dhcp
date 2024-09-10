@@ -28,6 +28,13 @@
 #include "timer.h"
 #endif
 
+char *tmepIp = Ip4IntConToStr(m_requestedIp4, false);
+    if (tmepIp != NULL) {
+        m_arpDectionTargetIp = tmepIp;
+        free(tmepIp);
+        tmepIp = NULL;
+    }
+
 namespace OHOS {
 namespace DHCP {
 class  DhcpClientStateMachine{
