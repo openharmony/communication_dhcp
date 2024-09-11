@@ -24,6 +24,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerProxyLite");
 
 namespace OHOS {
 namespace DHCP {
+constexpr int MAX_SIZE = 512;
 
 static SvcIdentity g_sid;
 static IpcObjectStub g_objStub;
@@ -33,6 +34,10 @@ static ErrCode ParseDhcpClientInfos(IpcIo *reply, std::vector<std::string> &info
 {
     int tmpsize = 0;
     (void)ReadInt32(reply, &tmpsize);
+    if (tmpsize > MAX_SIZE) {
+        DHCP_LOGE("ParseDhcpClientInfos tmpsize error: %{public}d", tmpsize);
+        return DHCP_E_FAILED;
+    }
     unsigned int readLen;
     for (int i = 0; i < tmpsize; ++i) {
         std::string str = (char *)ReadString(reply, &readLen);
