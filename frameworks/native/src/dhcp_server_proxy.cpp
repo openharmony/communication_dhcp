@@ -23,6 +23,8 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerProxy");
 
 namespace OHOS {
 namespace DHCP {
+constexpr int MAX_SIZE = 512;
+
 static sptr<DhcpServreCallBackStub> g_dhcpServerCallBackStub =
     sptr<DhcpServreCallBackStub>(new (std::nothrow)DhcpServreCallBackStub());
 
@@ -467,6 +469,10 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
         int tmpsize = reply.ReadInt32();
         DHCP_LOGI("DhcpServerProxy GetDhcpClientInfos ok, exception:%{public}d, reply data size:%{public}d", exception,
             tmpsize);
+        if (tmpsize > MAX_SIZE) {
+            DHCP_LOGE("GetDhcpClientInfos tmpsize error: %{public}d", tmpsize);
+            return DHCP_E_FAILED;
+        }
         for (int i = 0; i < tmpsize; i++) {
             std::string str = reply.ReadString();
             dhcpClientInfo.push_back(str);
