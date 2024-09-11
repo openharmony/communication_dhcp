@@ -38,7 +38,7 @@ constexpr int32_t OPT_FAIL = -1;
 
 DhcpArpChecker::DhcpArpChecker() : m_isSocketCreated(false), m_socketFd(-1), m_ifaceIndex(0), m_protocol(0)
 {
-    DHCP_LOGD("DhcpArpChecker()");
+    DHCP_LOGI("DhcpArpChecker()");
 }
 
 DhcpArpChecker::~DhcpArpChecker()
@@ -157,7 +157,6 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
                 std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
                 timeCost = static_cast<uint64_t>(
                     std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
-                DHCP_LOGI("doArp return true");
                 return true;
             }
         } else if (readLen < 0) {
@@ -168,7 +167,6 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
         elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
         leftMillis -= static_cast<int32_t>(elapsed);
     }
-    DHCP_LOGI("doArp return false");
     return false;
 }
 
@@ -304,6 +302,7 @@ int32_t DhcpArpChecker::SendData(uint8_t *buff, int32_t count, uint8_t *destHwad
 
 int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMillis)
 {
+    DHCP_LOGI("RecvData poll start");
     if (m_socketFd < 0) {
         DHCP_LOGE("invalid socket fd");
         return -1;
@@ -313,9 +312,10 @@ int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMi
     fds[0].fd = m_socketFd;
     fds[0].events = POLLIN;
     if (poll(fds, 1, timeoutMillis) <= 0) {
+        DHCP_LOGW("RecvData poll timeout");
         return 0;
     }
-
+    DHCP_LOGI("RecvData poll end");
     int32_t nBytes;
     do {
         nBytes = read(m_socketFd, buff, count);
