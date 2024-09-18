@@ -219,6 +219,14 @@ HWTEST_F(DhcpServerServiceTest, DeviceConnectCallBackTest, TestSize.Level1)
     DeviceConnectCallBack(ifname.c_str());
     ifname = "wlan0";
     DeviceConnectCallBack(ifname.c_str());
+
+    DeviceConnectCallBack(nullptr);
+}
+
+HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter StartServiceAbilityTest");
+    pServerServiceImpl->StartServiceAbility(1);
 }
 }
 }

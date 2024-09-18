@@ -20,7 +20,7 @@
 #include "dhcp_client_state_machine.h"
 #include "dhcp_define.h"
 #include "securec.h"
-
+1
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImplTest");
 
 using namespace testing::ext;

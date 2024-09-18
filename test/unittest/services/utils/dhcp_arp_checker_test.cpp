@@ -17,7 +17,7 @@
 #include "dhcp_arp_checker.h"
 #include "mock_system_func.h"
 #include "securec.h"
-
+1
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpArpCheckerTest");
 using namespace testing::ext;
 using namespace OHOS::DHCP;

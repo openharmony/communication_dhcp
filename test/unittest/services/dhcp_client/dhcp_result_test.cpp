@@ -46,6 +46,23 @@ HWTEST_F(DhcpResultTest, PublishDhcpIpv4ResultTest, TestSize.Level1)
     EXPECT_EQ(false, result);
 }
 
+HWTEST_F(DhcpResultTest, PublishDhcpIpv4ResultTest1, TestSize.Level1)
+{
+    DHCP_LOGI("PublishDhcpIpv4ResultTest1 enter!");
+    struct DhcpIpResult ipResult;
+    ipResult.code = PUBLISH_CODE_TIMEOUT;
+    bool result = PublishDhcpIpv4Result(ipResult);
+    EXPECT_EQ(false, result);
+
+    ipResult.code = PUBLISH_CODE_EXPIRED;
+    result = PublishDhcpIpv4Result(ipResult);
+    EXPECT_EQ(false, result);
+
+    ipResult.code = PUBLISH_DHCP_OFFER_REPORT;
+    result = PublishDhcpIpv4Result(ipResult);
+    EXPECT_EQ(false, result);
+}
+
 HWTEST_F(DhcpResultTest, DhcpIpv6TimerCallbackEventTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpIpv6TimerCallbackEventTest enter!");

@@ -26,7 +26,7 @@
 #include "dhcp_function.h"
 #include "securec.h"
 #include "dhcp_thread.h"
-
+1
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientStateMachineTest");
 
 using namespace testing::ext;
