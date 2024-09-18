@@ -89,4 +89,28 @@ HWTEST_F(DhcpCommonUtilsTest, MacArray2StrTest, TestSize.Level1)
     len = MAC_LENTH;
     EXPECT_TRUE(!MacArray2Str(mac, len).empty());
 }
+
+HWTEST_F(DhcpCommonUtilsTest, ValidHexadecimalNumberTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter ValidHexadecimalNumberTest");
+    std::string data = "123456";
+    int result = CheckDataLegal(data);
+    EXPECT_EQ(result, 123456);
+}
+
+HWTEST_F(DhcpCommonUtilsTest, InvalidHexadecimalNumberTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter InvalidHexadecimalNumberTest");
+    std::string data = "abcdef";
+    int result = CheckDataLegal(data);
+    EXPECT_EQ(result, 0);
+}
+
+HWTEST_F(DhcpCommonUtilsTest, EmptyStringTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter EmptyStringTest");
+    std::string data = "";
+    int result = CheckDataLegal(data);
+    EXPECT_EQ(result, 0);
+}
 }
