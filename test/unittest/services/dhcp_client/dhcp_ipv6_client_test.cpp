@@ -22,6 +22,7 @@
 #include <sys/socket.h>
 #include <linux/rtnetlink.h>
 #include <netinet/in.h>
+#include <arpa/inet.h>
 #include "securec.h"
 #include "dhcp_logger.h"
 #include "dhcp_function.h"
@@ -124,6 +125,38 @@ HWTEST_F(DhcpIpv6ClientTest, getAddrTypeTest, TestSize.Level1)
     struct in6_addr addr;
     EXPECT_EQ(IPV6_RETURN_32, ipv6Client->getAddrType(nullptr));
     EXPECT_EQ(IPV6_RETURN_ZERO, ipv6Client->getAddrType(&addr));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, getAddrTypeTest1, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("getAddrTypeTest1 enter!");
+    struct in6_addr addr;
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "2001:0db8:85a3:0000:0000:8a2e:0370:7334", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "ff02:0000:0000:0000:0000:0000:0000:0001", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "fe80::", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "fec0::", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "::", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "::1", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "::ffff:192.0.2.128", &addr);
+    ipv6Client->getAddrType(&addr);
+
+    inet_pton(AF_INET6, "::ffff:192.0.2.128", &addr);
+    ipv6Client->getAddrType(&addr);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, getAddrScopeTest, TestSize.Level1)
@@ -334,6 +367,14 @@ HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest, TestSize.Level1)
 {
     DHCP_LOGI("AddIpv6Address enter!");
     ipv6Client->AddIpv6Address(nullptr, 0);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest1, TestSize.Level1)
+{
+    DHCP_LOGI("AddIpv6Address1 enter!");
+    char ipv6Addr[128] = "1001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    int len = DHCP_INET6_ADDRSTRLEN - 1;
+    ipv6Client->AddIpv6Address(nullptr, len);
 }
 }
 }

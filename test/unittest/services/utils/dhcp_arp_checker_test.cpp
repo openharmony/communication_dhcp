@@ -101,6 +101,14 @@ HWTEST_F(DhcpArpCheckerTest, CreateSocketTest_002, TestSize.Level1)
     MockSystemFunc::SetMockFlag(false);
 }
 
+HWTEST_F(DhcpArpCheckerTest, CreateSocketTest_003, TestSize.Level1)
+{
+    DHCP_LOGE("enter CreateSocketTest_003");
+    DhcpArpChecker dhcpArpChecker;
+    uint16_t protocol = ETH_P_ARP;
+    EXPECT_EQ(dhcpArpChecker.CreateSocket(nullptr, protocol), -1);
+}
+
 /**
  * @tc.name: StopTest_001
  * @tc.desc: StopTest
@@ -160,5 +168,20 @@ HWTEST_F(DhcpArpCheckerTest, RecvDataTest_001, TestSize.Level1)
     EXPECT_TRUE(dhcpArpChecker.RecvData(buff, 1, 1) == -1);
     dhcpArpChecker.m_socketFd = 1;
     dhcpArpChecker.RecvData(buff, 1, 1);
+}
+
+HWTEST_F(DhcpArpCheckerTest, GetGwMacAddrList_Success, TestSize.Level0)
+{
+    DHCP_LOGE("enter GetGwMacAddrList_Success");
+    DhcpArpChecker dhcpArpChecker;
+    int32_t timeoutMillis = 1000;
+    bool isFillSenderIp = true;
+    std::vector<std::string> gwMacLists;
+
+    dhcpArpChecker.m_isSocketCreated = false;
+    dhcpArpChecker.GetGwMacAddrList(timeoutMillis, isFillSenderIp, gwMacLists);
+
+    dhcpArpChecker.m_isSocketCreated = true;
+    dhcpArpChecker.GetGwMacAddrList(timeoutMillis, isFillSenderIp, gwMacLists);
 }
 }  // namespace OHOS

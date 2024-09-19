@@ -33,6 +33,9 @@ using namespace testing::ext;
 using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
+constexpr int TWO = 2;
+constexpr int THREE = 3;
+constexpr int INVALID = 12;
 
 static std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient = nullptr;
 
@@ -356,12 +359,27 @@ HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
     DHCP_LOGI("RenewingTest enter!");
     time_t curTimestamp = time(NULL);
     dhcpClient->Renewing(curTimestamp);
+
+    dhcpClient->m_sentPacketNum = MAX_WAIT_TIMES + 1;
+    dhcpClient->Renewing(curTimestamp);
+
+    dhcpClient->m_sentPacketNum = MAX_WAIT_TIMES - 1;
+    dhcpClient->Renewing(curTimestamp);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level1)
 {
     DHCP_LOGI("RebindingTest enter!");
     time_t curTimestamp = time(NULL);
+    dhcpClient->Rebinding(curTimestamp);
+
+    dhcpClient->m_sentPacketNum = MAX_WAIT_TIMES + 1;
+    dhcpClient->Rebinding(curTimestamp);
+
+    dhcpClient->m_sentPacketNum = MAX_WAIT_TIMES - 1;
+    dhcpClient->Rebinding(curTimestamp);
+
+    dhcpClient->m_dhcp4State = DHCP_STATE_REBINDING;
     dhcpClient->Rebinding(curTimestamp);
 }
 
@@ -378,6 +396,24 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
 
     dhcpClient->SetIpv4State(DHCP_STATE_RELEASED);
     dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_RENEWED);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_REBINDING);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_FAST_ARP);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_SLOW_ARP);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(DHCP_STATE_DECLINE);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
+
+    dhcpClient->SetIpv4State(INVALID);
+    dhcpClient->DhcpRequestHandle(curTimestamp);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Level1)
@@ -391,6 +427,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Leve
     type = DHCP_NAK;
     DhcpPacket packet1;
     dhcpClient->DhcpAckOrNakPacketHandle(type, &packet1, curTimestamp);
+    dhcpClient->DhcpAckOrNakPacketHandle(type, nullptr, curTimestamp);
 
     type = DHCP_ACK;
     DhcpPacket packet2;
@@ -571,6 +608,21 @@ HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
     dhcpClient->Requesting(curTimestamp);
 }
 
+HWTEST_F(DhcpClientStateMachineTest, RequestingTest1, TestSize.Level1)
+{
+    DHCP_LOGI("RequestingTest1 enter!");
+    time_t timestamp = 1;
+    dhcpClient->m_sentPacketNum = TIMEOUT_TIMES_MAX + 1;
+    dhcpClient->Requesting(timestamp);
+
+    dhcpClient->m_sentPacketNum = TWO;
+    dhcpClient->m_dhcp4State = DHCP_STATE_RENEWED;
+    dhcpClient->Requesting(timestamp);
+
+    dhcpClient->m_dhcp4State = DHCP_STATE_RELEASED;
+    dhcpClient->Requesting(timestamp);
+}
+
 HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
 {
     DHCP_LOGI("AddHostNameToOptsTest enter!");
@@ -622,6 +674,9 @@ HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level1)
     time_t curTimestamp = time(NULL);
     dhcpClient->ParseDhcpNakPacket(packet, curTimestamp);
     DhcpPacket packet1;
+    dhcpClient->ParseDhcpNakPacket(&packet1, curTimestamp);
+
+    dhcpClient->m_resendTimer = INVALID;
     dhcpClient->ParseDhcpNakPacket(&packet1, curTimestamp);
 }
 
@@ -694,6 +749,20 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest_SUCCESS, TestSize.Level1)
     dhcpClient->SlowArpDetect(1);
 }
 
+HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest1, TestSize.Level1)
+{
+    DHCP_LOGI("SlowArpDetectTest1 enter!");
+    time_t timestamp = 1;
+    dhcpClient->m_sentPacketNum = THREE;
+    dhcpClient->SlowArpDetect(timestamp);
+
+    dhcpClient->m_sentPacketNum = TWO;
+    dhcpClient->SlowArpDetect(timestamp);
+
+    dhcpClient->m_sentPacketNum = 0;
+    dhcpClient->SlowArpDetect(timestamp);
+}
+
 /**
 * @tc.name: SlowArpDetectCallbackTest_SUCCESS
 * @tc.desc: SlowArpDetectCallbackTest.
@@ -703,6 +772,10 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest_SUCCESS, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectCallbackTest_SUCCESS, TestSize.Level1)
 {
     DHCP_LOGI("SlowArpDetectCallbackTest_SUCCESS enter!");
+    dhcpClient->SlowArpDetectCallback(true);
+    dhcpClient->SlowArpDetectCallback(false);
+
+    dhcpClient->m_slowArpDetecting = 1;
     dhcpClient->SlowArpDetectCallback(true);
     dhcpClient->SlowArpDetectCallback(false);
 }
@@ -731,6 +804,9 @@ HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize
     DhcpIpResult ipResult;
     ipResult.code = 1;
     dhcpClient->SaveIpInfoInLocalFile(ipResult);
+
+    dhcpClient->m_routerCfg.bssid = "wlan0";
+    dhcpClient->SaveIpInfoInLocalFile(ipResult);
 }
 
 /**
@@ -742,6 +818,9 @@ HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize
 HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
 {
     DHCP_LOGI("TryCachedIpTest_SUCCESS enter!");
+    dhcpClient->TryCachedIp();
+
+    dhcpClient->m_routerCfg.prohibitUseCacheIp = 1;
     dhcpClient->TryCachedIp();
 }
 
@@ -769,6 +848,23 @@ HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("GetIpTimerCallbackTest enter!");
+    dhcpClient->GetIpTimerCallback();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
+{
+    DHCP_LOGI("GetIpTimerCallbackTest1 enter!");
+    dhcpClient->m_cltCnf.threadExit = 0;
+    dhcpClient->m_action = ACTION_RENEW_T1;
+    dhcpClient->GetIpTimerCallback();
+
+    dhcpClient->m_action = ACTION_RENEW_T3;
+    dhcpClient->GetIpTimerCallback();
+
+    dhcpClient->m_action = ACTION_START_NEW;
+    dhcpClient->GetIpTimerCallback();
+
+    dhcpClient->m_action = ACTION_INVALID;
     dhcpClient->GetIpTimerCallback();
 }
 
@@ -821,6 +917,8 @@ HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
     DHCP_LOGI("SetDefaultNetMaskTest enter!");
     struct DhcpIpResult result;
 
+    dhcpClient->SetDefaultNetMask(nullptr);
+
     result.strOptSubnet[0] = 0;
     strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "8.168.0.8");
     dhcpClient->SetDefaultNetMask(&result);
@@ -848,6 +946,74 @@ HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
     result.strOptSubnet[0] = 0;
     strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "240.168.0.8");
     dhcpClient->SetDefaultNetMask(&result);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level1)
+{
+    DHCP_LOGI("RebootTest enter!");
+    time_t timestamp = 1;
+    dhcpClient->Reboot(timestamp);
+
+    dhcpClient->m_routerCfg.bssid = "wlan0";
+    dhcpClient->Reboot(timestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, SignalReceiverTest, TestSize.Level1)
+{
+    DHCP_LOGI("SignalReceiverTest enter!");
+    dhcpClient->SignalReceiver();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level1)
+{
+    DHCP_LOGI("ExecDhcpReleaseTest enter!");
+    dhcpClient->m_dhcp4State = DHCP_STATE_BOUND;
+    dhcpClient->ExecDhcpRelease();
+
+    dhcpClient->m_dhcp4State = DHCP_STATE_RENEWING;
+    dhcpClient->ExecDhcpRelease();
+
+    dhcpClient->m_dhcp4State = DHCP_STATE_REBINDING;
+    dhcpClient->ExecDhcpRelease();
+
+    dhcpClient->m_dhcp4State = DHCP_STATE_INIT;
+    dhcpClient->ExecDhcpRelease();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, InitSelectingTest, TestSize.Level1)
+{
+    DHCP_LOGI("InitSelectingTest enter!");
+    time_t timestamp = 1;
+    dhcpClient->m_sentPacketNum = TIMEOUT_TIMES_MAX + 1;
+    dhcpClient->InitSelecting(timestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DecliningTest, TestSize.Level1)
+{
+    DHCP_LOGI("DecliningTest enter!");
+    time_t timestamp = 1;
+    dhcpClient->Declining(timestamp);
+
+    dhcpClient->m_conflictCount = THREE;
+    dhcpClient->Declining(timestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level1)
+{
+    DHCP_LOGI("GetDhcpOfferTest enter!");
+    DhcpPacket packet;
+    time_t timestamp = 1;
+    dhcpClient->GetDhcpOffer(nullptr, timestamp);
+
+    dhcpClient->GetDhcpOffer(&packet, timestamp);
+}
+
+HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpResponseHandleTest enter!");
+    DhcpPacket packet;
+    time_t timestamp = 1;
+    dhcpClient->DhcpResponseHandle(timestamp);
 }
 }
 }

@@ -169,6 +169,20 @@ HWTEST_F(DhcpFunctionTest, CheckRangeNetwork_TEST, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(ifname, begin, end));
 }
 
+HWTEST_F(DhcpFunctionTest, CheckRangeNetwork_TEST01, TestSize.Level1)
+{
+    std::string ifname, begin, end;
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(nullptr, begin, end));
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(ifname, nullptr, end));
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(ifname, begin, nullptr));
+
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(nullptr, nullptr, end));
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(nullptr, begin, nullptr));
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(ifname, nullptr, nullptr));
+
+    EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::CheckRangeNetwork(nullptr, nullptr, nullptr));
+}
+
 HWTEST_F(DhcpFunctionTest, FileManage_SUCCESS, TestSize.Level1)
 {
     std::string strFile = "./wlan0.result";
@@ -268,6 +282,12 @@ HWTEST_F(DhcpFunctionTest, SplitStringTest, TestSize.Level1)
     delim = "test";
     count = -1;
     EXPECT_EQ(DhcpFunction::SplitString(src, delim, count, splits), false);
+}
+
+HWTEST_F(DhcpFunctionTest, WaitProcessExit01, TestSize.Level1)
+{
+    pid_t serverPid = 1235;
+    EXPECT_EQ(DhcpFunction::WaitProcessExit(serverPid), -1);
 }
 }
 }

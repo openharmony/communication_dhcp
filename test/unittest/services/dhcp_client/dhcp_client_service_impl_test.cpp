@@ -55,9 +55,9 @@ HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
 
     const std::string& ifname = "wlan0";
     bool bIpv6 = true;
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, dhcpClientImpl->StartDhcpClient(ifname, bIpv6));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpClient(ifname, bIpv6));
     bIpv6 = false;
-    EXPECT_EQ(DHCP_E_PERMISSION_DENIED, dhcpClientImpl->StopDhcpClient(ifname, bIpv6));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StopDhcpClient(ifname, bIpv6));
 }
 
 HWTEST_F(DhcpClientServiceImplTest, OnStartTest, TestSize.Level1)
@@ -91,6 +91,9 @@ HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)
     EXPECT_EQ(DHCP_E_FAILED, dhcpClientImpl->StartOldClient(ifname, bIpv6, client));
 
     client.pStaStateMachine = new DhcpClientStateMachine(client.ifName);
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(ifname, bIpv6, client));
+
+    bIpv6 = false;
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(ifname, bIpv6, client));
 }
 
@@ -148,6 +151,17 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultFailTest, TestSize.Level1)
     dhcpClientImpl->m_mapClientService.emplace(std::make_pair("wlan0", client));
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(ipResult));
     dhcpClientImpl->m_mapClientService.clear();
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultFailTest1, TestSize.Level1)
+{
+    DHCP_LOGE("enter DhcpIpv4ResultFailTest1");
+    ASSERT_TRUE(dhcpClientImpl != nullptr);
+    DhcpIpResult ipResult;
+    ipResult.ifname = "wlan0";
+    ipResult.uAddTime = 123456789;
+    ActionMode action = ACTION_RENEW_T1;
+    EXPECT_EQ(DHCP_OPT_FAILED, dhcpClientImpl->DhcpIpv4ResultFail(ipResult));
 }
 
 HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultTimeOutTest, TestSize.Level1)
@@ -216,6 +230,16 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv6ResulCallbackTest, TestSize.Level1)
     dhcpClientImpl->m_mapClientCallBack.clear();
 }
 
+HWTEST_F(DhcpClientServiceImplTest, DhcpIpv6ResulCallbackTest1, TestSize.Level1)
+{
+    DHCP_LOGE("enter DhcpIpv6ResulCallbackTest1");
+    ASSERT_TRUE(dhcpClientImpl != nullptr);
+    DhcpIpv6Info info;
+    strncpy_s(info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
+        DHCP_INET6_ADDRSTRLEN - 1);
+    dhcpClientImpl->DhcpIpv6ResulCallback("test_ifname", info);
+}
+
 HWTEST_F(DhcpClientServiceImplTest, PushDhcpResultTest, TestSize.Level1)
 {
     DHCP_LOGE("enter PushDhcpResultTest");
@@ -253,6 +277,43 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpFreeIpv6Test, TestSize.Level1)
     DHCP_LOGI("DhcpFreeIpv6Test enter!");
     std::string ifname = "wlan0";
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpFreeIpv6(ifname));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, IsGlobalIPv6AddressTest, TestSize.Level1)
+{
+    DHCP_LOGI("IsGlobalIPv6AddressTest enter!");
+    std::string ipAddress = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    bool result = dhcpClientImpl->IsGlobalIPv6Address(ipAddress);
+    EXPECT_EQ(result, true);
+
+    ipAddress = "3001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    result = dhcpClientImpl->IsGlobalIPv6Address(ipAddress);
+    EXPECT_EQ(result, true);
+
+    ipAddress = "1001:0db8:85a3:0000:0000:8a2e:0370:7334";
+    result = dhcpClientImpl->IsGlobalIPv6Address(ipAddress);
+    EXPECT_EQ(result, false);
+
+    ipAddress = "";
+    result = dhcpClientImpl->IsGlobalIPv6Address(ipAddress);
+    EXPECT_EQ(result, false);
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpOfferResultSuccessTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpOfferResultSuccessTest enter!");
+    struct DhcpIpResult ipResult;
+    ipResult.ifname = "wlan1";
+    int result = dhcpClientImpl->DhcpOfferResultSuccess(ipResult);
+    EXPECT_EQ(result, DHCP_OPT_FAILED);
+}
+
+HWTEST_F(DhcpClientServiceImplTest, SetConfigurationTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpFreeIpv6Test enter!");
+    std::string ifname = "wlan0";
+    RouterConfig config;
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->SetConfiguration(ifname, config));
 }
 }
 }

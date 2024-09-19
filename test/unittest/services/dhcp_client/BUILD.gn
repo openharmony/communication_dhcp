@@ -37,6 +37,7 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
+    "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
     "dhcp_client_callback_proxy_test.cpp",
     "dhcp_client_death_recipient_test.cpp",
     "dhcp_client_service_impl_test.cpp",
@@ -67,6 +68,7 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
     "$DHCP_ROOT_DIR/services/dhcp_server/include",
+    "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
   ]
 
   deps = [
