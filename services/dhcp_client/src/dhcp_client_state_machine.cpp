@@ -1918,6 +1918,7 @@ void DhcpClientStateMachine::TryCachedIp()
         PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, &ipCached.ipResult);
         DHCP_LOGE("TryCachedIp publish dhcp result failed!");
     }
+    SetSocketMode(SOCKET_MODE_INVALID);
     StopIpv4();
     m_leaseTime = ipCached.ipResult.uOptLeasetime;
     m_renewalSec = ipCached.ipResult.uOptLeasetime * RENEWAL_SEC_MULTIPLE;
