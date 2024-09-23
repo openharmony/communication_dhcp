@@ -1904,6 +1904,11 @@ void DhcpClientStateMachine::TryCachedIp()
         return;
     }
 
+    if (strncmp(m_cltCnf.ifaceName, "wlan", NUMBER_FOUR) != 0) {
+        DHCP_LOGW("ifaceName is not wlan, not use cache ip");
+        return;
+    }
+
     IpInfoCached ipCached;
     if (GetCachedDhcpResult(m_routerCfg.bssid, ipCached) != 0) {
         DHCP_LOGE("TryCachedIp() not find cache ip");
