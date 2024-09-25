@@ -376,5 +376,13 @@ HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest1, TestSize.Level1)
     int len = DHCP_INET6_ADDRSTRLEN - 1;
     ipv6Client->AddIpv6Address(nullptr, len);
 }
+
+HWTEST_F(DhcpIpv6ClientTest, IsEui64ModeIpv6AddressTest, TestSize.Level1)
+{
+    DHCP_LOGI("IsEui64ModeIpv6AddressTest enter!");
+    char data[] = "2408:8471:a02:8fc0:200:52ff:fe5d:003b";
+    EXPECT_EQ(ipv6Client->IsEui64ModeIpv6Address(nullptr, 0), false);
+    EXPECT_EQ(ipv6Client->IsEui64ModeIpv6Address(data, PRE_FIX_ADDRSTRLEN), false);
+}
 }
 }

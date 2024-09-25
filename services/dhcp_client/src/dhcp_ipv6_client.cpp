@@ -31,6 +31,7 @@
 #include "dhcp_ipv6_client.h"
 #include "dhcp_result.h"
 #include "dhcp_thread.h"
+#include "dhcp_function.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -71,6 +72,10 @@ const int KERNEL_BUFF_SIZE = (8 * 1024);
 const int ND_OPT_MIN_LEN = 3;
 const int ROUTE_BUFF_SIZE = 1024;
 const int IPV6_TIMEOUT_USEC = 500000;
+const int POSITION_OFFSET_1 = 1;
+const int POSITION_OFFSET_2 = 2;
+const int POSITION_OFFSET_3 = 3;
+const int POSITION_OFFSET_4 = 4;
 
 #define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
 #define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
@@ -305,7 +310,7 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
     }
     int first = ipv6addr[0]-'0';
     if (first == NUMBER_TWO || first == NUMBER_THREE) { // begin '2' '3'
-        if (strlen(dhcpIpv6Info.globalIpv6Addr) == 0) {
+        if (IsEui64ModeIpv6Address(ipv6addr, len)) {
             DHCP_LOGI("AddIpv6Address add globalIpv6Addr, first=%{public}d", first);
             if (memcpy_s(dhcpIpv6Info.globalIpv6Addr, len, ipv6addr, len) != EOK) {
                 DHCP_LOGE("AddIpv6Address memcpy_s failed!");
@@ -322,7 +327,7 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
         }
     } else if (first == NUMBER_FIFTY_FOUR) {  // begin 'f'->54
-        if (strlen(dhcpIpv6Info.uniqueLocalAddr1) == 0) {
+        if (IsEui64ModeIpv6Address(ipv6addr, len)) {
             if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr1, len, ipv6addr, len) != EOK) {
                 DHCP_LOGE("AddIpv6Address memcpy_s failed!");
                 return;
@@ -341,6 +346,42 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
     } else {
         DHCP_LOGI("AddIpv6Address other first=%{public}d", first);
     }
+}
+
+bool DhcpIpv6Client::IsEui64ModeIpv6Address(char *ipv6addr, int len)
+{
+    if (ipv6addr == nullptr) {
+        DHCP_LOGE("IsEui64ModeIpv6Address ipv6addr is nullptr!");
+        return false;
+    }
+    int ifaceIndex = 0;
+    unsigned char ifaceMac[MAC_ADDR_LEN];
+    if (GetLocalInterface(interfaceName.c_str(), &ifaceIndex, ifaceMac, NULL) != DHCP_OPT_SUCCESS) {
+        DHCP_LOGE("IsEui64ModeIpv6Address GetLocalInterface failed, ifaceName:%{public}s.", interfaceName.c_str());
+        return false;
+    }
+    char macAddr[MAC_ADDR_LEN * MAC_ADDR_CHAR_NUM];
+    if (memset_s(macAddr, sizeof(macAddr), 0, sizeof(macAddr)) != EOK) {
+        DHCP_LOGE("IsEui64ModeIpv6Address memset_s failed!");
+        return false;
+    }
+    MacChConToMacStr(ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    std::string localMacString = macAddr;
+    std::string ipv6AddrString = ipv6addr;
+    int macPosition = localMacString.find_last_of(':');
+    int ipv6position = ipv6AddrString.find_last_of(':');
+    DHCP_LOGI("IsEui64ModeIpv6Address name:%{public}s index:%{public}d %{public}d %{public}d len:%{public}d",
+        interfaceName.c_str(), ifaceIndex, macPosition, ipv6position, len);
+    if ((macPosition != std::string::npos) && (ipv6position != std::string::npos)) {
+        if (macAddr[macPosition + POSITION_OFFSET_1] == ipv6addr[ipv6position + POSITION_OFFSET_3] &&
+            macAddr[macPosition + POSITION_OFFSET_2] == ipv6addr[ipv6position + POSITION_OFFSET_4] &&
+            macAddr[macPosition - POSITION_OFFSET_1] == ipv6addr[ipv6position + POSITION_OFFSET_2] &&
+            macAddr[macPosition - POSITION_OFFSET_2] == ipv6addr[ipv6position + POSITION_OFFSET_1]) {
+            DHCP_LOGI("IsEui64ModeIpv6Address is true!");
+            return true;
+        }
+    }
+    return false;
 }
 
 void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
@@ -400,7 +441,7 @@ void DhcpIpv6Client::onIpv6RouteAddEvent(char* gateway, char* dst, int ifaIndex)
         DHCP_LOGE("route ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
         return;
     }
-    DHCP_LOGE("onIpv6RouteAddEvent gateway:%{public}s, dst:%{public}s, ifindex:%{public}d",
+    DHCP_LOGI("onIpv6RouteAddEvent gateway:%{private}s, dst:%{private}s, ifindex:%{public}d",
         gateway, dst, ifaIndex);
     if (!gateway || !dst) {
         DHCP_LOGE("onIpv6RouteAddEvent input invalid.");
