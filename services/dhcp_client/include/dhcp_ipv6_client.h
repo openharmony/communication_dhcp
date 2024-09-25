@@ -80,6 +80,7 @@ private:
     void getIpv6RouteAddr();
     void fillRouteData(char* buff, int &len);
     bool IsEui64ModeIpv6Address(char *ipv6addr, int len);
+
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged;
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;
