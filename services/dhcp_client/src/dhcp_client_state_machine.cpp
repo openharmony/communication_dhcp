@@ -332,10 +332,10 @@ int DhcpClientStateMachine::StartIpv4(void)
         curTimestamp = time(NULL);
         if (nRet == 0) {
             DhcpRequestHandle(curTimestamp);
-        } else if ((m_socketMode != SOCKET_MODE_INVALID) && FD_ISSET(m_sockFd, &readfds)) {
-            DhcpResponseHandle(curTimestamp);
         } else if (FD_ISSET(m_sigSockFds[0], &readfds)) {
             SignalReceiver();
+        } else if ((m_socketMode != SOCKET_MODE_INVALID) && FD_ISSET(m_sockFd, &readfds)) {
+            DhcpResponseHandle(curTimestamp);
         } else {
             DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
         }
