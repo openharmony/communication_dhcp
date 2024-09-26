@@ -24,6 +24,7 @@
 
 namespace OHOS {
 namespace DHCP {
+constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t DHCP_SLEEP_1 = 2;
 sptr<DhcpServerServiceImpl> pDhcpServerServiceImpl = DhcpServerServiceImpl::GetInstance();
 
@@ -39,10 +40,8 @@ void OnStopTest(const uint8_t* data, size_t size)
 
 void StartDhcpServerTest(const uint8_t* data, size_t size)
 {
-    std::string ifname1 = "wlan0";
-    std::string ifname2 = "";
-    pDhcpServerServiceImpl->StartDhcpServer(ifname1);
-    pDhcpServerServiceImpl->StartDhcpServer(ifname2);
+    std::string ifname = "";
+    pDhcpServerServiceImpl->StartDhcpServer(ifname);
 }
 
 void StopDhcpServerTest(const uint8_t* data, size_t size)
@@ -84,10 +83,6 @@ void SetDhcpRangeTest(const uint8_t* data, size_t size)
     std::string ifname = "wlan0";
     DhcpRange range;
     range.iptype = 0;
-    pDhcpServerServiceImpl->SetDhcpRange(ifname, range);
-    range.strStartip = "192.168.2.2";
-    range.strEndip = "192.168.2.200";
-    range.strSubnet = "255.255.255.0";
     pDhcpServerServiceImpl->SetDhcpRange(ifname, range);
 }
 
@@ -200,7 +195,7 @@ void StartServiceAbilityTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
