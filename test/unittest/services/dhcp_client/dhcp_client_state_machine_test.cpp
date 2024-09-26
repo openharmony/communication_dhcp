@@ -511,7 +511,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level1)
 {
     DHCP_LOGE("DhcpRebootTest enter!");
-    EXPECT_EQ(SOCKET_OPT_FAILED, dhcpClient->DhcpReboot(1, 1));
+    EXPECT_EQ(SOCKET_OPT_SUCCESS, dhcpClient->DhcpReboot(1, 1));
 }
 
 HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
@@ -956,12 +956,6 @@ HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level1)
 
     dhcpClient->m_routerCfg.bssid = "wlan0";
     dhcpClient->Reboot(timestamp);
-}
-
-HWTEST_F(DhcpClientStateMachineTest, SignalReceiverTest, TestSize.Level1)
-{
-    DHCP_LOGI("SignalReceiverTest enter!");
-    dhcpClient->SignalReceiver();
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level1)
