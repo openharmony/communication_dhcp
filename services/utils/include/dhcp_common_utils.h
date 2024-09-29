@@ -33,7 +33,9 @@ std::string Ipv4Anonymize(const std::string str);
 char *UintIp4ToStr(uint32_t uIp, bool bHost);
 std::string IntIpv4ToAnonymizeStr(uint32_t ip);
 std::string MacArray2Str(uint8_t *macArray, int32_t len);
-int CheckDataLegal(std::string &data);
+int CheckDataLegal(std::string &data, int base = DECIMAL_NOTATION);
+unsigned int CheckDataToUint(std::string &data, int base = DECIMAL_NOTATION);
+long long CheckDataTolonglong(std::string &data, int base = DECIMAL_NOTATION);
 int64_t GetElapsedSecondsSinceBoot();
 }
 }

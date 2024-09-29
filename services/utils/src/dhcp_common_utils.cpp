@@ -159,47 +159,6 @@ long long CheckDataTolonglong(std::string &data, int base)
     return num;
 }
 
-std::string Ip4IntConvertToStr(uint32_t uIp, bool bHost)
-{
-    char bufIp4[INET_ADDRSTRLEN] = {0};
-    struct in_addr addr4;
-    if (bHost) {
-        addr4.s_addr = htonl(uIp);
-    } else {
-        addr4.s_addr = uIp;
-    }
-
-    std::string strIp = "";
-    if (inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN) == nullptr) {
-        DHCP_LOGE("Ip4IntConvertToStr uIp:%{private}u failed, inet_ntop nullptr!", uIp);
-    } else {
-        strIp = bufIp4;
-        DHCP_LOGI("Ip4IntConvertToStr uIp:%{private}u -> strIp:%{private}s.", uIp, strIp.c_str());
-    }
-
-    return strIp;
-}
-
-static int32_t GetMacAddr(char *buff, const char *macAddr)
-{
-    unsigned int addr[MAC_LENTH] = {0};
-    if (buff == nullptr || macAddr == nullptr) {
-        DHCP_LOGE("buff or macAddr is nullptr");
-        return -1;
-    }
-
-    if (sscanf_s(macAddr, "%x:%x:%x:%x:%x:%x", &addr[MAC_INDEX_0], &addr[MAC_INDEX_1], &addr[MAC_INDEX_2],
-        &addr[MAC_INDEX_3], &addr[MAC_INDEX_4], &addr[MAC_INDEX_5]) < MAC_LENTH) {
-        DHCP_LOGE("sscanf_s macAddr err");
-        return -1;
-    }
-
-    for (int32_t i = 0; i < MAC_LENTH; i++) {
-        buff[i] = addr[i];
-    }
-    return 0;
-}
-
 int64_t GetElapsedSecondsSinceBoot()
 {
     struct timespec times = {0, 0};
