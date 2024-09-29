@@ -61,7 +61,6 @@ constexpr uint32_t RATE_S_MS = 1000;
 constexpr int DHCP_IP_TYPE_A = 128;
 constexpr int DHCP_IP_TYPE_B = 192;
 constexpr int DHCP_IP_TYPE_C = 224;
-constexpr int DECIMAL_NOTATION = 10;
 
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
@@ -1034,8 +1033,8 @@ void DhcpClientStateMachine::SetDefaultNetMask(struct DhcpIpResult *result)
     std::string strYiaddr = result->strYiaddr;
     std::string strNetmask = result->strOptSubnet;
     size_t pos = strYiaddr.find(".");
-    char *errptr = nullptr;
-    int firstByte = static_cast<int>(std::strtol(strYiaddr.substr(0, pos).c_str(), &errptr, DECIMAL_NOTATION));
+    std::string yiaddrTmp = strYiaddr.substr(0, pos);
+    int firstByte = static_cast<int>(CheckDataLegal(yiaddrTmp, DECIMAL_NOTATION));
     if ((!strYiaddr.empty()) && strNetmask.empty()) {
         if (firstByte < DHCP_IP_TYPE_A) {
             if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, "255.0.0.0", INET_ADDRSTRLEN - 1) != EOK) {

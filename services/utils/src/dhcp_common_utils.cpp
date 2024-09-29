@@ -103,13 +103,54 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len)
     return ret;
 }
 
-int CheckDataLegal(std::string &data)
+int CheckDataLegal(std::string &data, int base)
 {
-    std::regex hex("^[0-9]+$");
-    if (std::regex_search(data, hex)) {
-        return std::stoi(data);
+    std::regex pattern("\\d+");
+    if (!std::regex_search(data, pattern)) {
+        return 0;
     }
-    return 0;
+    errno = 0;
+    char *endptr = nullptr;
+    long int num = std::strtol(data.c_str(), &endptr, base);
+    if (errno == ERANGE) {
+        DHCP_LOGE("CheckDataLegal errno == ERANGE, data:%{private}s", data.c_str());
+        return 0;
+    }
+    return static_cast<int>(num);
+}
+
+unsigned int CheckDataToUint(std::string &data, int base)
+{
+    std::regex pattern("\\d+");
+    std::regex patternTmp("-\\d+");
+    if (!std::regex_search(data, pattern) || std::regex_search(data, patternTmp)) {
+        DHCP_LOGE("CheckDataToUint regex unsigned int value fail, data:%{private}s", data.c_str());
+        return 0;
+    }
+    errno = 0;
+    char *endptr = nullptr;
+    unsigned long int num = std::strtoul(data.c_str(), &endptr, base);
+    if (errno == ERANGE) {
+        DHCP_LOGE("CheckDataToUint errno == ERANGE, data:%{private}s", data.c_str());
+        return 0;
+    }
+    return static_cast<unsigned int>(num);
+}
+
+long long CheckDataTolonglong(std::string &data, int base)
+{
+    std::regex pattern("\\d+");
+    if (!std::regex_search(data, pattern)) {
+        return 0;
+    }
+    errno = 0;
+    char *endptr = nullptr;
+    long long int num = std::strtoll(data.c_str(), &endptr, base);
+    if (errno == ERANGE) {
+        DHCP_LOGE("CheckDataTolonglong errno == ERANGE, data:%{private}s", data.c_str());
+        return 0;
+    }
+    return num;
 }
 }
 }
