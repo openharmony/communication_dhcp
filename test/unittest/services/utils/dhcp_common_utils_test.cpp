@@ -89,4 +89,11 @@ HWTEST_F(DhcpCommonUtilsTest, MacArray2StrTest, TestSize.Level1)
     len = MAC_LENTH;
     EXPECT_TRUE(!MacArray2Str(mac, len).empty());
 }
+
+HWTEST_F(DhcpCommonUtilsTest, GetElapsedSecondsSinceBootTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter GetElapsedSecondsSinceBootTest");
+    int64_t result = GetElapsedSecondsSinceBoot();
+    EXPECT_GE(result, 0);
+}
 }

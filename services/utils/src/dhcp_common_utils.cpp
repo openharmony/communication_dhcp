@@ -200,47 +200,11 @@ static int32_t GetMacAddr(char *buff, const char *macAddr)
     return 0;
 }
 
-int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const std::string& macAddr)
+int64_t GetElapsedSecondsSinceBoot()
 {
-    DHCP_LOGI("AddArpEntry enter");
-    struct arpreq req;
-    struct sockaddr_in *sin = nullptr;
-
-    if (iface.empty() || ipAddr.empty() || macAddr.empty()) {
-        DHCP_LOGE("AddArpEntry arg is invalid");
-        return -1;
-    }
-
-    if (memset_s(&req, sizeof(struct arpreq), 0, sizeof(struct arpreq)) != EOK) {
-        DHCP_LOGE("DelStaticArp memset_s err");
-        return -1;
-    }
-    sin = reinterpret_cast<struct sockaddr_in *>(&req.arp_pa);
-    sin->sin_family = AF_INET;
-    sin->sin_addr.s_addr = inet_addr(ipAddr.c_str());
-    if (strncpy_s(req.arp_dev, sizeof(req.arp_dev), iface.c_str(), iface.size()) != EOK) {
-        DHCP_LOGE("strncpy_s req err");
-        return -1;
-    }
-
-    req.arp_flags = ATF_PERM | ATF_COM;
-    if (GetMacAddr(reinterpret_cast<char *>(req.arp_ha.sa_data), macAddr.c_str()) < 0) {
-        DHCP_LOGE("AddArpEntry GetMacAddr error");
-        return -1;
-    }
-
-    int32_t sockFd = socket(AF_INET, SOCK_DGRAM, 0);
-    if (sockFd < 0) {
-        DHCP_LOGE("DoArpItem socket creat error");
-        return -1;
-    }
-
-    int32_t ret = ioctl(sockFd, SIOCSARP, req);
-    if (ret < 0) {
-        DHCP_LOGE("DoArpItem ioctl error");
-    }
-    close(sockFd);
-    return ret;
+    struct timespec times = {0, 0};
+    clock_gettime(CLOCK_BOOTTIME, &times);
+    return static_cast<int64_t>(times.tv_sec);
 }
 }
 }
