@@ -368,8 +368,8 @@ bool DhcpIpv6Client::IsEui64ModeIpv6Address(char *ipv6addr, int len)
     MacChConToMacStr(ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
     std::string localMacString = macAddr;
     std::string ipv6AddrString = ipv6addr;
-    int macPosition = localMacString.find_last_of(':');
-    int ipv6position = ipv6AddrString.find_last_of(':');
+    int macPosition = static_cast<int>(localMacString.find_last_of(':'));
+    int ipv6position = static_cast<int>(ipv6AddrString.find_last_of(':'));
     DHCP_LOGI("IsEui64ModeIpv6Address name:%{public}s index:%{public}d %{public}d %{public}d len:%{public}d",
         interfaceName.c_str(), ifaceIndex, macPosition, ipv6position, len);
     if ((macPosition != std::string::npos) && (ipv6position != std::string::npos)) {

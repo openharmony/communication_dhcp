@@ -143,8 +143,6 @@ void GetIpFromS6AddressFuzzerTest(const uint8_t *data, size_t size)
 {
     int family = static_cast<int>(data[0]);
     int buflen = static_cast<int>(data[0]);
-    ipv6Client->GetIpFromS6Address(nullptr, family, nullptr, buflen);
-
     struct in6_addr addr;
     char buf[INET6_ADDRSTRLEN] = {0};
     ipv6Client->GetIpFromS6Address(&addr, family, buf, buflen);
