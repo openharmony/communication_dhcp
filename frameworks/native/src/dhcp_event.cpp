@@ -266,7 +266,7 @@ void DhcpServerCallBack::OnServerSuccess(const std::string& ifname, std::vector<
                 return;
             }
         }
-        iter->second->OnServerSuccess(ifname.c_str(), infos, size);
+        (iter->second)->OnServerSuccess(ifname.c_str(), infos, size);
         free(infos);
         infos = nullptr;
         DHCP_LOGI("OnServerSuccess callbackEvent ok!");

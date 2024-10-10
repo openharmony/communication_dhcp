@@ -312,11 +312,10 @@ bool DhcpFunction::IsExistFile(const std::string& filename)
     std::fstream ioFile;
     ioFile.open(filename.c_str(), std::ios::in);
     if (ioFile) {
+        ioFile.close();
         bExist = true;
     }
     DHCP_LOGE("IsExistFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
-    ioFile.close();
-
     return bExist;
 }
 
@@ -324,6 +323,10 @@ bool DhcpFunction::CreateFile(const std::string& filename, const std::string& fi
 {
     std::ofstream outFile;
     outFile.open(filename.c_str());
+    if (!outFile) {
+        DHCP_LOGE("CreateFile %{public}s failed, err:%{public}s", filename.c_str(), strerror(errno));
+        return false;
+    }
     outFile.flush();
     outFile << filedata << std::endl;
     outFile.close();

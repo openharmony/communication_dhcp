@@ -75,6 +75,7 @@ void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::ve
     }
     data.WriteInt32(0);
     data.WriteInt32(stationInfos.size());
+    data.WriteInt32(stationInfos.size());
     for (auto stationInfo: stationInfos) {
         data.WriteString(stationInfo.deviceName);
         data.WriteString(stationInfo.macAddr);
