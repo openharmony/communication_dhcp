@@ -399,7 +399,7 @@ typedef struct{
 
 struct IpInfoCached {
     std::string bssid;
-    uint32_t absoluteLeasetime;
+    int64_t absoluteLeasetime;
     struct DhcpIpResult ipResult;
 };
 

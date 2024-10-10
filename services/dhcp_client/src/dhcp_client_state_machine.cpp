@@ -709,7 +709,7 @@ void DhcpClientStateMachine::Reboot(time_t timestamp)
         DHCP_LOGE("not find cache ip for m_routerCfg.bssid");
         return;
     }
-    if (static_cast<uint32_t>(timestamp) > ipInfoCached.absoluteLeasetime) {
+    if (static_cast<int64_t>(timestamp) > ipInfoCached.absoluteLeasetime) {
         DHCP_LOGE("Lease has expired, need get new ip");
         return;
     }
@@ -1891,7 +1891,7 @@ void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
     }
     IpInfoCached ipInfoCached;
     ipInfoCached.bssid = m_routerCfg.bssid;
-    ipInfoCached.absoluteLeasetime = ipResult.uOptLeasetime + static_cast<uint32_t>(time(NULL));
+    ipInfoCached.absoluteLeasetime = static_cast<int64_t>(ipResult.uOptLeasetime) + static_cast<int64_t>(time(NULL));
     ipInfoCached.ipResult = ipResult;
     DhcpResultStoreManager::GetInstance().SaveIpInfoInLocalFile(ipInfoCached);
 }
