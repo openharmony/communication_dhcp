@@ -24,7 +24,7 @@
 #endif
 #include "i_dhcp_server_callback.h"
 #include "dhcp_errcode.h"
-
+#define MAXIMUM_SIZE 256
 namespace OHOS {
 namespace DHCP {
 #ifdef OHOS_ARCH_LITE
