@@ -23,6 +23,7 @@
 #include "common_timer_errors.h"
 #include "timer.h"
 #endif
+#include "dhcp_thread.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -85,7 +86,7 @@ private:
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;
     int32_t ipv6SocketFd = 0;
-    std::thread *pthread;
+    std::unique_ptr<DhcpThread> ipv6Thread_ = nullptr;
     bool runFlag;
 #ifndef OHOS_ARCH_LITE
     uint32_t ipv6TimerId;
