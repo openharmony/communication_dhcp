@@ -100,7 +100,7 @@ private:
 
 public:
 #ifndef OHOS_ARCH_LITE
-    void StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once);
+    void StartTimer(TimerType type, uint32_t &timerId, int64_t interval, bool once);
     void StopTimer(uint32_t &timerId);
     void GetIpTimerCallback();
     void RenewDelayCallback();
@@ -118,7 +118,7 @@ public:
     int CloseSignalHandle();
     ActionMode GetAction(void);
     void SetConfiguration(const RouterCfg routerCfg);
-    void ScheduleLeaseTimers();
+    void ScheduleLeaseTimers(bool isCachedIp);
     void CloseAllRenewTimer();
     int SendStopSignal();
 private:
@@ -128,7 +128,8 @@ private:
     int m_resendTimer;
     uint32_t m_sentPacketNum;
     uint32_t m_timeoutTimestamp;
-    uint32_t m_renewalTimestamp;
+    int64_t m_renewalTimestamp;
+    int64_t m_renewalTimestampBoot;
     uint32_t m_leaseTime;
     uint32_t m_renewalSec;
     uint32_t m_rebindSec;

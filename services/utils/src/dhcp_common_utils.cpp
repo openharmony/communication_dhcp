@@ -111,5 +111,12 @@ int CheckDataLegal(std::string &data)
     }
     return 0;
 }
+
+int64_t GetElapsedSecondsSinceBoot()
+{
+    struct timespec times = {0, 0};
+    clock_gettime(CLOCK_BOOTTIME, &times);
+    return static_cast<int64_t>(times.tv_sec);
+}
 }
 }
