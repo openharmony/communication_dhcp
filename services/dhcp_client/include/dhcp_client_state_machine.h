@@ -138,6 +138,7 @@ private:
     uint32_t m_socketMode;
     uint32_t m_transID;
     DhcpClientCfg m_cltCnf;
+    std::atomic<bool> threadExit_{true};
     std::string m_ifName;  //对象服务的网卡名称
     std::unique_ptr<DhcpThread> ipv4Thread_ = nullptr;
     ActionMode m_action;

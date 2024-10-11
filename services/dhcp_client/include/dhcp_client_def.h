@@ -385,7 +385,6 @@ enum DHCP_IP_TYPE {
 
 typedef struct{
     int  ifaceIndex;                        /* Index of the network interface used by the current process. */
-    bool threadExit;                        /* DHCP packet sending times out and exits automatically. */
     bool isIpv6;                            /* IPv6 address of the network interface used to get. */
     unsigned int ifaceIpv4;                 /* IPv4 of the network interface used by the current process. */
     unsigned int getMode;                   /* Current process obtaining IPv4 address mode. */

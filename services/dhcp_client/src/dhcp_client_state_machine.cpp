@@ -90,7 +90,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     remainingDelayTimerId = 0;
 #endif
     m_cltCnf.ifaceIndex = 0;
-    m_cltCnf.threadExit = true;
+    threadExit_ = true;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.isIpv6 = false;
@@ -131,6 +131,7 @@ void DhcpClientStateMachine::RunGetIPThreadFunc(const DhcpClientStateMachine &in
 {
     DHCP_LOGI("RunGetIPThreadFunc begin.");
     if ((m_cltCnf.getMode == DHCP_IP_TYPE_ALL) || (m_cltCnf.getMode == DHCP_IP_TYPE_V4)) {
+        threadExit_ = false;
         StartIpv4();  // Handle dhcp v4.
     }
     return;
@@ -153,7 +154,7 @@ int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
 int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action)
 {
     DHCP_LOGI("StartIpv4Type ifname:%{public}s isIpv6:%{public}d threadExit:%{public}d action:%{public}d",
-        ifname.c_str(), isIpv6, m_cltCnf.threadExit, action);
+        ifname.c_str(), isIpv6, threadExit_.load(), action);
     m_ifName = ifname;
     m_action = action;
 #ifndef OHOS_ARCH_LITE
@@ -176,8 +177,8 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
 int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool isIpv6)
 {
     DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d, threadExit:%{public}d", ifname.c_str(),
-        isIpv6, m_cltCnf.threadExit);
-    if (!m_cltCnf.threadExit) {
+        isIpv6, threadExit_.load());
+    if (!threadExit_) {
         DHCP_LOGI("InitStartIpv4Thread ipv4Thread is run!");
         return DHCP_OPT_FAILED;
     }
@@ -285,11 +286,10 @@ int DhcpClientStateMachine::StartIpv4(void)
     if ((m_action != ACTION_RENEW_T1) && (m_action != ACTION_RENEW_T2) && (m_action != ACTION_RENEW_T3)) {
          DhcpInit();
     }
-    m_cltCnf.threadExit = false;
     firstSendPacketTime_ = 0;
     DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
     for (; ;) {
-        if (m_cltCnf.threadExit) {
+        if (threadExit_) {
             DHCP_LOGI("StartIpv4 send packet timed out, now break!");
             break;
         }
@@ -352,34 +352,35 @@ int DhcpClientStateMachine::StartIpv4(void)
             m_sockFd = -1;
         }
     }
-    return m_cltCnf.threadExit ? ExitIpv4() : DHCP_OPT_SUCCESS;
+    return threadExit_ ? ExitIpv4() : DHCP_OPT_SUCCESS;
 }
 
 int DhcpClientStateMachine::ExitIpv4(void)
 {
     CloseSignalHandle();
-    DHCP_LOGI("ExitIpv4 threadExit:%{public}d", m_cltCnf.threadExit);
+    DHCP_LOGI("ExitIpv4 threadExit:%{public}d", threadExit_.load());
     return DHCP_OPT_SUCCESS;
 }
 
 int DhcpClientStateMachine::StopIpv4(void)
 {
-    DHCP_LOGI("StopIpv4 threadExit:%{public}d", m_cltCnf.threadExit);
-    m_slowArpDetecting = false;
-    m_conflictCount = 0;
-    if (!m_cltCnf.threadExit) { // thread not exit
+    DHCP_LOGI("StopIpv4 threadExit:%{public}d", threadExit_.load());
+    if (!threadExit_) {
+        SetSocketMode(SOCKET_MODE_INVALID);
+        threadExit_ = true;
+        m_slowArpDetecting = false;
+        m_conflictCount = 0;
         int signum = SIG_STOP;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) { // SIG_STOP SignalReceiver
-            DHCP_LOGE("StopIpv4 send failed.");
-            return DHCP_OPT_FAILED;
+            DHCP_LOGI("StopIpv4 send m_sigSockFds failed.");
         }
-    }
 #ifndef OHOS_ARCH_LITE
-    StopTimer(getIpTimerId);
-    DHCP_LOGI("UnRegister slowArpTask: %{public}u", m_slowArpTaskId);
-    DhcpTimer::GetInstance()->UnRegister(m_slowArpTaskId);
-    m_slowArpTaskId = 0;
+        StopTimer(getIpTimerId);
+        DHCP_LOGI("UnRegister slowArpTask: %{public}u", m_slowArpTaskId);
+        DhcpTimer::GetInstance()->UnRegister(m_slowArpTaskId);
+        m_slowArpTaskId = 0;
 #endif
+    }
     return DHCP_OPT_SUCCESS;
 }
 
@@ -411,7 +412,7 @@ void DhcpClientStateMachine::DhcpInit(void)
 void DhcpClientStateMachine::DhcpStop(void)
 {
     DHCP_LOGI("DhcpStop m_dhcp4State:%{public}d", m_dhcp4State);
-    m_cltCnf.threadExit = true;
+    threadExit_ = true;
 }
 
 void DhcpClientStateMachine::InitSocketFd(void)
@@ -586,7 +587,7 @@ void DhcpClientStateMachine::InitSelecting(time_t timestamp)
         DHCP_LOGI("InitSelecting() send packet timed out %{public}u times, now exit process!", m_sentPacketNum);
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + TIMEOUT_MORE_WAIT_SEC;
         m_sentPacketNum = 0;
-        m_cltCnf.threadExit = true;
+        threadExit_ = true;
         return;
     }
     
@@ -816,7 +817,6 @@ void DhcpClientStateMachine::Declining(time_t timestamp)
         m_sentPacketNum = 0;
         m_resendTimer = 0;
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
-        SetSocketMode(SOCKET_MODE_INVALID);
         return;
     }
     m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + TIMEOUT_WAIT_SEC;
@@ -1282,7 +1282,6 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
         m_sentPacketNum = 0;
         m_resendTimer = 0;
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
-        SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
         ScheduleLeaseTimers(false);
     }
@@ -1816,7 +1815,6 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_sentPacketNum = 0;
         m_resendTimer = 0;
         m_timeoutTimestamp = m_renewalSec + static_cast<uint32_t>(time(NULL));
-        SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
         ScheduleLeaseTimers(false);
     }
@@ -1834,7 +1832,6 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         m_sentPacketNum = 0;
         m_resendTimer = 0;
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
-        SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
         ScheduleLeaseTimers(false);
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
@@ -1925,7 +1922,6 @@ void DhcpClientStateMachine::TryCachedIp()
         PublishDhcpResultEvent(m_cltCnf.ifaceName, PUBLISH_CODE_FAILED, &ipCached.ipResult);
         DHCP_LOGE("TryCachedIp publish dhcp result failed!");
     }
-    SetSocketMode(SOCKET_MODE_INVALID);
     StopIpv4();
     m_leaseTime = ipCached.ipResult.uOptLeasetime;
     m_renewalSec = ipCached.ipResult.uOptLeasetime * RENEWAL_SEC_MULTIPLE;
@@ -1944,8 +1940,8 @@ void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
 void DhcpClientStateMachine::GetIpTimerCallback()
 {
     DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}u %{public}u %{public}u %{public}u",
-        m_cltCnf.threadExit, m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
-    if (m_cltCnf.threadExit) {
+        threadExit_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+    if (threadExit_) {
         DHCP_LOGE("GetIpTimerCallback return!");
         return;
     }
@@ -2040,9 +2036,9 @@ void DhcpClientStateMachine::RebindDelayCallback()
 {
     DHCP_LOGI("RebindDelayCallback timerId:%{public}u", rebindDelayTimerId);
     StopTimer(rebindDelayTimerId);
+    StopIpv4();
     m_action = ACTION_RENEW_T2; // T2 begin rebind
     InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
     m_dhcp4State = DHCP_STATE_REBINDING;
     m_sentPacketNum = 0;
@@ -2055,9 +2051,9 @@ void DhcpClientStateMachine::RemainingDelayCallback()
 {
     DHCP_LOGI("RemainingDelayCallback timerId:%{public}u", remainingDelayTimerId);
     StopTimer(remainingDelayTimerId);
+    StopIpv4();
     m_action = ACTION_RENEW_T3;  // T3 expired,
     InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
     m_dhcp4State = DHCP_STATE_INIT;
     m_sentPacketNum = 0;
@@ -2069,8 +2065,8 @@ void DhcpClientStateMachine::RemainingDelayCallback()
 
 int DhcpClientStateMachine::SendStopSignal()
 {
-    DHCP_LOGI("SendStopSignal isExit:%{public}d", m_cltCnf.threadExit);
-    if (!m_cltCnf.threadExit) {
+    DHCP_LOGI("SendStopSignal isExit:%{public}d", threadExit_.load());
+    if (!threadExit_) {
         int signum = SIG_STOP;
         if (send(m_sigSockFds[1], &signum, sizeof(signum), MSG_DONTWAIT) < 0) {
             DHCP_LOGE("SendStopSignal send SIG_STOP failed.");
@@ -2094,7 +2090,7 @@ void DhcpClientStateMachine::CloseAllRenewTimer()
 void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 {
     DHCP_LOGI("ScheduleLeaseTimers threadExit:%{public}d m_action:%{public}d isCachedIp:%{public}d",
-        m_cltCnf.threadExit, m_action, isCachedIp);
+        threadExit_.load(), m_action, isCachedIp);
     int64_t delay = 0;
     if (isCachedIp) {
         time_t curTimestamp = time(nullptr);

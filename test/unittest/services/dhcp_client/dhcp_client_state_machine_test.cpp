@@ -600,7 +600,7 @@ HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
     sleep(2);
     dhcpClient->ipv4Thread_ = nullptr;
     dhcpClient->InitSignalHandle();
-    dhcpClient->m_cltCnf.threadExit =true;
+    dhcpClient->threadExit_ = true;
     t.join();
 }
 
@@ -859,7 +859,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
 {
     DHCP_LOGI("GetIpTimerCallbackTest1 enter!");
-    dhcpClient->m_cltCnf.threadExit = 0;
+    dhcpClient->threadExit_ = 0;
     dhcpClient->m_action = ACTION_RENEW_T1;
     dhcpClient->GetIpTimerCallback();
 
