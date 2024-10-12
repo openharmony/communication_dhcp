@@ -18,12 +18,17 @@
 
 #include <string>
 #include <memory>
+#ifdef OHOS_EUPDATER
+#include "common_timer_errors.h"
+#include "timer.h"
 #include "dhcp_client_def.h"
+#else
 #ifndef OHOS_ARCH_LITE
+#include "dhcp_client_def.h"
 #include "common_timer_errors.h"
 #include "timer.h"
 #endif
-
+#endif // OHOS_EUPDATER
 namespace OHOS {
 namespace DHCP {
 class DhcpThread {
