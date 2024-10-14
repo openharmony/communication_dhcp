@@ -69,6 +69,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_sentPacketNum(0),
     m_timeoutTimestamp(0),
     m_renewalTimestamp(0),
+    m_renewalTimestampBoot(0),
     m_leaseTime(0),
     m_renewalSec(0),
     m_rebindSec(0),
@@ -708,7 +709,7 @@ void DhcpClientStateMachine::Reboot(time_t timestamp)
         DHCP_LOGE("not find cache ip for m_routerCfg.bssid");
         return;
     }
-    if (static_cast<uint32_t>(timestamp) > ipInfoCached.absoluteLeasetime) {
+    if (static_cast<int64_t>(timestamp) > ipInfoCached.absoluteLeasetime) {
         DHCP_LOGE("Lease has expired, need get new ip");
         return;
     }
@@ -1299,7 +1300,7 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
-        ScheduleLeaseTimers();
+        ScheduleLeaseTimers(false);
     }
 }
 
@@ -1319,7 +1320,8 @@ void DhcpClientStateMachine::ParseDhcpAckPacket(const struct DhcpPacket *packet,
     }
     m_renewalSec = m_leaseTime * RENEWAL_SEC_MULTIPLE;  /* First renewal seconds. */
     m_rebindSec = m_leaseTime * REBIND_SEC_MULTIPLE;   /* Second rebind seconds. */
-    m_renewalTimestamp = static_cast<uint32_t>(timestamp);   /* Record begin renewing or rebinding timestamp. */
+    m_renewalTimestamp = static_cast<int64_t>(timestamp);   /* Record begin renewing or rebinding timestamp. */
+    m_renewalTimestampBoot = GetElapsedSecondsSinceBoot();
     m_dhcpIpResult.uOptLeasetime = m_leaseTime;
     DHCP_LOGI("ParseDhcpAckPacket Last get lease:%{public}u,renewal:%{public}u,rebind:%{public}u.",
         m_leaseTime, m_renewalSec, m_rebindSec);
@@ -1810,7 +1812,7 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_timeoutTimestamp = m_renewalSec + static_cast<uint32_t>(time(NULL));
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
-        ScheduleLeaseTimers();
+        ScheduleLeaseTimers(false);
     }
     m_slowArpDetecting = false;
 #ifndef OHOS_ARCH_LITE
@@ -1828,7 +1830,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
         SetSocketMode(SOCKET_MODE_INVALID);
         StopIpv4();
-        ScheduleLeaseTimers();
+        ScheduleLeaseTimers(false);
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
         m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
     #ifndef OHOS_ARCH_LITE
@@ -1890,7 +1892,7 @@ void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
     }
     IpInfoCached ipInfoCached;
     ipInfoCached.bssid = m_routerCfg.bssid;
-    ipInfoCached.absoluteLeasetime = ipResult.uOptLeasetime + static_cast<uint32_t>(time(NULL));
+    ipInfoCached.absoluteLeasetime = static_cast<int64_t>(ipResult.uOptLeasetime) + static_cast<int64_t>(time(NULL));
     ipInfoCached.ipResult = ipResult;
     DhcpResultStoreManager::GetInstance().SaveIpInfoInLocalFile(ipInfoCached);
 }
@@ -1922,10 +1924,9 @@ void DhcpClientStateMachine::TryCachedIp()
     m_leaseTime = ipCached.ipResult.uOptLeasetime;
     m_renewalSec = ipCached.ipResult.uOptLeasetime * RENEWAL_SEC_MULTIPLE;
     m_rebindSec = ipCached.ipResult.uOptLeasetime * REBIND_SEC_MULTIPLE;
-    m_renewalTimestamp = ipCached.ipResult.uAddTime;
-    DHCP_LOGI("TryCachedIp m_renewalTimestamp:%{public}u m_leaseTime:%{public}u %{public}u %{public}u",
-        m_renewalTimestamp, m_leaseTime, m_renewalSec, m_rebindSec);
-    ScheduleLeaseTimers();
+    m_renewalTimestamp = static_cast<int64_t>(ipCached.ipResult.uAddTime);
+    DHCP_LOGI("TryCachedIp m_leaseTime:%{public}u %{public}u %{public}u", m_leaseTime, m_renewalSec, m_rebindSec);
+    ScheduleLeaseTimers(true);
 }
 
 void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
@@ -1960,10 +1961,10 @@ void DhcpClientStateMachine::GetIpTimerCallback()
     }
 }
 
-void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, uint32_t interval, bool once)
+void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, int64_t interval, bool once)
 {
-    DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}u once:%{public}d", timerId, type,
-        interval, once);
+    DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}" PRId64" once:%{public}d", timerId,
+        type, interval, once);
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
     std::function<void()> timeCallback = nullptr;
     if (timerId != 0) {
@@ -2084,24 +2085,34 @@ void DhcpClientStateMachine::CloseAllRenewTimer()
 #endif
 }
 
-void DhcpClientStateMachine::ScheduleLeaseTimers()
+void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 {
-    DHCP_LOGI("ScheduleLeaseTimers threadExit:%{public}d m_action:%{public}d", m_cltCnf.threadExit, m_action);
-    time_t curTimestamp = time(nullptr);
-    if (curTimestamp == static_cast<time_t>(-1)) {
-        DHCP_LOGE("time return failed, errno:%{public}d", errno);
-        return;
+    DHCP_LOGI("ScheduleLeaseTimers threadExit:%{public}d m_action:%{public}d isCachedIp:%{public}d",
+        m_cltCnf.threadExit, m_action, isCachedIp);
+    int64_t delay = 0;
+    if (isCachedIp) {
+        time_t curTimestamp = time(nullptr);
+        if (curTimestamp == static_cast<time_t>(-1)) {
+            DHCP_LOGE("time return failed, errno:%{public}d", errno);
+            return;
+        }
+        delay = (static_cast<int64_t>(curTimestamp) < m_renewalTimestamp) ? 0 : (static_cast<int64_t>(curTimestamp) -
+            m_renewalTimestamp);
+        DHCP_LOGI("ScheduleLeaseTimers delay:%{public}" PRId64", curTimestamp:%{public}" PRId64","
+            "m_renewalTimestamp:%{public}" PRId64, delay, static_cast<int64_t>(curTimestamp), m_renewalTimestamp);
+    } else {
+        int64_t curTimestampBoot = GetElapsedSecondsSinceBoot();
+        delay = (curTimestampBoot < m_renewalTimestampBoot) ? 0 : (curTimestampBoot - m_renewalTimestampBoot);
+        DHCP_LOGI("ScheduleLeaseTimers delay:%{public}" PRId64", curTimestampBoot:%{public}" PRId64","
+            "m_renewalTimestampBoot:%{public}" PRId64, delay, curTimestampBoot, m_renewalTimestampBoot);
     }
-    uint32_t delay = static_cast<uint32_t>(curTimestamp) - m_renewalTimestamp;
-    DHCP_LOGI("ScheduleLeaseTimers m_renewalTimestamp:%{public}u curTimestamp:%{public}u delay:%{public}u "
-        "m_leaseTime:%{public}u m_renewalSec:%{public}u m_rebindSec:%{public}u", m_renewalTimestamp,
-        static_cast<uint32_t>(curTimestamp), delay, m_leaseTime, m_renewalSec, m_rebindSec);
 
-    uint32_t remainingDelay = ((m_leaseTime < delay) ? (m_leaseTime) : (m_leaseTime - delay)) * USECOND_CONVERT;
-    uint32_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE;
-    uint32_t rebindSec = remainingDelay * REBIND_SEC_MULTIPLE;
-    DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}u rebindSec:%{public}u remainingDelay:%{public}u",
-        renewalSec, rebindSec, remainingDelay);
+    int64_t remainingDelay = ((static_cast<int64_t>(m_leaseTime) < delay) ? (static_cast<int64_t>(m_leaseTime)) :
+        (static_cast<int64_t>(m_leaseTime) - delay)) * USECOND_CONVERT;
+    int64_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE;
+    int64_t rebindSec = remainingDelay * REBIND_SEC_MULTIPLE;
+    DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}" PRId64", rebindSec:%{public}" PRId64","
+        "remainingDelay:%{public}" PRId64, renewalSec, rebindSec, remainingDelay);
 #ifndef OHOS_ARCH_LITE
     StopTimer(renewDelayTimerId);
     StopTimer(rebindDelayTimerId);

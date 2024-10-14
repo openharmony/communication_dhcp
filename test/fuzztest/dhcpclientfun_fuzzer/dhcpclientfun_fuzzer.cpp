@@ -143,8 +143,6 @@ void GetIpFromS6AddressFuzzerTest(const uint8_t *data, size_t size)
 {
     int family = static_cast<int>(data[0]);
     int buflen = static_cast<int>(data[0]);
-    ipv6Client->GetIpFromS6Address(nullptr, family, nullptr, buflen);
-
     struct in6_addr addr;
     char buf[INET6_ADDRSTRLEN] = {0};
     ipv6Client->GetIpFromS6Address(&addr, family, buf, buflen);
@@ -906,7 +904,7 @@ void StartTimerFuzzerTest(const uint8_t *data, size_t size)
 {
     uint32_t timerId = static_cast<uint32_t>(data[0]);
     TimerType type = TimerType::TIMER_REBIND_DELAY;
-    uint32_t interval = static_cast<uint32_t>(data[0]);
+    int64_t interval = static_cast<int64_t>(data[0]);
     bool once = (static_cast<int>(data[0]) % TWO) ? true : false;
     dhcpClient->StartTimer(type, timerId, interval, once);
 

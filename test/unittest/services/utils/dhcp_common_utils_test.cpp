@@ -113,4 +113,11 @@ HWTEST_F(DhcpCommonUtilsTest, EmptyStringTest, TestSize.Level1)
     int result = CheckDataLegal(data);
     EXPECT_EQ(result, 0);
 }
+
+HWTEST_F(DhcpCommonUtilsTest, GetElapsedSecondsSinceBootTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter GetElapsedSecondsSinceBootTest");
+    int64_t result = GetElapsedSecondsSinceBoot();
+    EXPECT_GE(result, 0);
+}
 }

@@ -89,22 +89,20 @@ struct nd_opt_rdnss {
 } _packed;
 #endif
 
-DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname), pthread(nullptr), runFlag(false)
+DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname), runFlag(false)
 {
 #ifndef OHOS_ARCH_LITE
     ipv6TimerId = 0;
 #endif
+    ipv6Thread_ = std::make_unique<DhcpThread>("InnerIpv6Thread");
     DHCP_LOGI("DhcpIpv6Client()");
 }
 
 DhcpIpv6Client::~DhcpIpv6Client()
 {
     DHCP_LOGI("~DhcpIpv6Client()");
-    if (pthread != nullptr) {
-        pthread->join();
-        delete pthread;
-        pthread = nullptr;
-        DHCP_LOGI("~DhcpIpv6Client() delete pthread!");
+    if (ipv6Thread_ != nullptr) {
+        ipv6Thread_.reset();
     }
 }
 
@@ -129,10 +127,14 @@ int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
     DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6, runFlag);
     if (!runFlag) {
         interfaceName = ifname;
-        pthread = new std::thread([this]() { this->RunIpv6ThreadFunc(); });
-        if (pthread == nullptr) {
-            DHCP_LOGE("StartIpv6Thread RunIpv6ThreadFunc failed!");
-            return -1;
+        if (ipv6Thread_ == nullptr) {
+            ipv6Thread_ = std::make_unique<DhcpThread>("InnerIpv6Thread");
+        }
+        std::function<void()> func = [this]() { this->RunIpv6ThreadFunc(); };
+        int delayTime = 0;
+        bool result = ipv6Thread_->PostAsyncTask(func, delayTime);
+        if (!result) {
+            DHCP_LOGE("StartIpv6Thread PostAsyncTask failed!");
         }
         DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc ok!");
     } else {
@@ -368,8 +370,8 @@ bool DhcpIpv6Client::IsEui64ModeIpv6Address(char *ipv6addr, int len)
     MacChConToMacStr(ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
     std::string localMacString = macAddr;
     std::string ipv6AddrString = ipv6addr;
-    int macPosition = localMacString.find_last_of(':');
-    int ipv6position = ipv6AddrString.find_last_of(':');
+    size_t macPosition = localMacString.find_last_of(':');
+    size_t ipv6position = ipv6AddrString.find_last_of(':');
     DHCP_LOGI("IsEui64ModeIpv6Address name:%{public}s index:%{public}d %{public}d %{public}d len:%{public}d",
         interfaceName.c_str(), ifaceIndex, macPosition, ipv6position, len);
     if ((macPosition != std::string::npos) && (ipv6position != std::string::npos)) {

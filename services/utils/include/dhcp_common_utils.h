@@ -36,6 +36,7 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len);
 int CheckDataLegal(std::string &data, int base = DECIMAL_NOTATION);
 unsigned int CheckDataToUint(std::string &data, int base = DECIMAL_NOTATION);
 long long CheckDataTolonglong(std::string &data, int base = DECIMAL_NOTATION);
+int64_t GetElapsedSecondsSinceBoot();
 }
 }
 #endif
