@@ -286,17 +286,22 @@ void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaInd
     int scope = getAddrScope(addr);
     if (scope == 0) {
         getIpv6RouteAddr();
-        (void)memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
-            0, DHCP_INET6_ADDRSTRLEN);
+        if (memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
+            0, DHCP_INET6_ADDRSTRLEN) != EOK) {
+            DHCP_LOGE("onIpv6AddressAddEvent memset_s failed");
+            return;
+        }
         dhcpIpv6Info.status |= 1;
         GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
         DHCP_LOGD("onIpv6AddressAddEvent addr:%{private}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
             addr_str, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
         AddIpv6Address(addr_str, INET6_ADDRSTRLEN);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
-        (void)memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN,
-            0, DHCP_INET6_ADDRSTRLEN);
-        (void)memcpy_s(dhcpIpv6Info.linkIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN);
+        if (memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
+            memcpy_s(dhcpIpv6Info.linkIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN) != EOK) {
+            DHCP_LOGE("onIpv6AddressAddEvent memset_s or memcpy_s failed");
+            return;
+        }
         DHCP_LOGD("onIpv6AddressAddEvent addr:%{public}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
             addr_str, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
     } else {
