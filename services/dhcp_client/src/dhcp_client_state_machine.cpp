@@ -263,15 +263,13 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
         DHCP_LOGE("GetClientNetworkInfo() failed, m_cltCnf.ifaceName:%{public}s.", m_cltCnf.ifaceName);
         return DHCP_OPT_FAILED;
     }
-    char *cIp = Ip4IntConToStr(m_cltCnf.ifaceIpv4, true);
-    if (cIp == NULL) {
-        DHCP_LOGE("GetClientNetworkInfo() Ip4IntConToStr m_cltCnf.ifaceIpv4 failed!");
+    std::string cIp = Ip4IntConvertToStr(m_cltCnf.ifaceIpv4, true);
+    if (cIp.empty()) {
+        DHCP_LOGE("GetClientNetworkInfo() Ip4IntConvertToStr m_cltCnf.ifaceIpv4 failed!");
         return DHCP_OPT_FAILED;
     }
     DHCP_LOGI("GetClientNetworkInfo() GetLocalIp ifaceName:%{public}s -> ifaceIpv4:%{private}u - %{private}s.",
-        m_cltCnf.ifaceName, m_cltCnf.ifaceIpv4, cIp);
-    free(cIp);
-    cIp = NULL;
+        m_cltCnf.ifaceName, m_cltCnf.ifaceIpv4, cIp.c_str());
     return DHCP_OPT_SUCCESS;
 }
 
@@ -876,7 +874,8 @@ void DhcpClientStateMachine::DhcpOfferPacketHandle(uint8_t type, const struct Dh
 
     uint32_t u32Data = 0;
     if (!GetDhcpOptionUint32(packet, SERVER_IDENTIFIER_OPTION, &u32Data)) {
-        DHCP_LOGE("DhcpOfferPacketHandle() type:%{public}d GetDhcpOptionUint32 SERVER_IDENTIFIER_OPTION failed!", type);
+        DHCP_LOGE("DhcpOfferPacketHandle() type:%{public}d GetDhcpOptionUint32 SERVER_IDENTIFIER_OPTION failed!",
+            type);
         return;
     }
 
@@ -884,23 +883,19 @@ void DhcpClientStateMachine::DhcpOfferPacketHandle(uint8_t type, const struct Dh
     m_requestedIp4 = packet->yiaddr;
     m_serverIp4 = htonl(u32Data);
 
-    char *pReqIp = Ip4IntConToStr(m_requestedIp4, false);
-    if (pReqIp != NULL) {
+    std::string pReqIp = Ip4IntConvertToStr(m_requestedIp4, false);
+    if (pReqIp.length() > 0) {
         DHCP_LOGI(
             "DhcpOfferPacketHandle() receive DHCP_OFFER, xid:%{public}u, requestIp: host %{private}u->%{private}s.",
             m_transID,
             ntohl(m_requestedIp4),
-            pReqIp);
-        free(pReqIp);
-        pReqIp = NULL;
+            pReqIp.c_str());
     }
-    char *pSerIp = Ip4IntConToStr(m_serverIp4, false);
-    if (pSerIp != NULL) {
+    std::string pSerIp = Ip4IntConvertToStr(m_serverIp4, false);
+    if (pSerIp.length() > 0) {
         DHCP_LOGI("DhcpOfferPacketHandle() receive DHCP_OFFER, serverIp: host %{private}u->%{private}s.",
             ntohl(m_serverIp4),
-            pSerIp);
-        free(pSerIp);
-        pSerIp = NULL;
+            pSerIp.c_str());
     }
 
     /* Receive dhcp offer packet finished, next send dhcp request packet. */
@@ -920,16 +915,13 @@ void DhcpClientStateMachine::ParseNetworkServerIdInfo(const struct DhcpPacket *p
         DHCP_LOGE("ParseNetworkServerIdInfo SERVER_IDENTIFIER_OPTION failed!");
     } else {
         m_serverIp4 = htonl(u32Data);
-        char *pSerIp = Ip4IntConToStr(m_serverIp4, false);
-        if (pSerIp != NULL) {
-            DHCP_LOGI("ParseNetworkServerIdInfo recv DHCP_ACK 54, serid: %{private}u->%{private}s.", u32Data, pSerIp);
-            if (strncpy_s(result->strOptServerId, INET_ADDRSTRLEN, pSerIp, INET_ADDRSTRLEN - 1) != EOK) {
-                free(pSerIp);
-                pSerIp = NULL;
+        std::string pSerIp = Ip4IntConvertToStr(m_serverIp4, false);
+        if (pSerIp.length() > 0) {
+            DHCP_LOGI("ParseNetworkServerIdInfo recv DHCP_ACK 54, serid: %{private}u->%{private}s.",
+                u32Data, pSerIp.c_str());
+            if (strncpy_s(result->strOptServerId, INET_ADDRSTRLEN, pSerIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
                 return;
             }
-            free(pSerIp);
-            pSerIp = NULL;
         }
     }
 }
@@ -998,29 +990,23 @@ void DhcpClientStateMachine::ParseNetworkDnsValue(struct DhcpIpResult *result, u
         return;
     }
     uint32_t u32Data = ntohl(uData);
-    char *pDnsIp = Ip4IntConToStr(u32Data, true);
-    if (pDnsIp != nullptr) {
+    std::string pDnsIp = Ip4IntConvertToStr(u32Data, true);
+    if (pDnsIp.length() > 0) {
         count++;
         result->dnsAddr.push_back(pDnsIp);
         DHCP_LOGI("ParseNetworkDnsInfo recv DHCP_ACK 6, dns:%{private}u->%{private}s len:%{public}zu %{public}d",
-            u32Data, pDnsIp, len, count);
+            u32Data, pDnsIp.c_str(), len, count);
         if (count == DHCP_DNS_FIRST) {
-            if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptDns1, INET_ADDRSTRLEN, pDnsIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
                 DHCP_LOGE("ParseNetworkDnsInfo strncpy_s strOptDns1 Failed.");
-                free(pDnsIp);
-                pDnsIp = nullptr;
                 return;
             }
         } else if (count == DHCP_DNS_SECOND) {
-            if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, pDnsIp, INET_ADDRSTRLEN - 1) != EOK) {
+            if (strncpy_s(result->strOptDns2, INET_ADDRSTRLEN, pDnsIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
                 DHCP_LOGE("ParseNetworkDnsInfo strncpy_s strOptDns2 Failed.");
-                free(pDnsIp);
-                pDnsIp = nullptr;
                 return;
             }
         }
-        free(pDnsIp);
-        pDnsIp = nullptr;
     } else {
         DHCP_LOGI("ParseNetworkDnsInfo pDnsIp is nullptr, len:%{public}zu %{public}d ", len, count);
     }
@@ -1069,36 +1055,29 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
         return;
     }
 
-    char *pReqIp = Ip4IntConToStr(m_requestedIp4, false);
-    if (pReqIp != NULL) {
+    std::string pReqIp = Ip4IntConvertToStr(m_requestedIp4, false);
+    if (pReqIp.length() > 0) {
         DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK yiaddr: %{private}u->%{public}s.",
             ntohl(m_requestedIp4), Ipv4Anonymize(pReqIp).c_str());
-        if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, pReqIp, INET_ADDRSTRLEN - 1) != EOK) {
+        if (strncpy_s(result->strYiaddr, INET_ADDRSTRLEN, pReqIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
             DHCP_LOGI("ParseNetworkInfo() strncpy_s failed!");
-            free(pReqIp);
-            pReqIp = NULL;
             return;
         }
-        free(pReqIp);
-        pReqIp = NULL;
     }
 
     uint32_t u32Data = 0;
     if (GetDhcpOptionUint32(packet, SUBNET_MASK_OPTION, &u32Data)) {
-        char *pSubIp = Ip4IntConToStr(u32Data, true);
-        if (pSubIp != NULL) {
-            DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.", u32Data, pSubIp);
-            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp, INET_ADDRSTRLEN - 1) != EOK) {
+        std::string pSubIp = Ip4IntConvertToStr(u32Data, true);
+        if (pSubIp.length() > 0) {
+            DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 1, subnetmask: %{private}u->%{private}s.",
+                u32Data, pSubIp.c_str());
+            if (strncpy_s(result->strOptSubnet, INET_ADDRSTRLEN, pSubIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
                 DHCP_LOGE("strncpy_s strOptSubnet failed!");
                 SetDefaultNetMask(result);
-                free(pSubIp);
-                pSubIp = NULL;
                 return;
             }
-            free(pSubIp);
-            pSubIp = NULL;
         } else {
-            DHCP_LOGE("Ip4IntConToStr() failed!");
+            DHCP_LOGE("Ip4IntConvertToStr() failed!");
             SetDefaultNetMask(result);
         }
     } else {
@@ -1109,27 +1088,21 @@ void DhcpClientStateMachine::ParseNetworkInfo(const struct DhcpPacket *packet, s
     u32Data = 0;
     uint32_t u32Data2 = 0;
     if (GetDhcpOptionUint32n(packet, ROUTER_OPTION, &u32Data, &u32Data2)) {
-        char *pRouterIp = Ip4IntConToStr(u32Data, true);
-        if (pRouterIp != NULL) {
-            DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router1: %{private}u->%{private}s.", u32Data, pRouterIp);
-            if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
-                free(pRouterIp);
-                pRouterIp = NULL;
+        std::string pRouterIp = Ip4IntConvertToStr(u32Data, true);
+        if (pRouterIp.length() > 0) {
+            DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router1: %{private}u->%{private}s.",
+                u32Data, pRouterIp.c_str());
+            if (strncpy_s(result->strOptRouter1, INET_ADDRSTRLEN, pRouterIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
                 return;
             }
-            free(pRouterIp);
-            pRouterIp = NULL;
         }
-        pRouterIp = Ip4IntConToStr(u32Data2, true);
-        if ((u32Data2 > 0) && (pRouterIp != NULL)) {
-            DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router2: %{private}u->%{private}s.", u32Data2, pRouterIp);
-            if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, pRouterIp, INET_ADDRSTRLEN - 1) != EOK) {
-                free(pRouterIp);
-                pRouterIp = NULL;
+        pRouterIp = Ip4IntConvertToStr(u32Data2, true);
+        if ((u32Data2 > 0) && (pRouterIp.length() > 0)) {
+            DHCP_LOGI("ParseNetworkInfo() recv DHCP_ACK 3, router2: %{private}u->%{private}s.",
+                u32Data2, pRouterIp.c_str());
+            if (strncpy_s(result->strOptRouter2, INET_ADDRSTRLEN, pRouterIp.c_str(), INET_ADDRSTRLEN - 1) != EOK) {
                 return;
             }
-            free(pRouterIp);
-            pRouterIp = NULL;
         }
     }
 }
@@ -1768,12 +1741,7 @@ void DhcpClientStateMachine::IpConflictDetect()
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
     m_dhcp4State = DHCP_STATE_FAST_ARP;
-    char *tmepIp = Ip4IntConToStr(m_requestedIp4, false);
-    if (tmepIp != NULL) {
-        m_arpDectionTargetIp = tmepIp;
-        free(tmepIp);
-        tmepIp = NULL;
-    }
+    m_arpDectionTargetIp = Ip4IntConvertToStr(m_requestedIp4, false);
 }
 
 void DhcpClientStateMachine::FastArpDetect()

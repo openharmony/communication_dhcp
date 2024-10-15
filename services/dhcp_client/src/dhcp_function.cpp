@@ -63,31 +63,22 @@ bool Ip4StrConToInt(const char *strIp, uint32_t *uIp, bool bHost)
     return true;
 }
 
-char *Ip4IntConToStr(uint32_t uIp, bool bHost)
+std::string Ip4IntConvertToStr(uint32_t ip, bool host)
 {
     char bufIp4[INET_ADDRSTRLEN] = {0};
     struct in_addr addr4;
-    if (bHost) {
-        addr4.s_addr = htonl(uIp);
+    if (host) {
+        addr4.s_addr = htonl(ip);
     } else {
-        addr4.s_addr = uIp;
-    }
-    const char *p = inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN);
-    if (p == NULL) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, inet_ntop p == NULL!", uIp);
-        return NULL;
+        addr4.s_addr = ip;
     }
 
-    char *strIp = (char *)malloc(INET_ADDRSTRLEN);
-    if (strIp == NULL) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, strIp malloc failed!", uIp);
-        return NULL;
-    }
-    if (strncpy_s(strIp, INET_ADDRSTRLEN, bufIp4, strlen(bufIp4)) != EOK) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, strIp strncpy_s failed!", uIp);
-        free(strIp);
-        strIp = NULL;
-        return NULL;
+    std::string strIp = "";
+    if (inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN) == nullptr) {
+        DHCP_LOGE("Ip4IntConvertToStr uIp:%{private}u failed, inet_ntop nullptr!", ip);
+    } else {
+        strIp = bufIp4;
+        DHCP_LOGI("Ip4IntConvertToStr uIp:%{private}u -> strIp:%{private}s.", ip, strIp.c_str());
     }
 
     return strIp;

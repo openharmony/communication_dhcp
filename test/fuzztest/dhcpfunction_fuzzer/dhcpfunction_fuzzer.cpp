@@ -37,12 +37,12 @@ void Ip4StrConToIntTest(const uint8_t* data, size_t size)
     pDhcpFunction->Ip4StrConToInt(strIp, uIp, bHost);
 }
 
-void Ip4IntConToStrTest(const uint8_t* data, size_t size)
+void Ip4IntConvertToStrTest(const uint8_t* data, size_t size)
 {
     uint32_t index = 0;
     uint32_t uIp = static_cast<uint32_t>(data[index++]);
     bool bHost = (static_cast<int>(data[0]) % TWO) ? true : false;
-    pDhcpFunction->Ip4IntConToStr(uIp, bHost);
+    pDhcpFunction->Ip4IntConvertToStr(uIp, bHost);
 }
 
 void Ip6StrConToCharTest(const uint8_t* data, size_t size)
@@ -168,7 +168,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::Ip4StrConToIntTest(data, size);
-    OHOS::DHCP::Ip4IntConToStrTest(data, size);
+    OHOS::DHCP::Ip4IntConvertToStrTest(data, size);
     OHOS::DHCP::Ip6StrConToCharTest(data, size);
     OHOS::DHCP::CheckIpStrTest(data, size);
     OHOS::DHCP::IsExistFileTest(data, size);
