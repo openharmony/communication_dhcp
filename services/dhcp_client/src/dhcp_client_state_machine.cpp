@@ -417,7 +417,7 @@ void DhcpClientStateMachine::DhcpStop(void)
 
 void DhcpClientStateMachine::InitSocketFd(void)
 {
-    DHCP_LOGI("InitSocketFd fd:%{public}d,mode:%{public}d,index:%{public}d,name:%{public}s,timeoutTimestamp:%{public}u",
+    DHCP_LOGD("InitSocketFd fd:%{public}d,mode:%{public}d,index:%{public}d,name:%{public}s,timeoutTimestamp:%{public}u",
         m_sockFd, m_socketMode, m_cltCnf.ifaceIndex, m_cltCnf.ifaceName, m_timeoutTimestamp);
     if (m_sockFd < 0) {
         if (m_socketMode == SOCKET_MODE_INVALID) {
