@@ -141,8 +141,6 @@ int BindRawSocket(const int rawFd, const int ifaceIndex, const uint8_t *ifaceAdd
     }
     if (setsockopt(rawFd, SOL_SOCKET, SO_ATTACH_FILTER, &g_filter, sizeof(g_filter)) == -1) {
         DHCP_LOGE("BindRawSocket() SO_ATTACH_FILTER error:%{public}d.", errno);
-        close(rawFd);
-        return SOCKET_OPT_FAILED;
     }
     int nRet = bind(rawFd, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
     if (nRet == -1) {
