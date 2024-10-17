@@ -207,8 +207,8 @@ int SendToDhcpPacket(
         DHCP_LOGE("SendToDhcpPacket memset_s udpPackets fail.");
         return SOCKET_OPT_FAILED;
     }
-    /* get append options length , include endpoint length(3) */
-    int optionLen = GetEndOptionIndex(sendPacket->options) + 3;
+    /* get append options length , include endpoint length(2) */
+    int optionLen = GetEndOptionIndex(sendPacket->options) + DHCP_APPEND_LEN;
     int sendLen = sizeof(udpPackets) - sizeof(udpPackets.data.options) + optionLen;
     int dhcpPackLen = sizeof(struct DhcpPacket) - sizeof(udpPackets.data.options) + optionLen;
     udpPackets.udp.source = htons(BOOTP_CLIENT);

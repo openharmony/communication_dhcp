@@ -23,7 +23,7 @@
 #define BOOTREQUEST 1
 #define BOOTREPLY 2
 
-#define DHCP_MSG_HEADER_SIZE 236
+#define DHCP_MSG_HEADER_SIZE 234
 
 enum DhcpMessageType {
     DHCPDISCOVER = 1,

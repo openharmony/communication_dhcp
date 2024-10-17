@@ -107,6 +107,7 @@
 #define SNAME_FIELD                 2
 #define DHCP_DNS_FIRST              1
 #define DHCP_DNS_SECOND             2
+#define DHCP_APPEND_LEN             2
 
 #ifdef OHOS_EUPDATER
 #define WORKDIR                 "/tmp/service/el1/public/dhcp/"
