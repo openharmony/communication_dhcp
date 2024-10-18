@@ -12,20 +12,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #ifndef OHOS_DHCP_FUNCTION_H
 #define OHOS_DHCP_FUNCTION_H
 
+#include <cstring>
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include <string>
 
 bool Ip4StrConToInt(const char *strIp, uint32_t *uIp, bool bHost);
-char *Ip4IntConToStr(uint32_t uIp, bool bHost);
+std::string Ip4IntConvertToStr(uint32_t ip, bool host);
 bool Ip6StrConToChar(const char *strIp, uint8_t chIp[], size_t chlen);
 const char *MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, size_t strLen);
 int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, uint32_t *ifaddr4);
@@ -35,7 +34,4 @@ int InitPidfile(const char *pidDir, const char *pidFile, pid_t pid);
 pid_t GetPID(const char *pidFile);
 int CreateDirs(const char *dirs, int mode);
 
-#ifdef __cplusplus
-}
-#endif
 #endif
