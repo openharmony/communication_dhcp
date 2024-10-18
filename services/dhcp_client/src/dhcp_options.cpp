@@ -363,7 +363,7 @@ int AddOptValueToOpts(uint8_t *pOpts, uint8_t code, uint32_t value)
             *pUint8 =  value;
             break;
         case DHCP_UINT16_BYTES:
-            *pUint16 = value;
+            *pUint16 = htons(static_cast<uint16_t>(value));
             break;
         case DHCP_UINT32_BYTES:
             *pUint32 = value;
