@@ -48,6 +48,7 @@ HWTEST_F(DhcpSystemTimerTest, SystemTimer1Test, TestSize.Level1)
     dhcpSysTimer.OnTrigger();
     dhcpSysTimer.SetRepeat(false);
     dhcpSysTimer.SetInterval(SLEEP_TIME);
+    EXPECT_EQ(false, dhcpSysTimer.repeat);
 }
 
 HWTEST_F(DhcpSystemTimerTest, SystemTimer2Test, TestSize.Level1)
@@ -59,5 +60,6 @@ HWTEST_F(DhcpSystemTimerTest, SystemTimer2Test, TestSize.Level1)
     dhcpSysTimer.SetType(TIMER_TYPE);
     dhcpSysTimer.SetRepeat(false);
     dhcpSysTimer.SetInterval(SLEEP_TIME);
+    EXPECT_EQ(TIMER_TYPE, dhcpSysTimer.type);
 }
 }

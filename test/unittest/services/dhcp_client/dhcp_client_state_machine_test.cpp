@@ -307,18 +307,21 @@ HWTEST_F(DhcpClientStateMachineTest, GetPacketReadSockFdTest, TestSize.Level1)
 {
     DHCP_LOGE("GetPacketReadSockFdTest enter!");
     dhcpClient->GetPacketReadSockFd();
+    EXPECT_EQ(-1, dhcpClient->m_sockFd);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetSigReadSockFdTest, TestSize.Level1)
 {
     DHCP_LOGE("GetSigReadSockFdTest enter!");
     dhcpClient->GetSigReadSockFd();
+    EXPECT_EQ(0, dhcpClient->m_sigSockFds[0]);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetDhcpTransIDTest, TestSize.Level1)
 {
     DHCP_LOGE("GetDhcpTransIDTest enter!");
     dhcpClient->GetDhcpTransID();
+    EXPECT_EQ(0, dhcpClient->m_transID);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level1)
@@ -346,6 +349,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpInitTest enter!");
     dhcpClient->DhcpInit();
+    EXPECT_EQ(DHCP_STATE_INIT, dhcpClient->m_dhcp4State);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
@@ -584,6 +588,7 @@ HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
 
     strcpy_s(result8.strYiaddr, sizeof(result8.strYiaddr), "192.168.0.8");
     dhcpClient->FormatString(&result8);
+    EXPECT_EQ(nullptr, result);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)

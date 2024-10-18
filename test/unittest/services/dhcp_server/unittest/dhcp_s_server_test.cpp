@@ -260,6 +260,7 @@ HWTEST_F(DhcpServerTest, NotifyConnetDeviceChangedTest, TestSize.Level1)
     replyType = REPLY_NAK;
     NotifyConnetDeviceChanged(replyType, nullptr);
     NotifyConnetDeviceChanged(replyType, &ctx);
+    EXPECT_EQ(REPLY_NAK, replyType);
 }
 
 HWTEST_F(DhcpServerTest, RegisterDeviceChangedCallbackTest, TestSize.Level1)
@@ -268,6 +269,7 @@ HWTEST_F(DhcpServerTest, RegisterDeviceChangedCallbackTest, TestSize.Level1)
     DeviceConnectFun func = nullptr;
     RegisterDeviceChangedCallback(nullptr, func);
     RegisterDeviceChangedCallback(&ctx, func);
+    EXPECT_EQ(nullptr, func);
 }
 }
 }

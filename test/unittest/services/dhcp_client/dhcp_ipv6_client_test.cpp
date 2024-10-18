@@ -366,7 +366,9 @@ HWTEST_F(DhcpIpv6ClientTest, handleKernelEventTest, TestSize.Level1)
 HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest, TestSize.Level1)
 {
     DHCP_LOGI("AddIpv6Address enter!");
-    ipv6Client->AddIpv6Address(nullptr, 0);
+    int len = 0;
+    ipv6Client->AddIpv6Address(nullptr, len);
+    EXPECT_EQ(0, len);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest1, TestSize.Level1)
@@ -375,6 +377,7 @@ HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest1, TestSize.Level1)
     char ipv6Addr[128] = "1001:0db8:85a3:0000:0000:8a2e:0370:7334";
     int len = DHCP_INET6_ADDRSTRLEN - 1;
     ipv6Client->AddIpv6Address(nullptr, len);
+    EXPECT_EQ(127, len);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, IsEui64ModeIpv6AddressTest, TestSize.Level1)
