@@ -79,7 +79,8 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_transID(0),
     m_ifName(ifname),
     ipv4Thread_(nullptr),
-    m_slowArpDetecting(false)
+    m_slowArpDetecting(false),
+    firstSendPacketTime_(0)
 {
 #ifndef OHOS_ARCH_LITE
     m_slowArpTaskId =0 ;
@@ -618,6 +619,15 @@ int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
         return -1;
     }
     packet.xid = transid;
+    /* Set Reboot Request seconds elapsed. */
+    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
+    if (firstSendPacketTime_ == 0) {
+        firstSendPacketTime_ = curTimeSeconds;
+    }
+    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+    DHCP_LOGI("DhcpReboot curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
+        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+
     AddClientIdToOpts(&packet); // 61
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); //50
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
@@ -1574,6 +1584,15 @@ int DhcpClientStateMachine::DhcpDiscover(uint32_t transid, uint32_t requestip)
 
     /* Get packet not common info. */
     packet.xid = transid;
+    /* Set Discover seconds elapsed. */
+    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
+    if (firstSendPacketTime_ == 0) {
+        firstSendPacketTime_ = curTimeSeconds;
+    }
+    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+    DHCP_LOGI("DhcpDiscover curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
+        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); // 57
     AddParamaterRequestList(&packet); // 55
     DHCP_LOGI("DhcpDiscover begin broadcast discover packet");
@@ -1598,6 +1617,15 @@ int DhcpClientStateMachine::DhcpRequest(uint32_t transid, uint32_t reqip, uint32
 
     /* Get packet not common info. */
     packet.xid = transid;
+    /* Set Request seconds elapsed. */
+    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
+    if (firstSendPacketTime_ == 0) {
+        firstSendPacketTime_ = curTimeSeconds;
+    }
+    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+    DHCP_LOGI("DhcpRequest curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
+        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, servip); // 50
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); // 54
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
@@ -1624,6 +1652,15 @@ int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint3
 
     /* Get packet not common info. */
     packet.xid = transid;
+    /* Set Renew Request seconds elapsed. */
+    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
+    if (firstSendPacketTime_ == 0) {
+        firstSendPacketTime_ = curTimeSeconds;
+    }
+    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+    DHCP_LOGI("DhcpRenew curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
+        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+
     packet.ciaddr = clientip;
     AddParamaterRequestList(&packet);
 

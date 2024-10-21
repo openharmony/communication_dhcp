@@ -156,6 +156,7 @@ private:
     DhcpArpChecker m_dhcpArpChecker;
     std::function<void(bool isReachable)> m_slowArpCallback;
     bool m_slowArpDetecting;
+    int64_t firstSendPacketTime_;
 };
 
 typedef struct{

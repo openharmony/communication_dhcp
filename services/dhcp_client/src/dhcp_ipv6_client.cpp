@@ -25,6 +25,7 @@
 #include <sys/time.h>
 #include <net/if.h>
 #include <errno.h>
+#include <fstream>
 #include <thread>
 #include "securec.h"
 #include "dhcp_logger.h"

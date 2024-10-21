@@ -36,7 +36,6 @@ constexpr int32_t MAC_INDEX_2 = 2;
 constexpr int32_t MAC_INDEX_3 = 3;
 constexpr int32_t MAC_INDEX_4 = 4;
 constexpr int32_t MAC_INDEX_5 = 5;
-constexpr int32_t MAC_LENTH = 6;
 
 std::string Ipv4Anonymize(const std::string str)
 {
