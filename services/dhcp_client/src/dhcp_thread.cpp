@@ -197,31 +197,47 @@ private:
 
 
 DhcpThread::DhcpThread(const std::string &threadName)
-    :ptr(new DhcpThreadImpl(threadName))
+    :ptr_(new DhcpThreadImpl(threadName))
 {}
 
 DhcpThread::~DhcpThread()
 {
-    ptr.reset();
+    ptr_.reset();
 }
 
 bool DhcpThread::PostSyncTask(const Callback &callback)
 {
-    return ptr->PostSyncTask(const_cast<Callback &>(callback));
+    if (ptr_ == nullptr) {
+        DHCP_LOGE("PostSyncTask: ptr_ is nullptr!");
+        return false;
+    }
+    return ptr_->PostSyncTask(const_cast<Callback &>(callback));
 }
 
 bool DhcpThread::PostAsyncTask(const Callback &callback, int64_t delayTime)
 {
-    return ptr->PostAsyncTask(const_cast<Callback &>(callback), delayTime);
+    if (ptr_ == nullptr) {
+        DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
+        return false;
+    }
+    return ptr_->PostAsyncTask(const_cast<Callback &>(callback), delayTime);
 }
 
 bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name, int64_t delayTime)
 {
-    return ptr->PostAsyncTask(const_cast<Callback &>(callback), name, delayTime);
+    if (ptr_ == nullptr) {
+        DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
+        return false;
+    }
+    return ptr_->PostAsyncTask(const_cast<Callback &>(callback), name, delayTime);
 }
 void DhcpThread::RemoveAsyncTask(const std::string &name)
 {
-    ptr->RemoveAsyncTask(name);
+    if (ptr_ == nullptr) {
+        DHCP_LOGE("RemoveAsyncTask: ptr_ is nullptr!");
+        return;
+    }
+    ptr_->RemoveAsyncTask(name);
 }
 
 #ifndef OHOS_ARCH_LITE
