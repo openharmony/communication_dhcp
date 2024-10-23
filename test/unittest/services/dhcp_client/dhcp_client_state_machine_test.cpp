@@ -1015,6 +1015,14 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
     time_t timestamp = 1;
     dhcpClient->DhcpResponseHandle(timestamp);
 }
+
+HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level1)
+{
+    DHCP_LOGI("SetSecondsElapsedTest enter!");
+    DhcpPacket packet;
+    dhcpClient->SetSecondsElapsed(nullptr);
+    dhcpClient->SetSecondsElapsed(&packet);
+}
 }
 }
 

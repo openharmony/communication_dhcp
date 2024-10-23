@@ -666,14 +666,7 @@ int DhcpClientStateMachine::DhcpReboot(uint32_t transid, uint32_t reqip)
     }
     packet.xid = transid;
     /* Set Reboot Request seconds elapsed. */
-    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
-    if (firstSendPacketTime_ == 0) {
-        firstSendPacketTime_ = curTimeSeconds;
-    }
-    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-    DHCP_LOGI("DhcpReboot curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
-        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-
+    SetSecondsElapsed(&packet);
     AddClientIdToOpts(&packet); // 61
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); //50
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
@@ -1631,14 +1624,7 @@ int DhcpClientStateMachine::DhcpDiscover(uint32_t transid, uint32_t requestip)
     /* Get packet not common info. */
     packet.xid = transid;
     /* Set Discover seconds elapsed. */
-    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
-    if (firstSendPacketTime_ == 0) {
-        firstSendPacketTime_ = curTimeSeconds;
-    }
-    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-    DHCP_LOGI("DhcpDiscover curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
-        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-
+    SetSecondsElapsed(&packet);
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); // 57
     AddParamaterRequestList(&packet); // 55
     DHCP_LOGI("DhcpDiscover begin broadcast discover packet");
@@ -1664,14 +1650,7 @@ int DhcpClientStateMachine::DhcpRequest(uint32_t transid, uint32_t reqip, uint32
     /* Get packet not common info. */
     packet.xid = transid;
     /* Set Request seconds elapsed. */
-    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
-    if (firstSendPacketTime_ == 0) {
-        firstSendPacketTime_ = curTimeSeconds;
-    }
-    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-    DHCP_LOGI("DhcpRequest curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
-        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-
+    SetSecondsElapsed(&packet);
     AddOptValueToOpts(packet.options, SERVER_IDENTIFIER_OPTION, servip); // 50
     AddOptValueToOpts(packet.options, REQUESTED_IP_ADDRESS_OPTION, reqip); // 54
     AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
@@ -1699,14 +1678,7 @@ int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint3
     /* Get packet not common info. */
     packet.xid = transid;
     /* Set Renew Request seconds elapsed. */
-    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
-    if (firstSendPacketTime_ == 0) {
-        firstSendPacketTime_ = curTimeSeconds;
-    }
-    packet.secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-    DHCP_LOGI("DhcpRenew curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
-        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
-
+    SetSecondsElapsed(&packet);
     packet.ciaddr = clientip;
     AddParamaterRequestList(&packet);
 
@@ -1934,6 +1906,21 @@ void DhcpClientStateMachine::TryCachedIp()
 void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
 {
     m_routerCfg = routerCfg;
+}
+
+void DhcpClientStateMachine::SetSecondsElapsed(struct DhcpPacket *packet)
+{
+    if (packet == nullptr) {
+        DHCP_LOGE("packet is nullptr!");
+        return;
+    }
+    int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
+    if (firstSendPacketTime_ == 0) {
+        firstSendPacketTime_ = curTimeSeconds;
+    }
+    packet->secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+    DHCP_LOGI("SetSecondsElapsed curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
+        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
 }
 
 #ifndef OHOS_ARCH_LITE
