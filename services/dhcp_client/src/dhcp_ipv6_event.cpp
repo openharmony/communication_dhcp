@@ -135,7 +135,7 @@ void DhcpIpv6Client::parseNewneighMessage(void* msg)
                     return;
                 }
                 onIpv6RouteAddEvent(gateway, dst, ndm->ndm_ifindex);
-                DHCP_LOGI("getIpv6RouteAddr: %{public}s", gateway);
+                DHCP_LOGD("getIpv6RouteAddr: %{public}s", gateway);
                 break;
             }
             rta = RTA_NEXT(rta, rtl);
