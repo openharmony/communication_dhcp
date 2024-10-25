@@ -154,17 +154,17 @@ int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &
             return DHCP_E_FAILED;
         }
         if (memcpy_s(stationInfo.ipAddr, sizeof(stationInfo.ipAddr),
-                     ipAddress.c_str(), sizeof(stationInfo.ipAddr)) != EOK) {
+                     ipAddress.c_str(), IP_ADDR_STR_LEN) != EOK) {
             DHCP_LOGE("ipAddr memcpy_s error!");
             return DHCP_E_FAILED;
         }
         if (memcpy_s(stationInfo.macAddr, sizeof(stationInfo.macAddr),
-                     macAddress.c_str(), sizeof(stationInfo.macAddr)) != EOK) {
+                     macAddress.c_str(), MAC_ADDR_STR_LEN) != EOK) {
             DHCP_LOGE("macAddr memcpy_s error!");
             return DHCP_E_FAILED;
         }
         if (memcpy_s(stationInfo.deviceName, sizeof(stationInfo.deviceName),
-                     deviceName.c_str(), sizeof(stationInfo.deviceName)) != EOK) {
+                     deviceName.c_str(), DEVICE_NAME_STR_LEN) != EOK) {
             DHCP_LOGE("deviceName memcpy_s error!");
             return DHCP_E_FAILED;
         }
