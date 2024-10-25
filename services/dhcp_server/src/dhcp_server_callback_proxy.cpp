@@ -75,7 +75,6 @@ void DhcpServerCallbackProxy::OnServerSuccess(const std::string& ifname, std::ve
     }
     data.WriteInt32(0);
     data.WriteString(ifname);
-    DHCP_LOGI("%{public}s, calling tagName:%{public}s", __func__, ifname.c_str());
     data.WriteInt32(stationInfos.size());
     for (auto stationInfo: stationInfos) {
         data.WriteString(stationInfo.deviceName);
