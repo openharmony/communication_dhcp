@@ -137,12 +137,12 @@ int DhcpServreCallBackStub::RemoteOnServerStatusChanged(uint32_t code, MessagePa
 int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
-    std::string ifName = data.ReadString();
     int size = data.ReadInt32();
     if (size < 0 || size > MAXIMUM_SIZE) {
         reply.WriteInt32(0);
         return DHCP_E_SUCCESS;
     }
+    std::string ifName = data.ReadString();
     std::vector<DhcpStationInfo> stationInfos;
     for (int i = 0; i < size; i++) {
         std::string deviceName = data.ReadString();
