@@ -134,7 +134,7 @@ int DhcpServreCallBackStub::RemoteOnServerStatusChanged(uint32_t code, MessagePa
     return 0;
 }
 
-int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code,const MessageParcel &data, MessageParcel &reply)
+int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     std::string ifName = data.ReadString();
