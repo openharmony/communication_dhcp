@@ -134,14 +134,14 @@ int DhcpServreCallBackStub::RemoteOnServerStatusChanged(uint32_t code, MessagePa
     return 0;
 }
 
-int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
+int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code,const MessageParcel &data, MessageParcel &reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     std::string ifName = data.ReadString();
     int size = data.ReadInt32();
     if (size < 0 || size > MAXIMUM_SIZE) {
         reply.WriteInt32(0);
-        return 0;
+        return DHCP_E_SUCCESS;
     }
     std::vector<DhcpStationInfo> stationInfos;
     for (int i = 0; i < size; i++) {
@@ -149,7 +149,10 @@ int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &
         std::string macAddress = data.ReadString();
         std::string ipAddress = data.ReadString();
         DhcpStationInfo stationInfo;
-        memset_s(&stationInfo, sizeof(DhcpStationInfo), 0, sizeof(DhcpStationInfo));
+        if (memset_s(&stationInfo, sizeof(DhcpStationInfo), 0, sizeof(DhcpStationInfo)) != EOK) {
+            DHCP_LOGE("DhcpStationInfo memset_s failed!");
+            return DHCP_E_FAILED;
+        }
         if (memcpy_s(stationInfo.ipAddr, sizeof(stationInfo.ipAddr),
                      ipAddress.c_str(), sizeof(stationInfo.ipAddr)) != EOK) {
             DHCP_LOGE("ipAddr memcpy_s error!");
@@ -169,7 +172,7 @@ int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &
     }
     OnServerSuccess(ifName, stationInfos);
     reply.WriteInt32(0);
-    return 0;
+    return DHCP_E_SUCCESS;
 }
 
 int DhcpServreCallBackStub::RemoteOnServerLeasesChanged(uint32_t code, MessageParcel &data, MessageParcel &reply)
