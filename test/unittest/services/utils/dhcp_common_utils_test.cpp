@@ -122,4 +122,50 @@ HWTEST_F(DhcpCommonUtilsTest, GetElapsedSecondsSinceBootTest, TestSize.Level1)
     int64_t result = GetElapsedSecondsSinceBoot();
     EXPECT_GE(result, 0);
 }
+
+HWTEST_F(DhcpCommonUtilsTest, CheckDataToUintTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter CheckDataToUintTest");
+    std::string data = "abc";
+    int base = 10;
+    unsigned int result = CheckDataToUint(data, base);
+    EXPECT_EQ(result, 0);
+
+    data = "-123";
+    result = CheckDataToUint(data, base);
+    EXPECT_EQ(result, 0);
+
+    data = "4294967296"; // 2^32 + 1, out of range for unsigned int
+    result = CheckDataToUint(data, base);
+    EXPECT_EQ(result, 0);
+
+    data = "123";
+    result = CheckDataToUint(data, base);
+    EXPECT_EQ(result, 123);
+}
+
+HWTEST_F(DhcpCommonUtilsTest, CheckDataTolonglongTest, TestSize.Level1)
+{
+    DHCP_LOGI("enter CheckDataTolonglongTest");
+    std::string data = "";
+    int base = 10;
+    long long result = CheckDataTolonglong(data, base);
+    EXPECT_EQ(result, 0);
+
+    data = "abc";
+    result = CheckDataTolonglong(data, base);
+    EXPECT_EQ(result, 0);
+
+    data = "12345678901234567890";
+    result = CheckDataTolonglong(data, base);
+    EXPECT_EQ(result, 0);
+
+    data = "12345";
+    result = CheckDataTolonglong(data, base);
+    EXPECT_EQ(result, 12345);
+
+    data = "9223372036854775808";
+    result = CheckDataTolonglong(data, base);
+    EXPECT_EQ(result, 0);
+}
 }
