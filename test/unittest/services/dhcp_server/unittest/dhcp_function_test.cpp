@@ -227,6 +227,21 @@ HWTEST_F(DhcpFunctionTest, FormatString_SUCCESS, TestSize.Level1)
     EXPECT_EQ(0, DhcpFunction::FormatString(result));
 }
 
+HWTEST_F(DhcpFunctionTest, FormatString_FAIL, TestSize.Level1)
+{
+    struct DhcpPacketResult result;
+    ASSERT_TRUE(memset_s(&result, sizeof(result), 0, sizeof(result)) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strYiaddr, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptServerId, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptSubnet, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptDns1, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptDns2, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptRouter1, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptRouter2, INET_ADDRSTRLEN, "1", INET_ADDRSTRLEN - 1) == EOK);
+    ASSERT_TRUE(strncpy_s(result.strOptVendor, DHCP_FILE_MAX_BYTES, "1", DHCP_FILE_MAX_BYTES - 1) == EOK);
+    EXPECT_EQ(0, DhcpFunction::FormatString(result));
+}
+
 HWTEST_F(DhcpFunctionTest, InitPidfile_TEST, TestSize.Level1)
 {
     std::string pidDir, pidFile;

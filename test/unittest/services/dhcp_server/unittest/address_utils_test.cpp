@@ -281,5 +281,6 @@ HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level1)
     EXPECT_EQ(0, AddrEquels(testMac1, testMac3, MAC_ADDR_LENGTH));
     EXPECT_EQ(0, AddrEquels(testMac2, testMac3, MAC_ADDR_LENGTH));
 }
+1
 }
 }

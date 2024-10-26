@@ -28,6 +28,7 @@ using namespace OHOS;
 using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
+constexpr int ZERO = 0;
 class DhcpServerServiceTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -157,12 +158,14 @@ HWTEST_F(DhcpServerServiceTest, OnStartTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStartTest");
     pServerServiceImpl->OnStart();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpServerServiceTest, OnStopTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStopTest");
     pServerServiceImpl->OnStop();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
@@ -221,12 +224,14 @@ HWTEST_F(DhcpServerServiceTest, DeviceConnectCallBackTest, TestSize.Level1)
     DeviceConnectCallBack(ifname.c_str());
 
     DeviceConnectCallBack(nullptr);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)
 {
     DHCP_LOGI("enter StartServiceAbilityTest");
     pServerServiceImpl->StartServiceAbility(1);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 }
 }

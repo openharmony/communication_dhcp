@@ -186,5 +186,6 @@ HWTEST_F(DhcpOptionTest, AppendAddressOptionTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, AppendAddressOption(&optDns, testDns3));
     EXPECT_EQ(12, optDns.length);
 }
+1
 }
 }

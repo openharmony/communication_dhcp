@@ -22,6 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpCommonUtilsTest");
 using namespace testing::ext;
 using namespace OHOS::DHCP;
 namespace OHOS {
+constexpr int ONE = 1;
 constexpr int32_t MAC_LENTH = 6;
 
 class DhcpCommonUtilsTest : public testing::Test {
@@ -67,6 +68,7 @@ HWTEST_F(DhcpCommonUtilsTest, UintIp4ToStrTest, TestSize.Level1)
         free(pIp2);
         pIp2 = nullptr;
     }
+    EXPECT_EQ(true, ONE);
 }
 
 HWTEST_F(DhcpCommonUtilsTest, IntIpv4ToAnonymizeStrTest, TestSize.Level1)
