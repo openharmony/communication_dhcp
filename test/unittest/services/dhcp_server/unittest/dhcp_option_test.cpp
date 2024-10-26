@@ -186,6 +186,36 @@ HWTEST_F(DhcpOptionTest, AppendAddressOptionTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, AppendAddressOption(&optDns, testDns3));
     EXPECT_EQ(12, optDns.length);
 }
-1
+
+HWTEST_F(DhcpOptionTest, FreeOptionListTest, TestSize.Level1)
+{
+    PDhcpOptionList pOptions = (PDhcpOptionList)malloc(sizeof(DhcpOptionList));
+    pOptions->first = (DhcpOptionNode*)malloc(sizeof(DhcpOptionNode));
+    pOptions->first->next = nullptr;
+    pOptions->last = pOptions->first;
+    pOptions->size = 1;
+    FreeOptionList(pOptions);
+    EXPECT_EQ(pOptions->first, nullptr);
+    EXPECT_EQ(pOptions->last, nullptr);
+    EXPECT_EQ(pOptions->size, 0);
+    free(pOptions->first);
+    free(pOptions);
+}
+
+HWTEST_F(DhcpOptionTest, FreeOptionListTest1, TestSize.Level1)
+{
+    PDhcpOptionList pOptions = nullptr;
+    FreeOptionList(pOptions);
+    EXPECT_EQ(pOptions, nullptr);
+}
+
+HWTEST_F(DhcpOptionTest, FreeOptionListTest2, TestSize.Level1)
+{
+    PDhcpOptionList pOptions = (PDhcpOptionList)malloc(sizeof(DhcpOptionList));
+    pOptions->first = nullptr;
+    FreeOptionList(pOptions);
+    EXPECT_EQ(pOptions->first, nullptr);
+    free(pOptions);
+}
 }
 }
