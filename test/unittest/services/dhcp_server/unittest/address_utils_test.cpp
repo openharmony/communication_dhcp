@@ -281,6 +281,36 @@ HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level1)
     EXPECT_EQ(0, AddrEquels(testMac1, testMac3, MAC_ADDR_LENGTH));
     EXPECT_EQ(0, AddrEquels(testMac2, testMac3, MAC_ADDR_LENGTH));
 }
-1
+
+HWTEST(AddressUtilsTest, ParseMacAddressTest, TestSize.Level1)
+{
+    uint8_t macAddr[DHCP_HWADDR_LENGTH] = {0};
+    const char *strMac = "12:34:56:78:90:ab:cd";
+    int result = ParseMacAddress(strMac, macAddr);
+    EXPECT_EQ(result, DHCP_FALSE);
+    result = ParseMacAddress(nullptr, macAddr);
+    EXPECT_EQ(result, DHCP_FALSE);
+
+    strMac = "12:34:56:78:90:ab";
+    result = ParseMacAddress(strMac, macAddr);
+    EXPECT_EQ(result, DHCP_TRUE);
+}
+
+HWTEST(AddressUtilsTest, ParseHostNameTest, TestSize.Level1)
+{
+    char hostName[DHCP_BOOT_FILE_LENGTH];
+    const char *strHostName = "test.com";
+    int result = ParseHostName(nullptr, nullptr);
+    EXPECT_EQ(result, DHCP_FALSE);
+
+    result = ParseHostName(strHostName, nullptr);
+    EXPECT_EQ(result, DHCP_FALSE);
+
+    result = ParseHostName(nullptr, hostName);
+    EXPECT_EQ(result, DHCP_FALSE);
+
+    result = ParseHostName(strHostName, hostName);
+    EXPECT_EQ(result, DHCP_TRUE);
+}
 }
 }
