@@ -265,3 +265,4 @@ HWTEST_F(DhcpServerServiceTest, PutDhcpRangeTest, TestSize.Level1)
     EXPECT_EQ(pServerServiceImpl->SetDhcpNameExt("test_tag", "test_tag"), DHCP_E_FAILED);
 }
 }
+}
