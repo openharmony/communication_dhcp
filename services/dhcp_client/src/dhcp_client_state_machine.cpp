@@ -709,6 +709,11 @@ void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
 
 void DhcpClientStateMachine::Reboot(time_t timestamp)
 {
+    if (strncmp(m_cltCnf.ifaceName, "wlan", NUMBER_FOUR) != 0) {
+        DHCP_LOGI("ifaceName is not wlan, not Reboot");
+        return;
+    }
+
     if (m_routerCfg.bssid.empty()) {
         DHCP_LOGE("m_routerCfg.bssid is empty, no need reboot");
         return;
@@ -1344,6 +1349,11 @@ void DhcpClientStateMachine::ParseDhcpNakPacket(const struct DhcpPacket *packet,
 void DhcpClientStateMachine::GetDhcpOffer(DhcpPacket *packet, int64_t timestamp)
 {
     DHCP_LOGI("GetDhcpOffer enter");
+    if (strncmp(m_cltCnf.ifaceName, "wlan", NUMBER_FOUR) != 0) {
+        DHCP_LOGI("ifaceName is not wlan, no need deal multi Offer");
+        return;
+    }
+
     if (packet == nullptr) {
         DHCP_LOGW("GetDhcpOffer() packet is nullptr!");
         return;
@@ -1889,6 +1899,11 @@ int32_t DhcpClientStateMachine::GetCachedDhcpResult(std::string targetBssid, IpI
 void DhcpClientStateMachine::SaveIpInfoInLocalFile(const DhcpIpResult ipResult)
 {
     DHCP_LOGI("SaveIpInfoInLocalFile() enter");
+    if (strncmp(m_cltCnf.ifaceName, "wlan", NUMBER_FOUR) != 0) {
+        DHCP_LOGI("ifaceName is not wlan, no need save");
+        return;
+    }
+
     if (m_routerCfg.bssid.empty()) {
         DHCP_LOGI("m_routerCfg.bssid is empty, no need save");
         return;
