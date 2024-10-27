@@ -25,6 +25,12 @@
 #include "i_dhcp_server_callback.h"
 #include "dhcp_errcode.h"
 
+#define MAXIMUM_SIZE 256
+
+#define IP_ADDR_STR_LEN 16
+#define MAC_ADDR_STR_LEN 18
+#define DEVICE_NAME_STR_LEN 128
+
 namespace OHOS {
 namespace DHCP {
 #ifdef OHOS_ARCH_LITE

@@ -15,6 +15,7 @@
 #include "dhcp_server_callback_stub.h"
 #include "dhcp_manager_service_ipc_interface_code.h"
 #include "dhcp_logger.h"
+#include "securec.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStub");
 
@@ -56,6 +57,10 @@ int DhcpServreCallBackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
         }
         case static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_CBK_SER_EXIT_CHANGE): {
             ret = RemoteOnServerSerExitChanged(code, data, reply);
+            break;
+        }
+        case static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_CBK_SERVER_SUCCESS): {
+            ret = RemoteOnServerSuccess(code, data, reply);
             break;
         }
         default: {
@@ -132,8 +137,42 @@ int DhcpServreCallBackStub::RemoteOnServerStatusChanged(uint32_t code, MessagePa
 int DhcpServreCallBackStub::RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
+    int size = data.ReadInt32();
+    if (size < 0 || size > MAXIMUM_SIZE) {
+        reply.WriteInt32(0);
+        return DHCP_E_SUCCESS;
+    }
+    std::string ifName = data.ReadString();
+    std::vector<DhcpStationInfo> stationInfos;
+    for (int i = 0; i < size; i++) {
+        std::string deviceName = data.ReadString();
+        std::string macAddress = data.ReadString();
+        std::string ipAddress = data.ReadString();
+        DhcpStationInfo stationInfo;
+        if (memset_s(&stationInfo, sizeof(DhcpStationInfo), 0, sizeof(DhcpStationInfo)) != EOK) {
+            DHCP_LOGE("DhcpStationInfo memset_s failed!");
+            return DHCP_E_FAILED;
+        }
+        if (memcpy_s(stationInfo.ipAddr, sizeof(stationInfo.ipAddr),
+                     ipAddress.c_str(), IP_ADDR_STR_LEN) != EOK) {
+            DHCP_LOGE("ipAddr memcpy_s error!");
+            return DHCP_E_FAILED;
+        }
+        if (memcpy_s(stationInfo.macAddr, sizeof(stationInfo.macAddr),
+                     macAddress.c_str(), MAC_ADDR_STR_LEN) != EOK) {
+            DHCP_LOGE("macAddr memcpy_s error!");
+            return DHCP_E_FAILED;
+        }
+        if (memcpy_s(stationInfo.deviceName, sizeof(stationInfo.deviceName),
+                     deviceName.c_str(), DEVICE_NAME_STR_LEN) != EOK) {
+            DHCP_LOGE("deviceName memcpy_s error!");
+            return DHCP_E_FAILED;
+        }
+        stationInfos.emplace_back(stationInfo);
+    }
+    OnServerSuccess(ifName, stationInfos);
     reply.WriteInt32(0);
-    return 0;
+    return DHCP_E_SUCCESS;
 }
 
 int DhcpServreCallBackStub::RemoteOnServerLeasesChanged(uint32_t code, MessageParcel &data, MessageParcel &reply)
