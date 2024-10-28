@@ -204,7 +204,7 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6AddressAddEventTest, TestSize.Level1)
     char data[] = "192.168.1.12";
     ipv6Client->onIpv6AddressAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 1);
     ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 0);
-    ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 41);
+    ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 44);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, onIpv6DnsAddEventTest, TestSize.Level1)
@@ -214,8 +214,8 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6DnsAddEventTest, TestSize.Level1)
     char data[] = "192.168.1.12";
     ipv6Client->onIpv6DnsAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 1);
     ipv6Client->onIpv6DnsAddEvent(nullptr, PRE_FIX_LEN, 0);
-    ipv6Client->onIpv6DnsAddEvent(nullptr, PRE_FIX_LEN, 41);
-    ipv6Client->onIpv6DnsAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 41);
+    ipv6Client->onIpv6DnsAddEvent(nullptr, PRE_FIX_LEN, 44);
+    ipv6Client->onIpv6DnsAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 44);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, onIpv6RouteAddEventTest, TestSize.Level1)
@@ -225,9 +225,9 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6RouteAddEventTest, TestSize.Level1)
     char gateway[] = "192.168.1.1";
     char dst[] = "192.168.1.2";
     ipv6Client->onIpv6RouteAddEvent(gateway, dst, 1);
-    ipv6Client->onIpv6RouteAddEvent(nullptr, dst, 41);
-    ipv6Client->onIpv6RouteAddEvent(gateway, nullptr, 41);
-    ipv6Client->onIpv6RouteAddEvent(gateway, dst, 41);
+    ipv6Client->onIpv6RouteAddEvent(nullptr, dst, 44);
+    ipv6Client->onIpv6RouteAddEvent(gateway, nullptr, 44);
+    ipv6Client->onIpv6RouteAddEvent(gateway, dst, 44);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, getIpv6RouteAddrTest, TestSize.Level1)

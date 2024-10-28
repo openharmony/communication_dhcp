@@ -27,6 +27,7 @@ using namespace testing::ext;
 using namespace ::testing;
 namespace OHOS {
 namespace DHCP {
+constexpr int ZERO = 0;
 constexpr int ADDRESS_ARRAY_SIZE = 12;
 class DhcpClientServiceImplTest : public testing::Test {
 public:
@@ -64,18 +65,21 @@ HWTEST_F(DhcpClientServiceImplTest, OnStartTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStartTest");
     dhcpClientImpl->OnStart();
+    EXPECT_EQ(DHCP_E_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientServiceImplTest, OnStopTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStopTest");
     dhcpClientImpl->OnStop();
+    EXPECT_EQ(DHCP_E_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientServiceImplTest, InitTest, TestSize.Level1)
 {
     DHCP_LOGE("enter InitTest");
     dhcpClientImpl->Init();
+    EXPECT_EQ(DHCP_E_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)

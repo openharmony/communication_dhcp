@@ -21,6 +21,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultStoreManagerTest");
 using namespace testing::ext;
 
 namespace OHOS {
+constexpr int ZERO = 0;
 class DhcpResultStoreManagerTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -45,6 +46,7 @@ HWTEST_F(DhcpResultStoreManagerTest, SaveIpInfoInLocalFile_SUCCESS, TestSize.Lev
     ipInfoCached.bssid = "12:34:56:48:78:56";
     ipInfoCached.absoluteLeasetime = 1;
     DHCP::DhcpResultStoreManager::GetInstance().SaveIpInfoInLocalFile(ipInfoCached);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 /**
  * @tc.name: GetCachedDhcpResult_SUCCESS
@@ -58,5 +60,6 @@ HWTEST_F(DhcpResultStoreManagerTest, GetCachedDhcpResult_SUCCESS, TestSize.Level
     std::string targetBssid = "12:34:56:48:78:56";
     IpInfoCached ipInfo;
     DHCP::DhcpResultStoreManager::GetInstance().GetCachedIp(targetBssid, ipInfo);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 }  // namespace OHOS

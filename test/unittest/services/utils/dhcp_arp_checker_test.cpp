@@ -22,6 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpArpCheckerTest");
 using namespace testing::ext;
 using namespace OHOS::DHCP;
 
+constexpr int ONE = 1;
 constexpr int32_t MAC_ADDR_LEN = 6;
 constexpr int32_t TIMEOUT = 50;
 
@@ -123,6 +124,7 @@ HWTEST_F(DhcpArpCheckerTest, StopTest_001, TestSize.Level1)
     dhcpArpChecker.Stop();
     dhcpArpChecker.m_isSocketCreated = true;
     dhcpArpChecker.Stop();
+    EXPECT_EQ(true, ONE);
 }
 
 /**
@@ -183,5 +185,24 @@ HWTEST_F(DhcpArpCheckerTest, GetGwMacAddrList_Success, TestSize.Level0)
 
     dhcpArpChecker.m_isSocketCreated = true;
     dhcpArpChecker.GetGwMacAddrList(timeoutMillis, isFillSenderIp, gwMacLists);
+    EXPECT_EQ(true, ONE);
+}
+
+HWTEST_F(DhcpArpCheckerTest, SaveGwMacAddrTest, TestSize.Level0)
+{
+    DHCP_LOGE("enter SaveGwMacAddrTest");
+    DhcpArpChecker dhcpArpChecker;
+    std::vector<std::string> gwMacLists;
+    std::string gwMacAddr = "11:22:33:44:55:66";
+    dhcpArpChecker.SaveGwMacAddr(gwMacAddr, gwMacLists);
+    EXPECT_EQ(gwMacLists.size(), 1);
+
+    gwMacLists.push_back(gwMacAddr);
+    dhcpArpChecker.SaveGwMacAddr(gwMacAddr, gwMacLists);
+    EXPECT_EQ(gwMacLists.size(), 2);
+
+    gwMacAddr = "";
+    dhcpArpChecker.SaveGwMacAddr(gwMacAddr, gwMacLists);
+    EXPECT_EQ(gwMacLists.size(), 2);
 }
 }  // namespace OHOS

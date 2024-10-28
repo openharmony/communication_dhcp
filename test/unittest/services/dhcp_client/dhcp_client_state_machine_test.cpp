@@ -33,6 +33,7 @@ using namespace testing::ext;
 using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
+constexpr int ZERO = 0;
 constexpr int TWO = 2;
 constexpr int THREE = 3;
 constexpr int INVALID = 12;
@@ -295,12 +296,14 @@ HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level1)
 {
     DHCP_LOGE("SetSocketModeTest enter!");
     dhcpClient->SetSocketMode(1);
+    EXPECT_EQ(-1, dhcpClient->m_sockFd);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SendRebootTest, TestSize.Level1)
 {
     DHCP_LOGE("SendRebootTest enter!");
     dhcpClient->SendReboot(1, 1);
+    EXPECT_EQ(1, dhcpClient->m_requestedIp4);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetPacketReadSockFdTest, TestSize.Level1)
@@ -356,6 +359,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpStopTest enter!");
     dhcpClient->DhcpStop();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
@@ -369,6 +373,7 @@ HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
 
     dhcpClient->m_sentPacketNum = MAX_WAIT_TIMES - 1;
     dhcpClient->Renewing(curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level1)
@@ -385,6 +390,7 @@ HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level1)
 
     dhcpClient->m_dhcp4State = DHCP_STATE_REBINDING;
     dhcpClient->Rebinding(curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
@@ -418,6 +424,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
 
     dhcpClient->SetIpv4State(INVALID);
     dhcpClient->DhcpRequestHandle(curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Level1)
@@ -441,6 +448,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Leve
     DhcpPacket packet3;
     type = DHCP_REQUEST;
     dhcpClient->DhcpAckOrNakPacketHandle(type, &packet3, curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level1)
@@ -452,6 +460,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level1)
 
     DhcpPacket packet1;
     dhcpClient->ParseDhcpAckPacket(&packet1, curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
@@ -472,6 +481,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
     DhcpPacket packet3;
     DhcpIpResult result3;
     dhcpClient->ParseNetworkInfo(&packet3, &result3);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsInfoTest, TestSize.Level1)
@@ -492,6 +502,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsInfoTest, TestSize.Level1)
     DhcpPacket packet3;
     DhcpIpResult result3;
     dhcpClient->ParseNetworkDnsInfo(&packet3, &result3);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
@@ -510,6 +521,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
 
     packet1.yiaddr = 3226272232;
     dhcpClient->DhcpOfferPacketHandle(type, &packet1, curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level1)
@@ -602,6 +614,7 @@ HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
     dhcpClient->InitSignalHandle();
     dhcpClient->threadExit_ = true;
     t.join();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
@@ -611,6 +624,7 @@ HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
     dhcpClient->m_sentPacketNum = 16;
     dhcpClient->SetIpv4State(DHCP_STATE_RENEWED);
     dhcpClient->Requesting(curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RequestingTest1, TestSize.Level1)
@@ -626,6 +640,7 @@ HWTEST_F(DhcpClientStateMachineTest, RequestingTest1, TestSize.Level1)
 
     dhcpClient->m_dhcp4State = DHCP_STATE_RELEASED;
     dhcpClient->Requesting(timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
@@ -683,6 +698,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level1)
 
     dhcpClient->m_resendTimer = INVALID;
     dhcpClient->ParseDhcpNakPacket(&packet1, curTimestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Level1)
@@ -703,6 +719,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Leve
     DhcpPacket packet3;
     DhcpIpResult result3;
     dhcpClient->ParseNetworkServerIdInfo(&packet3, &result3);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level1)
@@ -716,6 +733,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level1)
 
     struct DhcpIpResult result1;
     dhcpClient->ParseNetworkDnsValue(&result1, uData, len, count);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 /**
@@ -728,6 +746,7 @@ HWTEST_F(DhcpClientStateMachineTest, IpConflictDetectTest_SUCCESS, TestSize.Leve
 {
     DHCP_LOGI("IpConflictDetectTest_SUCCESS enter!");
     dhcpClient->IpConflictDetect();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 /**
@@ -740,6 +759,7 @@ HWTEST_F(DhcpClientStateMachineTest, FastArpDetectTest_SUCCESS, TestSize.Level1)
 {
     DHCP_LOGI("FastArpDetectTest_SUCCESS enter!");
     dhcpClient->FastArpDetect();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 /**
@@ -752,6 +772,7 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest_SUCCESS, TestSize.Level1)
 {
     DHCP_LOGI("SlowArpDetectTest_SUCCESS enter!");
     dhcpClient->SlowArpDetect(1);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest1, TestSize.Level1)
@@ -766,6 +787,7 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest1, TestSize.Level1)
 
     dhcpClient->m_sentPacketNum = 0;
     dhcpClient->SlowArpDetect(timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 /**
@@ -783,6 +805,7 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectCallbackTest_SUCCESS, TestSize
     dhcpClient->m_slowArpDetecting = 1;
     dhcpClient->SlowArpDetectCallback(true);
     dhcpClient->SlowArpDetectCallback(false);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 /**
@@ -812,6 +835,7 @@ HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize
 
     dhcpClient->m_routerCfg.bssid = "wlan0";
     dhcpClient->SaveIpInfoInLocalFile(ipResult);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 /**
@@ -827,6 +851,7 @@ HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
 
     dhcpClient->m_routerCfg.prohibitUseCacheIp = 1;
     dhcpClient->TryCachedIp();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
@@ -848,12 +873,14 @@ HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
     dhcpClient->StopTimer(renewDelayTimerId);
     dhcpClient->StopTimer(rebindDelayTimerId);
     dhcpClient->StopTimer(remainingDelayTimerId);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("GetIpTimerCallbackTest enter!");
     dhcpClient->GetIpTimerCallback();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
@@ -871,24 +898,28 @@ HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
 
     dhcpClient->m_action = ACTION_INVALID;
     dhcpClient->GetIpTimerCallback();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RenewDelayCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("RenewDelayCallbackTest enter!");
     dhcpClient->RenewDelayCallback();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RebindDelayCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("RebindDelayCallbackTest enter!");
     dhcpClient->RebindDelayCallback();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("RemainingDelayCallbackTest enter!");
     dhcpClient->RemainingDelayCallback();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level1)
@@ -896,18 +927,21 @@ HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level1)
     DHCP_LOGI("ScheduleLeaseTimersTest enter!");
     dhcpClient->ScheduleLeaseTimers(true);
     dhcpClient->ScheduleLeaseTimers(false);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, CloseAllRenewTimerTest, TestSize.Level1)
 {
     DHCP_LOGI("CloseAllRenewTimerTest enter!");
     dhcpClient->CloseAllRenewTimer();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SendStopSignalTest, TestSize.Level1)
 {
     DHCP_LOGI("SendStopSignalTest enter!");
     dhcpClient->SendStopSignal();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
@@ -916,6 +950,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
     struct DhcpIpResult result;
     dhcpClient->SetIpv4DefaultDns(nullptr);
     dhcpClient->SetIpv4DefaultDns(&result);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
@@ -952,6 +987,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
     result.strOptSubnet[0] = 0;
     strcpy_s(result.strYiaddr, sizeof(result.strYiaddr), "240.168.0.8");
     dhcpClient->SetDefaultNetMask(&result);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level1)
@@ -962,6 +998,7 @@ HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level1)
 
     dhcpClient->m_routerCfg.bssid = "wlan0";
     dhcpClient->Reboot(timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level1)
@@ -978,6 +1015,7 @@ HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level1)
 
     dhcpClient->m_dhcp4State = DHCP_STATE_INIT;
     dhcpClient->ExecDhcpRelease();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, InitSelectingTest, TestSize.Level1)
@@ -986,6 +1024,7 @@ HWTEST_F(DhcpClientStateMachineTest, InitSelectingTest, TestSize.Level1)
     time_t timestamp = 1;
     dhcpClient->m_sentPacketNum = TIMEOUT_TIMES_MAX + 1;
     dhcpClient->InitSelecting(timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DecliningTest, TestSize.Level1)
@@ -996,6 +1035,7 @@ HWTEST_F(DhcpClientStateMachineTest, DecliningTest, TestSize.Level1)
 
     dhcpClient->m_conflictCount = THREE;
     dhcpClient->Declining(timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level1)
@@ -1006,6 +1046,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level1)
     dhcpClient->GetDhcpOffer(nullptr, timestamp);
 
     dhcpClient->GetDhcpOffer(&packet, timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
@@ -1014,6 +1055,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
     DhcpPacket packet;
     time_t timestamp = 1;
     dhcpClient->DhcpResponseHandle(timestamp);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 }
 }

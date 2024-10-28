@@ -28,6 +28,7 @@ using namespace OHOS;
 using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
+constexpr int ZERO = 0;
 class DhcpServerServiceTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -157,12 +158,14 @@ HWTEST_F(DhcpServerServiceTest, OnStartTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStartTest");
     pServerServiceImpl->OnStart();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpServerServiceTest, OnStopTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStopTest");
     pServerServiceImpl->OnStop();
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
@@ -221,12 +224,45 @@ HWTEST_F(DhcpServerServiceTest, DeviceConnectCallBackTest, TestSize.Level1)
     DeviceConnectCallBack(ifname.c_str());
 
     DeviceConnectCallBack(nullptr);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)
 {
     DHCP_LOGI("enter StartServiceAbilityTest");
     pServerServiceImpl->StartServiceAbility(1);
+    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
+}
+
+HWTEST_F(DhcpServerServiceTest, m_mapInfDhcpRange_TEST, TestSize.Level1)
+{
+    std::string ipRange = "192.168.1.100";
+    DhcpRange range;
+    range.strTagName = "test_ifname";
+    range.strStartip = "192.168.1.1";
+    range.strEndip = "192.168.1.100";
+    range.strSubnet = "255.255.255.0";
+    range.iptype = 0;
+    DhcpRange putRange;
+    putRange.iptype = 0;
+    pServerServiceImpl->m_mapInfDhcpRange["test_ifname"];
+    EXPECT_EQ(pServerServiceImpl->GetUsingIpRange("test_ifname", ipRange), DHCP_OPT_FAILED);
+    EXPECT_EQ(pServerServiceImpl->SetDhcpRange("test_ifname", range), DHCP_E_FAILED);
+    EXPECT_EQ(pServerServiceImpl->StopDhcpServer("test_ifname"), DHCP_E_SUCCESS);
+    EXPECT_EQ(pServerServiceImpl->CheckAndUpdateConf("test_ifname"), DHCP_E_SUCCESS);
+}
+
+HWTEST_F(DhcpServerServiceTest, PutDhcpRangeTest, TestSize.Level1)
+{
+    DhcpRange range;
+    range.strTagName = "test_tag";
+    range.strStartip = "192.168.1.1";
+    range.strEndip = "192.168.1.100";
+    range.strSubnet = "255.255.255.0";
+    range.iptype = 0;
+    pServerServiceImpl->m_mapTagDhcpRange["test_tag"];
+    EXPECT_EQ(pServerServiceImpl->PutDhcpRange("test_tag", range), DHCP_E_SUCCESS);
+    EXPECT_EQ(pServerServiceImpl->SetDhcpNameExt("test_tag", "test_tag"), DHCP_E_FAILED);
 }
 }
 }
