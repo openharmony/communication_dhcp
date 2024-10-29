@@ -544,9 +544,11 @@ int DhcpIpv6Client::StartIpv6()
         FD_SET(ipv6SocketFd, &rSet);
         int iRet = select(ipv6SocketFd + 1, &rSet, NULL, NULL, &timeout);
         if (iRet < 0) {
-            DHCP_LOGE("StartIpv6 select failed.");
-            break;
-        } else if (iRet == 0) {
+            if ((iRet == -1) && (errno == EINTR)) {
+                DHCP_LOGD("StartIpv6 select errno:%{public}d, a signal was caught!", errno);
+            } else {
+                DHCP_LOGD("StartIpv6 failed, iRet:%{public}d error:%{public}d", iRet, errno);
+            }
             continue;
         }
         if (!FD_ISSET(ipv6SocketFd, &rSet)) {
