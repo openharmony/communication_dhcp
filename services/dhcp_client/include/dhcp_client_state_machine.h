@@ -121,6 +121,7 @@ public:
     void ScheduleLeaseTimers(bool isCachedIp);
     void CloseAllRenewTimer();
     int SendStopSignal();
+    void SetSecondsElapsed(struct DhcpPacket *packet);
 private:
     int m_dhcp4State;
     int m_sockFd;
