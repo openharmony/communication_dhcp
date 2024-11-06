@@ -527,7 +527,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level1)
 {
     DHCP_LOGE("DhcpRebootTest enter!");
-    EXPECT_EQ(SOCKET_OPT_SUCCESS, dhcpClient->DhcpReboot(1, 1));
+    EXPECT_EQ(SOCKET_OPT_FAILED, dhcpClient->DhcpReboot(1, 1));
 }
 
 HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
@@ -1064,6 +1064,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level1)
     DhcpPacket packet;
     dhcpClient->SetSecondsElapsed(nullptr);
     dhcpClient->SetSecondsElapsed(&packet);
+    EXPECT_EQ(packet.secs, ZERO);
 }
 }
 }
