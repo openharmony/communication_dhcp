@@ -122,6 +122,7 @@ public:
     void CloseAllRenewTimer();
     int SendStopSignal();
     void SetSecondsElapsed(struct DhcpPacket *packet);
+    bool IsPcDevice();
 private:
     int m_dhcp4State;
     int m_sockFd;

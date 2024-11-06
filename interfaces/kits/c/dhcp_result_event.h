@@ -93,6 +93,8 @@ typedef struct {
 typedef struct RouterConfig {
     char bssid[MAC_ADDR_MAX_LEN];
     bool prohibitUseCacheIp;
+    bool bIpv6;
+    bool bSpecificNetwork;
 }RouterConfig;
 #ifdef __cplusplus
 }

@@ -32,8 +32,9 @@ namespace DHCP {
         std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
         RouterConfig routerConfig;
         routerConfig.bssid = std::string(reinterpret_cast<const char*>(data), size);
-        dhcpClient->SetConfiguration(ifname, routerConfig);
-        dhcpClient->StartDhcpClient(ifname, true);
+        config.bIpv6 = false;
+        config.prohibitUseCacheIp = false;
+        dhcpClient->StartDhcpClient(ifname, config);
         dhcpClient->StopDhcpClient(ifname, true);
         dhcpClient->RegisterDhcpClientCallBack(ifname, dhcpClientCallBack);
 

@@ -47,6 +47,7 @@
 #define SLEEP_TIME_500_MS       (500 * 1000)
 #define DHCP_FAILE_TIMEOUT_THR  6
 #define MAX_CONFLICTS_COUNT     2
+#define RENEWAL_SEC_MULTIPLE_SPECIFIC_NETWORK 0.9
 
 #define MAC_ADDR_LEN            6
 #define MAC_ADDR_CHAR_NUM       3
@@ -414,5 +415,14 @@ enum TimerType {
 struct RouterCfg {
     std::string bssid;
     bool prohibitUseCacheIp;
+    bool bIpv6;
+    bool bSpecificNetwork;
+
+    RouterCfg()
+    {
+        prohibitUseCacheIp = false;
+        bIpv6 = true;
+        bSpecificNetwork = false;
+    }
 };
 #endif
