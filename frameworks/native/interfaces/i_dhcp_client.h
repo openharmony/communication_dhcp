@@ -41,8 +41,7 @@ public:
     virtual ErrCode RegisterDhcpClientCallBack(const std::string& ifname,
         const sptr<IDhcpClientCallBack> &callback) = 0;
 #endif
-    virtual ErrCode StartDhcpClient(const std::string& ifname, bool bIpv6) = 0;
-    virtual ErrCode SetConfiguration(const std::string& ifname, const RouterConfig& config) = 0;
+    virtual ErrCode StartDhcpClient(const std::string& ifname, const RouterConfig &config) = 0;
     virtual ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) = 0;
     virtual bool IsRemoteDied() = 0;
 #ifndef OHOS_ARCH_LITE

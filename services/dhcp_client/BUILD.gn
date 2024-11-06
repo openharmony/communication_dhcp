@@ -137,11 +137,6 @@ if (defined(ohos_lite)) {
       external_deps += [ "ffrt:libffrt" ]
       defines += [ "DHCP_FFRT_ENABLE" ]
     }
-
-    if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
-      external_deps += [ "init:libbegetutil" ]
-      defines += [ "INIT_LIB_ENABLE" ]
-    }
     cflags = [
       "-std=c++17",
       "-fno-rtti",

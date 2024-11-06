@@ -40,6 +40,7 @@
         "syscap": [
         ],
         "features": [
+            "dhcp_future_less_renewals"
         ],
         "adapted_system_type": [
             "small",

@@ -880,12 +880,6 @@ void TryCachedIpFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->TryCachedIp();
 }
 
-void SetConfigurationFuzzerTest(const uint8_t *data, size_t size)
-{
-    struct RouterCfg routerCfg;
-    dhcpClient->SetConfiguration(routerCfg);
-}
-
 void GetIpTimerCallbackFuzzerTest(const uint8_t *data, size_t size)
 {
     dhcpClient->GetIpTimerCallback();
@@ -1059,7 +1053,6 @@ void DhcpClientStateMachineExFuzzerTest(const uint8_t *data, size_t size)
     GetCachedDhcpResultFuzzerTest(data, size);
     SaveIpInfoInLocalFileFuzzerTest(data, size);
     TryCachedIpFuzzerTest(data, size);
-    SetConfigurationFuzzerTest(data, size);
     GetIpTimerCallbackFuzzerTest(data, size);
     StartTimerFuzzerTest(data, size);
     StopTimerFuzzerTest(data, size);

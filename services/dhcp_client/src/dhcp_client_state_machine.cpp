@@ -47,6 +47,7 @@
 #endif
 
 #ifdef INIT_LIB_ENABLE
+#include "parameters.h"
 #include "parameter.h"
 #endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
@@ -2118,18 +2119,50 @@ void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 
     int64_t remainingDelay = ((static_cast<int64_t>(m_leaseTime) < delay) ? (static_cast<int64_t>(m_leaseTime)) :
         (static_cast<int64_t>(m_leaseTime) - delay)) * USECOND_CONVERT;
-    int64_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE;
-    int64_t rebindSec = remainingDelay * REBIND_SEC_MULTIPLE;
-    DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}" PRId64", rebindSec:%{public}" PRId64","
-        "remainingDelay:%{public}" PRId64, renewalSec, rebindSec, remainingDelay);
+    if (IsPcDevice() && m_routerCfg.bSpecifigNetwork) {
+        int64_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE_SPECIFIC_NETWORK;
+        DHCP_LOGI("SpecifigNetwork, ScheduleLeaseTimers renewalSec:%{public}" PRId64", leaseTime:%{public}d,"
+            "remainingDelay:%{public}" PRId64, renewalSec, m_leaseTime, remainingDelay);
 #ifndef OHOS_ARCH_LITE
-    StopTimer(renewDelayTimerId);
-    StopTimer(rebindDelayTimerId);
-    StopTimer(remainingDelayTimerId);
-    StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, renewalSec, true);
-    StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, rebindSec, true);
-    StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, remainingDelay, true);
+        StopTimer(renewDelayTimerId);
+        StopTimer(rebindDelayTimerId);
+        StopTimer(remainingDelayTimerId);
+        StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, renewalSec, true);
+        StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, remainingDelay, true);
 #endif
+    } else {
+        int64_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE;
+        int64_t rebindSec = remainingDelay * REBIND_SEC_MULTIPLE;
+        DHCP_LOGI("ScheduleLeaseTimers renewalSec:%{public}" PRId64", rebindSec:%{public}" PRId64","
+            "remainingDelay:%{public}" PRId64, renewalSec, rebindSec, remainingDelay);
+#ifndef OHOS_ARCH_LITE
+        StopTimer(renewDelayTimerId);
+        StopTimer(rebindDelayTimerId);
+        StopTimer(remainingDelayTimerId);
+        StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, renewalSec, true);
+        StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, rebindSec, true);
+        StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, remainingDelay, true);
+#endif
+    }
+
 }
+
+bool DhcpClientStateMachine::IsPcDevice()
+{
+    const char deviceClass[] = "const.product.devicetype";
+    const char deviceClassComputerStr[] = "2in1";
+    constexpr const int32_t SYS_PARAMETER_SIZE = 256;
+    constexpr const int32_t SYSTEM_PARAMETER_ERROR_CODE = 0;
+    char param[SYS_PARAMETER_SIZE] = { 0 };
+    int errorCode = Getparameter(deviceClass, NULL, param, SYS_PARAMETER_SIZE);
+    if (errorCode <= SYSTEM_PARAMETER_ERROR_CODE) {
+        DHCP_LOGE("get devicetype fail, errorCode: %{public}d", errorCode);
+        return false;
+    }
+    DHCP_LOGI("devicetype: %{public}s, errorCode: %{public}d.", param, errorCode);
+    auto iter = std::string(param).find("2in1");
+    return iter != std::string::npos;
+}
+
 }  // namespace DHCP
 }  // namespace OHOS
