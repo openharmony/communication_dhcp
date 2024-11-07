@@ -14,6 +14,7 @@
  */
 
 #include "dhcp_result_store_manager.h"
+#include "dhcp_common_utils.h"
 #include "dhcp_logger.h"
 #include "securec.h"
 
@@ -189,10 +190,11 @@ int32_t DhcpResultStoreManager::SaveConfig()
 int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::string &key, const std::string &value)
 {
     int32_t errorKeyValue = 0;
+    std::string valueTmp = value;
     if (key == "bssid") {
         item.bssid = value;
     } else if (key == "absoluteLeasetime") {
-        item.absoluteLeasetime = static_cast<uint32_t>(std::stol(value));
+        item.absoluteLeasetime = static_cast<uint32_t>(CheckDataLegal(valueTmp));
     } else if (key == "strYiaddr") {
         if (strncpy_s(
             item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
@@ -229,7 +231,7 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
             errorKeyValue++;
         }
     } else if (key == "uOptLeasetime") {
-        item.ipResult.uOptLeasetime = static_cast<uint32_t>(std::stol(value));
+        item.ipResult.uOptLeasetime = static_cast<uint32_t>(CheckDataLegal(valueTmp));
     } else {
         DHCP_LOGE("Invalid config key value");
         errorKeyValue++;
