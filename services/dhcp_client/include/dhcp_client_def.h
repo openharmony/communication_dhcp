@@ -38,7 +38,7 @@
 #define REBIND_SEC_MULTIPLE     0.875
 #define TIME_INTERVAL_MAX       1
 #define TIMEOUT_TIMES_MAX       15
-#define MAX_WAIT_TIMES          32
+#define MAX_WAIT_TIMES          5
 #define TIMEOUT_WAIT_SEC        1
 #define TIMEOUT_MORE_WAIT_SEC   60
 #define ONE_HOURS_SEC           3600
