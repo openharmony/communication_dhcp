@@ -682,7 +682,7 @@ int StartDhcpServer(PDhcpServerContext ctx)
         return RET_FAILED;
     }
     pthread_detach(threadId);
-    DHCP_LOGI("success to start dhcp server.")
+    DHCP_LOGI("success to start dhcp server.");
     return RET_SUCCESS;
 }
 
