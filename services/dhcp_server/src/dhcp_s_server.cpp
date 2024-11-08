@@ -679,10 +679,10 @@ int StartDhcpServer(PDhcpServerContext ctx)
     int ret = pthread_create(&threadId, nullptr, BeginLooper, ctx);
     if (ret != RET_SUCCESS) {
         DHCP_LOGI("failed to start dhcp server.");
-        OnServerStoped(ctx, ret);
         return RET_FAILED;
     }
-    OnServerStoped(ctx, ret);
+    pthread_detach(threadId);
+    DHCP_LOGI("success to start dhcp server.")
     return RET_SUCCESS;
 }
 
