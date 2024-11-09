@@ -2148,7 +2148,6 @@ void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 bool DhcpClientStateMachine::IsPcDevice()
 {
     const char deviceClass[] = "const.product.devicetype";
-    const char deviceClassComputerStr[] = "2in1";
     constexpr const int32_t SYS_PARAMETER_SIZE = 256;
     constexpr const int32_t SYSTEM_PARAMETER_ERROR_CODE = 0;
     char param[SYS_PARAMETER_SIZE] = { 0 };
@@ -2157,7 +2156,7 @@ bool DhcpClientStateMachine::IsPcDevice()
         DHCP_LOGE("get devicetype fail, errorCode: %{public}d", errorCode);
         return false;
     }
-    DHCP_LOGI("devicetype: %{public}s, errorCode: %{public}d.", param, errorCode);
+    DHCP_LOGI("devicetype: %{public}s, Code: %{public}d.", param, errorCode);
     auto iter = std::string(param).find("2in1");
     return iter != std::string::npos;
 }
