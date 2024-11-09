@@ -2143,7 +2143,6 @@ void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
         StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, remainingDelay, true);
 #endif
     }
-
 }
 
 bool DhcpClientStateMachine::IsPcDevice()

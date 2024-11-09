@@ -45,8 +45,6 @@ void DhcpClientStub::InitHandleMap()
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK)] = &DhcpClientStub::OnRegisterCallBack;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT)] = &DhcpClientStub::OnStartDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT)] = &DhcpClientStub::OnStopDhcpClient;
-    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG)] =
-        &DhcpClientStub::OnSetConfiguration;
 }
 
 int DhcpClientStub::OnRemoteRequest(uint32_t code, IpcIo *req, IpcIo *reply)
@@ -135,7 +133,7 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     (void)ReadBool(req, &config.bIpv6);
     (void)ReadBool(req, &config.bSpecifigNetwork);
     DHCP_LOGI("ifname:%{public}s prohibitUseCacheIp:%{public}d, bIpv6:%{public}d, bSpecifigNetwork:%{public}d",
-            ifname.c_str(), config.prohibitUseCacheIp, config.bIpv6, config.bSpecifigNetwork);
+        ifname.c_str(), config.prohibitUseCacheIp, config.bIpv6, config.bSpecifigNetwork);
 
     ret = StartDhcpClient(ifname, config);
     (void)WriteInt32(reply, 0);

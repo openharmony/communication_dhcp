@@ -158,8 +158,8 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, const Router
     data.WriteBool(config.bIpv6);
     data.WriteBool(config.bSpecificNetwork);
     DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, prohibitUseCacheIp:%{public}d, bIpv6:%{public}d"\
-            "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), ifname.c_str(), config.prohibitUseCacheIp,
-            config.bIpv6, config.bSpecificNetwork);
+        "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), ifname.c_str(), config.prohibitUseCacheIp,
+        config.bIpv6, config.bSpecificNetwork);
     int error = Remote()->SendRequest(
         static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), data, reply, option);
     if (error != ERR_NONE) {
