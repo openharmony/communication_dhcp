@@ -56,7 +56,7 @@ HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
 
     const std::string& ifname = "wlan0";
     RouterConfig config;
-    conifg.bIpv6 = true;
+    config.bIpv6 = true;
     config.prohibitUseCacheIp = false;
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpClient(ifname, config));
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StopDhcpClient(ifname, false));
