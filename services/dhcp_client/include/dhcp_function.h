@@ -24,7 +24,6 @@
 #include <string>
 
 bool Ip4StrConToInt(const char *strIp, uint32_t *uIp, bool bHost);
-std::string Ip4IntConvertToStr(uint32_t ip, bool host);
 bool Ip6StrConToChar(const char *strIp, uint8_t chIp[], size_t chlen);
 const char *MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, size_t strLen);
 int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, uint32_t *ifaddr4);
