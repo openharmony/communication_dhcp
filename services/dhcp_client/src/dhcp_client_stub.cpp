@@ -141,7 +141,7 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, MessageParcel &data, Messag
     config.bssid = data.ReadString();
     config.prohibitUseCacheIp = data.ReadBool();
     config.bIpv6 = data.ReadBool();
-    config.bSpecifigNetwork = data.ReadBool();
+    config.bSpecificNetwork = data.ReadBool();
     ErrCode ret = StartDhcpClient(ifname, config);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);

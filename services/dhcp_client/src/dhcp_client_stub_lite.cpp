@@ -131,9 +131,9 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     (void)ReadString(req, &config.bssid);
     (void)ReadBool(req, &config.prohibitUseCacheIp);
     (void)ReadBool(req, &config.bIpv6);
-    (void)ReadBool(req, &config.bSpecifigNetwork);
-    DHCP_LOGI("ifname:%{public}s prohibitUseCacheIp:%{public}d, bIpv6:%{public}d, bSpecifigNetwork:%{public}d",
-        ifname.c_str(), config.prohibitUseCacheIp, config.bIpv6, config.bSpecifigNetwork);
+    (void)ReadBool(req, &config.bSpecificNetwork);
+    DHCP_LOGI("ifname:%{public}s prohibitUseCacheIp:%{public}d, bIpv6:%{public}d, bSpecificNetwork:%{public}d",
+        ifname.c_str(), config.prohibitUseCacheIp, config.bIpv6, config.bSpecificNetwork);
 
     ret = StartDhcpClient(ifname, config);
     (void)WriteInt32(reply, 0);
