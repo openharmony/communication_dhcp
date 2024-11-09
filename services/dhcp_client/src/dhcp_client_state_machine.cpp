@@ -2118,7 +2118,7 @@ void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 
     int64_t remainingDelay = ((static_cast<int64_t>(m_leaseTime) < delay) ? (static_cast<int64_t>(m_leaseTime)) :
         (static_cast<int64_t>(m_leaseTime) - delay)) * USECOND_CONVERT;
-    if (IsPcDevice() && m_routerCfg.bSpecifigNetwork) {
+    if (IsPcDevice() && m_routerCfg.bSpecificNetwork) {
         int64_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE_SPECIFIC_NETWORK;
         DHCP_LOGI("SpecifigNetwork, ScheduleLeaseTimers renewalSec:%{public}" PRId64", leaseTime:%{public}d,"
             "remainingDelay:%{public}" PRId64, renewalSec, m_leaseTime, remainingDelay);
