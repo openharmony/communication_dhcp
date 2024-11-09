@@ -2153,7 +2153,7 @@ bool DhcpClientStateMachine::IsPcDevice()
     constexpr const int32_t SYS_PARAMETER_SIZE = 256;
     constexpr const int32_t SYSTEM_PARAMETER_ERROR_CODE = 0;
     char param[SYS_PARAMETER_SIZE] = { 0 };
-    int errorCode = Getparameter(deviceClass, NULL, param, SYS_PARAMETER_SIZE);
+    int errorCode = GetParameter(deviceClass, NULL, param, SYS_PARAMETER_SIZE);
     if (errorCode <= SYSTEM_PARAMETER_ERROR_CODE) {
         DHCP_LOGE("get devicetype fail, errorCode: %{public}d", errorCode);
         return false;
