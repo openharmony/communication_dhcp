@@ -2120,11 +2120,7 @@ void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
         (static_cast<int64_t>(m_leaseTime) - delay)) * USECOND_CONVERT;
     if (IsPcDevice() && m_routerCfg.bSpecifigNetwork) {
         int64_t renewalSec = remainingDelay * RENEWAL_SEC_MULTIPLE_SPECIFIC_NETWORK;
-<<<<<<< HEAD
         DHCP_LOGI("SpecifigNetwork, ScheduleLeaseTimers renewalSec:%{public}" PRId64", leaseTime:%{public}d,"
-=======
-        DHCP_LOGI("GuestAp, ScheduleLeaseTimers renewalSec:%{public}" PRId64", leaseTime:%{public}d,"
->>>>>>> a8e7f38a8712004eca531d1cd01dd1d59efd202d
             "remainingDelay:%{public}" PRId64, renewalSec, m_leaseTime, remainingDelay);
 #ifndef OHOS_ARCH_LITE
         StopTimer(renewDelayTimerId);
