@@ -63,36 +63,6 @@ bool Ip4StrConToInt(const char *strIp, uint32_t *uIp, bool bHost)
     return true;
 }
 
-char *Ip4IntConToStr(uint32_t uIp, bool bHost)
-{
-    char bufIp4[INET_ADDRSTRLEN] = {0};
-    struct in_addr addr4;
-    if (bHost) {
-        addr4.s_addr = htonl(uIp);
-    } else {
-        addr4.s_addr = uIp;
-    }
-    const char *p = inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN);
-    if (p == NULL) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, inet_ntop p == NULL!", uIp);
-        return NULL;
-    }
-
-    char *strIp = (char *)malloc(INET_ADDRSTRLEN);
-    if (strIp == NULL) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, strIp malloc failed!", uIp);
-        return NULL;
-    }
-    if (strncpy_s(strIp, INET_ADDRSTRLEN, bufIp4, strlen(bufIp4)) != EOK) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, strIp strncpy_s failed!", uIp);
-        free(strIp);
-        strIp = NULL;
-        return NULL;
-    }
-
-    return strIp;
-}
-
 bool Ip6StrConToChar(const char *strIp, uint8_t chIp[], size_t chlen)
 {
     if ((strIp == NULL) || (strlen(strIp) == 0)) {
