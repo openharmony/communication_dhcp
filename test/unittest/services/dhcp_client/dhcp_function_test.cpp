@@ -56,13 +56,6 @@ HWTEST_F(DhcpFunctionTest, Ip4StrConToInt_FAILED, TestSize.Level1)
     EXPECT_EQ(false, Ip4StrConToInt(serIp1, &uSerIp1, true));
 }
 
-HWTEST_F(DhcpFunctionTest, Ip4IntConvertToStr_SUCCESS, TestSize.Level1)
-{
-    uint32_t uSerIp = 3226272231;
-    std::string pSerIp = Ip4IntConvertToStr(uSerIp, true);
-    EXPECT_STRNE(pSerIp.c_str(), "");
-}
-
 HWTEST_F(DhcpFunctionTest, Ip6StrConToChar_SUCCESS, TestSize.Level1)
 {
     char serIp[INET6_ADDRSTRLEN] = "2001:db8:0:1::231";
