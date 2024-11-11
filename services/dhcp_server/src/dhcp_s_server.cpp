@@ -804,13 +804,14 @@ static int Repending(DhcpAddressPool *pool, AddressBinding *binding)
     uint32_t bindingIp = binding->ipAddress;
     DHCP_LOGD(" binding found, bindIp:%s", ParseStrIp(bindingIp));
     binding->pendingInterval = NextPendingInterval(binding->pendingInterval);
-    uint64_t tms = Tmspsec() - binding->pendingTime;
+    uint64_t curTime = Tmspsec();
+    uint64_t tms = curTime > binding->pendingTime ? curTime - binding->pendingTime : 0;
     if (tms < binding->pendingInterval) {
-        binding->pendingTime = Tmspsec();
+        binding->pendingTime = curTime;
         DHCP_LOGW("message interval is too short, ignore the message.");
         return REPLY_NONE;
     }
-    binding->pendingTime = Tmspsec();
+    binding->pendingTime = curTime;
     binding->pendingInterval = 0;
     binding->bindingStatus = BIND_PENDING;
     uint32_t srcIp = SourceIpAddress();
