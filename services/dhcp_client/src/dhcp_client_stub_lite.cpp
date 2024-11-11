@@ -128,7 +128,7 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     RouterCfg config;
     bool bIpv6;
     std::string ifname = (char *)ReadString(req, &readLen);
-    (void)ReadString(req, &config.bssid);
+    (char *)ReadString(req, &config.bssid);
     (void)ReadBool(req, &config.prohibitUseCacheIp);
     (void)ReadBool(req, &config.bIpv6);
     (void)ReadBool(req, &config.bSpecificNetwork);
