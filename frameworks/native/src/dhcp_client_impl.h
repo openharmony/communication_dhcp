@@ -36,7 +36,7 @@ public:
         const sptr<IDhcpClientCallBack> &callback) override;
 #endif
     
-    ErrCode StartDhcpClient(const std::string& ifname, const RouterConfig &config) override;
+    ErrCode StartDhcpClient(const RouterConfig &config) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
 private:
     bool GetDhcpClientProxy();

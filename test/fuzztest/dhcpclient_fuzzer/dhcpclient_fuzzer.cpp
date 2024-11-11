@@ -29,14 +29,14 @@ namespace DHCP {
         if (dhcpClient == nullptr) {
             return false;
         }
-        std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
         RouterConfig config;
+        config.ifname = std::string(reinterpret_cast<const char*>(data), size);
         config.bssid = std::string(reinterpret_cast<const char*>(data), size);
         config.bIpv6 = false;
         config.prohibitUseCacheIp = false;
-        dhcpClient->StartDhcpClient(ifname, config);
-        dhcpClient->StopDhcpClient(ifname, true);
-        dhcpClient->RegisterDhcpClientCallBack(ifname, dhcpClientCallBack);
+        dhcpClient->StartDhcpClient(config);
+        dhcpClient->StopDhcpClient(config.ifname, true);
+        dhcpClient->RegisterDhcpClientCallBack(config.ifname, dhcpClientCallBack);
 
         return true;
     }

@@ -134,7 +134,7 @@ ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, const RouterConfig &config)
+ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
 {
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
@@ -153,7 +153,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, const Router
     }
 
     (void)WriteInt32(&req, 0);
-    (void)WriteString(&req, ifname.c_str());
+    (void)WriteString(&req, config.ifname.c_str());
     (void)WriteString(&req, config.bssid.c_str());
     (void)WriteBool(&req, config.prohibitUseCacheIp);
     (void)WriteBool(&req, config.bIpv6);

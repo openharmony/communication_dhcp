@@ -74,16 +74,15 @@ DhcpErrorCode RegisterDhcpClientReportCallBack(const char *ifname, const DhcpCli
     return DHCP_SUCCESS;
 }
 
-NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const char *ifname, const RouterConfig  &config)
+NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig  &config)
 {
-    CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
     OHOS::DHCP::RouterConfig routerConfig;
     routerConfig.bssid = config.bssid;
     routerConfig.prohibitUseCacheIp = config.prohibitUseCacheIp;
     routerConfig.bIpv6 = config.bIpv6;
     routerConfig.bSpecificNetwork = config.bSpecificNetwork;
-    return GetCErrorCode(dhcpClientPtr->StartDhcpClient(ifname, routerConfig));
+    return GetCErrorCode(dhcpClientPtr->StartDhcpClient(routerConfig));
 }
 
 NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6)

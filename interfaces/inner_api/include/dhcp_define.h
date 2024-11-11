@@ -232,6 +232,7 @@ struct DhcpRange {
 };
 
 struct RouterConfig {
+    std::string ifname;
     std::string bssid;
     bool prohibitUseCacheIp;
     bool bIpv6;

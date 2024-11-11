@@ -136,13 +136,13 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
 int DhcpClientStub::OnStartDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
-    std::string ifname = data.ReadString();
     RouterConfig config;
+    config.ifname = data.ReadString();
     config.bssid = data.ReadString();
     config.prohibitUseCacheIp = data.ReadBool();
     config.bIpv6 = data.ReadBool();
     config.bSpecificNetwork = data.ReadBool();
-    ErrCode ret = StartDhcpClient(ifname, config);
+    ErrCode ret = StartDhcpClient(config);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
     return 0;

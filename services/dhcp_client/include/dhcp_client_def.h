@@ -413,6 +413,7 @@ enum TimerType {
 };
 
 struct RouterCfg {
+    std::string ifname;
     std::string bssid;
     bool prohibitUseCacheIp;
     bool bIpv6;

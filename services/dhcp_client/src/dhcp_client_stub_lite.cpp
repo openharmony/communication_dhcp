@@ -135,7 +135,7 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("ifname:%{public}s prohibitUseCacheIp:%{public}d, bIpv6:%{public}d, bSpecificNetwork:%{public}d",
         ifname.c_str(), config.prohibitUseCacheIp, config.bIpv6, config.bSpecificNetwork);
 
-    ret = StartDhcpClient(ifname, config);
+    ret = StartDhcpClient(config);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
     return DHCP_OPT_SUCCESS;

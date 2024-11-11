@@ -54,12 +54,12 @@ HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
     ASSERT_TRUE(dhcpClientImpl != nullptr);
     DHCP_LOGE("enter IsNativeProcess fail Test");
 
-    const std::string& ifname = "wlan0";
     RouterConfig config;
+    config.ifname = "wlan0";
     config.bIpv6 = true;
     config.prohibitUseCacheIp = false;
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpClient(ifname, config));
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StopDhcpClient(ifname, false));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpClient(config));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StopDhcpClient(config.ifname, false));
 }
 
 HWTEST_F(DhcpClientServiceImplTest, OnStartTest, TestSize.Level1)
@@ -94,15 +94,16 @@ HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)
     client.ifName = ifname;
     client.isIpv6 = bIpv6;
     RouterCfg config;
+    config.ifname = "wlan0";
     config.bIpv6 = true;
     config.prohibitUseCacheIp = false;
-    EXPECT_EQ(DHCP_E_FAILED, dhcpClientImpl->StartOldClient(ifname, config, client));
+    EXPECT_EQ(DHCP_E_FAILED, dhcpClientImpl->StartOldClient(config, client));
 
     client.pStaStateMachine = new DhcpClientStateMachine(client.ifName);
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(ifname, config, client));
 
     bIpv6 = false;
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(ifname, config, client));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
 }
 
 HWTEST_F(DhcpClientServiceImplTest, StartNewClientTest, TestSize.Level1)
@@ -111,10 +112,10 @@ HWTEST_F(DhcpClientServiceImplTest, StartNewClientTest, TestSize.Level1)
     ASSERT_TRUE(dhcpClientImpl != nullptr);
 
     RouterCfg cfg;
-    std::string ifname = "";
+    cfg.ifname = "";
     cfg.bIpv6 = false;
     cfg.prohibitUseCacheIp = false;
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartNewClient(ifname, cfg));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartNewClient(cfg));
 }
 
 HWTEST_F(DhcpClientServiceImplTest, IsRemoteDiedTest, TestSize.Level1)

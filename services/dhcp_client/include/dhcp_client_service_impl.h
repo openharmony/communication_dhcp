@@ -61,14 +61,14 @@ public:
 #else
     ErrCode RegisterDhcpClientCallBack(const std::string& ifname, const sptr<IDhcpClientCallBack> &clientCallback) override;
 #endif
-    ErrCode StartDhcpClient(const std::string& ifname, const RouterConfig &config) override;
+    ErrCode StartDhcpClient(const RouterConfig &config) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
 #ifndef OHOS_ARCH_LITE
     void StartServiceAbility(int sleepS);
 #endif
     bool IsRemoteDied(void) override;
-    ErrCode StartOldClient(const std::string& ifname, const RouterCfg &config, DhcpClient &dhcpClient);
-    ErrCode StartNewClient(const std::string& ifname, const RouterCfg &config);
+    ErrCode StartOldClient(const RouterCfg &config, DhcpClient &dhcpClient);
+    ErrCode StartNewClient(const RouterCfg &config);
 
     int DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult);
 #ifndef OHOS_ARCH_LITE

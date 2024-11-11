@@ -42,11 +42,10 @@ extern "C" {
     /**
      * @Description : Start dhcp client service of specified interface.
      *
-     * @param ifname - interface name, eg:wlan0 [in]
      * @param config - config
      * @Return : success - DHCP_SUCCESS, failed - others.
      */
-    DhcpErrorCode StartDhcpClient(const char *ifname, const RouterConfig &config);
+    DhcpErrorCode StartDhcpClient(const RouterConfig &config);
     /**
      * @Description : Stop dhcp client service of specified interface.
      *

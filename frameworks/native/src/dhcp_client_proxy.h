@@ -47,7 +47,7 @@ public:
 #else
     ErrCode RegisterDhcpClientCallBack(const std::string& ifname, const sptr<IDhcpClientCallBack> &callback) override;
 #endif
-    ErrCode StartDhcpClient(const std::string& ifname, const RouterConfig &config) override;
+    ErrCode StartDhcpClient(const RouterConfig &config) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
     bool IsRemoteDied() override;
 #ifdef OHOS_ARCH_LITE

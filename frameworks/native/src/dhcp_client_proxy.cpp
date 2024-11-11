@@ -137,7 +137,7 @@ ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, const RouterConfig &config)
+ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
 {
     DHCP_LOGI("DhcpClientProxy enter StartDhcpClient mRemoteDied:%{public}d", mRemoteDied);
     if (mRemoteDied) {
@@ -152,13 +152,13 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, const Router
         return DHCP_E_FAILED;
     }
     data.WriteInt32(0);
-    data.WriteString(ifname);
+    data.WriteString(config.ifname);
     data.WriteString(config.bssid);
     data.WriteBool(config.prohibitUseCacheIp);
     data.WriteBool(config.bIpv6);
     data.WriteBool(config.bSpecificNetwork);
     DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, prohibitUseCacheIp:%{public}d, bIpv6:%{public}d"\
-        "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), ifname.c_str(), config.prohibitUseCacheIp,
+        "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), config.ifname.c_str(), config.prohibitUseCacheIp,
         config.bIpv6, config.bSpecificNetwork);
     int error = Remote()->SendRequest(
         static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), data, reply, option);
