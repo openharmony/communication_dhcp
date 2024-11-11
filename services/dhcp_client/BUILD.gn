@@ -68,6 +68,12 @@ if (defined(ohos_lite)) {
       "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
       "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
     ]
+
+    if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+      external_deps += [ "init:libbegetutil" ]
+      defines += [ "INIT_LIB_ENABLE" ]
+    }
+
     configs -= [ "//build/lite/config:language_cpp" ]
     cflags = [
       "-std=c++17",
