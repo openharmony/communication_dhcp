@@ -155,7 +155,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, const Router
     (void)WriteInt32(&req, 0);
     (void)WriteString(&req, ifname.c_str());
     (void)WriteString(&req, config.bssid.c_str());
-    (void)WriteString(&req, config.prohibitUseCacheIp);
+    (void)WriteBool(&req, config.prohibitUseCacheIp);
     (void)WriteBool(&req, config.bIpv6);
     (void)WriteBool(&req, config.bSpecificNetwork);
     owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT);
