@@ -48,7 +48,6 @@
 
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
-#include "parameters.h"
 #endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
 
@@ -2148,9 +2147,17 @@ void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 
 bool DhcpClientStateMachine::IsPcDevice()
 {
-    const std::string deviceType = system::GetParameter("const.product.devicetype", "");
-    DHCP_LOGI("devicetype: %{public}s", deviceType.c_str());
-    auto iter = std::string(deviceType).find("2in1");
+    const char deviceClass[] = "const.product.devicetype";
+    constexpr const int32_t SYS_PARAMETER_SIZE = 256;
+    constexpr const int32_t SYSTEM_PARAMETER_ERROR_CODE = 0;
+    char param[SYS_PARAMETER_SIZE] = { 0 };
+    int errorCode = GetParameter(deviceClass, NULL, param, SYS_PARAMETER_SIZE);
+    if (errorCode <= SYSTEM_PARAMETER_ERROR_CODE) {
+        DHCP_LOGE("get devicetype fail, errorCode: %{public}d", errorCode);
+        return false;
+    }
+    DHCP_LOGI("devicetype: %{public}s, Code: %{public}d.", param, errorCode);
+    auto iter = std::string(param).find("2in1");
     return iter != std::string::npos;
 }
 
