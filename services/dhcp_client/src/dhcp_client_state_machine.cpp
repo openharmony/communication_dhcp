@@ -463,7 +463,9 @@ uint32_t DhcpClientStateMachine::GetDhcpTransID(void)
 void DhcpClientStateMachine::SetSocketMode(uint32_t mode)
 {
     DHCP_LOGI("close m_sockFd:%{public}d", m_sockFd);
-    close(m_sockFd);
+    if (m_sockFd >= 0) {
+        close(m_sockFd);
+    }
     m_sockFd = -1;
     m_socketMode = mode;
     DHCP_LOGI("SetSocketMode() the socket mode %{public}s.", (mode == SOCKET_MODE_RAW) ? "raw"
