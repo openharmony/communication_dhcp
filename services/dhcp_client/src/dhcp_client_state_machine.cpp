@@ -463,7 +463,9 @@ uint32_t DhcpClientStateMachine::GetDhcpTransID(void)
 void DhcpClientStateMachine::SetSocketMode(uint32_t mode)
 {
     DHCP_LOGI("close m_sockFd:%{public}d", m_sockFd);
-    close(m_sockFd);
+    if (m_sockFd >= 0) {
+        close(m_sockFd);
+    }
     m_sockFd = -1;
     m_socketMode = mode;
     DHCP_LOGI("SetSocketMode() the socket mode %{public}s.", (mode == SOCKET_MODE_RAW) ? "raw"
@@ -599,12 +601,9 @@ void DhcpClientStateMachine::InitSelecting(time_t timestamp)
     DhcpDiscover(m_transID, m_requestedIp4);
     m_dhcp4State = DHCP_STATE_SELECTING;
 
-    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
     if ((uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) && (m_action != ACTION_RENEW_T3)) {
         TryCachedIp();
-    }
-    if (uTimeoutSec > MAX_WAIT_TIMES) {
-        uTimeoutSec = MAX_WAIT_TIMES;
     }
     m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
     DHCP_LOGI("InitSelecting() DhcpDiscover m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timestamp:%{public}u.",
@@ -686,10 +685,7 @@ void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
         return;
     }
 
-    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
-    if (uTimeoutSec > MAX_WAIT_TIMES) {
-        uTimeoutSec = MAX_WAIT_TIMES;
-    }
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
     m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
     m_requestedIp4 = targetIp;
     DhcpReboot(m_transID, m_requestedIp4);
@@ -755,12 +751,9 @@ void DhcpClientStateMachine::Requesting(time_t timestamp)
         DhcpRequest(m_transID, m_requestedIp4, m_serverIp4);
     }
 
-    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
     if (uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) {
         TryCachedIp();
-    }
-    if (uTimeoutSec > MAX_WAIT_TIMES) {
-        uTimeoutSec = MAX_WAIT_TIMES;
     }
     m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
     DHCP_LOGI("Requesting() DhcpRequest m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timeoutTimestamp:%{public}u.",
@@ -776,10 +769,7 @@ void DhcpClientStateMachine::Renewing(time_t timestamp)
     if (m_dhcp4State == DHCP_STATE_RENEWING) {
         DhcpRenew(m_transID, m_requestedIp4, m_serverIp4);
     }
-    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
-    if (uTimeoutSec > MAX_WAIT_TIMES) {
-        uTimeoutSec = MAX_WAIT_TIMES;
-    }
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
     m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
     m_sentPacketNum++;
     DHCP_LOGI("Renewing sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}u state:%{public}u",
@@ -791,10 +781,7 @@ void DhcpClientStateMachine::Rebinding(time_t timestamp)
     if (m_dhcp4State == DHCP_STATE_REBINDING) {
         DhcpRenew(m_transID, m_requestedIp4, 0);
     }
-    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << m_sentPacketNum;
-    if (uTimeoutSec > MAX_WAIT_TIMES) {
-        uTimeoutSec = MAX_WAIT_TIMES;
-    }
+    uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
     m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
     m_sentPacketNum++;
     DHCP_LOGI("Rebinding sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}u state:%{public}u",
