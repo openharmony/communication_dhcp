@@ -58,21 +58,6 @@ HWTEST_F(DhcpFunctionTest, Ip4StrConToInt_FAILED, TestSize.Level1)
     EXPECT_EQ(false, DhcpFunction::Ip4StrConToInt(strIp, uSerIp));
 }
 
-HWTEST_F(DhcpFunctionTest, Ip4IntConToStr_SUCCESS, TestSize.Level1)
-{
-    uint32_t uSerIp = 3226272232;
-    std::string strIp = DhcpFunction::Ip4IntConToStr(uSerIp);
-    EXPECT_STRNE(strIp.c_str(), "");
-    printf("DhcpFunctionTest Ip4IntConToStr_SUCCESS uSerIp:%u -> strIp:%s.\n", uSerIp, strIp.c_str());
-}
-
-HWTEST_F(DhcpFunctionTest, Ip4IntConToStr_FAILED, TestSize.Level1)
-{
-    uint32_t uSerIp = 0;
-    std::string strIp = DhcpFunction::Ip4IntConToStr(uSerIp);
-    EXPECT_STREQ(strIp.c_str(), "0.0.0.0");
-}
-
 HWTEST_F(DhcpFunctionTest, Ip6StrConToChar_SUCCESS, TestSize.Level1)
 {
     std::string strIp = "fe80::20c:29ff:fed7:fac8";

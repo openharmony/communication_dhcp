@@ -110,9 +110,12 @@ static int SendDhcpOffer(PDhcpServerContext ctx, PDhcpMsgInfo reply);
 static int SendDhcpAck(PDhcpServerContext ctx, PDhcpMsgInfo reply);
 static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply);
 static int ParseMessageOptions(PDhcpMsgInfo msg);
+static int TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo reply);
 
 static int ParseReplyOptions(PDhcpMsgInfo reply);
 struct sockaddr_in *BroadcastAddrIn(void);
+
+using namespace OHOS::DHCP;
 
 static struct ServerContext *GetServerInstance(const DhcpServerContext *ctx)
 {
@@ -721,9 +724,7 @@ int FillReply(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
     if (received->packet.ciaddr && received->packet.ciaddr != INADDR_BROADCAST) {
         reply->packet.ciaddr = received->packet.ciaddr;
     }
-    if (received->packet.flags) {
-        reply->packet.flags = received->packet.flags;
-    }
+    reply->packet.flags = received->packet.flags;
     if (received->packet.xid) {
         reply->packet.xid = received->packet.xid;
     }
@@ -965,7 +966,7 @@ static int DiscoverReplyLeaseMessage(PDhcpServerContext ctx, PDhcpMsgInfo reply,
     AddressBinding *lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     if (!lease) {
         DHCP_LOGI("Discover add lease, binging ip:%{public}s mac:%{public}s",
-            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
+            IntIpv4ToAnonymizeStr(binding->ipAddress).c_str(), ParseLogMac(binding->chaddr));
         AddLease(&srvIns->addressPool, binding);
         lease = GetLease(&srvIns->addressPool, binding->ipAddress);
     }
@@ -997,13 +998,13 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     if (optReqIp) {
         reqIp = ParseIp(optReqIp->data);
         if (reqIp) {
-            DHCP_LOGI("Discover request ip:%{public}s", OHOS::DHCP::IntIpv4ToAnonymizeStr(reqIp).c_str());
+            DHCP_LOGI("Discover request ip:%{public}s", IntIpv4ToAnonymizeStr(reqIp).c_str());
         }
     }
     uint32_t srcIp = SourceIpAddress();
     if (!srvIns->broadCastFlagEnable) {
         if (srcIp) {
-            DHCP_LOGI("Discover client repending:%{public}s", OHOS::DHCP::IntIpv4ToAnonymizeStr(srcIp).c_str());
+            DHCP_LOGI("Discover client repending:%{public}s", IntIpv4ToAnonymizeStr(srcIp).c_str());
         } else {
             srcIp = INADDR_BROADCAST;
         }
@@ -1020,8 +1021,8 @@ static int OnReceivedDiscover(PDhcpServerContext ctx, PDhcpMsgInfo received, PDh
     }
     if (reqIp != 0 && reqIp != binding->ipAddress) {
         DHCP_LOGW("Discover package reqIp:%{public}s, binging ip:%{public}s",
-            OHOS::DHCP::IntIpv4ToAnonymizeStr(reqIp).c_str(),
-            OHOS::DHCP::IntIpv4ToAnonymizeStr(binding->ipAddress).c_str());
+            IntIpv4ToAnonymizeStr(reqIp).c_str(),
+            IntIpv4ToAnonymizeStr(binding->ipAddress).c_str());
     }
     DeleteMacInLease(&srvIns->addressPool, binding);
     return DiscoverReplyLeaseMessage(ctx, reply, srvIns, binding);
@@ -1046,8 +1047,8 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
     uint32_t srcIp = SourceIpAddress();
     uint32_t reqIp = GetRequestIpAddress(received);
     DHCP_LOGI("cliIp:%{public}s srcIp:%{public}s reqIp:%{public}s",
-        OHOS::DHCP::IntIpv4ToAnonymizeStr(cliIp).c_str(), OHOS::DHCP::IntIpv4ToAnonymizeStr(srcIp).c_str(),
-        OHOS::DHCP::IntIpv4ToAnonymizeStr(reqIp).c_str());
+        IntIpv4ToAnonymizeStr(cliIp).c_str(), IntIpv4ToAnonymizeStr(srcIp).c_str(),
+        IntIpv4ToAnonymizeStr(reqIp).c_str());
     if (cliIp && srcIp && cliIp != srcIp) {
         DHCP_LOGE("error dhcp request message, missing required request option.");
         return RET_FAILED;
@@ -1366,7 +1367,7 @@ static int OnReceivedRequest(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
     if (lease) {
         ParseDhcpOption(received, lease);
         DHCP_LOGI("request in lease, yourIpAddr:%{public}s, mac:%{public}s",
-            OHOS::DHCP::IntIpv4ToAnonymizeStr(yourIpAddr).c_str(), ParseLogMac(lease->chaddr));
+            IntIpv4ToAnonymizeStr(yourIpAddr).c_str(), ParseLogMac(lease->chaddr));
         int sameAddr = AddrEquels(lease->chaddr, received->packet.chaddr, MAC_ADDR_LENGTH);
         if (!sameAddr && !IsExpire(lease)) {
             DHCP_LOGW("invalid request ip address, reply nak, sameAddr:%{public}d", sameAddr);
@@ -1588,15 +1589,48 @@ static int SendDhcpOffer(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         DHCP_LOGE("failed to parse reply options.");
         return RET_FAILED;
     }
+    if (TransmitOfferOrAckPacket(ctx, reply) != RET_SUCCESS) {
+        DHCP_LOGE("send reply offer failed");
+        return RET_FAILED;
+    }
+    DHCP_LOGI("send reply offer, length:%d", reply->length);
+    return RET_SUCCESS;
+}
+
+static bool GetBroadCastFlag(PDhcpMsgInfo reply)
+{
+    bool broadcastFlag = false;
+    if (reply->packet.flags >> (DHCP_MESSAGE_FLAG_LENGTH - 1)) {
+        broadcastFlag = true;
+    }
+
+    if ((reply->packet.ciaddr == 0) && (broadcastFlag || (reply->packet.yiaddr == 0))) {
+        return true;
+    }
+    return false;
+}
+
+static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo reply)
+{
+    ServerContext *srvIns = GetServerInstance(ctx);
+    if (!srvIns) {
+        DHCP_LOGE("TransmitOfferOrAckPacket failed to get server instance");
+        return RET_FAILED;
+    }
     int ret;
-    struct sockaddr_in *bcastAddrIn = BroadcastAddrIn();
-    struct sockaddr_in *destAddrIn = DestinationAddrIn();
+    sockaddr_in *bcastAddrIn = BroadcastAddrIn();
+    sockaddr_in *destAddrIn = DestinationAddrIn();
     if (srvIns->broadCastFlagEnable == 1 && destAddrIn) {
-        int broadCastFlag = 1;
-        if (reply->packet.flags && (reply->packet.flags >> (DHCP_MESSAGE_FLAG_LENGTH - 1)) == 0) {
-            broadCastFlag = 0;
-        }
-        if (!broadCastFlag && destAddrIn->sin_addr.s_addr) {
+        bool broadCastFlag = GetBroadCastFlag(reply);
+        DHCP_LOGI("TransmitOfferOrAckPacket, broadCastFlag: %{public}d", broadCastFlag);
+        if (!broadCastFlag) {
+            destAddrIn->sin_addr.s_addr = reply->packet.yiaddr;
+            std::string ipAddr = Ip4IntConvertToStr(reply->packet.yiaddr, false);
+            std::string macAddr = ParseStrMac(reply->packet.chaddr, sizeof(reply->packet.chaddr));
+            if (AddArpEntry(ctx->ifname, ipAddr, macAddr) < 0) {
+                DHCP_LOGE("AddArpEntry failed");
+                return RET_FAILED;
+            }
             ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)destAddrIn,
                 sizeof(*destAddrIn));
         } else {
@@ -1608,10 +1642,9 @@ static int SendDhcpOffer(PDhcpServerContext ctx, PDhcpMsgInfo reply)
             srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)bcastAddrIn, sizeof(*bcastAddrIn));
     }
     if (!ret) {
-        DHCP_LOGD("failed to send dhcp offer message.");
+        DHCP_LOGE("failed to send dhcp message.");
         return RET_FAILED;
     }
-    DHCP_LOGI("send reply offer, length:%d", reply->length);
     return RET_SUCCESS;
 }
 
@@ -1642,11 +1675,8 @@ static int SendDhcpAck(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         DHCP_LOGE("failed to parse reply options");
         return RET_FAILED;
     }
-    sockaddr_in *destAddrIn = DestinationAddrIn();
-    int ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)destAddrIn,
-        sizeof(*destAddrIn));
-    if (!ret) {
-        DHCP_LOGD("failed to send dhcp ack message.");
+    if (TransmitOfferOrAckPacket(ctx, reply) != RET_SUCCESS) {
+        DHCP_LOGE("failed to send dhcp ack message");
         return RET_FAILED;
     }
     DHCP_LOGI("send reply ack, size:%d", reply->length);
