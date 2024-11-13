@@ -128,7 +128,7 @@ private:
     int m_sigSockFds[NUMBER_TWO];
     int m_resendTimer;
     uint32_t m_sentPacketNum;
-    uint32_t m_timeoutTimestamp;
+    int64_t m_timeoutTimestamp;
     int64_t m_renewalTimestamp;
     int64_t m_renewalTimestampBoot;
     uint32_t m_leaseTime;
