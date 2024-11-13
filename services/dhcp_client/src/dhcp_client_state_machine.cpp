@@ -845,7 +845,7 @@ void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
             break;
         case DHCP_STATE_RELEASED:
             /* Ensure that the function select() is always blocked and don't need to receive ip from dhcp server. */
-            DHCP_LOGI("DhcpRequestHandle() DHCP_STATE_RELEASED-7 m_timeoutTimestamp:%{public}"PRId64,
+            DHCP_LOGI("DhcpRequestHandle() DHCP_STATE_RELEASED-7 m_timeoutTimestamp:%{public}" PRId64,
                 m_timeoutTimestamp);
             m_timeoutTimestamp = SIGNED_INTEGER_MAX;
             break;
