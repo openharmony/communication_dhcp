@@ -683,7 +683,7 @@ void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
         m_dhcp4State = DHCP_STATE_INIT;
         SetSocketMode(SOCKET_MODE_RAW);
         m_sentPacketNum = 0;
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+        m_timeoutTimestamp = timestamp;
         return;
     }
 
@@ -758,7 +758,7 @@ void DhcpClientStateMachine::Requesting(time_t timestamp)
     if (uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) {
         TryCachedIp();
     }
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
+    m_timeoutTimestamp = timestamp + static_cast<int64_t>(uTimeoutSec);
     DHCP_LOGI("Requesting() DhcpRequest m_sentPacketNum:%{public}u,timeoutSec:%{public}u,"
         "timeoutTimestamp:%{public}" PRId64,
         m_sentPacketNum,
