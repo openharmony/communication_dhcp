@@ -36,6 +36,25 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len);
 int CheckDataLegal(std::string &data, int base = DECIMAL_NOTATION);
 unsigned int CheckDataToUint(std::string &data, int base = DECIMAL_NOTATION);
 long long CheckDataTolonglong(std::string &data, int base = DECIMAL_NOTATION);
+
+/**
+ * @Description IP address transfer to string
+ *
+ * @param str - Input Ip address
+ * @param bHost - whether is bHost or not
+ * @return std::string - Ip address
+ */
+std::string Ip4IntConvertToStr(uint32_t uIp, bool bHost);
+
+/**
+ * @Description add ip and mac into arp table
+ *
+ * @param iface - Input iface name
+ * @param ipAddr - ip Addr
+ * @param macAddr - mac address
+ * @return int32_t - 0: sucess; 1: fail
+ */
+int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const std::string& macAddr);
 }
 }
 #endif

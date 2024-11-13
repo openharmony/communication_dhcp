@@ -34,7 +34,6 @@ public:
     ~DhcpFunction() {}
 
     static bool Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool bHost = true);
-    static std::string Ip4IntConToStr(uint32_t uIp, bool bHost = true);
     static bool Ip6StrConToChar(const std::string& strIp, uint8_t chIp[], size_t uSize);
     static std::string Ip6CharConToStr(uint8_t chIp[], int size);
     static bool CheckIpStr(const std::string& strIp);

@@ -12,6 +12,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <sys/socket.h>
+#include <sys/ioctl.h>
+#include <net/if_arp.h>
+#include <netinet/in.h>
+#include <unistd.h>
 
 #include "dhcp_common_utils.h"
 #include <arpa/inet.h>
@@ -31,6 +36,7 @@ constexpr int32_t MAC_INDEX_2 = 2;
 constexpr int32_t MAC_INDEX_3 = 3;
 constexpr int32_t MAC_INDEX_4 = 4;
 constexpr int32_t MAC_INDEX_5 = 5;
+constexpr int32_t MAC_LENTH = 6;
 
 std::string Ipv4Anonymize(const std::string str)
 {
@@ -151,6 +157,90 @@ long long CheckDataTolonglong(std::string &data, int base)
         return 0;
     }
     return num;
+}
+
+std::string Ip4IntConvertToStr(uint32_t uIp, bool bHost)
+{
+    char bufIp4[INET_ADDRSTRLEN] = {0};
+    struct in_addr addr4;
+    if (bHost) {
+        addr4.s_addr = htonl(uIp);
+    } else {
+        addr4.s_addr = uIp;
+    }
+
+    std::string strIp = "";
+    if (inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN) == nullptr) {
+        DHCP_LOGE("Ip4IntConvertToStr uIp:%{private}u failed, inet_ntop nullptr!", uIp);
+    } else {
+        strIp = bufIp4;
+        DHCP_LOGI("Ip4IntConvertToStr uIp:%{private}u -> strIp:%{private}s.", uIp, strIp.c_str());
+    }
+
+    return strIp;
+}
+
+static int32_t GetMacAddr(char *buff, const char *macAddr)
+{
+    unsigned int addr[MAC_LENTH] = {0};
+    if (buff == nullptr || macAddr == nullptr) {
+        DHCP_LOGE("buff or macAddr is nullptr");
+        return -1;
+    }
+
+    if (sscanf_s(macAddr, "%x:%x:%x:%x:%x:%x", &addr[MAC_INDEX_0], &addr[MAC_INDEX_1], &addr[MAC_INDEX_2],
+        &addr[MAC_INDEX_3], &addr[MAC_INDEX_4], &addr[MAC_INDEX_5]) < MAC_LENTH) {
+        DHCP_LOGE("sscanf_s macAddr err");
+        return -1;
+    }
+
+    for (int32_t i = 0; i < MAC_LENTH; i++) {
+        buff[i] = addr[i];
+    }
+    return 0;
+}
+
+int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const std::string& macAddr)
+{
+    DHCP_LOGI("AddArpEntry enter");
+    struct arpreq req;
+    struct sockaddr_in *sin = nullptr;
+
+    if (iface.empty() || ipAddr.empty() || macAddr.empty()) {
+        DHCP_LOGE("AddArpEntry arg is invalid");
+        return -1;
+    }
+
+    if (memset_s(&req, sizeof(struct arpreq), 0, sizeof(struct arpreq)) != EOK) {
+        DHCP_LOGE("DelStaticArp memset_s err");
+        return -1;
+    }
+    sin = reinterpret_cast<struct sockaddr_in *>(&req.arp_pa);
+    sin->sin_family = AF_INET;
+    sin->sin_addr.s_addr = inet_addr(ipAddr.c_str());
+    if (strncpy_s(req.arp_dev, sizeof(req.arp_dev), iface.c_str(), iface.size()) != EOK) {
+        DHCP_LOGE("strncpy_s req err");
+        return -1;
+    }
+
+    req.arp_flags = ATF_PERM | ATF_COM;
+    if (GetMacAddr(reinterpret_cast<char *>(req.arp_ha.sa_data), macAddr.c_str()) < 0) {
+        DHCP_LOGE("AddArpEntry GetMacAddr error");
+        return -1;
+    }
+
+    int32_t sockFd = socket(AF_INET, SOCK_DGRAM, 0);
+    if (sockFd < 0) {
+        DHCP_LOGE("DoArpItem socket creat error");
+        return -1;
+    }
+
+    int32_t ret = ioctl(sockFd, SIOCSARP, req);
+    if (ret < 0) {
+        DHCP_LOGE("DoArpItem ioctl error");
+    }
+    close(sockFd);
+    return ret;
 }
 }
 }

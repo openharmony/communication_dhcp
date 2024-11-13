@@ -61,27 +61,6 @@ bool DhcpFunction::Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool 
     return true;
 }
 
-std::string DhcpFunction::Ip4IntConToStr(uint32_t uIp, bool bHost)
-{
-    char bufIp4[INET_ADDRSTRLEN] = {0};
-    struct in_addr addr4;
-    if (bHost) {
-        addr4.s_addr = htonl(uIp);
-    } else {
-        addr4.s_addr = uIp;
-    }
-
-    std::string strIp = "";
-    if (inet_ntop(AF_INET, &addr4, bufIp4, INET_ADDRSTRLEN) == nullptr) {
-        DHCP_LOGE("Ip4IntConToStr uIp:%{private}u failed, inet_ntop nullptr!", uIp);
-    } else {
-        strIp = bufIp4;
-        DHCP_LOGI("Ip4IntConToStr uIp:%{private}u -> strIp:%{private}s.", uIp, strIp.c_str());
-    }
-
-    return strIp;
-}
-
 bool DhcpFunction::Ip6StrConToChar(const std::string& strIp, uint8_t chIp[], size_t uSize)
 {
     if (strIp.empty()) {
