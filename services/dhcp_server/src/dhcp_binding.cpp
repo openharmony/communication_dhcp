@@ -202,7 +202,7 @@ int ParseAddressBinding(AddressBinding *binding, const char *buf)
         }
         if (num >= BINDING_STRING_MAX_SIZE) {
             ParseHostName(strs[BINDING_DEVICE_NAME_POS], binding->deviceName);
-            DHCP_LOGI("ParseHostName deviceName:%{public}s", binding->deviceName);
+            DHCP_LOGI("ParseHostName deviceName:%{private}s", binding->deviceName);
         }
         ret += 1; /* set ret = 0 */
     } while (0);
