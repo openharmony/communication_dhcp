@@ -296,7 +296,7 @@ int DhcpClientStateMachine::StartIpv4(void)
         
         FD_ZERO(&readfds);
         FD_ZERO(&exceptfds);
-        timeout.tv_sec = m_timeoutTimestamp - time(NULL);
+        timeout.tv_sec = static_cast<time_t>(m_timeoutTimestamp - time(NULL));
         timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
         InitSocketFd();
 
@@ -417,7 +417,8 @@ void DhcpClientStateMachine::DhcpStop(void)
 
 void DhcpClientStateMachine::InitSocketFd(void)
 {
-    DHCP_LOGD("InitSocketFd fd:%{public}d,mode:%{public}d,index:%{public}d,name:%{public}s,timeoutTimestamp:%{public}u",
+    DHCP_LOGD("InitSocketFd fd:%{public}d,mode:%{public}d,index:%{public}d,name:%{public}s,"
+        "timeoutTimestamp:%{public}" PRId64,
         m_sockFd, m_socketMode, m_cltCnf.ifaceIndex, m_cltCnf.ifaceName, m_timeoutTimestamp);
     if (m_sockFd < 0) {
         if (m_socketMode == SOCKET_MODE_INVALID) {
@@ -587,7 +588,7 @@ void DhcpClientStateMachine::InitSelecting(time_t timestamp)
     if (m_sentPacketNum > TIMEOUT_TIMES_MAX) {
         // Send packet timed out, now exit process.
         DHCP_LOGI("InitSelecting() send packet timed out %{public}u times, now exit process!", m_sentPacketNum);
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + TIMEOUT_MORE_WAIT_SEC;
+        m_timeoutTimestamp = timestamp + TIMEOUT_MORE_WAIT_SEC;
         m_sentPacketNum = 0;
         threadExit_ = true;
         return;
@@ -605,8 +606,9 @@ void DhcpClientStateMachine::InitSelecting(time_t timestamp)
     if ((uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) && (m_action != ACTION_RENEW_T3)) {
         TryCachedIp();
     }
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
-    DHCP_LOGI("InitSelecting() DhcpDiscover m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timestamp:%{public}u.",
+    m_timeoutTimestamp = timestamp + static_cast<int64_t>(uTimeoutSec);
+    DHCP_LOGI("InitSelecting() DhcpDiscover m_sentPacketNum:%{public}u,timeoutSec:%{public}u,"
+        "timestamp:%{public}" PRId64,
         m_sentPacketNum,
         uTimeoutSec,
         m_timeoutTimestamp);
@@ -681,15 +683,16 @@ void DhcpClientStateMachine::SendReboot(uint32_t targetIp, time_t timestamp)
         m_dhcp4State = DHCP_STATE_INIT;
         SetSocketMode(SOCKET_MODE_RAW);
         m_sentPacketNum = 0;
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+        m_timeoutTimestamp = timestamp;
         return;
     }
 
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
+    m_timeoutTimestamp = timestamp + static_cast<int64_t>(uTimeoutSec);
     m_requestedIp4 = targetIp;
     DhcpReboot(m_transID, m_requestedIp4);
-    DHCP_LOGI("SendReboot() SendReboot m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timeoutTimestamp:%{public}u.",
+    DHCP_LOGI("SendReboot() SendReboot m_sentPacketNum:%{public}u,timeoutSec:%{public}u,"
+        "timeoutTimestamp:%{public}" PRId64,
         m_sentPacketNum,
         uTimeoutSec,
         m_timeoutTimestamp);
@@ -739,7 +742,7 @@ void DhcpClientStateMachine::Requesting(time_t timestamp)
         m_dhcp4State = DHCP_STATE_INIT;
         SetSocketMode(SOCKET_MODE_RAW);
         m_sentPacketNum = 0;
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+        m_timeoutTimestamp = timestamp;
         return;
     }
 
@@ -755,8 +758,9 @@ void DhcpClientStateMachine::Requesting(time_t timestamp)
     if (uTimeoutSec > DHCP_FAILE_TIMEOUT_THR) {
         TryCachedIp();
     }
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
-    DHCP_LOGI("Requesting() DhcpRequest m_sentPacketNum:%{public}u,timeoutSec:%{public}u,timeoutTimestamp:%{public}u.",
+    m_timeoutTimestamp = timestamp + static_cast<int64_t>(uTimeoutSec);
+    DHCP_LOGI("Requesting() DhcpRequest m_sentPacketNum:%{public}u,timeoutSec:%{public}u,"
+        "timeoutTimestamp:%{public}" PRId64,
         m_sentPacketNum,
         uTimeoutSec,
         m_timeoutTimestamp);
@@ -770,9 +774,10 @@ void DhcpClientStateMachine::Renewing(time_t timestamp)
         DhcpRenew(m_transID, m_requestedIp4, m_serverIp4);
     }
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
+    m_timeoutTimestamp = timestamp + static_cast<int64_t>(uTimeoutSec);
     m_sentPacketNum++;
-    DHCP_LOGI("Renewing sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}u state:%{public}u",
+    DHCP_LOGI("Renewing sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}" PRId64
+        "state:%{public}u",
         m_sentPacketNum, uTimeoutSec, m_timeoutTimestamp, m_dhcp4State);
 }
 
@@ -782,9 +787,10 @@ void DhcpClientStateMachine::Rebinding(time_t timestamp)
         DhcpRenew(m_transID, m_requestedIp4, 0);
     }
     uint32_t uTimeoutSec = TIMEOUT_WAIT_SEC << (m_sentPacketNum > MAX_WAIT_TIMES ? MAX_WAIT_TIMES : m_sentPacketNum);
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + uTimeoutSec;
+    m_timeoutTimestamp = timestamp + static_cast<int64_t>(uTimeoutSec);
     m_sentPacketNum++;
-    DHCP_LOGI("Rebinding sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}u state:%{public}u",
+    DHCP_LOGI("Rebinding sentPacketNum:%{public}u timeoutSec:%{public}u timeoutTimestamp:%{public}" PRId64
+        "state:%{public}u",
         m_sentPacketNum, uTimeoutSec, m_timeoutTimestamp, m_dhcp4State);
 }
 
@@ -801,10 +807,10 @@ void DhcpClientStateMachine::Declining(time_t timestamp)
         m_dhcp4State = DHCP_STATE_BOUND;
         m_sentPacketNum = 0;
         m_resendTimer = 0;
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+        m_timeoutTimestamp = timestamp;
         return;
     }
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + TIMEOUT_WAIT_SEC;
+    m_timeoutTimestamp = timestamp + TIMEOUT_WAIT_SEC;
     DhcpDecline(m_transID, m_requestedIp4, m_serverIp4);
     m_dhcp4State = DHCP_STATE_INIT;
     m_sentPacketNum = 0;
@@ -839,7 +845,8 @@ void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
             break;
         case DHCP_STATE_RELEASED:
             /* Ensure that the function select() is always blocked and don't need to receive ip from dhcp server. */
-            DHCP_LOGI("DhcpRequestHandle() DHCP_STATE_RELEASED-7 m_timeoutTimestamp:%{public}d", m_timeoutTimestamp);
+            DHCP_LOGI("DhcpRequestHandle() DHCP_STATE_RELEASED-7 m_timeoutTimestamp:%{public}" PRId64,
+                m_timeoutTimestamp);
             m_timeoutTimestamp = SIGNED_INTEGER_MAX;
             break;
         case DHCP_STATE_FAST_ARP:
@@ -896,7 +903,7 @@ void DhcpClientStateMachine::DhcpOfferPacketHandle(uint8_t type, const struct Dh
     /* Receive dhcp offer packet finished, next send dhcp request packet. */
     m_dhcp4State = DHCP_STATE_REQUESTING;
     m_sentPacketNum = 0;
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+    m_timeoutTimestamp = timestamp;
 }
 
 void DhcpClientStateMachine::ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result)
@@ -1230,7 +1237,7 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
         DHCP_LOGI("DhcpAckOrNakPacketHandle type:%{public}d error!", type);
         if (m_dhcp4State == DHCP_STATE_INITREBOOT) {
             m_dhcp4State = DHCP_STATE_INIT;
-            m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+            m_timeoutTimestamp = timestamp;
         }
         return;
     }
@@ -1271,7 +1278,7 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
         m_dhcp4State = DHCP_STATE_BOUND;
         m_sentPacketNum = 0;
         m_resendTimer = 0;
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
+        m_timeoutTimestamp = timestamp + static_cast<int64_t>(m_renewalSec);
         StopIpv4();
         ScheduleLeaseTimers(false);
     }
@@ -1316,7 +1323,7 @@ void DhcpClientStateMachine::ParseDhcpNakPacket(const struct DhcpPacket *packet,
     SetSocketMode(SOCKET_MODE_RAW);
     m_requestedIp4 = 0;
     m_sentPacketNum = 0;
-    m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+    m_timeoutTimestamp = timestamp;
     /* Avoid excessive network traffic. */
     DHCP_LOGI("ParseDhcpNakPacket receive DHCP_NAK 53, avoid excessive network traffic, need sleep!");
     if (m_resendTimer == 0) {
@@ -1391,7 +1398,7 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp)
         DHCP_LOGD("DhcpResponseHandle get packet failed, error:%{public}d len:%{public}d", errno, getLen);
         if (m_dhcp4State == DHCP_STATE_INITREBOOT) {
             m_dhcp4State = DHCP_STATE_INIT;
-            m_timeoutTimestamp = static_cast<uint32_t>(timestamp);
+            m_timeoutTimestamp = timestamp;
         }
         return;
     }
@@ -1788,7 +1795,7 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_dhcp4State = DHCP_STATE_BOUND;
         m_sentPacketNum = 0;
         m_resendTimer = 0;
-        m_timeoutTimestamp = m_renewalSec + static_cast<uint32_t>(time(NULL));
+        m_timeoutTimestamp = static_cast<int64_t>(m_renewalSec) + time(NULL);
         StopIpv4();
         ScheduleLeaseTimers(false);
     }
@@ -1805,11 +1812,11 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         m_dhcp4State = DHCP_STATE_BOUND;
         m_sentPacketNum = 0;
         m_resendTimer = 0;
-        m_timeoutTimestamp = static_cast<uint32_t>(timestamp) + m_renewalSec;
+        m_timeoutTimestamp = timestamp + static_cast<int64_t>(m_renewalSec);
         StopIpv4();
         ScheduleLeaseTimers(false);
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
-        m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS + static_cast<uint32_t>(time(NULL)) + 1;
+        m_timeoutTimestamp = static_cast<int64_t>(SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS) + time(NULL) + 1;
     #ifndef OHOS_ARCH_LITE
         std::function<void()> func = [this]() {
             DHCP_LOGI("SlowArpDetectTask enter");
