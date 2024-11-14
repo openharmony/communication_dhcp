@@ -255,7 +255,7 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const RouterConfig &config)
         return DHCP_E_FAILED;
     }
     RouterCfg innerCfg;
-    innerCfg.ifname = ifconfig.ifname;
+    innerCfg.ifname = config.ifname;
     innerCfg.bssid = config.bssid;
     innerCfg.prohibitUseCacheIp = config.prohibitUseCacheIp;
     innerCfg.bIpv6 = config.bIpv6;
