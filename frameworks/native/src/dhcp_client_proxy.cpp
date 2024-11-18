@@ -137,7 +137,7 @@ ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
 {
     DHCP_LOGI("DhcpClientProxy enter StartDhcpClient mRemoteDied:%{public}d", mRemoteDied);
     if (mRemoteDied) {
@@ -152,10 +152,14 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
         return DHCP_E_FAILED;
     }
     data.WriteInt32(0);
-    data.WriteString(ifname); 
-    data.WriteBool(bIpv6);
-    DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, bIpv6:%{public}d", __func__, GetCallingUid(),
-        ifname.c_str(), bIpv6);
+    data.WriteString(config.ifname);
+    data.WriteString(config.bssid);
+    data.WriteBool(config.prohibitUseCacheIp);
+    data.WriteBool(config.bIpv6);
+    data.WriteBool(config.bSpecificNetwork);
+    DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, prohibitUseCacheIp:%{public}d, bIpv6:%{public}d"\
+        "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), config.ifname.c_str(), config.prohibitUseCacheIp,
+        config.bIpv6, config.bSpecificNetwork);
     int error = Remote()->SendRequest(
         static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), data, reply, option);
     if (error != ERR_NONE) {
@@ -169,42 +173,6 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
         return DHCP_E_FAILED;
     }
     DHCP_LOGI("StartDhcpClient ok, exception:%{public}d", exception);
-    return DHCP_E_SUCCESS;
-}
-
-ErrCode DhcpClientProxy::SetConfiguration(const std::string& ifname, const RouterConfig& config)
-{
-    DHCP_LOGI("DhcpClientProxy enter SetConfiguration mRemoteDied:%{public}d", mRemoteDied);
-    if (mRemoteDied) {
-        DHCP_LOGE("failed to `%{public}s`,remote service is died!", __func__);
-        return DHCP_E_FAILED;
-    }
-
-    MessageOption option;
-    MessageParcel data;
-    MessageParcel reply;
-    if (!data.WriteInterfaceToken(GetDescriptor())) {
-        DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_E_FAILED;
-    }
-    data.WriteInt32(0);
-    data.WriteString(ifname);
-    data.WriteString(config.bssid);
-    data.WriteInt32(config.prohibitUseCacheIp);
-    DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s", __func__, GetCallingUid(), ifname.c_str());
-    int error = Remote()->SendRequest(
-        static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), data, reply, option);
-    if (error != ERR_NONE) {
-        DHCP_LOGE("Set Attr(%{public}d) failed, code is %{public}d",
-            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), error);
-        return DHCP_E_FAILED;
-    }
-    int exception = reply.ReadInt32();
-    if (exception) {
-        DHCP_LOGE("exception failed, exception:%{public}d", exception);
-        return DHCP_E_FAILED;
-    }
-    DHCP_LOGI("SetConfiguration ok, exception:%{public}d", exception);
     return DHCP_E_SUCCESS;
 }
 

@@ -79,6 +79,12 @@ ohos_fuzztest("DhcpClientFunFuzzTest") {
     "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
     "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
   ]
+
+  if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+    external_deps += [ "init:libbegetutil" ]
+    defines += [ "INIT_LIB_ENABLE" ]
+  }
+
   part_name = "dhcp"
   subsystem_name = "communication"
 }

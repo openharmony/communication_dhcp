@@ -134,7 +134,7 @@ ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
 {
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
@@ -153,8 +153,11 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
     }
 
     (void)WriteInt32(&req, 0);
-    (void)WriteString(&req, ifname.c_str());
-    (void)WriteBool(&req, bIpv6);
+    (void)WriteString(&req, config.ifname.c_str());
+    (void)WriteString(&req, config.bssid.c_str());
+    (void)WriteBool(&req, config.prohibitUseCacheIp);
+    (void)WriteBool(&req, config.bIpv6);
+    (void)WriteBool(&req, config.bSpecificNetwork);
     owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT);
     int error = remote_->Invoke(remote_,
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), &req,
@@ -169,45 +172,6 @@ ErrCode DhcpClientProxy::StartDhcpClient(const std::string& ifname, bool bIpv6)
         return DHCP_E_FAILED;
     }
     DHCP_LOGI("StartDhcpClient ok, exception:%{public}d", owner.exception);
-    return DHCP_E_SUCCESS;
-}
-
-ErrCode DhcpClientProxy::SetConfiguration(const std::string& ifname, const RouterConfig& config)
-{
-    if (remoteDied_ || remote_ == nullptr) {
-        DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
-            __func__, remoteDied_, remote_ == nullptr);
-        return DHCP_OPT_FAILED;
-    }
-
-    IpcIo req;
-    char data[IPC_DATA_SIZE_SMALL];
-    struct IpcOwner owner = {.exception = -1, .retCode = 0, .variable = nullptr};
-
-    IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
-    if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
-        DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_OPT_FAILED;
-    }
-
-    (void)WriteInt32(&req, 0);
-    (void)WriteString(&req, ifname.c_str());
-    (void)WriteString(&req, config.bssid.c_str());
-    (void)WriteString(&req, config.prohibitUseCacheIp);
-    owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG);
-    int error = remote_->Invoke(remote_,
-        static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), &req,
-        &owner, IpcCallback);
-    if (error != EC_SUCCESS) {
-        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
-            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG), error);
-        return DHCP_E_FAILED;
-    }
-    if (owner.exception) {
-        DHCP_LOGE("exception failed, exception:%{public}d", owner.exception);
-        return DHCP_E_FAILED;
-    }
-    DHCP_LOGI("SetConfiguration ok, exception:%{public}d", owner.exception);
     return DHCP_E_SUCCESS;
 }
 

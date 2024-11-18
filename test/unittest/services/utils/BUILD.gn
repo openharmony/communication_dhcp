@@ -120,6 +120,11 @@ ohos_unittest("dhcp_util_unittest") {
     defines += [ "DHCP_FFRT_ENABLE" ]
   }
 
+  if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+    external_deps += [ "init:libbegetutil" ]
+    defines += [ "INIT_LIB_ENABLE" ]
+  }
+
   part_name = "dhcp"
   subsystem_name = "communication"
   testonly = true

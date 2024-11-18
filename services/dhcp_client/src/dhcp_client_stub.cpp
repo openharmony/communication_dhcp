@@ -83,10 +83,6 @@ void DhcpClientStub::InitHandleMap()
         [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
             return OnStopDhcpClient(code, data, reply, option);
         };
-    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG)] =
-        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
-            return OnSetConfiguration(code, data, reply, option);
-        };
 }
 
 int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -140,21 +136,13 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
 int DhcpClientStub::OnStartDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
-    std::string ifname = data.ReadString();
-    bool bIpv6 = data.ReadBool();
-    ErrCode ret = StartDhcpClient(ifname, bIpv6);
-    reply.WriteInt32(0);
-    reply.WriteInt32(ret);
-    return 0;
-}
-
-int DhcpClientStub::OnSetConfiguration(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
-{
-    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
-    std::string ifname = data.ReadString();
     RouterConfig config;
+    config.ifname = data.ReadString();
     config.bssid = data.ReadString();
-    ErrCode ret = SetConfiguration(ifname, config);
+    config.prohibitUseCacheIp = data.ReadBool();
+    config.bIpv6 = data.ReadBool();
+    config.bSpecificNetwork = data.ReadBool();
+    ErrCode ret = StartDhcpClient(config);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
     return 0;

@@ -32,6 +32,7 @@ extern "C" {
 #define DHCP_LEASE_DATA_MAX_LEN 128
 #define DHCP_DNS_MAX_NUMBER 10
 #define DHCP_DNS_DATA_MAX_LEN 128
+#define INTERFACE_MAX_LEN 10
 
 typedef struct{
     uint32_t dnsNumber;
@@ -91,8 +92,11 @@ typedef struct {
 }ServerCallBack;
 
 typedef struct RouterConfig {
+    char ifname[INTERFACE_MAX_LEN];
     char bssid[MAC_ADDR_MAX_LEN];
     bool prohibitUseCacheIp;
+    bool bIpv6;
+    bool bSpecificNetwork;
 }RouterConfig;
 #ifdef __cplusplus
 }

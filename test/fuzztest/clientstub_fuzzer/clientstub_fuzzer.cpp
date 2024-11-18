@@ -71,19 +71,6 @@ void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
 }
 
-void OnSetConfigurationTest(const std::string& ifname)
-{
-    uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_SET_CONFIG);
-    MessageParcel datas;
-    datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
-    datas.WriteInt32(0);
-    datas.WriteString(ifname);
-    datas.WriteString("bssid");
-    MessageParcel reply;
-    MessageOption option;
-    pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
-}
-
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -92,8 +79,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     std::string ifname = "wlan0";
     OnRegisterCallBackTest(ifname, size);
-    sleep(DHCP_SLEEP_1);
-    OnSetConfigurationTest(ifname);
     sleep(DHCP_SLEEP_1);
     OnStartDhcpClientTest(ifname, size, false);
     sleep(DHCP_SLEEP_1);

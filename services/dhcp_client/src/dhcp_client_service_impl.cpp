@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <csignal>
 #include <sys/prctl.h>
+#include <cstring>
 #ifndef OHOS_ARCH_LITE
 #include "iremote_broker.h"
 #include "iremote_object.h"
@@ -238,9 +239,9 @@ ErrCode DhcpClientServiceImpl::RegisterDhcpClientCallBack(const std::string& ifn
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientServiceImpl::StartDhcpClient(const RouterConfig &config)
 {
-    DHCP_LOGI("StartDhcpClient ifName:%{public}s bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    DHCP_LOGI("StartDhcpClient ifName:%{public}s bIpv6:%{public}d", config.ifname.c_str(), config.bIpv6);
     if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("StartDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
@@ -249,46 +250,37 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const std::string& ifname, bool b
         DHCP_LOGE("StartDhcpClient:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
-    if (ifname.empty()) {
+    if (config.ifname.empty()) {
         DHCP_LOGE("StartDhcpClient ifname is empty!");
         return DHCP_E_FAILED;
     }
+    RouterCfg innerCfg;
+    innerCfg.ifname = config.ifname;
+    innerCfg.bssid = config.bssid;
+    innerCfg.prohibitUseCacheIp = config.prohibitUseCacheIp;
+    innerCfg.bIpv6 = config.bIpv6;
+    innerCfg.bSpecificNetwork = config.bSpecificNetwork;
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-        auto iter = m_mapClientService.find(ifname);
+        auto iter = m_mapClientService.find(innerCfg.ifname);
         if (iter != m_mapClientService.end()) {
-            return StartOldClient(ifname, bIpv6, iter->second);
+            return StartOldClient(innerCfg, iter->second);
         }
     }
-    return StartNewClient(ifname, bIpv6);
+    return StartNewClient(innerCfg);
 }
 
-ErrCode DhcpClientServiceImpl::SetConfiguration(const std::string& ifname, const RouterConfig& config)
+ErrCode DhcpClientServiceImpl::StartOldClient(const RouterCfg &config, DhcpClient &dhcpClient)
 {
-    DHCP_LOGI("SetConfiguration ifName:%{public}s", ifname.c_str());
-    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
-        DHCP_LOGE("SetConfiguration:NOT NATIVE PROCESS, PERMISSION_DENIED!");
-        return DHCP_E_PERMISSION_DENIED;
-    }
-    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
-        DHCP_LOGE("SetConfiguration:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
-        return DHCP_E_PERMISSION_DENIED;
-    }
-    m_routerCfg.bssid = config.bssid;
-    m_routerCfg.prohibitUseCacheIp = config.prohibitUseCacheIp;
-    return DHCP_E_SUCCESS;
-}
-
-ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bIpv6, DhcpClient &dhcpClient)
-{
-    DHCP_LOGI("StartOldClient ifname:%{public}s bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    DHCP_LOGI("StartOldClient ifname:%{public}s bIpv6:%{public}d", config.ifname.c_str(), config.bIpv6);
     if (dhcpClient.pStaStateMachine == nullptr) {
         DHCP_LOGE("StartOldClient pStaStateMachine is null!");
         return DHCP_E_FAILED;
     }
-    dhcpClient.pStaStateMachine->SetConfiguration(m_routerCfg);
-    dhcpClient.pStaStateMachine->StartIpv4Type(ifname, bIpv6, ACTION_START_OLD);
-    if (bIpv6) {
+    const std::string ifname = config.ifname;
+    dhcpClient.pStaStateMachine->SetConfiguration(config);
+    dhcpClient.pStaStateMachine->StartIpv4Type(ifname, config.bIpv6, ACTION_START_OLD);
+    if (config.bIpv6) {
         if (dhcpClient.pipv6Client == nullptr) {
             DHCP_LOGE("StartOldClient pipv6Client is null!");
             DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
@@ -297,7 +289,8 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
                 return DHCP_E_FAILED;
             }
             dhcpClient.pipv6Client = pipv6Client;
-            DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+            DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d",
+                ifname.c_str(), config.bIpv6);
         }
 #ifndef OHOS_ARCH_LITE
         NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
@@ -307,23 +300,25 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const std::string& ifname, bool bI
         dhcpClient.pipv6Client->Reset();
         dhcpClient.pipv6Client->SetCallback(
             [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
-        dhcpClient.pipv6Client->StartIpv6Thread(ifname, bIpv6);
+        dhcpClient.pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
     }
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientServiceImpl::StartNewClient(const RouterCfg &config)
 {
-    DHCP_LOGI("StartNewClient ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    DHCP_LOGI("StartNewClient ifname:%{public}s, bIpv6:%{public}d", config.ifname.c_str(), config.bIpv6);
     DhcpClient client;
-    if (bIpv6) {
+    const std::string ifname = config.ifname;
+    if (config.bIpv6) {
         DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
         if (pipv6Client == nullptr) {
             DHCP_LOGE("StartNewClient new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
             return DHCP_E_FAILED;
         }
         client.pipv6Client = pipv6Client;
-        DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+        DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
+            config.bIpv6);
 #ifndef OHOS_ARCH_LITE
         NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
         NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
@@ -332,7 +327,7 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         pipv6Client->Reset();
         pipv6Client->SetCallback(
             [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
-        pipv6Client->StartIpv6Thread(ifname, bIpv6);
+        pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
     }
     DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
     if (pStaState == nullptr) {
@@ -340,15 +335,16 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const std::string& ifname, bool bI
         return DHCP_E_FAILED;
     }
     client.ifName = ifname;
-    client.isIpv6 = bIpv6;
+    client.isIpv6 = config.bIpv6;
     client.pStaStateMachine = pStaState;
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
         m_mapClientService.emplace(std::make_pair(ifname, client));
     }
-    DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
-    pStaState->SetConfiguration(m_routerCfg);
-    pStaState->StartIpv4Type(ifname, bIpv6, ACTION_START_NEW);
+    DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d",
+        ifname.c_str(), config.bIpv6);
+    pStaState->SetConfiguration(config);
+    pStaState->StartIpv4Type(ifname, config.bIpv6, ACTION_START_NEW);
     return DHCP_E_SUCCESS;
 }
 

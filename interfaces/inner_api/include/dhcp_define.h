@@ -232,8 +232,18 @@ struct DhcpRange {
 };
 
 struct RouterConfig {
+    std::string ifname;
     std::string bssid;
     bool prohibitUseCacheIp;
+    bool bIpv6;
+    bool bSpecificNetwork;
+
+    RouterConfig()
+    {
+        prohibitUseCacheIp = false;
+        bIpv6 = true;
+        bSpecificNetwork = false;
+    }
 };
 }  // namespace DHCP
 }  // namespace OHOS
