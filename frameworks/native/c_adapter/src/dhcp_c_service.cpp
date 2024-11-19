@@ -78,6 +78,7 @@ NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig  &config)
 {
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
     OHOS::DHCP::RouterConfig routerConfig;
+    routerConfig.ifname = config.ifname;
     routerConfig.bssid = config.bssid;
     routerConfig.prohibitUseCacheIp = config.prohibitUseCacheIp;
     routerConfig.bIpv6 = config.bIpv6;
