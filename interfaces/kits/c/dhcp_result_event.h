@@ -32,7 +32,7 @@ extern "C" {
 #define DHCP_LEASE_DATA_MAX_LEN 128
 #define DHCP_DNS_MAX_NUMBER 10
 #define DHCP_DNS_DATA_MAX_LEN 128
-#define INTERFACE_MAX_LEN 10
+#define INTERFACE_MAX_LEN 32
 
 typedef struct{
     uint32_t dnsNumber;
