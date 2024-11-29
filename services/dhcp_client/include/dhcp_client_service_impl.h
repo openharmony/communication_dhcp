@@ -62,6 +62,7 @@ public:
     ErrCode RegisterDhcpClientCallBack(const std::string& ifname, const sptr<IDhcpClientCallBack> &clientCallback) override;
 #endif
     ErrCode StartDhcpClient(const RouterConfig &config) override;
+    ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
 #ifndef OHOS_ARCH_LITE
     void StartServiceAbility(int sleepS);

@@ -32,6 +32,7 @@ public:
         const sptr<IDhcpClientCallBack> &callback) = 0;
 #endif
     virtual ErrCode StartDhcpClient(const RouterConfig &config) = 0;
+    virtual ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) = 0;
     virtual ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) = 0;
 };
 }  // namespace DHCP

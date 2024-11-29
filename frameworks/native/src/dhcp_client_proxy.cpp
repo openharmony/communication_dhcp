@@ -176,6 +176,41 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     return DHCP_E_SUCCESS;
 }
 
+ErrCode DhcpClientProxy::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo)
+{
+    DHCP_LOGI("DhcpClientProxy enter DealWifiDhcpCache mRemoteDied:%{public}d", mRemoteDied);
+    if (mRemoteDied) {
+        DHCP_LOGE("failed to `%{public}s`,remote service is died!", __func__);
+        return DHCP_E_FAILED;
+    }
+
+    MessageOption option;
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        DHCP_LOGE("Write interface token error: %{public}s", __func__);
+        return DHCP_E_FAILED;
+    }
+    data.WriteInt32(0);
+    data.WriteInt32(cmd);
+    data.WriteString(ipCacheInfo.ssid);
+    data.WriteString(ipCacheInfo.bssid);
+    int error = Remote()->SendRequest(
+        static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE), data, reply, option);
+    if (error != ERR_NONE) {
+        DHCP_LOGE("Set Attr(%{public}d) failed, code is %{public}d",
+            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE), error);
+        return DHCP_E_FAILED;
+    }
+    int exception = reply.ReadInt32();
+    if (exception) {
+        DHCP_LOGE("exception failed, exception:%{public}d", exception);
+        return DHCP_E_FAILED;
+    }
+    DHCP_LOGI("DealWifiDhcpCache ok, exception:%{public}d", exception);
+    return DHCP_E_SUCCESS;
+}
+
 ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
 {
     DHCP_LOGI("DhcpClientProxy enter StopDhcpClient mRemoteDied:%{public}d", mRemoteDied);

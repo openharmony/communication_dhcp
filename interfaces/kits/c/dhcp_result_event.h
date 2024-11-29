@@ -33,6 +33,9 @@ extern "C" {
 #define DHCP_DNS_MAX_NUMBER 10
 #define DHCP_DNS_DATA_MAX_LEN 128
 #define INTERFACE_MAX_LEN 32
+#define SSID_MAX_LEN 32
+#define WIFI_DHCP_CACHE_ADD 1
+#define WIFI_DHCP_CACHE_REMOVE 2
 
 typedef struct{
     uint32_t dnsNumber;
@@ -98,6 +101,11 @@ typedef struct RouterConfig {
     bool bIpv6;
     bool bSpecificNetwork;
 }RouterConfig;
+
+typedef struct IpCacheInfo {
+    char ssid[SSID_MAX_LEN];
+    char bssid[MAC_ADDR_MAX_LEN];
+}IpCacheInfo;
 #ifdef __cplusplus
 }
 #endif

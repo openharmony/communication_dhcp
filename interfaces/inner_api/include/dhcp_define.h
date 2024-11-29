@@ -245,6 +245,11 @@ struct RouterConfig {
         bSpecificNetwork = false;
     }
 };
+
+struct IpCacheInfo {
+    std::string ssid;
+    std::string bssid;
+};
 }  // namespace DHCP
 }  // namespace OHOS
 #endif /* OHOS_DHCP_DEFINE_H */
