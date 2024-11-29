@@ -18,25 +18,9 @@
 #include "common_util.h"
 #include "dhcp_logger.h"
 
-DEFINE_DHCPLOG_DHCP_LABEL("CommonUtilTest");
-
 using namespace testing::ext;
 namespace OHOS {
 namespace DHCP {
-HWTEST(CommonUtilTest, LeftTirmTest, TestSize.Level1)
-{
-    DHCP_LOGE("enter LeftTirmTest");
-    char src1[] = " aabbccdd";
-    LeftTrim(src1);
-    EXPECT_STREQ("aabbccdd", src1);
-}
-
-HWTEST(CommonUtilTest, RightTrimTest, TestSize.Level1)
-{
-    char src1[] = "aabbccdd ";
-    RightTrim(src1);
-    EXPECT_STREQ("aabbccdd", src1);
-}
 
 HWTEST(CommonUtilTest, TrimStringTest, TestSize.Level1)
 {
@@ -57,18 +41,6 @@ HWTEST(CommonUtilTest, GetFilePathTest, TestSize.Level1)
     EXPECT_TRUE(GetFilePath(NULL) == NULL);
     EXPECT_TRUE(GetFilePath("") == NULL);
     EXPECT_STREQ("/etc/dhcp", GetFilePath(testPath));
-}
-
-HWTEST(CommonUtilTest, GetLeaseFileTest, TestSize.Level1)
-{
-    const char *leaseFile = "/etc/dhcp/dhcp_server.lease";
-    const char *ifname = "test_if0";
-    EXPECT_TRUE(GetLeaseFile(leaseFile, NULL) == NULL);
-    EXPECT_TRUE(GetLeaseFile(NULL, NULL) == NULL);
-    EXPECT_STREQ("/etc/dhcp/dhcp_server.lease.test_if0", GetLeaseFile(leaseFile, ifname));
-    const char *leaseFile1 = "";
-    const char *ifname1 = "";
-    EXPECT_EQ(0, GetLeaseFile(leaseFile1, ifname1));
 }
 
 HWTEST(CommonUtilTest, CreatePathTest, TestSize.Level1)

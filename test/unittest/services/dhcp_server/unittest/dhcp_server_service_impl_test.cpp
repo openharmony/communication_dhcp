@@ -176,15 +176,6 @@ HWTEST_F(DhcpServerServiceTest, IsRemoteDiedTest, TestSize.Level1)
     EXPECT_EQ(true, pServerServiceImpl->IsRemoteDied());
 }
 
-HWTEST_F(DhcpServerServiceTest, StopServerTest, TestSize.Level1)
-{
-    DHCP_LOGI("enter StopServerTest");
-    ASSERT_TRUE(pServerServiceImpl != nullptr);
-
-    pid_t serverPid = 1234;
-    EXPECT_NE(DHCP_OPT_NULL, pServerServiceImpl->StopServer(serverPid));
-}
-
 HWTEST_F(DhcpServerServiceTest, DeleteLeaseFileTest, TestSize.Level1)
 {
     DHCP_LOGI("enter DeleteLeaseFileTest");
@@ -224,13 +215,6 @@ HWTEST_F(DhcpServerServiceTest, DeviceConnectCallBackTest, TestSize.Level1)
     DeviceConnectCallBack(ifname.c_str());
 
     DeviceConnectCallBack(nullptr);
-    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
-}
-
-HWTEST_F(DhcpServerServiceTest, StartServiceAbilityTest, TestSize.Level1)
-{
-    DHCP_LOGI("enter StartServiceAbilityTest");
-    pServerServiceImpl->StartServiceAbility(1);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 

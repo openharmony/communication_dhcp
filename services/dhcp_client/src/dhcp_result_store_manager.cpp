@@ -38,156 +38,20 @@ DhcpResultStoreManager &DhcpResultStoreManager::GetInstance()
     return g_ipInstance;
 }
 
-int32_t DhcpResultStoreManager::SaveIpInfoInLocalFile(const IpInfoCached ipResult)
+static void TrimString(std::string &str)
 {
-    std::unique_lock<std::mutex> lock(m_ipResultMutex);
-    for (auto it = m_allIpCached.begin(); it != m_allIpCached.end(); it++) {
-        if (ipResult.bssid == it->bssid) {
-            m_allIpCached.erase(it);
-            break;
-        }
+    int32_t i = 0;
+    int32_t j = static_cast<int32_t>(str.length()) - 1;
+    while (i < static_cast<int32_t>(str.length()) && str[i] == ' ') {
+        ++i;
     }
-    m_allIpCached.push_back(ipResult);
-    return SaveConfig();
+    while (j >= 0 && str[j] == ' ') {
+        --j;
+    }
+    str = ((i > j) ? "" : str.substr(i, j - i + 1));
 }
 
-int32_t DhcpResultStoreManager::GetCachedIp(const std::string targetBssid, IpInfoCached &outIpResult)
-{
-    std::string fileName = DHCP_CACHE_FILE;
-    LoadAllIpCached(fileName);
-    std::unique_lock<std::mutex> lock(m_ipResultMutex);
-    for (auto it = m_allIpCached.begin(); it != m_allIpCached.end(); it++) {
-        if (targetBssid == it->bssid) {
-            outIpResult = static_cast<IpInfoCached>(*it);
-            return 0;
-        }
-    }
-    return -1;
-}
-
-void DhcpResultStoreManager::SetConfigFilePath(const std::string &fileName)
-{
-    m_fileName = fileName;
-}
-
-int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
-{
-    std::unique_lock<std::mutex> lock(m_ipResultMutex);
-    SetConfigFilePath(fileName);
-    if (m_fileName.empty()) {
-        DHCP_LOGE("File name is empty.");
-        return -1;
-    }
-    std::ifstream fs(m_fileName.c_str());
-    if (!fs.is_open()) {
-        DHCP_LOGE("Loading config file: %{public}s, fs.is_open() failed!", m_fileName.c_str());
-        return -1;
-    }
-    m_allIpCached.clear();
-    IpInfoCached item;
-    std::string line;
-    int32_t configError;
-    while (std::getline(fs, line)) {
-        TrimString(line);
-        if (line.empty()) {
-            continue;
-        }
-        if (line[0] == '[' && ((line.length() > 0) && (line[line.length() - 1] == '{'))) {
-            ClearClass(item); /* template function, needing specialization */
-            configError = ReadNetwork(item, fs, line);
-            if (configError > 0) {
-                DHCP_LOGE("Parse network failed.");
-                continue;
-            }
-            m_allIpCached.push_back(item);
-        }
-    }
-    fs.close();
-    return 0;
-}
-
-int32_t DhcpResultStoreManager::ReadNetworkSection(IpInfoCached &item, std::ifstream &fs, std::string &line)
-{
-    int32_t sectionError = 0;
-    while (std::getline(fs, line)) {
-        TrimString(line);
-        if (line.empty()) {
-            continue;
-        }
-        if (line[0] == '<' && ((line.length() > 0) && (line[line.length() - 1] == '>'))) {
-            return sectionError;
-        }
-        std::string::size_type npos = line.find("=");
-        if (npos == std::string::npos) {
-            DHCP_LOGE("Invalid config line");
-            sectionError++;
-            continue;
-        }
-        std::string key = line.substr(0, npos);
-        std::string value = line.substr(npos + 1);
-        TrimString(key);
-        TrimString(value);
-        /* template function, needing specialization */
-        sectionError += SetClassKeyValue(item, key, value);
-    }
-    DHCP_LOGE("Section config not end correctly");
-    sectionError++;
-    return sectionError;
-}
-
-int32_t DhcpResultStoreManager::ReadNetwork(IpInfoCached &item, std::ifstream &fs, std::string &line)
-{
-    int32_t networkError = 0;
-    while (std::getline(fs, line)) {
-        TrimString(line);
-        if (line.empty()) {
-            continue;
-        }
-        if (line[0] == '<' && ((line.length() > 0) && (line[line.length() - 1] == '>'))) {
-            networkError += ReadNetworkSection(item, fs, line);
-        } else if (line.compare("}") == 0) {
-            return networkError;
-        } else {
-            DHCP_LOGE("Invalid config line");
-            networkError++;
-        }
-    }
-    DHCP_LOGE("Network config not end correctly");
-    networkError++;
-    return networkError;
-}
-
-int32_t DhcpResultStoreManager::SaveConfig()
-{
-    if (m_fileName.empty()) {
-        DHCP_LOGE("File name is empty.");
-        return -1;
-    }
-    FILE* fp = fopen(m_fileName.c_str(), "w");
-    if (!fp) {
-        DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
-        return -1;
-    }
-    std::ostringstream ss;
-    for (std::size_t i = 0; i < m_allIpCached.size(); ++i) {
-        IpInfoCached &item = m_allIpCached[i];
-        ss << "[" << GetClassName() << "_" << (i + 1) << "] {" << std::endl;
-        ss << OutClassString(item) << std::endl;
-        ss << "}" << std::endl;
-    }
-    std::string content = ss.str();
-    uint32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
-    if (ret != static_cast<uint32_t>(content.length())) {
-        DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", m_fileName.c_str());
-    }
-    (void)fflush(fp);
-    (void)fsync(fileno(fp));
-    (void)fclose(fp);
-    m_allIpCached.clear(); /* clear values */
-    return 0;
-}
-
-int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::string &key, const std::string &value)
+static int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, const std::string &value)
 {
     int32_t errorKeyValue = 0;
     std::string valueTmp = value;
@@ -239,34 +103,184 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
     return errorKeyValue;
 }
 
-std::string DhcpResultStoreManager::GetClassName()
+static std::string OutClassString(IpInfoCached &item)
 {
-    return "IpInfoCached";
+    std::string buffer = "";
+    buffer += "    <IpInfoCached>\n";
+    buffer += "    bssid=" + std::string(item.bssid) + "\n";
+    buffer += "    absoluteLeasetime=" + std::to_string(item.absoluteLeasetime) + "\n";
+    buffer += "    strYiaddr=" + std::string(item.ipResult.strYiaddr) + "\n";
+    buffer += "    strOptServerId=" + std::string(item.ipResult.strOptServerId) + "\n";
+    buffer += "    strOptSubnet=" + std::string(item.ipResult.strOptSubnet) + "\n";
+    buffer += "    strOptDns1=" + std::string(item.ipResult.strOptDns1) + "\n";
+    buffer += "    strOptDns2=" + std::string(item.ipResult.strOptDns2) + "\n";
+    buffer += "    strOptRouter1=" + std::string(item.ipResult.strOptRouter1) + "\n";
+    buffer += "    strOptRouter2=" + std::string(item.ipResult.strOptRouter2) + "\n";
+    buffer += "    uOptLeasetime=" + std::to_string(item.ipResult.uOptLeasetime) + "\n";
+    buffer += "    <IpInfoCached>\n";
+    return buffer;
 }
 
-std::string DhcpResultStoreManager::OutClassString(IpInfoCached &item)
-{
-    std::ostringstream ss;
-    ss << "    " <<"<IpInfoCached>" << std::endl;
-    ss << "    " <<"bssid=" << item.bssid << std::endl;
-    ss << "    " <<"absoluteLeasetime=" << item.absoluteLeasetime << std::endl;
-    ss << "    " <<"strYiaddr=" << item.ipResult.strYiaddr << std::endl;
-    ss << "    " <<"strOptServerId=" << item.ipResult.strOptServerId << std::endl;
-    ss << "    " <<"strOptSubnet=" << item.ipResult.strOptSubnet << std::endl;
-    ss << "    " <<"strOptDns1=" << item.ipResult.strOptDns1 << std::endl;
-    ss << "    " <<"strOptDns2=" << item.ipResult.strOptDns2 << std::endl;
-    ss << "    " <<"strOptRouter1=" << item.ipResult.strOptRouter1 << std::endl;
-    ss << "    " <<"strOptRouter2=" << item.ipResult.strOptRouter2 << std::endl;
-    ss << "    " <<"uOptLeasetime=" << item.ipResult.uOptLeasetime << std::endl;
-    ss << "    " <<"<IpInfoCached>" << std::endl;
-    return ss.str();
-}
-
-void DhcpResultStoreManager::ClearClass(IpInfoCached &item)
+static void ClearClass(IpInfoCached &item)
 {
     item.bssid.clear();
     item.absoluteLeasetime = 0;
     item.ipResult.uOptLeasetime = 0;
 }
-}  // namespace Wifi
+
+static int32_t ReadNetworkSection(IpInfoCached &item, FILE *fp, char *line, size_t lineSize)
+{
+    int32_t sectionError = 0;
+    while (fgets(line, lineSize, fp) != nullptr) {
+        std::string strLine = line;
+        TrimString(strLine);
+        if (strLine.empty()) {
+            continue;
+        }
+        if (strLine[0] == '<' && ((strLine.length() > 0) && (strLine[strLine.length() - 1] == '>'))) {
+            return sectionError;
+        }
+        std::string::size_type npos = strLine.find("=");
+        if (npos == std::string::npos) {
+            DHCP_LOGE("Invalid config line");
+            sectionError++;
+            continue;
+        }
+        std::string key = strLine.substr(0, npos);
+        std::string value = strLine.substr(npos + 1);
+        TrimString(key);
+        TrimString(value);
+        /* template function, needing specialization */
+        sectionError += SetClassKeyValue(item, key, value);
+    }
+    DHCP_LOGE("Section config not end correctly");
+    sectionError++;
+    return sectionError;
+}
+
+static int32_t ReadNetwork(IpInfoCached &item, FILE *fp, char *line, size_t lineSize)
+{
+    int32_t networkError = 0;
+    while (fgets(line, lineSize, fp) != nullptr) {
+        std::string strLine = line;
+        TrimString(strLine);
+        if (strLine.empty()) {
+            continue;
+        }
+        if (strLine[0] == '<' && ((strLine.length() > 0) && (strLine[strLine.length() - 1] == '>'))) {
+            networkError += ReadNetworkSection(item, fp, line, lineSize);
+        } else if (strLine.compare("}") == 0) {
+            return networkError;
+        } else {
+            DHCP_LOGE("Invalid config line");
+            networkError++;
+        }
+    }
+    DHCP_LOGE("Network config not end correctly");
+    networkError++;
+    return networkError;
+}
+
+
+int32_t DhcpResultStoreManager::SaveIpInfoInLocalFile(const IpInfoCached ipResult)
+{
+    std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    for (auto it = m_allIpCached.begin(); it != m_allIpCached.end(); it++) {
+        if (ipResult.bssid == it->bssid) {
+            m_allIpCached.erase(it);
+            break;
+        }
+    }
+    m_allIpCached.push_back(ipResult);
+    return SaveConfig();
+}
+
+int32_t DhcpResultStoreManager::GetCachedIp(const std::string targetBssid, IpInfoCached &outIpResult)
+{
+    std::string fileName = DHCP_CACHE_FILE;
+    LoadAllIpCached(fileName);
+    std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    for (auto it = m_allIpCached.begin(); it != m_allIpCached.end(); it++) {
+        if (targetBssid == it->bssid) {
+            outIpResult = static_cast<IpInfoCached>(*it);
+            return 0;
+        }
+    }
+    return -1;
+}
+
+void DhcpResultStoreManager::SetConfigFilePath(const std::string &fileName)
+{
+    m_fileName = fileName;
+}
+
+int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
+{
+    std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    SetConfigFilePath(fileName);
+    if (m_fileName.empty()) {
+        DHCP_LOGE("File name is empty.");
+        return -1;
+    }
+    FILE *fp = fopen(m_fileName.c_str(), "r");
+    if (!fp) {
+        DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", m_fileName.c_str());
+        return -1;
+    }
+    m_allIpCached.clear();
+    IpInfoCached item;
+    char line[1024];
+    int32_t configError;
+    while (fgets(line, sizeof(line), fp) != nullptr) {
+        std::string strLine = line;
+        TrimString(strLine);
+        if (strLine.empty()) {
+            continue;
+        }
+        if (strLine[0] == '[' && ((strLine.length() > 0) && (strLine[strLine.length() - 1] == '{'))) {
+            ClearClass(item); /* template function, needing specialization */
+            configError = ReadNetwork(item, fp, line, sizeof(line));
+            if (configError > 0) {
+                DHCP_LOGE("Parse network failed.");
+                continue;
+            }
+            m_allIpCached.push_back(item);
+        }
+    }
+
+    (void)fclose(fp);
+    return 0;
+}
+
+
+int32_t DhcpResultStoreManager::SaveConfig()
+{
+    if (m_fileName.empty()) {
+        DHCP_LOGE("File name is empty.");
+        return -1;
+    }
+    FILE* fp = fopen(m_fileName.c_str(), "w");
+    if (!fp) {
+        DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
+        return -1;
+    }
+    std::string content = "";
+    for (std::size_t i = 0; i < m_allIpCached.size(); ++i) {
+        IpInfoCached &item = m_allIpCached[i];
+        content += "[IpInfoCached_" + std::to_string(i + 1) + "] {\n";
+        content += OutClassString(item) + "\n";
+        content += "}\n";
+    }
+    uint32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
+    if (ret != static_cast<uint32_t>(content.length())) {
+        DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", m_fileName.c_str());
+    }
+    (void)fflush(fp);
+    (void)fsync(fileno(fp));
+    (void)fclose(fp);
+    m_allIpCached.clear(); /* clear values */
+    return 0;
+}
+
+}  // namespace DHCP
 }  // namespace OHOS

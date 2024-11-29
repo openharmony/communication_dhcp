@@ -15,7 +15,7 @@
 
 #include "dhcp_option.h"
 #include <stdint.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include "dhcp_s_define.h"
 #include "dhcp_logger.h"
 #include "securec.h"

@@ -17,7 +17,7 @@
 #define OHOS_DHCP_FUNCTION_H
 
 #include <cstring>
-#include <stdlib.h>
+#include <cstdlib>
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -29,8 +29,6 @@ const char *MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pS
 int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, uint32_t *ifaddr4);
 int GetLocalIp(const char *ifname, uint32_t *ifaddr4);
 int SetLocalInterface(const char *ifname, uint32_t ipAddr, uint32_t netMask);
-int InitPidfile(const char *pidDir, const char *pidFile, pid_t pid);
-pid_t GetPID(const char *pidFile);
 int CreateDirs(const char *dirs, int mode);
 
 #endif

@@ -35,6 +35,7 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
     "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_custom_func.cpp",
     "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_system_func.cpp",
     "dhcp_arp_checker_test.cpp",
@@ -107,6 +108,7 @@ ohos_unittest("dhcp_util_unittest") {
   ]
 
   defines = [
+    "OHOS_EUPDATER",
     "private = public",
     "protected = public",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",

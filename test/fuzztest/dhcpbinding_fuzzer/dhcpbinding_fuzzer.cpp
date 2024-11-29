@@ -22,7 +22,7 @@
 #include "dhcp_binding.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr int CFG_DATA_MAX_BYTES = 20;
@@ -81,15 +81,15 @@ void ParseAddressBindingTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
+    if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
-    OHOS::Wifi::NextPendingIntervalTest(data, size);
-    OHOS::Wifi::IsExpireTest(data, size);
-    OHOS::Wifi::WriteAddressBindingTest(data, size);
-    OHOS::Wifi::ParseAddressBindingTest(data, size);
+    OHOS::DHCP::NextPendingIntervalTest(data, size);
+    OHOS::DHCP::IsExpireTest(data, size);
+    OHOS::DHCP::WriteAddressBindingTest(data, size);
+    OHOS::DHCP::ParseAddressBindingTest(data, size);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

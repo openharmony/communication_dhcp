@@ -16,9 +16,9 @@
 #include "dhcp_binding.h"
 #include <securec.h>
 #include <stdint.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 #include "address_utils.h"
 #include "common_util.h"
 #include "dhcp_s_define.h"

@@ -55,6 +55,7 @@ ohos_fuzztest("DhcpClientFunFuzzTest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     "dhcpclientfun_fuzzer.cpp",
   ]
   deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]

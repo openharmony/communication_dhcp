@@ -27,7 +27,6 @@ namespace DHCP {
 const uint8_t netmask24[] =  {255, 255, 255, 0};
 const uint8_t netmask25[] =  {255, 255, 255, 128};
 const uint8_t netmask26[] =  {255, 255, 255, 192};
-const uint8_t netmask27[] =  {255, 255, 255, 224};
 
 /**
 * @tc.name: ParseIpAddrTest
@@ -177,48 +176,6 @@ HWTEST(AddressUtilsTest, BroadCastAddressTest, TestSize.Level1)
     uint32_t testIp1 = ParseIpAddr("192.168.100.120");
     EXPECT_TRUE(testIp1 != 0);
     EXPECT_EQ(srcAddr, BroadCastAddress(testIp1, testNetmask));
-}
-
-HWTEST(AddressUtilsTest, ParseIpHtonlTest, TestSize.Level1)
-{
-    uint8_t srcData[] = {150, 100, 168, 192};
-    uint32_t srcAddr = ParseIp(srcData);
-    ASSERT_TRUE(srcAddr != 0);
-    EXPECT_EQ(srcAddr, ParseIpHtonl("192.168.100.150"));
-}
-
-HWTEST(AddressUtilsTest, NetworkBitsTest, TestSize.Level1)
-{
-    uint32_t mask1 = ParseIp(netmask24);
-    ASSERT_TRUE(mask1 != 0);
-    uint32_t mask2 = ParseIp(netmask25);
-    ASSERT_TRUE(mask2 != 0);
-    uint32_t mask3 = ParseIp(netmask26);
-    ASSERT_TRUE(mask3 != 0);
-    uint32_t mask4 = ParseIp(netmask27);
-    ASSERT_TRUE(mask4 != 0);
-
-    EXPECT_EQ(24, NetworkBits(mask1));
-    EXPECT_EQ(25, NetworkBits(mask2));
-    EXPECT_EQ(26, NetworkBits(mask3));
-    EXPECT_EQ(27, NetworkBits(mask4));
-}
-
-HWTEST(AddressUtilsTest, HostBitsTest, TestSize.Level1)
-{
-    uint32_t mask1 = ParseIp(netmask24);
-    ASSERT_TRUE(mask1 != 0);
-    uint32_t mask2 = ParseIp(netmask25);
-    ASSERT_TRUE(mask2 != 0);
-    uint32_t mask3 = ParseIp(netmask26);
-    ASSERT_TRUE(mask3 != 0);
-    uint32_t mask4 = ParseIp(netmask27);
-    ASSERT_TRUE(mask4 != 0);
-
-    EXPECT_EQ(8, HostBits(mask1));
-    EXPECT_EQ(7, HostBits(mask2));
-    EXPECT_EQ(6, HostBits(mask3));
-    EXPECT_EQ(5, HostBits(mask4));
 }
 
 HWTEST(AddressUtilsTest, IsEmptyHWAddrTest, TestSize.Level1)

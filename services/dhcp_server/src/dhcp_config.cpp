@@ -14,15 +14,15 @@
  */
 
 #include "dhcp_config.h"
-#include <errno.h>
+#include <cerrno>
 #include <securec.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
-#include <time.h>
+#include <sys/time.h>
 #include "address_utils.h"
 #include "common_util.h"
-#include "dhcp_server_ipv4.h"
+#include "dhcp_define.h"
 #include "dhcp_logger.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerConfig");
@@ -250,7 +250,7 @@ static int ParseConfigFile(const char *configFile, const char *ifname, DhcpConfi
         }
         if (bValid && SetDhcpConfig(dhcpConfig, strLine, bComm) != RET_SUCCESS) {
             DHCP_LOGE("set dhcp config %s %s failed", configFile, strLine);
-            fclose(fp);
+            (void)fclose(fp);
             return RET_FAILED;
         }
         if (memset_s(strLine, FILE_LINE_LEN_MAX, 0, FILE_LINE_LEN_MAX) != EOK) {

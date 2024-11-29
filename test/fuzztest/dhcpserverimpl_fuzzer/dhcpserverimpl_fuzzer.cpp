@@ -167,11 +167,6 @@ void CreateDefaultConfigFileTest(const uint8_t* data, size_t size)
     pDhcpServerServiceImpl->CreateDefaultConfigFile(strFile);
 }
 
-void UnregisterSignalTest(const uint8_t* data, size_t size)
-{
-    pDhcpServerServiceImpl->UnregisterSignal();
-}
-
 void DelSpecifiedInterfaceTest(const uint8_t* data, size_t size)
 {
     std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
@@ -183,13 +178,6 @@ void RegisterDhcpServerCallBackTest(const uint8_t* data, size_t size)
     std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
     sptr<IDhcpServerCallBack> serverCallback;
     pDhcpServerServiceImpl->RegisterDhcpServerCallBack(ifname, serverCallback);
-}
-
-void StartServiceAbilityTest(const uint8_t* data, size_t size)
-{
-    int index = 0;
-    int sleepS = static_cast<int>(index++);
-    pDhcpServerServiceImpl->StartServiceAbility(sleepS);
 }
 
 /* Fuzzer entry point */
@@ -217,10 +205,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::AddSpecifiedInterfaceTest(data, size);
     OHOS::DHCP::GetUsingIpRangeTest(data, size);
     OHOS::DHCP::CreateDefaultConfigFileTest(data, size);
-    OHOS::DHCP::UnregisterSignalTest(data, size);
     OHOS::DHCP::DelSpecifiedInterfaceTest(data, size);
     OHOS::DHCP::RegisterDhcpServerCallBackTest(data, size);
-    OHOS::DHCP::StartServiceAbilityTest(data, size);
     return 0;
 }
 }  // namespace DHCP

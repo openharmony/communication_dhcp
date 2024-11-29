@@ -13,9 +13,10 @@
  * limitations under the License.
  */
 
-#ifndef OHOS_DHCP_DEFINE_H
-#define OHOS_DHCP_DEFINE_H
+#ifndef OHOS_DHCP_S_DEFINE_H
+#define OHOS_DHCP_S_DEFINE_H
 
+#include "dhcp_define.h"
 #define DHCP_LEASE_TIME 21600
 #define DHCP_RENEWAL_TIME 10800
 #define DHCP_REBINDING_TIME 17280
@@ -31,12 +32,12 @@
 #define DHCP_MAX_PATH_LENGTH 256
 #define DHCP_ONE_BYTE_BITS 8
 
-#define DHCP_ROOT "/data/service/el1/public/dhcp/"
-
-#define DHCPD_CONFIG_FILE DHCP_ROOT"etc/dhcpd.conf"
-#define DHCPD_EXT_CONFIG_PATH DHCP_ROOT"etc/dhcpd.d"
-#define DHCPD_LEASE_FILE DHCP_ROOT"dhcpd_lease.lease"
-#define DHCPD_PID_FILE DHCP_ROOT"dhcpd.pid"
+inline constexpr char DHCP_ROOT[] = "/data/service/el1/public/dhcp/";
+inline constexpr char DHCPD_CONFIG_FILE[] = "etc/dhcpd.conf";
+inline constexpr char DHCPD_EXT_CONFIG_PATH[] = "etc/dhcpd.d";
+inline constexpr char DHCPD_LEASE_FILE[] = "dhcpd_lease.lease";
+inline constexpr char DHCPD_PID_FILE[] = "dhcpd.pid";
+inline constexpr char DHCPD_VERSION[] = "0.0.1";
 
 #define DHCPD_VERSION "0.0.1"
 

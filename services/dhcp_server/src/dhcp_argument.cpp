@@ -19,7 +19,7 @@
 #include <securec.h>
 #include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <cstdio>
 #include <string.h>
 #include "address_utils.h"
 #include "dhcp_s_define.h"
@@ -50,57 +50,6 @@ static int PutPoolArgument(const char *argument, const char *val)
     return PutArgument(argument, val);
 }
 
-static int ShowVersion(const char *argument, const char *val)
-{
-    DHCP_LOGI("version:%s\n", DHCPD_VERSION);
-    return RET_SUCCESS;
-}
-
-static int DefaultArgument(const char *argument, const char *val)
-{
-    DHCP_LOGI("Input argument is: [%s], value is [%s]", (argument == nullptr) ? "" : argument,
-        (val == nullptr) ? "" : val);
-    return RET_SUCCESS;
-}
-
-const char *g_optionString = "i:c:d:g:s:n:P:S:Bp:o:lb:rvhD";
-
-static struct option g_longOptions[] = {
-    {"ifname", REQUIRED_ARG, 0, 'i'},
-    {"conf", REQUIRED_ARG, 0, 'c'},
-    {"dns", REQUIRED_ARG, 0, 'd'},
-    {"gateway", REQUIRED_ARG, 0, 'g'},
-    {"server", REQUIRED_ARG, 0, 's'},
-    {"netmask", REQUIRED_ARG, 0, 'n'},
-    {"pool", REQUIRED_ARG, 0, 'P'},
-    {"lease", REQUIRED_ARG, 0, 0},
-    {"renewal", REQUIRED_ARG, 0, 0},
-    {"rebinding", REQUIRED_ARG, 0, 0},
-    {"version", NO_ARG, 0, 'v'},
-    {"help", NO_ARG, 0, 'h'},
-    {0, 0, 0, 0},
-};
-
-static DhcpUsage usages[] = {
-    {&g_longOptions[NUM_ZERO], "<interface>", "network interface name.", "--ifname eth0", 1, PutArgument},
-    {&g_longOptions[NUM_ONE], "<file>", "configure file name.", "--conf /etc/conf/dhcp_server.conf", 0, PutArgument},
-    {&g_longOptions[NUM_TWO], "<dns1>[,dns2][,dns3][...]", "domain name server IP address list.", "", 0, PutArgument},
-    {&g_longOptions[NUM_THREE], "<gateway>", "gateway option.", "", 0, PutIpArgument},
-    {&g_longOptions[NUM_FOUR], "<server>", "server identifier.", "", 1, PutIpArgument},
-    {&g_longOptions[NUM_FIVE], "<netmask>", "default subnet mask.", "", 1, PutIpArgument},
-    {&g_longOptions[NUM_SIX], "<beginip>,<endip>", "pool address range.", "", 0,
-        PutPoolArgument},
-    {&g_longOptions[NUM_SEVEN], "<leaseTime>", "set lease time value, the value is in units of seconds.", "", 0,
-        PutArgument},
-    {&g_longOptions[NUM_EIGHT], "<renewalTime>", "set renewal time value, the value is in units of seconds.", "", 0,
-        PutArgument},
-    {&g_longOptions[NUM_NINE], "<rebindingTime>", "set rebinding time value, the value is in units of seconds.", "", 0,
-        PutArgument},
-    {&g_longOptions[NUM_TEN], "", "show version information.", "", 0, ShowVersion},
-    {&g_longOptions[NUM_ELEVEN], "", "show help information.", "", 0, DefaultArgument},
-    {0, "", "", ""},
-};
-
 int HasArgument(const char *argument)
 {
     char name[ARGUMENT_NAME_SIZE] = {'\0'};
@@ -122,77 +71,6 @@ int HasArgument(const char *argument)
         return 1;
     }
     return 0;
-}
-
-static void ShowUsage(const DhcpUsage *usage)
-{
-    if (!usage || !usage->opt) {
-        return;
-    }
-    if (usage->opt->val) {
-        DHCP_LOGI("-%{public}c,--%{public}s ", (char)usage->opt->val, usage->opt->name);
-    } else {
-        DHCP_LOGI("   --%{public}s ", usage->opt->name);
-    }
-    if (usage->params[0] == '\0') {
-        DHCP_LOGI("\t\t%{public}s\n", usage->desc);
-    } else {
-        int plen = strlen(usage->params) + strlen(usage->params);
-        if (plen < USAGE_DESC_MAX_LENGTH) {
-            DHCP_LOGI("\t\t%{public}s\t\t%{public}s\n", usage->params, usage->desc);
-        } else {
-            DHCP_LOGI("\t\t%{public}s\n", usage->params);
-            DHCP_LOGI("\t\t\t%{public}s\n\n", usage->desc);
-        }
-    }
-}
-
-void PrintRequiredArguments(void)
-{
-    size_t argc = sizeof(usages) / sizeof(DhcpUsage);
-    DHCP_LOGI("required parameters:");
-    int idx = 0;
-    for (size_t i = 0; i < argc; i++) {
-        DhcpUsage usage = usages[i];
-        if (!usage.opt) {
-            break;
-        }
-        if (usage.required) {
-            if (idx == 0) {
-                DHCP_LOGI("\"%{public}s\"", usage.opt->name);
-            } else {
-                DHCP_LOGI(", \"%{public}s\"", usage.opt->name);
-            }
-            idx++;
-        }
-    }
-    DHCP_LOGI(".\n\n");
-    DHCP_LOGI("Usage: dhcp_server [options] \n");
-    DHCP_LOGI("e.g: dhcp_server -i eth0 -c /data/service/el1/public/dhcp/dhcp_server.conf \n");
-    DHCP_LOGI("     dhcp_server --help \n\n");
-}
-
-static void PrintUsage(void)
-{
-    DHCP_LOGI("Usage: dhcp_server [options] \n\n");
-
-    size_t argc = sizeof(usages) / sizeof(DhcpUsage);
-    for (size_t i = 0; i < argc; i++) {
-        DhcpUsage usage = usages[i];
-        if (!usage.opt) {
-            break;
-        }
-        ShowUsage(&usage);
-    }
-    DHCP_LOGI("\n");
-}
-
-void ShowHelp(int argc)
-{
-    if (argc == NUM_TWO) {
-        PrintUsage();
-        return;
-    }
 }
 
 int InitArguments(void)
@@ -262,17 +140,6 @@ int PutArgument(const char *argument, const char *val)
     }
     g_argumentsTable[std::string(arg.name)] = arg;
     return RET_SUCCESS;
-}
-
-int FindIndex(int c)
-{
-    int size = sizeof(g_longOptions) / sizeof(g_longOptions[0]);
-    for (int i = 0; i < size; ++i) {
-        if (g_longOptions[i].val == c) {
-            return i;
-        }
-    }
-    return -1;
 }
 
 int ParseArguments(const std::string& ifName, const std::string& netMask, const std::string& ipRange,

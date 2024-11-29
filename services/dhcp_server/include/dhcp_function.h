@@ -16,8 +16,6 @@
 #ifndef OHOS_FUNCTION_H
 #define OHOS_FUNCTION_H
 
-#include <iostream>
-#include <fstream>
 #include <cstring>
 #include <iomanip>
 #include <arpa/inet.h>
@@ -45,17 +43,10 @@ public:
     static bool IsExistFile(const std::string& filename);
     static bool CreateFile(const std::string& filename, const std::string& filedata);
     static bool RemoveFile(const std::string& filename);
-    static bool AddFileLineData(const std::string& filename, const std::string& prevdata, const std::string& linedata);
-    static bool DelFileLineData(const std::string& filename, const std::string& linedata);
-    static bool ModifyFileLineData(const std::string& filename, const std::string& srcdata, const std::string& dstdata);
     static int FormatString(struct DhcpPacketResult &result);
-    static int InitPidfile(const std::string& piddir, const std::string& pidfile);
-    static pid_t GetPID(const std::string& pidfile);
-    static int CheckProRunning(const pid_t proPid, const std::string& proName);
     static int CreateDirs(const std::string dirs, int mode = DIR_DEFAULT_MODE);
     static bool SplitString(
         const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
-    static int WaitProcessExit(const pid_t& serverPid);
 #ifdef OHOS_ARCH_LITE
     static int GetDhcpPacketResult(const std::string& filename, struct DhcpPacketResult &result);
 #else

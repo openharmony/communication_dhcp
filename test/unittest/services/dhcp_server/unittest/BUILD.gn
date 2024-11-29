@@ -73,6 +73,7 @@ ohos_unittest("dhcp_server_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_server/include",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
+    "$DHCP_ROOT_DIR/services/utils/include",
   ]
 
   cflags = []

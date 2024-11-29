@@ -17,11 +17,10 @@
 #include <ctype.h>
 #include <securec.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <cstdio>
 #include <string.h>
 #include <sys/stat.h>
 #include <sys/time.h>
-#include <time.h>
 #include <unistd.h>
 #include "dhcp_s_define.h"
 #include "dhcp_logger.h"
@@ -33,21 +32,6 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerCommon");
 
 typedef struct tm *ptm;
-void DHCP_LOGTime(void)
-{
-    time_t curr;
-    (void)time(&curr);
-    struct tm nowTime;
-    localtime_r(&curr, &nowTime);
-    ptm tt = &nowTime;
-    if (tt) {
-        tt->tm_year += TIME_BASE_YEAR;
-        printf("[%04d-%02d-%02d %02d:%02d:%02d", tt->tm_year, tt->tm_mon + 1,
-            tt->tm_mday, tt->tm_hour, tt->tm_min, tt->tm_sec);
-    } else {
-        printf("[1970-01-01 08:00:00");
-    }
-}
 
 uint64_t Tmspusec(void)
 {
@@ -63,7 +47,7 @@ uint64_t Tmspsec(void)
     return (uint64_t)((long long)t.tv_sec);
 }
 
-void LeftTrim(char *buf)
+static void LeftTrim(char *buf)
 {
     if (buf == nullptr || (buf[0] != ' ' && buf[0] != '\t')) {
         return;
@@ -80,7 +64,7 @@ void LeftTrim(char *buf)
     return;
 }
 
-void RightTrim(char *buf)
+static void RightTrim(char *buf)
 {
     if (buf == nullptr || buf[0] == '\0') {
         return;
@@ -125,22 +109,6 @@ const char *GetFilePath(const char *fileName)
         return 0;
     }
     return currFilePath;
-}
-
-const char *GetLeaseFile(const char *fileName, const char *ifname)
-{
-    static char leaseFileName[DHCP_MAX_PATH_LENGTH];
-    if (!fileName || !ifname) {
-        return 0;
-    }
-    if (strlen(fileName) == 0 || strlen(ifname) == 0) {
-        return 0;
-    }
-    if (snprintf_s(leaseFileName, sizeof(leaseFileName), sizeof(leaseFileName) - 1, "%s.%s", fileName, ifname) < 0) {
-        DHCP_LOGE("Failed to get dhcp lease file path!");
-        return 0;
-    }
-    return leaseFileName;
 }
 
 int CreatePath(const char *fileName)

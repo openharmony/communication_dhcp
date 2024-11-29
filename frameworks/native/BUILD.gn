@@ -173,11 +173,13 @@ if (defined(ohos_lite)) {
       "samgr:samgr_proxy",
     ]
     defines = []
-    cflags_cc = [
+    cflags_cc = memory_optimization_cflags_cc
+    cflags_cc += [
       "-std=c++17",
       "-fno-rtti",
     ]
-    ldflags = [
+    ldflags = memory_optimization_ldflags
+    ldflags += [
       "-fPIC",
       "-Wl,-E",
     ]
@@ -186,6 +188,7 @@ if (defined(ohos_lite)) {
       ":dhcp_sdk_header",
     ]
     public_configs = [ ":dhcp_sdk_header" ]
+    version_script = "libdhcp_sdk.map"
     part_name = "dhcp"
     subsystem_name = "communication"
     innerapi_tags = [ "platformsdk" ]

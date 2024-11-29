@@ -27,7 +27,6 @@
 #define OPTIONAL_ARG 2
 
 #define USAGE_DESC_MAX_LENGTH 32
-const std::string IP_V4_DEFAULT("192.168.62.1");
 
 #ifdef __cplusplus
 extern "C" {
@@ -59,10 +58,6 @@ int ParseArguments(const std::string& ifName, const std::string& netMask, const 
     const std::string& localIp);
 
 void FreeArguments(void);
-
-void ShowHelp(int argc);
-
-void PrintRequiredArguments(void);
 
 #ifdef __cplusplus
 }
