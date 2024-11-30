@@ -205,7 +205,7 @@ ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifn
         uint32_t registerNum = m_mapServerCallBack.size();
         if (registerNum > MAX_REGISTER_NUM) {
             DHCP_LOGI("RegisterDhcpServerCallBack, ifname:%{public}s register failed, num over limit", ifname.c_str());
-            return DHCP_E_FAILED; 
+            return DHCP_E_FAILED;
         }
 #ifdef OHOS_ARCH_LITE
         std::shared_ptr<IDhcpServerCallBack> callback = serverCallback;
