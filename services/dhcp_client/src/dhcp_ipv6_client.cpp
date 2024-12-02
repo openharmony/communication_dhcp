@@ -24,7 +24,8 @@
 #include <dlfcn.h>
 #include <sys/time.h>
 #include <net/if.h>
-#include <cerrno>
+#include <errno.h>
+#include <fstream>
 #include <thread>
 #include "securec.h"
 #include "dhcp_logger.h"
@@ -76,6 +77,9 @@ const int POSITION_OFFSET_1 = 1;
 const int POSITION_OFFSET_2 = 2;
 const int POSITION_OFFSET_3 = 3;
 const int POSITION_OFFSET_4 = 4;
+const std::string IPV6_ACCEPT_RA_CONFIG_PATH = "/proc/sys/net/ipv6/conf/";
+const std::string ACCEPT_RA = "accept_ra";
+const std::string ACCEPT_OVERRULE_FORWORGING = "2";
 
 #define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
 #define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
@@ -588,11 +592,32 @@ void *DhcpIpv6Client::DhcpIpv6Start()
         DHCP_LOGI("DhcpIpv6Client already started.");
         return NULL;
     }
+
+    if (!SetAcceptRa(ACCEPT_OVERRULE_FORWORGING)) {
+        return NULL;
+    }
+
     int result = StartIpv6();
     if (result < 0) {
         DHCP_LOGE("dhcp6 run failed.");
     }
     return NULL;
+}
+
+bool DhcpIpv6Client::SetAcceptRa(const std::string &content)
+{
+    std::string fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ACCEPT_RA;
+    std::ofstream outf(fileName, std::ios::out);
+    if (!outf) {
+        DHCP_LOGE("SetAcceptRa, write content [%{public}s] to file [%{public}s] failed. error: %{public}d.",
+            content.c_str(), fileName.c_str(), errno);
+        return false;
+    }
+    outf.write(content.c_str(), content.length());
+    outf.close();
+    DHCP_LOGI("SetAcceptRa, write content [%{public}s] to file [%{public}s] success.",
+        content.c_str(), fileName.c_str());
+    return true;
 }
 
 void DhcpIpv6Client::DhcpIPV6Stop(void)
