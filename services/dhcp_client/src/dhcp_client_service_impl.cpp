@@ -43,6 +43,9 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImpl");
 
 namespace OHOS {
 namespace DHCP {
+namespace {
+constexpr uint32_t MAX_REGISTER_CLIENT_NUM = 1000;
+}
 std::mutex DhcpClientServiceImpl::g_instanceLock;
 
 #ifdef OHOS_ARCH_LITE
@@ -228,6 +231,11 @@ ErrCode DhcpClientServiceImpl::RegisterDhcpClientCallBack(const std::string& ifn
         (iter->second) = clientCallback;
         DHCP_LOGI("RegisterDhcpClientCallBack find ifname update clientCallback, ifname:%{public}s", ifname.c_str());
     } else {
+        uint32_t registerNum = m_mapClientCallBack.size();
+        if (registerNum > MAX_REGISTER_CLIENT_NUM) {
+            DHCP_LOGI("RegisterDhcpClientCallBack, ifname:%{public}s register failed, num over limit", ifname.c_str());
+            return DHCP_E_FAILED;
+        }
 #ifdef OHOS_ARCH_LITE
         std::shared_ptr<IDhcpClientCallBack> mclientCallback = clientCallback;
 #else
