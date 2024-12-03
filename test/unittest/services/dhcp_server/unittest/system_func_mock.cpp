@@ -14,6 +14,7 @@
  */
 #include <cstdint>
 #include <sys/select.h>
+#include <sys/socket.h>
 #include <sys/time.h>
 #include "system_func_mock.h"
 #include "address_utils.h"
@@ -55,16 +56,6 @@ bool SystemFuncMock::GetMockFlag(void)
 }
 
 extern "C" {
-struct in_addr {
-    uint32_t s_addr;
-};
-
-struct sockaddr_in {
-    short int sin_family;
-    unsigned short int sin_port;
-    struct in_addr sin_addr;
-    unsigned char sin_zero[8];
-};
 
 int __real_open(const char *__file, int __oflag);
 int __wrap_open(const char *__file, int __oflag)
@@ -307,7 +298,7 @@ int ParseMockOptions(DhcpMessage *packet)
     return retval;
 }
 
-ssize_t sendto(int __fd, const void *__buf, size_t __n, int __flags, struct sockaddr *__addr, socklen_t __addr_len)
+ssize_t sendto(int __fd, const void *__buf, size_t __n, int __flags, const struct sockaddr *__addr, socklen_t __addr_len)
 {
     DHCP_LOGD("==>sendto.");
     if (g_mockTag) {
