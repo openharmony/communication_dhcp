@@ -56,7 +56,6 @@ bool SystemFuncMock::GetMockFlag(void)
 }
 
 extern "C" {
-
 int __real_open(const char *__file, int __oflag);
 int __wrap_open(const char *__file, int __oflag)
 {
@@ -298,7 +297,8 @@ int ParseMockOptions(DhcpMessage *packet)
     return retval;
 }
 
-ssize_t sendto(int __fd, const void *__buf, size_t __n, int __flags, const struct sockaddr *__addr, socklen_t __addr_len)
+ssize_t sendto(int __fd, const void *__buf,
+    size_t __n, int __flags, const struct sockaddr *__addr, socklen_t __addr_len)
 {
     DHCP_LOGD("==>sendto.");
     if (g_mockTag) {

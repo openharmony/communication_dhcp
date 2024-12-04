@@ -58,11 +58,12 @@ static int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, cons
     std::string valueTmp = value;
     if (key == "bssid") {
         item.bssid = value;
+    } else if (key == "ssid") {
+        item.ssid = value;
     } else if (key == "absoluteLeasetime") {
         item.absoluteLeasetime = static_cast<int64_t>(CheckDataLegal(valueTmp));
     } else if (key == "strYiaddr") {
-        if (strncpy_s(
-            item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
+        if (strncpy_s(item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptServerId") {
@@ -98,19 +99,17 @@ static int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, cons
     } else if (key == "uOptLeasetime") {
         item.ipResult.uOptLeasetime = static_cast<uint32_t>(CheckDataLegal(valueTmp));
     } else {
-        DHCP_LOGE("Invalid config key value");
         errorKeyValue++;
     }
     return errorKeyValue;
 }
-
-
 
 static std::string OutClassString(IpInfoCached &item)
 {
     std::string buffer = "";
     buffer += "    <IpInfoCached>\n";
     buffer += "    bssid=" + std::string(item.bssid) + "\n";
+    buffer += "    ssid=" + std::string(item.ssid) + "\n";
     buffer += "    absoluteLeasetime=" + std::to_string(item.absoluteLeasetime) + "\n";
     buffer += "    strYiaddr=" + std::string(item.ipResult.strYiaddr) + "\n";
     buffer += "    strOptServerId=" + std::string(item.ipResult.strOptServerId) + "\n";

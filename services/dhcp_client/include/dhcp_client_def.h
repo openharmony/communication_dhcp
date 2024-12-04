@@ -110,7 +110,7 @@ inline constexpr char  WORKDIR[] = "/tmp/service/el1/public/dhcp/";
 inline constexpr char  WORKDIR[] = "/data/service/el1/public/dhcp/";
 #endif // OHOS_EUPDATER
        
-inline constexpr char  DHCPC_NAME[] = "dhcp_client_service";    
+inline constexpr char  DHCPC_NAME[] = "dhcp_client_service";
 inline constexpr char  DHCPC_CONF[] = "dhcp_client_service.conf";
 inline constexpr char  DHCPC_PID[] = "dhcp_client_service.pid";
 inline constexpr char  DHCPC_VERSION[] = "1.0";

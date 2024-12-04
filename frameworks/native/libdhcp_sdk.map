@@ -17,6 +17,7 @@
         "RemoveDhcpRange";
         "GetDhcpClientInfos";
         "UpdateLeasesTime";
+        "DealWifiDhcpCache";
     };
     local:
         *;
