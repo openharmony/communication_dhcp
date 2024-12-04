@@ -31,6 +31,7 @@
 #include "dhcp_define.h"
 #include "dhcp_errcode.h"
 #include "dhcp_logger.h"
+#include "dhcp_result_store_manager.h"
 #include "dhcp_permission_utils.h"
 #ifndef OHOS_ARCH_LITE
 #include "ipc_skeleton.h"
@@ -276,6 +277,42 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const RouterConfig &config)
         }
     }
     return StartNewClient(innerCfg);
+}
+
+ErrCode DhcpClientServiceImpl::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo)
+{
+    DHCP_LOGI("DealWifiDhcpCache enter");
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
+        DHCP_LOGE("DealWifiDhcpCache:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.SET_WIFI_CONFIG")) {
+        DHCP_LOGE("DealWifiDhcpCache:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    IpInfoCached cacheInfo;
+    cacheInfo.ssid = ipCacheInfo.ssid;
+    cacheInfo.bssid = ipCacheInfo.bssid;
+#ifndef OHOS_ARCH_LITE
+    std::function<void()> func;
+    if (cmd == WIFI_DHCP_CACHE_ADD) {
+        func = [cacheInfo]() { DhcpResultStoreManager::GetInstance().AddCachedIp(cacheInfo); };
+    } else if (cmd == WIFI_DHCP_CACHE_REMOVE) {
+        func = [cacheInfo]() { DhcpResultStoreManager::GetInstance().RemoveCachedIp(cacheInfo); };
+    } else {
+        return DHCP_E_FAILED;
+    }
+    uint32_t taskId = 0;
+    DhcpTimer::GetInstance()->Register(func, taskId, 0);
+    return (taskId > 0) ? DHCP_E_SUCCESS : DHCP_E_FAILED;
+#else
+    if (cmd == WIFI_DHCP_CACHE_ADD) {
+        DhcpResultStoreManager::GetInstance().AddCachedIp(cacheInfo);
+    } else if (cmd == WIFI_DHCP_CACHE_REMOVE) {
+        DhcpResultStoreManager::GetInstance().RemoveCachedIp(cacheInfo);
+    }
+    return DHCP_E_SUCCESS;
+#endif
 }
 
 ErrCode DhcpClientServiceImpl::StartOldClient(const RouterCfg &config, DhcpClient &dhcpClient)

@@ -45,6 +45,8 @@ void DhcpClientStub::InitHandleMap()
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK)] = &DhcpClientStub::OnRegisterCallBack;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT)] = &DhcpClientStub::OnStartDhcpClient;
     handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT)] = &DhcpClientStub::OnStopDhcpClient;
+    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE)] =
+        &DhcpClientStub::OnDealWifiDhcpCache;
 }
 
 int DhcpClientStub::OnRemoteRequest(uint32_t code, IpcIo *req, IpcIo *reply)
@@ -161,6 +163,30 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("ifname:%{public}s bIpv6:%{public}d", ifname.c_str(), bIpv6);
 
     ret = StopDhcpClient(ifname, bIpv6);
+    (void)WriteInt32(reply, 0);
+    (void)WriteInt32(reply, ret);
+    return 0;
+}
+
+int DhcpClientStub::OnDealWifiDhcpCache(uint32_t code, IpcIo *req, IpcIo *reply)
+{
+    DHCP_LOGI("run %{public}s code %{public}u", __func__, code);
+    ErrCode ret = DHCP_E_FAILED;
+    SvcIdentity sid;
+    bool readSid = ReadRemoteObject(req, &sid);
+    if (!readSid) {
+        DHCP_LOGE("read SvcIdentity failed");
+        (void)WriteInt32(reply, 0);
+        (void)WriteInt32(reply, ret);
+        return DHCP_OPT_FAILED;
+    }
+    int32_t cmd = 0;
+    (void)ReadInt32(req, &cmd);
+    size_t readLen;
+    IpCacheInfo ipCacheInfo;
+    ipCacheInfo.ssid = (char *)ReadString(req, &readLen);
+    ipCacheInfo.bssid = (char *)ReadString(req, &readLen);
+    ret = DealWifiDhcpCache(cmd, ipCacheInfo);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
     return 0;

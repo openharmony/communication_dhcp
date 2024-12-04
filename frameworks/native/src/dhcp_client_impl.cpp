@@ -132,6 +132,13 @@ ErrCode DhcpClientImpl::StartDhcpClient(const RouterConfig &config)
     return client_->StartDhcpClient(config);
 }
 
+ErrCode DhcpClientImpl::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RETURN_IF_FAIL(GetDhcpClientProxy());
+    return client_->DealWifiDhcpCache(cmd, ipCacheInfo);
+}
+
 ErrCode DhcpClientImpl::StopDhcpClient(const std::string& ifname, bool bIpv6)
 {
     std::lock_guard<std::mutex> lock(mutex_);

@@ -74,7 +74,7 @@ DhcpErrorCode RegisterDhcpClientReportCallBack(const char *ifname, const DhcpCli
     return DHCP_SUCCESS;
 }
 
-NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig  &config)
+NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig &config)
 {
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
     OHOS::DHCP::RouterConfig routerConfig;
@@ -84,6 +84,17 @@ NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig  &config)
     routerConfig.bIpv6 = config.bIpv6;
     routerConfig.bSpecificNetwork = config.bSpecificNetwork;
     return GetCErrorCode(dhcpClientPtr->StartDhcpClient(routerConfig));
+}
+
+DhcpErrorCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo)
+{
+    CHECK_PTR_RETURN(ipCacheInfo.ssid, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(ipCacheInfo.bssid, DHCP_INVALID_PARAM);
+    CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
+    OHOS::DHCP::IpCacheInfo cacheInfo;
+    cacheInfo.ssid = ipCacheInfo.ssid;
+    cacheInfo.bssid = ipCacheInfo.bssid;
+    return GetCErrorCode(dhcpClientPtr->DealWifiDhcpCache(cmd, cacheInfo));
 }
 
 NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6)

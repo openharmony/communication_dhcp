@@ -83,6 +83,10 @@ void DhcpClientStub::InitHandleMap()
         [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
             return OnStopDhcpClient(code, data, reply, option);
         };
+    handleFuncMap[static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE)] =
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnDealWifiDhcpCache(code, data, reply, option);
+        };
 }
 
 int DhcpClientStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -154,6 +158,19 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, MessageParcel &data, Message
     std::string ifname = data.ReadString();
     bool bIpv6 = data.ReadBool();
     ErrCode ret = StopDhcpClient(ifname, bIpv6);
+    reply.WriteInt32(0);
+    reply.WriteInt32(ret);
+    return 0;
+}
+
+int DhcpClientStub::OnDealWifiDhcpCache(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
+    int32_t cmd = data.ReadInt32();
+    IpCacheInfo ipCacheInfo;
+    ipCacheInfo.ssid = data.ReadString();
+    ipCacheInfo.bssid = data.ReadString();
+    ErrCode ret = DealWifiDhcpCache(cmd, ipCacheInfo);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
     return 0;

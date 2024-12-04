@@ -319,5 +319,14 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpOfferResultSuccessTest, TestSize.Level1)
     EXPECT_EQ(result, DHCP_OPT_FAILED);
 }
 
+HWTEST_F(DhcpClientServiceImplTest, DealWifiDhcpCacheTest, TestSize.Level1)
+{
+    DHCP_LOGI("DealWifiDhcpCacheTest enter!");
+    IpCacheInfo ipCacheInfo;
+    ipCacheInfo.ssid = "123";
+    ipCacheInfo.bssid = "123";
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->DealWifiDhcpCache(WIFI_DHCP_CACHE_ADD, ipCacheInfo));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->DealWifiDhcpCache(WIFI_DHCP_CACHE_REMOVE, ipCacheInfo));
+}
 }
 }

@@ -46,6 +46,15 @@ extern "C" {
      * @Return : success - DHCP_SUCCESS, failed - others.
      */
     DhcpErrorCode StartDhcpClient(const RouterConfig &config);
+
+    /**
+     * @Description : add dhcp cache
+     *
+     * @param ipCacheInfo - ip Cache Infomation
+     * @Return : success - DHCP_SUCCESS, failed - others.
+     */
+    DhcpErrorCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo);
+
     /**
      * @Description : Stop dhcp client service of specified interface.
      *
