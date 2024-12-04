@@ -175,6 +175,45 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     return DHCP_E_SUCCESS;
 }
 
+ErrCode DhcpClientProxy::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo)
+{
+    if (remoteDied_ || remote_ == nullptr) {
+        DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
+            __func__, remoteDied_, remote_ == nullptr);
+        return DHCP_OPT_FAILED;
+    }
+
+    IpcIo req;
+    char data[IPC_DATA_SIZE_SMALL];
+    struct IpcOwner owner = {.exception = -1, .retCode = 0, .variable = nullptr};
+
+    IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
+    if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
+        DHCP_LOGE("Write interface token error: %{public}s", __func__);
+        return DHCP_OPT_FAILED;
+    }
+
+    (void)WriteInt32(&req, 0);
+    (void)WriteInt32(&req, cmd);
+    (void)WriteString(&req, ipCacheInfo.ssid.c_str());
+    (void)WriteString(&req, ipCacheInfo.bssid.c_str());
+    owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE);
+    int error = remote_->Invoke(remote_,
+        static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE), &req,
+        &owner, IpcCallback);
+    if (error != EC_SUCCESS) {
+        DHCP_LOGE("Set Attr(%{public}d) failed,error code is %{public}d",
+            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_DEAL_DHCP_CACHE), error);
+        return DHCP_E_FAILED;
+    }
+    if (owner.exception) {
+        DHCP_LOGE("exception failed, exception:%{public}d", owner.exception);
+        return DHCP_E_FAILED;
+    }
+    DHCP_LOGI("DealWifiDhcpCache ok, exception:%{public}d", owner.exception);
+    return DHCP_E_SUCCESS;
+}
+
 ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
 {
     if (remoteDied_ || remote_ == nullptr) {

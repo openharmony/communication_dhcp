@@ -15,13 +15,14 @@
 
 #include "dhcp_result_store_manager.h"
 #include "dhcp_common_utils.h"
+#include "dhcp_errcode.h"
 #include "dhcp_logger.h"
 #include "securec.h"
 
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultStoreManager");
-
+constexpr int MAC_ADDR_SIZE = 17;
 DhcpResultStoreManager::DhcpResultStoreManager()
 {
     DHCP_LOGI("DhcpResultStoreManager()");
@@ -102,6 +103,8 @@ static int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, cons
     }
     return errorKeyValue;
 }
+
+
 
 static std::string OutClassString(IpInfoCached &item)
 {
@@ -192,6 +195,46 @@ int32_t DhcpResultStoreManager::SaveIpInfoInLocalFile(const IpInfoCached ipResul
         }
     }
     m_allIpCached.push_back(ipResult);
+    return SaveConfig();
+}
+
+int32_t DhcpResultStoreManager::RemoveCachedIp(const IpInfoCached &cacheInfo)
+{
+    LoadAllIpCached(DHCP_CACHE_FILE);
+    DHCP_LOGE("RemoveCachedIp, m_allIpCached size is %{public}d", static_cast<int32_t>(m_allIpCached.size()));
+    if (cacheInfo.ssid.empty()) {
+        DHCP_LOGE("RemoveCachedIp, ssid is empty");
+        return DHCP_E_FAILED;
+    }
+    std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    if (m_allIpCached.empty()) {
+        DHCP_LOGE("m_allIpCached is empty");
+        return DHCP_E_FAILED;
+    }
+    m_allIpCached.erase(std::remove_if(m_allIpCached.begin(), m_allIpCached.end(),
+        [cacheInfo](IpInfoCached x) { return x.ssid == cacheInfo.ssid; }), m_allIpCached.end());
+    return SaveConfig();
+}
+
+int32_t DhcpResultStoreManager::AddCachedIp(const IpInfoCached &cacheInfo)
+{
+    LoadAllIpCached(DHCP_CACHE_FILE);
+    DHCP_LOGE("AddCachedIp, m_allIpCached size is %{public}d", static_cast<int32_t>(m_allIpCached.size()));
+    std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    if (m_allIpCached.empty()) {
+        DHCP_LOGE("m_allIpCached is empty");
+        return DHCP_E_FAILED;
+    }
+    if (cacheInfo.ssid.empty() || (cacheInfo.bssid.size() != MAC_ADDR_SIZE)) {
+        DHCP_LOGE("ssid or bssid is invalid");
+        return DHCP_E_FAILED;
+    }
+    for (auto it = m_allIpCached.begin(); it != m_allIpCached.end(); it++) {
+        if (cacheInfo.bssid == it->bssid) {
+            it->ssid = cacheInfo.ssid;
+            break;
+        }
+    }
     return SaveConfig();
 }
 

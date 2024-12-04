@@ -29,6 +29,8 @@ public:
     static DhcpResultStoreManager &GetInstance();
     int32_t SaveIpInfoInLocalFile(const IpInfoCached ipInfo);
     int32_t GetCachedIp(const std::string targetBssid, IpInfoCached &outIpResult);
+    int32_t RemoveCachedIp(const IpInfoCached &cacheInfo);
+    int32_t AddCachedIp(const IpInfoCached &cacheInfo);
 
 private:
     void SetConfigFilePath(const std::string &fileName);

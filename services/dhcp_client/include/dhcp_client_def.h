@@ -102,7 +102,8 @@ inline constexpr char  EVENT_GET_IPV4[] = "usual.event.wifi.dhcp.GET_IPV4";
 #define DHCP_DNS_FIRST              1
 #define DHCP_DNS_SECOND             2
 #define DHCP_APPEND_LEN             2
-
+#define WIFI_DHCP_CACHE_ADD 1
+#define WIFI_DHCP_CACHE_REMOVE 2
 #ifdef OHOS_EUPDATER
 inline constexpr char  WORKDIR[] = "/tmp/service/el1/public/dhcp/";
 #else
@@ -264,6 +265,7 @@ typedef struct{
 
 struct IpInfoCached {
     std::string bssid;
+    std::string ssid;
     int64_t absoluteLeasetime;
     struct DhcpIpResult ipResult;
 };

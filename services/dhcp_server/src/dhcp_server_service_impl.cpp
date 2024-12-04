@@ -40,7 +40,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerServiceImpl");
 namespace OHOS {
 namespace DHCP {
 namespace {
-constexpr uint32_t MAX_REGISTER_NUM = 1000;
+constexpr uint32_t MAX_REGISTER_SERVER_NUM = 1000;
 }
 std::mutex DhcpServerServiceImpl::g_instanceLock;
 #ifdef OHOS_ARCH_LITE
@@ -148,7 +148,7 @@ ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifn
         DHCP_LOGI("RegisterDhcpServerCallBack m_mapServerCallBack find one update, ifname:%{public}s", ifname.c_str());
     } else {
         uint32_t registerNum = m_mapServerCallBack.size();
-        if (registerNum > MAX_REGISTER_NUM) {
+        if (registerNum > MAX_REGISTER_SERVER_NUM) {
             DHCP_LOGI("RegisterDhcpServerCallBack, ifname:%{public}s register failed, num over limit", ifname.c_str());
             return DHCP_E_FAILED;
         }
