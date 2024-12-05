@@ -538,11 +538,28 @@ void *DhcpIpv6Client::DhcpIpv6Start()
         DHCP_LOGI("DhcpIpv6Client already started.");
         return NULL;
     }
+
+    SetAcceptRa(ACCEPT_OVERRULE_FORWORGING);
     int result = StartIpv6();
     if (result < 0) {
         DHCP_LOGE("dhcp6 run failed.");
     }
     return NULL;
+}
+
+void DhcpIpv6Client::SetAcceptRa(const std::string &content)
+{
+    std::string fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ACCEPT_RA;
+    std::ofstream outf(fileName, std::ios::out);
+    if (!outf) {
+        DHCP_LOGE("SetAcceptRa, write content [%{public}s] to file [%{public}s] failed. error: %{public}d.",
+            content.c_str(), fileName.c_str(), errno);
+        return;
+    }
+    outf.write(content.c_str(), content.length());
+    outf.close();
+    DHCP_LOGI("SetAcceptRa, write content [%{public}s] to file [%{public}s] success.",
+        content.c_str(), fileName.c_str());
 }
 
 void DhcpIpv6Client::DhcpIPV6Stop(void)

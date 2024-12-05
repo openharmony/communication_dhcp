@@ -79,7 +79,8 @@ private:
     void parseNewneighMessage(void* msg);
     void getIpv6RouteAddr();
     void fillRouteData(char* buff, int &len);
-    
+    void SetAcceptRa(const std::string &content);
+
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged;
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;

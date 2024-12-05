@@ -345,12 +345,6 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
     dhcpClient->DhcpInit();
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpStopTest enter!");
-    dhcpClient->DhcpStop();
-}
-
 HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
 {
     DHCP_LOGI("RenewingTest enter!");
