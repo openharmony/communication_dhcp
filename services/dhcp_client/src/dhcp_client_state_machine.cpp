@@ -1402,7 +1402,7 @@ bool DhcpClientStateMachine::SignalReceiver(void)
         return false;
     }
     DHCP_LOGE("SignalReceiver read sigSockFds[0]:%{public}d signum:%{public}d!", m_sigSockFds[0], signum);
-    return  == SIG_STOP;
+    return signum == SIG_STOP;
 }
 
 /* Set dhcp ipv4 state. */
