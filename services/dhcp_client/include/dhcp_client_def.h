@@ -91,7 +91,7 @@
 #define DHCP_HWADDR_LENGTH          16
 #define DHCP_HOST_NAME_LENGTH       64
 #define DHCP_BOOT_FILE_LENGTH       128
-#define DHCP_OPT_SIZE               308
+#define DHCP_OPT_SIZE               1780
 #define DHCP_OPT_CODE_INDEX         0
 #define DHCP_OPT_LEN_INDEX          1
 #define DHCP_OPT_DATA_INDEX         2

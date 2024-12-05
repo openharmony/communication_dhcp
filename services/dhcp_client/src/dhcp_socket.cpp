@@ -407,7 +407,6 @@ int GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
     int nBytes = read(rawFd, &udpPackets, sizeof(struct UdpDhcpPacket));
     int nRet = CheckReadBytes(nBytes, (int)ntohs(udpPackets.ip.tot_len));
     if (nRet != SOCKET_OPT_SUCCESS) {
-        usleep(SLEEP_TIME_200_MS);
         return nRet;
     }
 
