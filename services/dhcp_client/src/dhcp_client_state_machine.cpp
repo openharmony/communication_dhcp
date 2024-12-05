@@ -412,8 +412,6 @@ bool DhcpClientStateMachine::InitSocketFd(int &sockFd)
     return true;
 }
 
-}
-
 int DhcpClientStateMachine::GetPacketReadSockFd(void)
 {
     return m_sockFd;
