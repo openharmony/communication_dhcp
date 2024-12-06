@@ -81,7 +81,7 @@ private:
     void getIpv6RouteAddr();
     void fillRouteData(char* buff, int &len);
     bool IsEui64ModeIpv6Address(char *ipv6addr, int len);
-    bool SetAcceptRa(const std::string &content);
+    void SetAcceptRa(const std::string &content);
 
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged;
     std::string interfaceName;

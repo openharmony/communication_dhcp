@@ -296,7 +296,6 @@ HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level1)
 {
     DHCP_LOGE("SetSocketModeTest enter!");
     dhcpClient->SetSocketMode(1);
-    EXPECT_EQ(-1, dhcpClient->m_sockFd);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SendRebootTest, TestSize.Level1)
@@ -353,13 +352,6 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
     DHCP_LOGI("DhcpInitTest enter!");
     dhcpClient->DhcpInit();
     EXPECT_EQ(DHCP_STATE_INIT, dhcpClient->m_dhcp4State);
-}
-
-HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpStopTest enter!");
-    dhcpClient->DhcpStop();
-    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
@@ -1054,7 +1046,8 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
     DHCP_LOGI("DhcpResponseHandleTest enter!");
     DhcpPacket packet;
     time_t timestamp = 1;
-    dhcpClient->DhcpResponseHandle(timestamp);
+    int sockFd = 0;
+    dhcpClient->DhcpResponseHandle(timestamp, sockFd);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
