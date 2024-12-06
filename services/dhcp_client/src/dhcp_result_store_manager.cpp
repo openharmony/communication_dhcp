@@ -43,10 +43,10 @@ static void TrimString(std::string &str)
 {
     int32_t i = 0;
     int32_t j = static_cast<int32_t>(str.length()) - 1;
-    while (i < static_cast<int32_t>(str.length()) && str[i] == ' ') {
+    while (i < static_cast<int32_t>(str.length()) && (str[i] == ' ' || str[i] == '\n')) {
         ++i;
     }
-    while (j >= 0 && str[j] == ' ') {
+    while (j >= 0 && (str[j] == ' '|| str[j] == '\n')) {
         --j;
     }
     str = ((i > j) ? "" : str.substr(i, j - i + 1));
