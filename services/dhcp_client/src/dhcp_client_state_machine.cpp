@@ -299,7 +299,7 @@ void DhcpClientStateMachine::StartIpv4(void)
         FD_SET(sockFd, &readfds);
         FD_SET(m_sigSockFds[0], &readfds);
         time_t curTimestamp = time(NULL);
-        if (curTimestamp = static_cast<time_t>(-1)) {
+        if (curTimestamp == static_cast<time_t>(-1)) {
             DHCP_LOGI("StartIpv4, time reurn failed");
         }
         timeout.tv_sec = static_cast<time_t>(m_timeoutTimestamp - curTimestamp);
