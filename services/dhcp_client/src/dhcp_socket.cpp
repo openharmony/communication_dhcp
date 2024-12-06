@@ -31,6 +31,11 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSocket");
 
+namespace {
+constexpr int32_t FD_LIMIT = 1024;
+constexpr int32_t MAX_RETRY_TIMES = 2;
+}
+
 static uint16_t GetCheckSum(uint16_t *pData, int nBytes)
 {
     uint32_t uTotalSum = 0;
@@ -57,13 +62,22 @@ static uint16_t GetCheckSum(uint16_t *pData, int nBytes)
 /* Raw socket can receive data frames or data packets from the local network interface. */
 int CreateRawSocket(int *rawFd)
 {
-    int sockFd = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_IP));
-    if (sockFd == -1) {
-        DHCP_LOGE("CreateRawSocket() failed, socket error:%{public}d.", errno);
-        return SOCKET_OPT_FAILED;
+    for (int i = 0; i < MAX_RETRY_TIMES; ++i) {
+        int sockFd = socket(PF_PACKET, SOCK_DGRAM, htons(ETH_P_IP));
+        if (sockFd >= FD_LIMIT) {
+            DHCP_LOGE("CreateRawSocket() failed, sockFd:%{public}d is invalid, retry one time.", sockFd);
+            close(sockFd);
+            continue;
+        } else if (sockFd == -1) {
+            DHCP_LOGE("CreateRawSocket() failed, sockFd:%{public}d, socket error:%{public}d.", sockFd, errno);
+            return SOCKET_OPT_FAILED;
+        } else {
+            *rawFd = sockFd;
+            return SOCKET_OPT_SUCCESS;
+        }
     }
-    *rawFd = sockFd;
-    return SOCKET_OPT_SUCCESS;
+ 
+    return SOCKET_OPT_FAILED;
 }
 
 /* Kernel socket can receive data frames or data packets from the local network interface, ip and port. */
@@ -73,13 +87,22 @@ int CreateKernelSocket(int *sockFd)
         DHCP_LOGE("CreateKernelSocket() failed, sockFd is NULL!");
         return SOCKET_OPT_FAILED;
     }
-    int nFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    if (nFd == -1) {
-        DHCP_LOGE("CreateKernelSocket() failed, socket error:%{public}d.", errno);
-        return SOCKET_OPT_FAILED;
+    for (int i = 0; i < MAX_RETRY_TIMES; ++i) {
+        int nFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        if (nFd >= FD_LIMIT) {
+            DHCP_LOGE("CreateKernelSocket() failed, nFd:%{public}d is invalid, retry one time.", nFd);
+            close(nFd);
+            nFd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+        } else if (nFd == -1) {
+            DHCP_LOGE("CreateKernelSocket() failed, nFd:%{public}d, socket error:%{public}d.", nFd, errno);
+            return SOCKET_OPT_FAILED;
+        } else {
+            *sockFd = nFd;
+            return SOCKET_OPT_SUCCESS;
+        }
     }
-    *sockFd = nFd;
-    return SOCKET_OPT_SUCCESS;
+ 
+    return SOCKET_OPT_FAILED;
 }
 
 int BindRawSocket(const int rawFd, const int ifaceIndex, const uint8_t *ifaceAddr)
