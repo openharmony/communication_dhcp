@@ -276,7 +276,6 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
 
 void DhcpClientStateMachine::StartIpv4(void)
 {
-    DHCP_LOGI("StartIpv4 function start");
     int nRet, nMaxFds;
     fd_set readfds;
     struct timeval timeout;
@@ -317,12 +316,10 @@ void DhcpClientStateMachine::StartIpv4(void)
             close(sockFd);
             continue;
         }
-
         if (FD_ISSET(m_sigSockFds[0], &readfds) && SignalReceiver()) {
             close(sockFd);
             break;
         }
-
         if (FD_ISSET(sockFd, &readfds)) {
             DhcpResponseHandle(curTimestamp, sockFd);
         } else {
@@ -335,7 +332,7 @@ void DhcpClientStateMachine::StartIpv4(void)
 
 int DhcpClientStateMachine::ExitIpv4(void)
 {
-    if (!threadExit_.load()) {
+    if (threadExit_.load()) {
         CloseSignalHandle();
     }
     DHCP_LOGI("ExitIpv4 threadExit:%{public}d", threadExit_.load());
