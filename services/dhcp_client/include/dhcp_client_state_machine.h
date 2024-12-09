@@ -58,12 +58,13 @@ private:
     int InitConfig(const std::string &ifname, bool isIpv6);
     void SendReboot(uint32_t targetIp, time_t timestamp);
     void AddParamaterRequestList(struct DhcpPacket *packet);
-    void DhcpResponseHandle(time_t timestamp, int sockFd);
+    void DhcpResponseHandle(time_t timestamp);
     void DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpPacket *packet, time_t timestamp);
     void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp);
     void ParseDhcpNakPacket(const struct DhcpPacket *packet, time_t timestamp);
     void DhcpInit(void);
-    bool InitSocketFd(int &sockFd);
+    void DhcpStop(void);
+    void InitSocketFd(void);
     void SetSocketMode(uint32_t mode);
     void ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
@@ -79,7 +80,7 @@ private:
     void Declining(time_t timestamp);
     void AddParamaterRebootList(struct DhcpPacket *packet);
     void InitSelecting(time_t timestamp);
-    bool SignalReceiver(void);
+    void SignalReceiver(void);
     void RunGetIPThreadFunc(const DhcpClientStateMachine &instance);
     void FormatString(struct DhcpIpResult *result);
     uint32_t GetRandomId(void);
@@ -108,7 +109,7 @@ public:
 #endif
     int StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action);
     int InitStartIpv4Thread(const std::string &ifname, bool isIpv6);
-    void StartIpv4(void);
+    int StartIpv4(void); 
     int ExecDhcpRelease(void);
     int ExecDhcpRenew(void);
     int ExitIpv4(void);
