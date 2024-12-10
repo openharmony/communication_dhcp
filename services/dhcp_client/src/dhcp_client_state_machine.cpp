@@ -274,26 +274,28 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
     return DHCP_OPT_SUCCESS;
 }
 
-void DhcpClientStateMachine::StartIpv4(void)
+void DhcpClientStateMachine::StartIpv4()
 {
     int nRet, nMaxFds;
     fd_set readfds;
     struct timeval timeout;
-    int sockFd = -1;
+    int sockFdRaw = -1;
+    int sockFdkernel = -1;
     if ((m_action != ACTION_RENEW_T1) && (m_action != ACTION_RENEW_T2) && (m_action != ACTION_RENEW_T3)) {
          DhcpInit();
     }
     firstSendPacketTime_ = 0;
     InitSignalHandle();
+    if (!InitSocketFd(sockFdRaw, sockFdkernel)) {
+        return;
+    }
     DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
     for (; ;) {
         if (threadExit_.load()) {
             DHCP_LOGI("StartIpv4 send packet timed out, now break!");
             break;
         }
-        if (!InitSocketFd(sockFd)) {
-            break;
-        }
+        int sockFd = (m_socketMode == SOCKET_MODE_RAW) ? sockFdRaw : sockFdkernel;
         FD_ZERO(&readfds);
         FD_SET(sockFd, &readfds);
         FD_SET(m_sigSockFds[0], &readfds);
@@ -306,18 +308,15 @@ void DhcpClientStateMachine::StartIpv4(void)
         if (timeout.tv_sec <= 0) {
             DHCP_LOGI("StartIpv4 already timed out, need send or resend packet...");
             DhcpRequestHandle(curTimestamp);
-            close(sockFd);
             continue;
         }
         nMaxFds = (m_sigSockFds[0] > sockFd) ? m_sigSockFds[0] : sockFd;
         nRet = select(nMaxFds + 1, &readfds, NULL, NULL, &timeout);
         if ((nRet == -1) && (errno == EINTR)) {
             DHCP_LOGI("StartIpv4 select err:%{public}d, a signal was caught!", errno);
-            close(sockFd);
             continue;
         }
         if (FD_ISSET(m_sigSockFds[0], &readfds) && SignalReceiver()) {
-            close(sockFd);
             break;
         }
         if (FD_ISSET(sockFd, &readfds)) {
@@ -325,8 +324,9 @@ void DhcpClientStateMachine::StartIpv4(void)
         } else {
             DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
         }
-        close(sockFd);
     }
+    close(sockFdRaw);
+    close(sockFdkernel);
     ExitIpv4();
 }
 
@@ -380,35 +380,36 @@ void DhcpClientStateMachine::DhcpInit(void)
     Reboot(t);
 }
 
-bool DhcpClientStateMachine::InitSocketFd(int &sockFd)
+bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
 {
-    if (m_socketMode == SOCKET_MODE_RAW) {
-        if (CreateRawSocket(&sockFd) != SOCKET_OPT_SUCCESS) {
-            DHCP_LOGE("InitSocketFd CreateRawSocket failed, fd:%{public}d,index:%{public}d failed!",
-                sockFd, m_cltCnf.ifaceIndex);
-            return false;
-        }
-        if (BindRawSocket(sockFd, m_cltCnf.ifaceIndex, NULL) != SOCKET_OPT_SUCCESS) {
-            DHCP_LOGE("InitSocketFd BindRawSocket failed, fd:%{public}d,index:%{public}d failed!",
-                sockFd, m_cltCnf.ifaceIndex);
-            close(sockFd);
-            return false;
-        }
-    } else {
-        if (CreateKernelSocket(&sockFd) != SOCKET_OPT_SUCCESS) {
-            DHCP_LOGE("InitSocketFd CreateKernelSocket failed, fd:%{public}d,index:%{public}d failed!",
-                sockFd, m_cltCnf.ifaceIndex);
-            return false;
-        }
-        if (BindKernelSocket(sockFd, m_cltCnf.ifaceName, INADDR_ANY, BOOTP_CLIENT, true) != SOCKET_OPT_SUCCESS) {
-            DHCP_LOGE("InitSocketFd BindKernelSocket failed, fd:%{public}d,ifname:%{public}s failed!",
-                sockFd, m_cltCnf.ifaceName);
-            close(sockFd);
-            return false;
-        }
+    if (CreateRawSocket(&sockFdRaw) != SOCKET_OPT_SUCCESS) {
+        DHCP_LOGE("InitSocketFd CreateRawSocket failed, fd:%{public}d,index:%{public}d failed!",
+            sockFdRaw, m_cltCnf.ifaceIndex);
+        return false;
+    }
+    if (BindRawSocket(sockFdRaw, m_cltCnf.ifaceIndex, NULL) != SOCKET_OPT_SUCCESS) {
+        DHCP_LOGE("InitSocketFd BindRawSocket failed, fd:%{public}d,index:%{public}d failed!",
+            sockFdRaw, m_cltCnf.ifaceIndex);
+        close(sockFdRaw);
+        return false;
+    }
+
+    if (CreateKernelSocket(&sockFdkernel) != SOCKET_OPT_SUCCESS) {
+        DHCP_LOGE("InitSocketFd CreateKernelSocket failed, fd:%{public}d,index:%{public}d failed!",
+            sockFdkernel, m_cltCnf.ifaceIndex);
+        close(sockFdRaw);
+        return false;
+    }
+    if (BindKernelSocket(sockFdkernel, m_cltCnf.ifaceName, INADDR_ANY, BOOTP_CLIENT, true) != SOCKET_OPT_SUCCESS) {
+        DHCP_LOGE("InitSocketFd BindKernelSocket failed, fd:%{public}d,ifname:%{public}s failed!",
+            sockFdkernel, m_cltCnf.ifaceName);
+        close(sockFdRaw);
+        close(sockFdkernel);
+        return false;
     }
     
-    DHCP_LOGI("InitSocketFd success, sockFd:%{public}d ifname:%{public}s!", sockFd, m_cltCnf.ifaceName);
+    DHCP_LOGI("InitSocketFd success, sockFdRaw:%{public}d  sockFdkernel:%{public}d ifname:%{public}s!",
+        sockFdRaw, sockFdkernel, m_cltCnf.ifaceName);
     return true;
 }
 

@@ -418,15 +418,16 @@ void DhcpInitFuzzerTest(const uint8_t *data, size_t size)
 
 void InitSocketFdFuzzerTest(const uint8_t *data, size_t size)
 {
-    int sockFd = 0;
-    dhcpClient->InitSocketFd(sockFd);
+    int sockFdRaw = 0;
+    int sockFdkernel = 0;
+    dhcpClient->InitSocketFd(sockFdRaw, sockFdkernel);
 
     dhcpClient->m_sockFd = 1;
     dhcpClient->m_socketMode = SOCKET_MODE_RAW;
-    dhcpClient->InitSocketFd(sockFd);
+    dhcpClient->InitSocketFd(sockFdRaw, sockFdkernel);
 
     dhcpClient->m_socketMode = SOCKET_MODE_KERNEL;
-    dhcpClient->InitSocketFd(sockFd);
+    dhcpClient->InitSocketFd(sockFdRaw, sockFdkernel);
 }
 
 void GetPacketReadSockFdFuzzerTest(const uint8_t *data, size_t size)
