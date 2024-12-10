@@ -63,7 +63,7 @@ private:
     void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp);
     void ParseDhcpNakPacket(const struct DhcpPacket *packet, time_t timestamp);
     void DhcpInit(void);
-    bool InitSocketFd(int &sockFd);
+    bool InitSocketFd(int &sockFdRaw, int &sockFdkernel);
     void SetSocketMode(uint32_t mode);
     void ParseNetworkServerIdInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
     void ParseNetworkInfo(const struct DhcpPacket *packet, struct DhcpIpResult *result);
