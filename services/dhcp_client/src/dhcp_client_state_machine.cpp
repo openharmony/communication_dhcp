@@ -382,18 +382,17 @@ void DhcpClientStateMachine::DhcpInit(void)
 
 bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
 {
-    if (m_socketMode == SOCKET_MODE_RAW) {
-        if (CreateRawSocket(&sockFdRaw) != SOCKET_OPT_SUCCESS) {
-            DHCP_LOGE("InitSocketFd CreateRawSocket failed, fd:%{public}d,index:%{public}d failed!",
-                sockFdRaw, m_cltCnf.ifaceIndex);
-            return false;
-        }
-        if (BindRawSocket(sockFdRaw, m_cltCnf.ifaceIndex, NULL) != SOCKET_OPT_SUCCESS) {
-            DHCP_LOGE("InitSocketFd BindRawSocket failed, fd:%{public}d,index:%{public}d failed!",
-                sockFdRaw, m_cltCnf.ifaceIndex);
-            close(sockFdRaw);
-            return false;
-        }
+    if (CreateRawSocket(&sockFdRaw) != SOCKET_OPT_SUCCESS) {
+        DHCP_LOGE("InitSocketFd CreateRawSocket failed, fd:%{public}d,index:%{public}d failed!",
+            sockFdRaw, m_cltCnf.ifaceIndex);
+        return false;
+    }
+    if (BindRawSocket(sockFdRaw, m_cltCnf.ifaceIndex, NULL) != SOCKET_OPT_SUCCESS) {
+        DHCP_LOGE("InitSocketFd BindRawSocket failed, fd:%{public}d,index:%{public}d failed!",
+            sockFdRaw, m_cltCnf.ifaceIndex);
+        close(sockFdRaw);
+        return false;
+    }
 
     if (CreateKernelSocket(&sockFdkernel) != SOCKET_OPT_SUCCESS) {
         DHCP_LOGE("InitSocketFd CreateKernelSocket failed, fd:%{public}d,index:%{public}d failed!",
@@ -404,9 +403,9 @@ bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
     if (BindKernelSocket(sockFdkernel, m_cltCnf.ifaceName, INADDR_ANY, BOOTP_CLIENT, true) != SOCKET_OPT_SUCCESS) {
         DHCP_LOGE("InitSocketFd BindKernelSocket failed, fd:%{public}d,ifname:%{public}s failed!",
             sockFdkernel, m_cltCnf.ifaceName);
+        close(sockFdRaw);
         close(sockFdkernel);
         return false;
-    }
     }
     
     DHCP_LOGI("InitSocketFd success, sockFdRaw:%{public}d  sockFdkernel:%{public}d ifname:%{public}s!",
