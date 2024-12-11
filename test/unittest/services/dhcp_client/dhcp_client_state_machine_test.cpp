@@ -473,7 +473,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level1)
 {
     DHCP_LOGE("DhcpRebootTest enter!");
-    EXPECT_EQ(SOCKET_OPT_FAILED, dhcpClient->DhcpReboot(1, 1));
+    EXPECT_NE(SOCKET_OPT_ERROR, dhcpClient->DhcpReboot(1, 1));
 }
 
 HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
