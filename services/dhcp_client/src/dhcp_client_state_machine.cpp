@@ -1208,9 +1208,8 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
     }
 
     m_dhcpIpResult.dnsAddr.clear();
-
+    std::vector<std::string>().swap(m_dhcpIpResult.dnsAddr);
     m_dhcpIpResult.ifname.clear();
-
     if (memset_s(&m_dhcpIpResult, sizeof(struct DhcpIpResult), 0, sizeof(struct DhcpIpResult)) != EOK) {
         DHCP_LOGE("DhcpAckOrNakPacketHandle error, memset_s failed!");
         return;
