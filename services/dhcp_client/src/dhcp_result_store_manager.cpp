@@ -125,6 +125,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
         return -1;
     }
     m_allIpCached.clear();
+    std::vector<IpInfoCached>().swap(m_allIpCached);
     IpInfoCached item;
     std::string line;
     int32_t configError;
@@ -225,6 +226,7 @@ int32_t DhcpResultStoreManager::SaveConfig()
     (void)fsync(fileno(fp));
     (void)fclose(fp);
     m_allIpCached.clear(); /* clear values */
+    std::vector<IpInfoCached>().swap(m_allIpCached);
     return 0;
 }
 
