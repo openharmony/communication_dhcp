@@ -392,7 +392,6 @@ bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
     if (BindRawSocket(sockFdRaw, m_cltCnf.ifaceIndex, NULL) != SOCKET_OPT_SUCCESS) {
         DHCP_LOGE("InitSocketFd BindRawSocket failed, fd:%{public}d,index:%{public}d failed!",
             sockFdRaw, m_cltCnf.ifaceIndex);
-        close(sockFdRaw);
         return false;
     }
 
@@ -406,7 +405,6 @@ bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
         DHCP_LOGE("InitSocketFd BindKernelSocket failed, fd:%{public}d,ifname:%{public}s failed!",
             sockFdkernel, m_cltCnf.ifaceName);
         close(sockFdRaw);
-        close(sockFdkernel);
         return false;
     }
     
