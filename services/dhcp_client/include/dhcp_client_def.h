@@ -47,6 +47,7 @@
 #define SLEEP_TIME_500_MS       (500 * 1000)
 #define DHCP_FAILE_TIMEOUT_THR  6
 #define MAX_CONFLICTS_COUNT     2
+#define SELECT_TIMEOUT_US       100000
 
 #define MAC_ADDR_LEN            6
 #define MAC_ADDR_CHAR_NUM       3

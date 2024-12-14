@@ -70,7 +70,13 @@ const int MASK_FILTER = 0x7;
 const int KERNEL_BUFF_SIZE = (8 * 1024);
 const int ND_OPT_MIN_LEN = 3;
 const int ROUTE_BUFF_SIZE = 1024;
-const int IPV6_TIMEOUT_USEC = 500000;
+const int POSITION_OFFSET_1 = 1;
+const int POSITION_OFFSET_2 = 2;
+const int POSITION_OFFSET_3 = 3;
+const int POSITION_OFFSET_4 = 4;
+const std::string IPV6_ACCEPT_RA_CONFIG_PATH = "/proc/sys/net/ipv6/conf/";
+const std::string ACCEPT_RA = "accept_ra";
+const std::string ACCEPT_OVERRULE_FORWORGING = "2";
 
 #define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
 #define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
@@ -492,7 +498,7 @@ int DhcpIpv6Client::StartIpv6()
     struct timeval timeout = {0};
     fd_set rSet;
     timeout.tv_sec = 0;
-    timeout.tv_usec = IPV6_TIMEOUT_USEC;
+    timeout.tv_usec = SELECT_TIMEOUT_US;
     while (runFlag) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0, KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
