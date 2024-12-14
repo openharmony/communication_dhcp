@@ -18,6 +18,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
+#include <linux/filter.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netpacket/packet.h>
@@ -30,6 +31,34 @@
 #include "dhcp_logger.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSocket");
+
+namespace {
+constexpr uint32_t ETHRER_HEADER_LEN = 0;
+constexpr uint32_t IPV4_PROTOCOL = ETHRER_HEADER_LEN + offset(iphdr, protocol);
+constexpr uint32_t IPV4_FLAGS_OFFSET = ETHRER_HEADER_LEN + offset(iphdr, frag_off);
+constexpr uint32_t UDP_DST_PORT_INDIRECT_OFFSET = ETHRER_HEADER_LEN + offset(udphdr, dest);
+constexpr uint16_t DHCP_CLIENT_PORT = 68;
+sock_filter g_filterCode[] = {
+    // Check the protocol is UDP.
+    BPF_STMT(BPF_LD | BPF_B | BPF_ABS, IPV4_PROTOCOL),
+    BPF_JUMP(BPF_LMP | BPF_JEQ | BPF_K, IPPROTO_UDP, 0, 6),
+
+    // Check this is not a fragment.
+    BPF_STMT(BPF_LD | BPF_H | BPF_ABS, IPV4_FLAGS_OFFSET),
+
+    // Check the destination port.
+    BPF_STMT(BPF_LD | BPF_H | BPF_IND, UDP_DST_PORT_INDIRECT_OFFSET),
+    BPF_JUMP(BPF_JUMP | BPF_JEQ | BPF_K, DHCP_CLIENT_PORT, 0, 1),
+
+    // Accept or reject.
+    BPF_STMT(BPF_RET | BPF_K, 0xffff),
+    BPF_STMT(BPF_RET | BPF_K, 0)
+};
+const sock_fprog g_filter = {
+    sizeof(g_filterCode) / sizeof(sock_filter),
+    g_filterCode,
+};
+};
 
 static uint16_t GetCheckSum(uint16_t *pData, int nBytes)
 {
@@ -106,6 +135,11 @@ int BindRawSocket(const int rawFd, const int ifaceIndex, const uint8_t *ifaceAdd
             return SOCKET_OPT_FAILED;
         }
     }
+    if (setsockopt(rawFd, SOL_SOCKET, SO_ATTACH_FILTER, &g_filter, sizeof(g_filter)) == -1) {
+        DHCP_LOGE("BindRawSocket() SO_ATTACH_FILTER error:%{public}d.", errno);
+        close(rawFd);
+        return SOCKET_OPT_FAILED;
+    }
     int nRet = bind(rawFd, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
     if (nRet == -1) {
         DHCP_LOGE("BindRawSocket() index:%{public}d failed, bind error:%{public}d.", ifaceIndex, errno);
@@ -135,6 +169,11 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
             close(sockFd);
             return SOCKET_OPT_FAILED;
         }
+        if (setsockopt(sockFd, SOL_SOCKET, SO_BINDTODEVICE, (char *)&ifaceReq, sizeof(ifaceReq)) == -1) {
+            DHCP_LOGE("BindKernelSocket() %{public}s SO_BINDTODEVICE error:%{public}d.", ifaceName, errno);
+            close(sockFd);
+            return SOCKET_OPT_FAILED;
+        }
     }
 
     /* Set the broadcast feature of the data sent by the socket. */
@@ -151,6 +190,12 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
     int bReuseaddr = 1;
     if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, (const char *)&bReuseaddr, sizeof(bReuseaddr)) == -1) {
         DHCP_LOGE("BindKernelSocket() sockFd:%{public}d SO_REUSEADDR error:%{public}d.", sockFd, errno);
+        close(sockFd);
+        return SOCKET_OPT_FAILED;
+    }
+
+    if (setsockopt(sockFd, SOL_SOCKET, SO_ATTACH_FILTER, &g_filter, sizeof(g_filter)) == -1) {
+        DHCP_LOGE("BindKernelSocket() SO_ATTACH_FILTER error:%{public}d.", errno);
         close(sockFd);
         return SOCKET_OPT_FAILED;
     }
