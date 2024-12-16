@@ -33,32 +33,36 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpSocket");
 
 namespace {
-constexpr uint32_t ETHRER_HEADER_LEN = 0;
-constexpr uint32_t IPV4_PROTOCOL = ETHRER_HEADER_LEN + offset(iphdr, protocol);
-constexpr uint32_t IPV4_FLAGS_OFFSET = ETHRER_HEADER_LEN + offset(iphdr, frag_off);
-constexpr uint32_t UDP_DST_PORT_INDIRECT_OFFSET = ETHRER_HEADER_LEN + offset(udphdr, dest);
+constexpr uint32_t ETHER_HEADER_LEN = 0;
+constexpr uint32_t IPV4_PROTOCOL = ETHER_HEADER_LEN + offsetof(iphdr, protocol);
+constexpr uint32_t IPV4_FLAGS_OFFSET = ETHER_HEADER_LEN + offsetof(iphdr, frag_off);
+constexpr uint32_t UDP_DST_PORT_INDIRECT_OFFSET = ETHER_HEADER_LEN + offsetof(udphdr, dest);
 constexpr uint16_t DHCP_CLIENT_PORT = 68;
 sock_filter g_filterCode[] = {
     // Check the protocol is UDP.
-    BPF_STMT(BPF_LD | BPF_B | BPF_ABS, IPV4_PROTOCOL),
-    BPF_JUMP(BPF_LMP | BPF_JEQ | BPF_K, IPPROTO_UDP, 0, 6),
-
+    BPF_STMT(BPF_LD  | BPF_B    | BPF_ABS, IPV4_PROTOCOL),
+    BPF_JUMP(BPF_JMP | BPF_JEQ  | BPF_K,   IPPROTO_UDP, 0, 6),
+ 
     // Check this is not a fragment.
-    BPF_STMT(BPF_LD | BPF_H | BPF_ABS, IPV4_FLAGS_OFFSET),
-
+    BPF_STMT(BPF_LD  | BPF_H    | BPF_ABS, IPV4_FLAGS_OFFSET),
+    BPF_JUMP(BPF_JMP | BPF_JSET | BPF_K,   IP_OFFMASK, 4, 0),
+ 
+    // Get the IP header length.
+    BPF_STMT(BPF_LDX | BPF_B    | BPF_MSH, ETHER_HEADER_LEN),
+ 
     // Check the destination port.
-    BPF_STMT(BPF_LD | BPF_H | BPF_IND, UDP_DST_PORT_INDIRECT_OFFSET),
-    BPF_JUMP(BPF_JUMP | BPF_JEQ | BPF_K, DHCP_CLIENT_PORT, 0, 1),
-
+    BPF_STMT(BPF_LD  | BPF_H    | BPF_IND, UDP_DST_PORT_INDIRECT_OFFSET),
+    BPF_JUMP(BPF_JMP | BPF_JEQ  | BPF_K,   DHCP_CLIENT_PORT, 0, 1),
+ 
     // Accept or reject.
-    BPF_STMT(BPF_RET | BPF_K, 0xffff),
-    BPF_STMT(BPF_RET | BPF_K, 0)
+    BPF_STMT(BPF_RET | BPF_K,              0xffff),
+    BPF_STMT(BPF_RET | BPF_K,              0)
 };
 const sock_fprog g_filter = {
     sizeof(g_filterCode) / sizeof(sock_filter),
     g_filterCode,
 };
-};
+}
 
 static uint16_t GetCheckSum(uint16_t *pData, int nBytes)
 {
