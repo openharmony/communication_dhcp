@@ -184,7 +184,6 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
             return SOCKET_OPT_FAILED;
         }
     }
-
     /* Allow multiple sockets to use the same port number. */
     int bReuseaddr = 1;
     if (setsockopt(sockFd, SOL_SOCKET, SO_REUSEADDR, (const char *)&bReuseaddr, sizeof(bReuseaddr)) == -1) {
@@ -192,13 +191,11 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
         close(sockFd);
         return SOCKET_OPT_FAILED;
     }
-
     if (setsockopt(sockFd, SOL_SOCKET, SO_ATTACH_FILTER, &g_filter, sizeof(g_filter)) == -1) {
         DHCP_LOGE("BindKernelSocket() SO_ATTACH_FILTER error:%{public}d.", errno);
         close(sockFd);
         return SOCKET_OPT_FAILED;
     }
-
     struct sockaddr_in kernelAddr;
     if (memset_s(&kernelAddr, sizeof(kernelAddr), 0, sizeof(kernelAddr)) != EOK) {
         close(sockFd);
