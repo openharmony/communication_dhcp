@@ -21,3 +21,21 @@ declare_args() {
   IPV4_DNS_PRI = "8.8.8.8"
   IPV4_DNS_SEC = "8.8.4.4"
 }
+
+memory_optimization_cflags = [
+  "-fdata-sections",
+  "-ffunction-sections",
+]
+
+memory_optimization_cflags_cc = [
+  "-fvisibility-inlines-hidden",
+  "-fmerge-all-constants",
+  "-fdata-sections",
+  "-ffunction-sections",
+  "-Os",
+]
+
+memory_optimization_ldflags = [
+  "-Wl,--exclude-libs=ALL",
+  "-Wl,--gc-sections",
+]

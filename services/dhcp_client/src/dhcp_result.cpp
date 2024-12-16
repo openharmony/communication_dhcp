@@ -40,29 +40,29 @@ bool PublishDhcpIpv4Result(struct DhcpIpResult &ipResult)
     }
     DHCP_LOGI("PublishDhcpIpv4Result code:%{public}d ifname:%{public}s", ipResult.code, ipResult.ifname.c_str());
     if (ipResult.code == PUBLISH_CODE_SUCCESS) {
-        if (clientImpl->DhcpIpv4ResultSuccess(ipResult) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+        if (clientImpl->DhcpIpv4ResultSuccess(ipResult) != DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultSuccess failed!");
             return false;
         }
     } else if (ipResult.code == PUBLISH_CODE_TIMEOUT) {
-        if (clientImpl->DhcpIpv4ResultTimeOut(ipResult.ifname) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+        if (clientImpl->DhcpIpv4ResultTimeOut(ipResult.ifname) != DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultTimeOut failed!");
             return false;
         }
     } else if (ipResult.code == PUBLISH_CODE_EXPIRED) {
-        if (clientImpl->DhcpIpv4ResultExpired(ipResult.ifname) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+        if (clientImpl->DhcpIpv4ResultExpired(ipResult.ifname) != DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultExpired failed!");
             return false;
         }
     } else if (ipResult.code == PUBLISH_DHCP_OFFER_REPORT) {
     #ifndef OHOS_ARCH_LITE
-        if (clientImpl->DhcpOfferResultSuccess(ipResult) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+        if (clientImpl->DhcpOfferResultSuccess(ipResult) != DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpOfferReport failed!");
             return false;
         }
     #endif
     } else { // PUBLISH_CODE_FAILED
-        if (clientImpl->DhcpIpv4ResultFail(ipResult) != OHOS::DHCP::DHCP_OPT_SUCCESS) {
+        if (clientImpl->DhcpIpv4ResultFail(ipResult) != DHCP_OPT_SUCCESS) {
             DHCP_LOGE("PublishDhcpIpv4Result DhcpIpv4ResultFail failed!");
             return false;
         }
@@ -82,7 +82,7 @@ bool DhcpIpv6TimerCallbackEvent(const char *ifname)
 #else
     std::shared_ptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #endif
-    if ((clientImpl != nullptr) && (clientImpl->DhcpIpv6ResultTimeOut(ifname) != OHOS::DHCP::DHCP_OPT_SUCCESS)) {
+    if ((clientImpl != nullptr) && (clientImpl->DhcpIpv6ResultTimeOut(ifname) != DHCP_OPT_SUCCESS)) {
         DHCP_LOGE("DhcpIpv6TimerCallbackEvent DhcpIpv6ResultTimeOut failed!");
         return false;
     }

@@ -30,8 +30,6 @@ namespace OHOS {
 namespace DHCP {
 HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
 {
-    PrintRequiredArguments();
-    ShowHelp(2);
     std::string ifname = "eth0";
     std::string netMask = "192.168.1.2";
     std::string ipRange = "192.168.1.1 , 192.168.1.100";

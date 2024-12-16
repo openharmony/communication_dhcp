@@ -40,7 +40,7 @@ public:
     MOCK_METHOD2(listen, int(int __fd, int __n));
     MOCK_METHOD3(connect, int(int __fd, const struct sockaddr *__addr, socklen_t __len));
     MOCK_METHOD5(select, int(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout));
-    MOCK_METHOD6(sendto, ssize_t(int __fd, const void *__buf, size_t __n, int __flags, struct sockaddr *__addr,
+    MOCK_METHOD6(sendto, ssize_t(int __fd, const void *__buf, size_t __n, int __flags, const struct sockaddr *__addr,
         socklen_t __addr_len));
     MOCK_METHOD6(recvfrom, ssize_t(int __fd, void *__buf, size_t __n, int __flags, struct sockaddr *__addr,
         socklen_t *__addr_len));

@@ -14,14 +14,14 @@
  */
 #include "dhcp_client_state_machine.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include <time.h>
-#include <errno.h>
-#include <signal.h>
+#include <sys/time.h>
+#include <cerrno>
+#include <csignal>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/socket.h>
@@ -30,6 +30,7 @@
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
 #include <net/if_arp.h>
+#include <memory>
 #include <string>
 
 #include "securec.h"
@@ -41,6 +42,7 @@
 #include "dhcp_function.h" 
 #include "dhcp_logger.h"
 #include "dhcp_thread.h"
+#include "dhcp_define.h"
 
 #ifndef OHOS_ARCH_LITE
 #include "dhcp_system_timer.h"

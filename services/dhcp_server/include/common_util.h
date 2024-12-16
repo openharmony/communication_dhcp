@@ -17,20 +17,15 @@
 #define OHOS_COMMON_UTIL_H
 
 #include <stdint.h>
-#include <time.h>
+#include <sys/time.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-void LogTime(void);
 uint64_t Tmspsec(void);
 uint64_t Tmspusec(void);
-void LeftTrim(char *buf);
-void RightTrim(char *buf);
 void TrimString(char *buf);
 const char *GetFilePath(const char *fileName);
-
-const char *GetLeaseFile(const char *fileName, const char *ifname);
 int CreatePath(const char *fileName);
 int RemoveSpaceCharacters(char *buf, size_t bufSize);
 

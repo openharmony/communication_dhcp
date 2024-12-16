@@ -35,22 +35,4 @@ public:
     virtual void TearDown()
     {}
 };
-
-HWTEST_F(DhcpClientTest, GetProStatus_SUCCESS, TestSize.Level1)
-{
-    DHCP_LOGE("enter GetProStatus_SUCCESS");
-    char workDir[DIR_MAX_LEN] = "./";
-    char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
-    ASSERT_EQ(DHCP_OPT_SUCCESS, InitPidfile(workDir, pidFile, getpid()));
-    unlink(pidFile);
-}
-
-HWTEST_F(DhcpClientTest, StopProcess_SUCCESS, TestSize.Level1)
-{
-    char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
-    char workDir[DIR_MAX_LEN] = "./";
-    pid_t testPid = 12345;
-    ASSERT_EQ(DHCP_OPT_SUCCESS, InitPidfile(workDir, pidFile, testPid));
-    unlink(pidFile);
-}
 }  // namespace OHOS

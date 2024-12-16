@@ -12,14 +12,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <signal.h>
+#include <csignal>
 #include <pthread.h>
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <netinet/icmp6.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <dlfcn.h>
 #include <sys/time.h>

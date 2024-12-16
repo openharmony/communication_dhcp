@@ -15,14 +15,14 @@
 
 #include "dhcp_s_server.h"
 #include <arpa/inet.h>
-#include <errno.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <net/if.h>
 #include <netinet/in.h>
 #include <securec.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 #include <sys/select.h>
 #include <sys/socket.h>
@@ -35,7 +35,7 @@
 #include "dhcp_address_pool.h"
 #include "dhcp_binding.h"
 #include "dhcp_config.h"
-#include "dhcp_server_ipv4.h"
+#include "dhcp_define.h"
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
 #include "dhcp_common_utils.h"

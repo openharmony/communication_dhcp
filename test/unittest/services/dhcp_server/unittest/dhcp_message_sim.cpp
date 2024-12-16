@@ -23,7 +23,6 @@
 #include <fcntl.h>
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
-#include "dhcp_server_ipv4.h"
 #include "address_utils.h"
 #include "securec.h"
 #include "common_util.h"

@@ -17,7 +17,6 @@
 #include <cstdint>
 #include <cstdbool>
 #include "dhcp_s_define.h"
-#include "dhcp_server_ipv4.h"
 #include "dhcp_message.h"
 #include "dhcp_option.h"
 #include "dhcp_address_pool.h"

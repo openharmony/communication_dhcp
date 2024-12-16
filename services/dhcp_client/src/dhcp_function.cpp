@@ -14,19 +14,19 @@
  */
 #include "dhcp_function.h"
 #include <arpa/inet.h>
-#include <time.h>
+#include <sys/time.h>
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <sys/socket.h>
 #include <unistd.h>
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <net/if.h>
-#include <stdio.h>
-#include <errno.h>
+#include <cstdio>
+#include <cerrno>
 #include <netinet/in.h>
 #include <sys/ioctl.h>
 #include "securec.h"
@@ -295,86 +295,6 @@ int SetLocalInterface(const char *ifname, uint32_t ipAddr, uint32_t netMask)
     }
     close(fd);
     return DHCP_OPT_SUCCESS;
-}
-
-int InitPidfile(const char *pidDir, const char *pidFile, pid_t pid)
-{
-    if ((pidDir == NULL) || (strlen(pidDir) == 0) || (pidFile == NULL) || (strlen(pidFile) == 0)) {
-        DHCP_LOGE("InitPidfile() failed, pidDir or pidFile == NULL or \"\"!");
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("InitPidfile() pidDir:%{public}s, pidFile:%{public}s.", pidDir, pidFile);
-    unlink(pidFile);
-
-    int fd;
-    if ((fd = open(pidFile, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
-        DHCP_LOGE("InitPidfile() failed, open pidFile:%{public}s error:%{public}d!", pidFile, errno);
-        return DHCP_OPT_FAILED;
-    }
-
-    char buf[PID_MAX_LEN] = {0};
-    if (snprintf_s(buf, PID_MAX_LEN, PID_MAX_LEN - 1, "%d", pid) < 0) {
-        DHCP_LOGE("InitPidfile() pidFile:%{public}s failed, snprintf_s error:%{public}d!", pidFile, errno);
-        close(fd);
-        return DHCP_OPT_FAILED;
-    }
-    ssize_t bytes;
-    if ((bytes = write(fd, buf, strlen(buf))) <= 0) {
-        DHCP_LOGE("InitPidfile() failed, write pidFile:%{public}s error:%{public}d, bytes:%{public}zd!",
-            pidFile, errno, bytes);
-        close(fd);
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("InitPidfile() buf:%{public}s write pidFile:%{public}s, bytes:%{public}zd!", buf, pidFile, bytes);
-    close(fd);
-
-    if (chdir(pidDir) != 0) {
-        DHCP_LOGE("InitPidfile() failed, chdir pidDir:%{public}s error:%{public}d!", pidDir, errno);
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Set default permissions for the specified client process id files and directories. */
-    umask(DEFAULT_UMASK);
-
-    /* Change attribs to the specified client process id files: 644 (user=rw, group=r, other=r). */
-    chmod(pidFile, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-    return DHCP_OPT_SUCCESS;
-}
-
-pid_t GetPID(const char *pidFile)
-{
-    /* Check pidFile is or not exists. */
-    struct stat sb;
-    if (stat(pidFile, &sb) != 0) {
-        DHCP_LOGW("GetPID() pidFile:%{public}s stat error:%{public}d!", pidFile, errno);
-        return -1;
-    }
-    DHCP_LOGI("GetPID() pidFile:%{public}s stat st_size:%{public}d.", pidFile, (int)sb.st_size);
-
-    int fd;
-    if ((fd = open(pidFile, O_RDONLY)) < 0) {
-        DHCP_LOGE("GetPID() failed, open pidFile:%{public}s error!", pidFile);
-        return -1;
-    }
-
-    lseek(fd, 0, SEEK_SET);
-
-    char buf[PID_MAX_LEN] = {0};
-    if (sb.st_size > PID_MAX_LEN) {
-        DHCP_LOGE("GetPID() invalid length, size:%{public}d", (int)sb.st_size);
-        return -1;
-    }
-    ssize_t bytes;
-    if ((bytes = read(fd, buf, sb.st_size)) < 0) {
-        DHCP_LOGE("GetPID() failed, read pidFile:%{public}s error, bytes:%{public}zd!", pidFile, bytes);
-        close(fd);
-        return -1;
-    }
-    DHCP_LOGI("GetPID() read pidFile:%{public}s, buf:%{public}s, bytes:%{public}zd.", pidFile, buf, bytes);
-    close(fd);
-
-    return atoi(buf);
 }
 
 int CreateDirs(const char *dirs, int mode)

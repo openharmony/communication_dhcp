@@ -34,6 +34,13 @@ ohos_fuzztest("DhcpClientFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [
+    "$DHCP_ROOT_DIR/frameworks/native/c_adapter/src/dhcp_c_utils.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_callback_stub.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_impl.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_proxy.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_event.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_sa_manager.cpp",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
     "dhcpclient_fuzzer.cpp",
   ]
@@ -44,6 +51,7 @@ ohos_fuzztest("DhcpClientFuzzTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "dhcp"

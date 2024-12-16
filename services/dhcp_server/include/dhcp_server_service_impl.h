@@ -76,10 +76,6 @@ public:
     bool IsRemoteDied(void) override;
     ErrCode DeleteLeaseFile(const std::string& ifname);
 
-#ifndef OHOS_ARCH_LITE
-    void StartServiceAbility(int sleepS);
-#endif
-
     /**
      * @Description : Fork child process function for start dhcp server process.
      *
@@ -96,8 +92,6 @@ private:
     int AddSpecifiedInterface(const std::string& ifname);
     int GetUsingIpRange(const std::string ifname, std::string& ipRange);
     int CreateDefaultConfigFile(const std::string strFile);
-    int StopServer(const pid_t& serverPid);
-    void UnregisterSignal() const;
     void ConvertLeasesToStationInfos(std::vector<std::string> &leases, std::vector<DhcpStationInfo>& stationInfos);
 
     bool mPublishFlag;

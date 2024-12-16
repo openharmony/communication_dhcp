@@ -18,7 +18,7 @@
 #include <mutex>
 #include <securec.h>
 #include <stdint.h>
-#include <stdio.h>
+#include <cstdio>
 #include <string.h>
 #include "address_utils.h"
 #include "common_util.h"

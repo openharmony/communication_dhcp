@@ -22,7 +22,7 @@
 #include "dhcp_argument.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 
@@ -59,33 +59,19 @@ void FreeArgumentsTest(const uint8_t* data, size_t size)
     FreeArguments();
 }
 
-void ShowHelpTest(const uint8_t* data, size_t size)
-{
-    int index = 0;
-    int argc = static_cast<int>(data[index++]);
-    ShowHelp(argc);
-}
-
-void PrintRequiredArgumentsTest(const uint8_t* data, size_t size)
-{
-    PrintRequiredArguments();
-}
-
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
+    if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
-    OHOS::Wifi::HasArgumentTest(data, size);
-    OHOS::Wifi::GetArgumentTest(data, size);
-    OHOS::Wifi::PutArgumentTest(data, size);
-    OHOS::Wifi::ParseArgumentsTest(data, size);
-    OHOS::Wifi::FreeArgumentsTest(data, size);
-    OHOS::Wifi::ShowHelpTest(data, size);
-    OHOS::Wifi::PrintRequiredArgumentsTest(data, size);
+    OHOS::DHCP::HasArgumentTest(data, size);
+    OHOS::DHCP::GetArgumentTest(data, size);
+    OHOS::DHCP::PutArgumentTest(data, size);
+    OHOS::DHCP::ParseArgumentsTest(data, size);
+    OHOS::DHCP::FreeArgumentsTest(data, size);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
