@@ -49,6 +49,31 @@ uint32_t FirstIpAddress(uint32_t ip, uint32_t netmask)
     return htonl(firstIp);
 }
 
+static uint32_t HostBits(uint32_t netmask)
+{
+    uint32_t bits = 0;
+    uint32_t net = htonl(netmask);
+    for (int i = IPV4_ADDRESS_BITS; i > 0; --i) {
+        bits++;
+        net >>= 1;
+        if ((net & 1) != 0) {
+            break;
+        }
+    }
+    return bits;
+}
+
+uint32_t HostTotal(uint32_t netmask)
+{
+    uint32_t hostBits = HostBits(netmask);
+    uint32_t total = 1;
+    for (size_t i = 0; i < (size_t)hostBits; i++) {
+        total *= BIT_MAX_VALUE;
+    }
+    total--;
+    return total;
+}
+
 uint32_t NextIpAddress(uint32_t currIp, uint32_t netmask, uint32_t offset)
 {
     uint32_t network = NetworkAddress(currIp, netmask);
@@ -122,44 +147,6 @@ uint32_t BroadCastAddress(uint32_t ip, uint32_t netmask)
     return htonl(broadcast);
 }
 
-int NetworkBits(uint32_t netmask)
-{
-    int bits = 0;
-    uint32_t net = htonl(netmask);
-    for (size_t i = 0; i < IPV4_ADDRESS_BITS; i++) {
-        if (net == 0) {
-            break;
-        }
-        bits++;
-        net <<= 1;
-    }
-    return bits;
-}
-
-uint32_t HostBits(uint32_t netmask)
-{
-    uint32_t bits = 0;
-    uint32_t net = htonl(netmask);
-    for (int i = IPV4_ADDRESS_BITS; i > 0; --i) {
-        bits++;
-        net >>= 1;
-        if ((net & 1) != 0) {
-            break;
-        }
-    }
-    return bits;
-}
-
-uint32_t HostTotal(uint32_t netmask)
-{
-    uint32_t hostBits = HostBits(netmask);
-    uint32_t total = 1;
-    for (size_t i = 0; i < (size_t)hostBits; i++) {
-        total *= BIT_MAX_VALUE;
-    }
-    total--;
-    return total;
-}
 
 uint32_t ParseIpAddr(const char *strIp)
 {
@@ -173,12 +160,6 @@ uint32_t ParseIpAddr(const char *strIp)
         return ip;
     }
     return 0;
-}
-
-uint32_t ParseIpHtonl(const char *strIp)
-{
-    uint32_t ip = ParseIpAddr(strIp);
-    return htonl(ip);
 }
 
 uint32_t ParseIp(const uint8_t *ipAddr)

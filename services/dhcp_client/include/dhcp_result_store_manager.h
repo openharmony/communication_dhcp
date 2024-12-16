@@ -15,9 +15,8 @@
 #ifndef OHOS_DHCP_RESULT_STORE_MANAGER_H
 #define OHOS_DHCP_RESULT_STORE_MANAGER_H
 
-#include <fstream>
-#include <sstream>
 #include <string>
+#include <mutex>
 #include <unistd.h>
 #include "dhcp_client_def.h"
 
@@ -36,32 +35,13 @@ public:
 private:
     void SetConfigFilePath(const std::string &fileName);
     int32_t LoadAllIpCached(const std::string &fileName);
-    int32_t ReadNetworkSection(IpInfoCached &item, std::ifstream &fs, std::string &line);
-    int32_t ReadNetwork(IpInfoCached &item, std::ifstream &fs, std::string &line);
     int32_t SaveConfig();
-    int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, const std::string &value);
-    std::string GetClassName();
-    std::string OutClassString(IpInfoCached &item);
-    void ClearClass(IpInfoCached &item);
     
 private:
     std::mutex m_ipResultMutex;
     std::vector<IpInfoCached> m_allIpCached;
     std::string m_fileName;
 };
-
-static inline void TrimString(std::string &str)
-{
-    int32_t i = 0;
-    int32_t j = static_cast<int32_t>(str.length()) - 1;
-    while (i < static_cast<int32_t>(str.length()) && str[i] == ' ') {
-        ++i;
-    }
-    while (j >= 0 && str[j] == ' ') {
-        --j;
-    }
-    str = ((i > j) ? "" : str.substr(i, j - i + 1));
-}
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS
 #endif

@@ -17,13 +17,11 @@
 #ifndef OHOS_ARCH_LITE
 #include <file_ex.h>
 #endif
+#include <cstdio>
 #include <unistd.h>
 #include <csignal>
 #include <sys/prctl.h>
 #ifndef OHOS_ARCH_LITE
-#include "iremote_broker.h"
-#include "iremote_object.h"
-#include "iservice_registry.h"
 #include "dhcp_server_death_recipient.h"
 #endif
 #include "dhcp_define.h"
@@ -35,10 +33,7 @@
 #include "dhcp_permission_utils.h"
 #ifndef OHOS_ARCH_LITE
 #include "ipc_skeleton.h"
-#include "tokenid_kit.h"
-#include "accesstoken_kit.h"
 #endif
-#include <sstream>
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerServiceImpl");
 
@@ -128,56 +123,6 @@ bool DhcpServerServiceImpl::Init()
     }
     return true;
 }
-
-#ifndef OHOS_ARCH_LITE
-void DhcpServerServiceImpl::StartServiceAbility(int sleepS)
-{
-    DHCP_LOGI("DhcpServerServiceImpl::StartServiceAbility");
-    sptr<ISystemAbilityManager> serviceManager;
-
-    int retryTimeout = MAXRETRYTIMEOUT;
-    while (retryTimeout > 0) {
-        --retryTimeout;
-        if (sleepS > 0) {
-            sleep(sleepS);
-        }
-
-        SystemAbilityManagerClient::GetInstance().DestroySystemAbilityManagerObject();
-        serviceManager = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();
-        if (serviceManager == nullptr) {
-            DHCP_LOGE("DhcpServerServiceImpl serviceManager is  nullptr, continue");
-            continue;
-        }
-        OHOS::sptr<OHOS::DHCP::DhcpServerServiceImpl> serverServiceImpl =
-            OHOS::DHCP::DhcpServerServiceImpl::GetInstance();
-        int result = serviceManager->AddSystemAbility(DHCP_SERVER_ABILITY_ID, serverServiceImpl);
-        if (result != 0) {
-            DHCP_LOGE("DhcpServerServiceImpl AddSystemAbility error:%{public}d", result);
-            continue;
-        }
-        DHCP_LOGI("DhcpServerServiceImpl AddSystemAbility break");
-        break;
-    }
-
-    if (serviceManager == nullptr) {
-        DHCP_LOGE("DhcpServerServiceImpl serviceManager == nullptr");
-        return;
-    }
-
-    auto abilityObjext = serviceManager->AsObject();
-    if (abilityObjext == nullptr) {
-        DHCP_LOGE("DhcpServerServiceImpl AsObject() == nullptr");
-        return;
-    }
-
-    bool ret = abilityObjext->AddDeathRecipient(new DhcpServerDeathRecipient());
-    if (ret == false) {
-        DHCP_LOGE("DhcpServerServiceImpl AddDeathRecipient == false");
-    } else {
-        DHCP_LOGI("DhcpServer DhcpServerServiceImpl StartServiceAbility ok");
-    }
-}
-#endif
 
 #ifdef OHOS_ARCH_LITE
 ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifname,
@@ -270,10 +215,9 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
     return ErrCode(ret);
 }
 
-void DhcpServerServiceImpl::DeviceInfoCallBack(const std::string & ifname)
+void DhcpServerServiceImpl::DeviceInfoCallBack(const std::string& ifname)
 {
     DHCP_LOGI("DeviceInfoCallBack ifname:%{public}s.", ifname.c_str());
-    DHCP_LOGI("DealServerSuccess ifname:%{public}s.", ifname.c_str());
     std::vector<std::string> leases;
     std::vector<DhcpStationInfo> stationInfos;
     GetDhcpClientInfos(ifname, leases);
@@ -299,16 +243,21 @@ void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string>
     DHCP_LOGI("ConvertLeasesToStationInfos ");
     for (const std::string& lease : leases) {
         DhcpStationInfo info;
-        std::string leaseTime;
-        std::string bindingTime;
-        std::string pendingTime;
-        std::string pendingInterval;
-        std::string bindingMode;
-        std::string bindingStatus;
-        std::istringstream iss(lease);
-        if (!(iss >> info.macAddr >> info.ipAddr >> leaseTime >> bindingTime >> pendingTime >> pendingInterval >>
-            bindingMode >> bindingStatus >> info.deviceName)) {
-            DHCP_LOGE("ConvertLeasesToStationInfos iss failed, continue!");
+        const int length = 128;
+        char leaseTime[length], bindingTime[length], pendingTime[length];
+        char pendingInterval[length], bindingMode[length], bindingStatus[length];
+        const int nSize = 9;
+        if (sscanf_s(lease.c_str(), "%127s %127s %127s %127s %127s %127s %127s %127s %127s",
+            info.macAddr, MAC_ADDR_MAX_LEN,
+            info.ipAddr, INET_ADDRSTRLEN,
+            leaseTime, length,
+            bindingTime, length,
+            pendingTime, length,
+            pendingInterval, length,
+            bindingMode, length,
+            bindingStatus, length,
+            info.deviceName, length) != nSize) {
+            DHCP_LOGE("ConvertLeasesToStationInfos sscanf_s failed, continue!");
             continue;
         }
         DHCP_LOGI("stationInfos deviceName:%{public}s", info.deviceName);
@@ -633,18 +582,24 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
         return DHCP_E_FAILED;
     }
     leases.clear();
-    std::ifstream inFile;
+    FILE *inFile = fopen(strFile.c_str(), "r");
+    if (!inFile) {
+        DHCP_LOGE("GetDhcpClientInfos() failed, unable to open file: %{public}s", strFile.c_str());
+        return DHCP_E_FAILED;
+    }
 
-    inFile.open(strFile);
-    std::string strTemp = "";
     char tmpLineData[FILE_LINE_MAX_SIZE] = {0};
-    while (inFile.getline(tmpLineData, sizeof(tmpLineData))) {
-        strTemp = tmpLineData;
+    while (fgets(tmpLineData, sizeof(tmpLineData), inFile) != nullptr) {
+        std::string strTemp = tmpLineData;
+        // Remove the newline character at the end of the line
+        if (!strTemp.empty() && strTemp.back() == '\n') {
+            strTemp.pop_back();
+        }
         if (!strTemp.empty()) {
             leases.push_back(strTemp);
         }
     }
-    inFile.close();
+    (void)fclose(inFile);
     DHCP_LOGI("GetDhcpClientInfos leases.size:%{public}d.", (int)leases.size());
     return DHCP_E_SUCCESS;
 }
@@ -807,30 +762,9 @@ int DhcpServerServiceImpl::CreateDefaultConfigFile(const std::string strFile)
     if (!DhcpFunction::IsExistFile(strFile)) {
         DHCP_LOGI("CreateDefaultConfigFile!");
         DhcpFunction::CreateDirs(DHCP_SERVER_CONFIG_DIR);
-        std::string strData = "leaseTime=" + std::to_string(LEASETIME_DEFAULT * ONE_HOURS_SEC) + "\n";
+        std::string strData = "leaseTime=" + std::to_string(LEASETIME_DEFAULT_SERVER * ONE_HOURS_SEC) + "\n";
         DhcpFunction::CreateFile(strFile, strData);
     }
-    return DHCP_OPT_SUCCESS;
-}
-
-int DhcpServerServiceImpl::StopServer(const pid_t &serverPid)
-{
-    UnregisterSignal();
-    if (kill(serverPid, SIGTERM) == -1) {
-        if (ESRCH == errno) {
-            /* Normal. The subprocess is dead. The SIGCHLD signal triggers the stop hotspot. */
-            DHCP_LOGI("StopServer() kill [%{public}d] success, pro pid no exist, pro:%{public}s.",
-                serverPid, DHCP_SERVER_FILE.c_str());
-            return DHCP_OPT_SUCCESS;
-        }
-        DHCP_LOGE("StopServer() kill [%{public}d] failed, errno:%{public}d!", serverPid, errno);
-        return DHCP_OPT_FAILED;
-    }
-    if (DhcpFunction::WaitProcessExit(serverPid) == -1) {
-        DHCP_LOGE("StopServer() waitpid [%{public}d] failed, errno:%{public}d!", serverPid, errno);
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("StopServer() waitpid [%{public}d] success, pro:%{public}s!", serverPid, DHCP_SERVER_FILE.c_str());
     return DHCP_OPT_SUCCESS;
 }
 
@@ -847,23 +781,6 @@ int DhcpServerServiceImpl::DelSpecifiedInterface(const std::string& ifname)
         DHCP_LOGI("DelSpecifiedInterface started interfaces del %{public}s success.", ifname.c_str());
     }
     return DHCP_OPT_SUCCESS;
-}
-
-void DhcpServerServiceImpl::UnregisterSignal() const
-{
-    struct sigaction newAction {};
-
-    if (sigemptyset(&newAction.sa_mask) == -1) {
-        DHCP_LOGE("UnregisterSignal() failed, sigemptyset error:%{public}d!", errno);
-    }
-
-    newAction.sa_handler = SIG_DFL;
-    newAction.sa_flags = SA_RESTART;
-    newAction.sa_restorer = nullptr;
-
-    if (sigaction(SIGCHLD, &newAction, nullptr) == -1) {
-        DHCP_LOGE("UnregisterSignal() sigaction SIGCHLD error:%{public}d!", errno);
-    }
 }
 
 ErrCode DhcpServerServiceImpl::DeleteLeaseFile(const std::string& ifname)

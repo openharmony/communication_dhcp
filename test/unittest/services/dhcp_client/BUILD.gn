@@ -120,6 +120,7 @@ ohos_unittest("dhcp_client_unittest") {
   configs = [ ":module_private_config" ]
 
   defines = [
+    "OHOS_EUPDATER",
     "private = public",
     "protected = public",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",

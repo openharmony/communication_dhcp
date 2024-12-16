@@ -13,11 +13,11 @@
  * limitations under the License.
  */
 
-#include <errno.h>
-#include <signal.h>
+#include <cerrno>
+#include <csignal>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include "dhcp_dhcpd.h"
 #include "securec.h"
 #include "address_utils.h"
@@ -25,7 +25,6 @@
 #include "dhcp_argument.h"
 #include "dhcp_config.h"
 #include "dhcp_s_define.h"
-#include "dhcp_server_ipv4.h"
 #include "dhcp_logger.h"
 #include "dhcp_option.h"
 #include "dhcp_s_server.h"
@@ -33,7 +32,7 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerMain");
 
-#define DEFAUTL_NET_MASK "255.255.255.0"
+constexpr char DEFAUTL_NET_MASK[] = "255.255.255.0";
 
 static DhcpConfig g_dhcpConfig;
 
@@ -305,7 +304,11 @@ static int InitializeDhcpConfig(const char *ifname, DhcpConfig *config)
         DHCP_LOGE("failed to initialize options.");
         return RET_FAILED;
     }
-    char configFile[ARGUMENT_VALUE_SIZE] = DHCPD_CONFIG_FILE;
+    char configFile[ARGUMENT_VALUE_SIZE] = {0};
+    if (memcpy_s(configFile, ARGUMENT_VALUE_SIZE, DHCPD_CONFIG_FILE, strlen(DHCPD_CONFIG_FILE)) != EOK) {
+        DHCP_LOGE("conf memcpy_s failed.");
+        return RET_FAILED;
+    }
     if (HasArgument("conf")) {
         ArgumentInfo *configArg = GetArgument("conf");
         if (configArg) {

@@ -24,7 +24,7 @@
 #include "dhcp_s_define.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 
@@ -97,14 +97,14 @@ void DhcpMacAddrFuzzTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
+    if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
-    OHOS::Wifi::DhcpAddressPoolFuzzTest(data, size);
-    OHOS::Wifi::FindBindingByIpFuzzTest(data, size);
-    OHOS::Wifi::DhcpMacAddrFuzzTest(data, size);
+    OHOS::DHCP::DhcpAddressPoolFuzzTest(data, size);
+    OHOS::DHCP::FindBindingByIpFuzzTest(data, size);
+    OHOS::DHCP::DhcpMacAddrFuzzTest(data, size);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

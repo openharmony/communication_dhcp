@@ -15,10 +15,6 @@
 #ifndef OHOS_DHCP_DEF_H
 #define OHOS_DHCP_DEF_H
 
-#ifndef OHOS_ARCH_LITE
-#include "system_ability_definition.h"
-#endif
-
 /* Feature service ability id */
 #define DHCP_CLIENT_ABILITY_ID  1126
 #define DHCP_SERVER_ABILITY_ID  1127

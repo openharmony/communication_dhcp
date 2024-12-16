@@ -30,9 +30,6 @@ namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpFunction");
 
-const int MAX_RETEY_WAIT_COUNT = 60;
-const int WAIT_SLEEP_50MS = 50;
-
 bool DhcpFunction::Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool bHost)
 {
     if (strIp.empty()) {
@@ -287,28 +284,31 @@ bool DhcpFunction::CheckSameNetwork(const uint32_t srcIp, const uint32_t dstIp, 
 
 bool DhcpFunction::IsExistFile(const std::string& filename)
 {
-    bool bExist = false;
-    std::fstream ioFile;
-    ioFile.open(filename.c_str(), std::ios::in);
-    if (ioFile) {
-        ioFile.close();
-        bExist = true;
+    FILE *file = fopen(filename.c_str(), "r");
+    if (file) {
+        (void)fclose(file);
+        return true;
+    } else {
+        DHCP_LOGE("IsExistFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
+        return false;
     }
-    DHCP_LOGE("IsExistFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
-    return bExist;
 }
 
 bool DhcpFunction::CreateFile(const std::string& filename, const std::string& filedata)
 {
-    std::ofstream outFile;
-    outFile.open(filename.c_str());
-    if (!outFile) {
-        DHCP_LOGE("CreateFile %{public}s failed, err:%{public}s", filename.c_str(), strerror(errno));
+    FILE *file = fopen(filename.c_str(), "w");
+    if (!file) {
+        DHCP_LOGE("CreateFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
         return false;
     }
-    outFile.flush();
-    outFile << filedata << std::endl;
-    outFile.close();
+    if (fputs(filedata.c_str(), file) == EOF) {
+        DHCP_LOGE("Write to file %{public}s failed, err:%{public}d", filename.c_str(), errno);
+        (void)fclose(file);
+        return false;
+    }
+    (void)fflush(file);
+    (void)fsync(fileno(file));
+    (void)fclose(file);
     return true;
 }
 
@@ -319,102 +319,6 @@ bool DhcpFunction::RemoveFile(const std::string& filename)
         return false;
     }
     DHCP_LOGI("RemoveFile filename:%{public}s success.", filename.c_str());
-    return true;
-}
-
-bool DhcpFunction::AddFileLineData(const std::string& filename, const std::string& prevdata, const std::string& linedata)
-{
-    bool bAdd = false;
-    std::ifstream inFile;
-    inFile.open(filename.c_str());
-    std::string strFileData = "";
-    std::string strTemp = "";
-    char tmpLineData[1024] = {0};
-    while (inFile.getline(tmpLineData, sizeof(tmpLineData))) {
-        strTemp = tmpLineData;
-        strFileData += strTemp;
-        strFileData += "\n";
-        if (strTemp == prevdata) {
-            strFileData += linedata;
-            bAdd = true;
-        }
-    }
-    inFile.close();
-
-    if (bAdd) {
-        std::ofstream outFile;
-        outFile.open(filename.c_str());
-        outFile.flush();
-        DHCP_LOGI("AddFileLineData Reflush filename:%{public}s, strFileData:%{public}s.",
-            filename.c_str(), strFileData.c_str());
-        outFile << strFileData;
-        outFile.close();
-    }
-    return true;
-}
-
-bool DhcpFunction::DelFileLineData(const std::string& filename, const std::string& linedata)
-{
-    bool bDel = false;
-    std::ifstream inFile;
-    inFile.open(filename.c_str());
-    std::string strFileData = "";
-    std::string strTemp = "";
-    char tmpLineData[1024] = {0};
-    while (inFile.getline(tmpLineData, sizeof(tmpLineData))) {
-        strTemp = tmpLineData;
-        if (strTemp != linedata) {
-            strFileData += strTemp;
-            strFileData += "\n";
-        } else {
-            bDel = true;
-        }
-    }
-    inFile.close();
-
-    if (bDel) {
-        std::ofstream outFile;
-        outFile.open(filename.c_str());
-        outFile.flush();
-        DHCP_LOGI("DelFileLineData Reflush filename:%{public}s, strFileData:%{public}s.",
-            filename.c_str(), strFileData.c_str());
-        outFile << strFileData;
-        outFile.close();
-    }
-    return true;
-}
-
-bool DhcpFunction::ModifyFileLineData(const std::string& filename, const std::string& srcdata,
-    const std::string& dstdata)
-{
-    bool bModify = false;
-    std::ifstream inFile;
-    inFile.open(filename.c_str());
-    std::string strFileData = "";
-    std::string strTemp = "";
-    char tmpLineData[1024] = {0};
-    while (inFile.getline(tmpLineData, sizeof(tmpLineData))) {
-        strTemp = tmpLineData;
-        if (strTemp != srcdata) {
-            strFileData += strTemp;
-            strFileData += "\n";
-        } else {
-            strFileData += dstdata;
-            strFileData += "\n";
-            bModify = true;
-        }
-    }
-    inFile.close();
-
-    if (bModify) {
-        std::ofstream outFile;
-        outFile.open(filename.c_str());
-        outFile.flush();
-        DHCP_LOGI("ModifyFileLineData Reflush filename:%{public}s, strFileData:%{public}s.",
-            filename.c_str(), strFileData.c_str());
-        outFile << strFileData;
-        outFile.close();
-    }
     return true;
 }
 
@@ -463,6 +367,7 @@ int DhcpFunction::FormatString(struct DhcpPacketResult &result)
     return 0;
 }
 
+
 #ifdef OHOS_ARCH_LITE
 int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPacketResult &result)
 {
@@ -474,7 +379,7 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
 
     char strIpFlag[DHCP_NUM_EIGHT];
     if (memset_s(strIpFlag, sizeof(strIpFlag), 0, sizeof(strIpFlag)) != EOK) {
-        fclose(pFile);
+        (void)fclose(pFile);
         return DHCP_OPT_FAILED;
     }
     /* Format: IpFlag AddTime cliIp servIp subnet dns1 dns2 router1 router2 vendor lease */
@@ -484,15 +389,15 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
         result.strOptRouter2, INET_ADDRSTRLEN, result.strOptVendor, DHCP_FILE_MAX_BYTES, &result.uOptLeasetime);
     if (nRes == EOF) {
         DHCP_LOGE("GetDhcpPacketResult() fscanf %{public}s err:%{public}s!", filename.c_str(), strerror(errno));
-        fclose(pFile);
+        (void)fclose(pFile);
         return DHCP_OPT_FAILED;
     } else if (nRes == 0) {
         DHCP_LOGW("GetDhcpPacketResult() fscanf file:%{public}s nRes:0 nullptr!", filename.c_str());
-        fclose(pFile);
+        (void)fclose(pFile);
         return DHCP_OPT_NULL;
     } else if (nRes != EVENT_DATA_NUM) {
         DHCP_LOGE("GetDhcpPacketResult() fscanf file:%{public}s nRes:%{public}d ERROR!", filename.c_str(), nRes);
-        fclose(pFile);
+        (void)fclose(pFile);
         return DHCP_OPT_FAILED;
     }
 
@@ -510,114 +415,6 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
     return DHCP_OPT_SUCCESS;
 }
 #endif
-
-int DhcpFunction::InitPidfile(const std::string& piddir, const std::string& pidfile)
-{
-    if (piddir.empty() || pidfile.empty()) {
-        DHCP_LOGE("InitPidfile() failed, piddir or pidfile is empty!");
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("InitPidfile() piddir:%{public}s, pidfile:%{public}s.", piddir.c_str(), pidfile.c_str());
-    unlink(pidfile.c_str());
-
-    int fd;
-    if ((fd = open(pidfile.c_str(), O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH)) < 0) {
-        DHCP_LOGE("InitPidfile() failed, open pidfile:%{public}s err:%{public}d!", pidfile.c_str(), errno);
-        return DHCP_OPT_FAILED;
-    }
-
-    char buf[PID_MAX_LEN] = {0};
-    if (snprintf_s(buf, PID_MAX_LEN, PID_MAX_LEN - 1, "%d", getpid()) < 0) {
-        DHCP_LOGE("InitPidfile() %{public}s failed, snprintf_s error:%{public}d!", pidfile.c_str(), errno);
-        close(fd);
-        return DHCP_OPT_FAILED;
-    }
-    ssize_t bytes;
-    if ((bytes = write(fd, buf, strlen(buf))) <= 0) {
-        DHCP_LOGE("InitPidfile() failed, write pidfile:%{public}s error:%{public}d, bytes:%{public}zd!",
-            pidfile.c_str(), errno, bytes);
-        close(fd);
-        return DHCP_OPT_FAILED;
-    }
-    DHCP_LOGI("InitPidfile() pid:%{public}s write %{public}s, bytes:%{public}zd!", buf, pidfile.c_str(), bytes);
-    close(fd);
-
-    if (chdir(piddir.c_str()) != 0) {
-        DHCP_LOGE("InitPidfile() failed, chdir piddir:%{public}s err:%{public}d!", piddir.c_str(), errno);
-        return DHCP_OPT_FAILED;
-    }
-
-    /* Set default permissions for the specified client process id files and directories. */
-    umask(DEFAULT_UMASK);
-
-    /* Change attribs to the specified client process id files: 644 (user=rw, group=r, other=r). */
-    chmod(pidfile.c_str(), S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH);
-
-    return DHCP_OPT_SUCCESS;
-}
-
-pid_t DhcpFunction::GetPID(const std::string& pidfile)
-{
-    /* Check pidfile is or not exists. */
-    struct stat sb;
-    if (stat(pidfile.c_str(), &sb) != 0) {
-        DHCP_LOGW("GetPID() pidfile:%{public}s stat:%{public}d!", pidfile.c_str(), errno);
-        return -1;
-    }
-    DHCP_LOGI("GetPID() pidfile:%{public}s stat st_size:%{public}d.", pidfile.c_str(), (int)sb.st_size);
-
-    int fd;
-    if ((fd = open(pidfile.c_str(), O_RDONLY)) < 0) {
-        DHCP_LOGE("GetPID() failed, open pidfile:%{public}s error!", pidfile.c_str());
-        return -1;
-    }
-
-    lseek(fd, 0, SEEK_SET);
-
-    char buf[PID_MAX_LEN] = {0};
-    ssize_t bytes;
-    if ((bytes = read(fd, buf, sb.st_size)) < 0) {
-        DHCP_LOGE("GetPID() failed, read pidfile:%{public}s error, bytes:%{public}zd!", pidfile.c_str(), bytes);
-        close(fd);
-        return -1;
-    }
-    DHCP_LOGI("GetPID() read pidfile:%{public}s, buf:%{public}s, bytes:%{public}zd.", pidfile.c_str(), buf, bytes);
-    close(fd);
-
-    return atoi(buf);
-}
-
-int DhcpFunction::CheckProRunning(const pid_t proPid, const std::string& proName)
-{
-    if ((proPid == 0) || proName.empty()) {
-        DHCP_LOGE("CheckProRunning %{public}s param error!", proName.c_str());
-        return -1;
-    }
-    char buf[DIR_MAX_LEN] = {0};
-    if (snprintf_s(buf, DIR_MAX_LEN, DIR_MAX_LEN - 1, "/proc/%ld", (long int)proPid) < 0) {
-        DHCP_LOGE("CheckProRunning %{public}s failed, snprintf_s errno:%{public}d!", proName.c_str(), errno);
-        return -1;
-    }
-    if (access(buf, F_OK) != 0) {
-        DHCP_LOGI("CheckProRunning %{public}s is not exist, %{public}s no running", buf, proName.c_str());
-        return 0;
-    }
-    if (strcat_s(buf, sizeof(buf), "/exe") != EOK) {
-        DHCP_LOGE("CheckProRunning %{public}s failed, strcat_s errno:%{public}d!", proName.c_str(), errno);
-        return -1;
-    }
-    char proBuf[DIR_MAX_LEN] = {0};
-    if (readlink(buf, proBuf, sizeof(proBuf)) < 0) {
-        DHCP_LOGE("CheckProRunning %{public}s failed, readlink errno:%{public}d!", proName.c_str(), errno);
-        return -1;
-    }
-    if (strstr(proBuf, proName.c_str()) == nullptr) {
-        DHCP_LOGI("CheckProRunning %{public}s exe -> %{public}s, %{public}s no running", buf, proBuf, proName.c_str());
-        return 0;
-    }
-    DHCP_LOGI("CheckProRunning %{public}s exe -> %{public}s, %{public}s is running", buf, proBuf, proName.c_str());
-    return 1;
-}
 
 int DhcpFunction::CreateDirs(const std::string dirs, int mode)
 {
@@ -657,52 +454,6 @@ int DhcpFunction::CreateDirs(const std::string dirs, int mode)
     }
     DHCP_LOGI("CreateDirs() %{public}s %{public}.4o success.", dirs.c_str(), mode);
     return DHCP_OPT_SUCCESS;
-}
-
-bool DhcpFunction::SplitString(
-    const std::string src, const std::string delim, const int count, std::vector<std::string> &splits)
-{
-    if (src.empty() || delim.empty()) {
-        DHCP_LOGE("SplitString() error, src or delim is empty!");
-        return false;
-    }
-
-    splits.clear();
-
-    std::string strData(src);
-    int nDelim = 0;
-    char *pSave = nullptr;
-    char *pTok = strtok_r(const_cast<char *>(strData.c_str()), delim.c_str(), &pSave);
-    while (pTok != nullptr) {
-        splits.push_back(std::string(pTok));
-        nDelim++;
-        pTok = strtok_r(nullptr, delim.c_str(), &pSave);
-    }
-    if (nDelim != count) {
-        DHCP_LOGE("SplitString() %{private}s failed, nDelim:%{public}d,count:%{public}d!", src.c_str(), nDelim, count);
-        return false;
-    }
-    DHCP_LOGI("SplitString() %{private}s success, delim:%{public}s, count:%{public}d, splits.size():%{public}d.",
-        src.c_str(), delim.c_str(), count, (int)splits.size());
-    return true;
-}
-
-int DhcpFunction::WaitProcessExit(const pid_t& serverPid)
-{
-    int retryCount = 0;
-    while (retryCount < MAX_RETEY_WAIT_COUNT) {
-        pid_t ret = waitpid(serverPid, nullptr, WNOHANG);
-        if (ret == -1) {
-            DHCP_LOGE("WaitProcessExit() waitpid [%{public}d] failed, errno:%{public}d!", serverPid, errno);
-            return -1;
-        } else if (ret == 0) {
-            retryCount++;
-            usleep(WAIT_SLEEP_50MS);
-        }
-        return 0;
-    }
-    DHCP_LOGE("WaitProcessExit() timeout waitpid [%{public}d] failed!", serverPid);
-    return -1;
 }
 }  // namespace DHCP
 }  // namespace OHOS

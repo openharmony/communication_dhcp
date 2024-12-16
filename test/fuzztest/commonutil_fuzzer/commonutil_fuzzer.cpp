@@ -22,7 +22,7 @@
 #include "common_util.h"
 
 namespace OHOS {
-namespace Wifi {
+namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 
@@ -33,8 +33,6 @@ void CommonUtilFuzzTest(const uint8_t* data, size_t size)
     size_t bufSize = static_cast<uint32_t>(data[index++]);
     Tmspsec();
     Tmspusec();
-    LeftTrim(buf);
-    RightTrim(buf);
     TrimString(buf);
     RemoveSpaceCharacters(buf, bufSize);
 }
@@ -43,13 +41,6 @@ void GetFilePathTest(const uint8_t* data, size_t size)
 {
     const char *fileName = "wlan0";
     (void)GetFilePath(fileName);
-}
-
-void GetLeaseFileTest(const uint8_t* data, size_t size)
-{
-    const char *fileName = "wlan0";
-    const char *ifname = "wlan1";
-    (void)GetLeaseFile(fileName, ifname);
 }
 
 void CreatePathTest(const uint8_t* data, size_t size)
@@ -61,15 +52,14 @@ void CreatePathTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if ((data == nullptr) || (size <= OHOS::Wifi::U32_AT_SIZE_ZERO)) {
+    if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
     sleep(DHCP_SLEEP_1);
-    OHOS::Wifi::CommonUtilFuzzTest(data, size);
-    OHOS::Wifi::GetFilePathTest(data, size);
-    OHOS::Wifi::GetLeaseFileTest(data, size);
-    OHOS::Wifi::CreatePathTest(data, size);
+    OHOS::DHCP::CommonUtilFuzzTest(data, size);
+    OHOS::DHCP::GetFilePathTest(data, size);
+    OHOS::DHCP::CreatePathTest(data, size);
     return 0;
 }
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

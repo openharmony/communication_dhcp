@@ -64,9 +64,6 @@ public:
     ErrCode StartDhcpClient(const RouterConfig &config) override;
     ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
-#ifndef OHOS_ARCH_LITE
-    void StartServiceAbility(int sleepS);
-#endif
     bool IsRemoteDied(void) override;
     ErrCode StartOldClient(const RouterCfg &config, DhcpClient &dhcpClient);
     ErrCode StartNewClient(const RouterCfg &config);

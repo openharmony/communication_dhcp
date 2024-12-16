@@ -22,13 +22,18 @@ ohos_fuzztest("ClientStubFuzzTest") {
   fuzz_config_file = "$DHCP_ROOT_DIR/test/fuzztest/clientstub_fuzzer"
 
   include_dirs = [
+    "$DHCP_ROOT_DIR/interfaces",
+    "$DHCP_ROOT_DIR/interfaces/kits/c",
     "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
     "$DHCP_ROOT_DIR/frameworks/native/include",
-    "$DHCP_ROOT_DIR/frameworks/native/src",
     "$DHCP_ROOT_DIR/frameworks/native/interfaces",
-    "$DHCP_ROOT_DIR/services/dhcp_client/include",
-    "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
+    "$DHCP_ROOT_DIR/frameworks/native/src",
     "$DHCP_ROOT_DIR/services",
+    "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/utils/include",
+    "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
+    "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
   ]
 
   cflags = [
@@ -38,6 +43,21 @@ ohos_fuzztest("ClientStubFuzzTest") {
     "-fno-omit-frame-pointer",
   ]
   sources = [
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_function.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_ipv6_event.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_options.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
+    "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
     "clientstub_fuzzer.cpp",
   ]
@@ -48,14 +68,27 @@ ohos_fuzztest("ClientStubFuzzTest") {
   ]
 
   external_deps = [
+    "ability_runtime:wantagent_innerkits",
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
     "netmanager_base:net_native_manager_if",
     "netmanager_base:netsys_controller",
+    "safwk:system_ability_fwk",
+    "time_service:time_client",
   ]
 
-  defines = [ "DTFUZZ_TEST" ]
+  defines = [
+    "OHOS_EUPDATER",
+    "DTFUZZ_TEST",
+    "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
+    "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
+    "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
+  ]
+  if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+    external_deps += [ "init:libbegetutil" ]
+    defines += [ "INIT_LIB_ENABLE" ]
+  }
 
   part_name = "dhcp"
   subsystem_name = "communication"

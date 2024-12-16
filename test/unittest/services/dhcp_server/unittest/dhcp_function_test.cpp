@@ -24,7 +24,6 @@ using namespace OHOS;
 using namespace OHOS::DHCP;
 namespace OHOS {
 namespace DHCP {
-constexpr int DHCP_FAILED_CODE = -1;
 class DhcpFunctionTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -181,13 +180,6 @@ HWTEST_F(DhcpFunctionTest, FileManage_SUCCESS, TestSize.Level1)
 
     std::string strData = "IP4 1624421132 192.168.1.207 192.168.1.2 255.255.255.0 192.168.1.2 * 192.168.1.2 * * 43200";
     EXPECT_EQ(true, DhcpFunction::CreateFile(strFile, strData));
-
-    std::string strAdd = "test add str";
-    EXPECT_EQ(true, DhcpFunction::AddFileLineData(strFile, strData, strAdd));
-    std::string strModify = "test modify str";
-    EXPECT_EQ(true, DhcpFunction::ModifyFileLineData(strFile, strAdd, strModify));
-    EXPECT_EQ(true, DhcpFunction::DelFileLineData(strFile, strModify));
-
     EXPECT_EQ(true, DhcpFunction::RemoveFile(strFile));
 }
 
@@ -227,67 +219,10 @@ HWTEST_F(DhcpFunctionTest, FormatString_FAIL, TestSize.Level1)
     EXPECT_EQ(0, DhcpFunction::FormatString(result));
 }
 
-HWTEST_F(DhcpFunctionTest, InitPidfile_TEST, TestSize.Level1)
-{
-    std::string pidDir, pidFile;
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpFunction::InitPidfile(pidDir, pidFile));
-
-    SystemFuncMock::SetMockFlag(true);
-
-    EXPECT_CALL(SystemFuncMock::GetInstance(), open(_, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
-    EXPECT_CALL(SystemFuncMock::GetInstance(), close(_)).WillRepeatedly(Return(0));
-
-    pidDir = "./";
-    pidFile = "./wlan.pid";
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpFunction::InitPidfile(pidDir, pidFile));
-
-    SystemFuncMock::SetMockFlag(false);
-}
-
-HWTEST_F(DhcpFunctionTest, GetPID_TEST, TestSize.Level1)
-{
-    std::string pidDir = "./";
-    std::string pidFile = "./wlan.pid";
-    EXPECT_EQ(DHCP_OPT_SUCCESS, DhcpFunction::InitPidfile(pidDir, pidFile));
-    EXPECT_GT(DhcpFunction::GetPID(pidFile), 0);
-    unlink(pidFile.c_str());
-    EXPECT_EQ(DhcpFunction::GetPID(pidFile), -1);
-}
-
 HWTEST_F(DhcpFunctionTest, CreateDirs_TEST, TestSize.Level1)
 {
     std::string strDir;
     EXPECT_EQ(DhcpFunction::CreateDirs(strDir), DHCP_OPT_FAILED);
-}
-
-HWTEST_F(DhcpFunctionTest, CheckProRunningTest, TestSize.Level1)
-{
-    std::string proName;
-    pid_t proPid = 0;
-    EXPECT_EQ(DhcpFunction::CheckProRunning(proPid, proName), DHCP_FAILED_CODE);
-    proPid = 1234;
-    EXPECT_EQ(DhcpFunction::CheckProRunning(proPid, proName), DHCP_FAILED_CODE);
-    proName = "testcode";
-    EXPECT_EQ(DhcpFunction::CheckProRunning(proPid, proName), DHCP_OPT_SUCCESS);
-}
-
-HWTEST_F(DhcpFunctionTest, SplitStringTest, TestSize.Level1)
-{
-    std::string src, delim;
-    int count = 0;
-    std::vector<std::string> splits {};
-    EXPECT_EQ(DhcpFunction::SplitString(src, delim, count, splits), false);
-
-    src = "testcode";
-    delim = "test";
-    count = -1;
-    EXPECT_EQ(DhcpFunction::SplitString(src, delim, count, splits), false);
-}
-
-HWTEST_F(DhcpFunctionTest, WaitProcessExit01, TestSize.Level1)
-{
-    pid_t serverPid = 1235;
-    EXPECT_EQ(DhcpFunction::WaitProcessExit(serverPid), -1);
 }
 }
 }

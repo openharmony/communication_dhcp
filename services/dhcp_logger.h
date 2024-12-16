@@ -57,14 +57,6 @@ struct LogLable {
 #define DHCP_LOGD(...) HILOG_IMPL(LOG_CORE, LOG_DEBUG, DHCP_LOG_LABEL.dominId, DHCP_LOG_LABEL.tag, __VA_ARGS__)
 
 #endif
-
-#ifndef CHECK_NULL_AND_RETURN
-#define CHECK_NULL_AND_RETURN(ptr, retValue) \
-if (!(ptr)) { \
-    DHCP_LOGI("Pointer %{public}s in %{public}s is NULL!", #ptr, __func__); \
-    return retValue; \
-}
-#endif
 }  // namespace DHCP
 }  // namespace OHOS
 #endif

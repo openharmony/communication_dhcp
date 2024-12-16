@@ -14,10 +14,10 @@
  */
 #include "dhcp_socket.h"
 
-#include <stdio.h>
+#include <cstdio>
 #include <unistd.h>
 #include <string.h>
-#include <errno.h>
+#include <cerrno>
 #include <linux/filter.h>
 #include <sys/types.h>
 #include <sys/socket.h>

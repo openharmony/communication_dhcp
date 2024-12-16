@@ -31,6 +31,15 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services",
       "$DHCP_ROOT_DIR/services/utils/include",
     ]
+    configs -= [ "//build/lite/config:language_cpp" ]
+    cflags = [
+      "-std=c++17",
+      "-fno-rtti",
+    ]
+    cflags_cc = [
+      "-std=c++17",
+      "-fno-rtti",
+    ]
 
     deps = []
     external_deps = []
@@ -80,15 +89,17 @@ if (defined(ohos_lite)) {
       "time_service:time_client",
     ]
 
-    cflags = [
+    cflags_cc = memory_optimization_cflags_cc
+    cflags_cc += [
       "-std=c++17",
       "-fno-rtti",
     ]
-    ldflags = [
+    ldflags = memory_optimization_ldflags
+    ldflags += [
       "-fPIC",
       "-Wl,-E",
     ]
-
+    version_script = "libdhcp_util.map"
     public_configs = [ ":dhcp_common_config" ]
     part_name = "dhcp"
     subsystem_name = "communication"

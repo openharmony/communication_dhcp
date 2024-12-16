@@ -143,36 +143,6 @@ HWTEST_F(DhcpFunctionTest, SetLocalInterface_FAILED, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, SetLocalInterface("wlan", ipaddr4, netMask));
 }
 
-HWTEST_F(DhcpFunctionTest, InitPidfile_SUCCESS, TestSize.Level1)
-{
-    char workDir[DIR_MAX_LEN] = "./";
-    char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
-
-    EXPECT_EQ(DHCP_OPT_SUCCESS, InitPidfile(workDir, pidFile, getpid()));
-    unlink(pidFile);
-    usleep(SLEEP_TIME_200_MS);
-}
-
-HWTEST_F(DhcpFunctionTest, InitPidfile_FAILED, TestSize.Level1)
-{
-    char *workDir = nullptr;
-    char *pidFile = nullptr;
-
-    EXPECT_EQ(DHCP_OPT_FAILED, InitPidfile(workDir, pidFile, getpid()));
-    unlink(pidFile);
-    usleep(SLEEP_TIME_200_MS);
-}
-
-HWTEST_F(DhcpFunctionTest, GetPID_SUCCESS, TestSize.Level1)
-{
-    char workDir[DIR_MAX_LEN] = "./";
-    char pidFile[DIR_MAX_LEN] = "./wlan0.pid";
-
-    EXPECT_EQ(DHCP_OPT_SUCCESS, InitPidfile(workDir, pidFile, getpid()));
-    EXPECT_GT(GetPID(pidFile), 0);
-    unlink(pidFile);
-}
-
 HWTEST_F(DhcpFunctionTest, CreateDirs_SUCCESS, TestSize.Level1)
 {
     EXPECT_EQ(DHCP_OPT_FAILED, CreateDirs(NULL, 0));

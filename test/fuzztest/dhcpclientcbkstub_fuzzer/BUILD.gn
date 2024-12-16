@@ -35,7 +35,10 @@ ohos_fuzztest("DhcpClientCbkStubFuzzTest") {
     "-Wno-unused-variable",
     "-fno-omit-frame-pointer",
   ]
-  sources = [ "dhcpclientcbkstub_fuzzer.cpp" ]
+  sources = [
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_callback_stub.cpp",
+    "dhcpclientcbkstub_fuzzer.cpp",
+  ]
 
   deps = [ "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk" ]
 

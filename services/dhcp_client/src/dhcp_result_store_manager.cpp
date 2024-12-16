@@ -39,6 +39,151 @@ DhcpResultStoreManager &DhcpResultStoreManager::GetInstance()
     return g_ipInstance;
 }
 
+static void TrimString(std::string &str)
+{
+    int32_t i = 0;
+    int32_t j = static_cast<int32_t>(str.length()) - 1;
+    while (i < static_cast<int32_t>(str.length()) && (str[i] == ' ' || str[i] == '\n')) {
+        ++i;
+    }
+    while (j >= 0 && (str[j] == ' '|| str[j] == '\n')) {
+        --j;
+    }
+    str = ((i > j) ? "" : str.substr(i, j - i + 1));
+}
+
+static int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, const std::string &value)
+{
+    int32_t errorKeyValue = 0;
+    std::string valueTmp = value;
+    if (key == "bssid") {
+        item.bssid = value;
+    } else if (key == "ssid") {
+        item.ssid = value;
+    } else if (key == "absoluteLeasetime") {
+        item.absoluteLeasetime = static_cast<int64_t>(CheckDataLegal(valueTmp));
+    } else if (key == "strYiaddr") {
+        if (strncpy_s(item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "strOptServerId") {
+        if (strncpy_s(
+            item.ipResult.strOptServerId, sizeof(item.ipResult.strOptServerId), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "strOptSubnet") {
+        if (strncpy_s(
+            item.ipResult.strOptSubnet, sizeof(item.ipResult.strOptSubnet), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "strOptDns1") {
+        if (strncpy_s(
+            item.ipResult.strOptDns1, sizeof(item.ipResult.strOptDns1), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "strOptDns2") {
+        if (strncpy_s(
+            item.ipResult.strOptDns2, sizeof(item.ipResult.strOptDns2), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "strOptRouter1") {
+        if (strncpy_s(
+            item.ipResult.strOptRouter1, sizeof(item.ipResult.strOptRouter1), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "strOptRouter2") {
+        if (strncpy_s(
+            item.ipResult.strOptRouter2, sizeof(item.ipResult.strOptRouter2), value.c_str(), value.size()) != EOK) {
+            errorKeyValue++;
+        }
+    } else if (key == "uOptLeasetime") {
+        item.ipResult.uOptLeasetime = static_cast<uint32_t>(CheckDataLegal(valueTmp));
+    } else {
+        errorKeyValue++;
+    }
+    return errorKeyValue;
+}
+
+static std::string OutClassString(IpInfoCached &item)
+{
+    std::string buffer = "";
+    buffer += "    <IpInfoCached>\n";
+    buffer += "    bssid=" + std::string(item.bssid) + "\n";
+    buffer += "    ssid=" + std::string(item.ssid) + "\n";
+    buffer += "    absoluteLeasetime=" + std::to_string(item.absoluteLeasetime) + "\n";
+    buffer += "    strYiaddr=" + std::string(item.ipResult.strYiaddr) + "\n";
+    buffer += "    strOptServerId=" + std::string(item.ipResult.strOptServerId) + "\n";
+    buffer += "    strOptSubnet=" + std::string(item.ipResult.strOptSubnet) + "\n";
+    buffer += "    strOptDns1=" + std::string(item.ipResult.strOptDns1) + "\n";
+    buffer += "    strOptDns2=" + std::string(item.ipResult.strOptDns2) + "\n";
+    buffer += "    strOptRouter1=" + std::string(item.ipResult.strOptRouter1) + "\n";
+    buffer += "    strOptRouter2=" + std::string(item.ipResult.strOptRouter2) + "\n";
+    buffer += "    uOptLeasetime=" + std::to_string(item.ipResult.uOptLeasetime) + "\n";
+    buffer += "    <IpInfoCached>\n";
+    return buffer;
+}
+
+static void ClearClass(IpInfoCached &item)
+{
+    item.bssid.clear();
+    item.absoluteLeasetime = 0;
+    item.ipResult.uOptLeasetime = 0;
+}
+
+static int32_t ReadNetworkSection(IpInfoCached &item, FILE *fp, char *line, size_t lineSize)
+{
+    int32_t sectionError = 0;
+    while (fgets(line, lineSize, fp) != nullptr) {
+        std::string strLine = line;
+        TrimString(strLine);
+        if (strLine.empty()) {
+            continue;
+        }
+        if (strLine[0] == '<' && ((strLine.length() > 0) && (strLine[strLine.length() - 1] == '>'))) {
+            return sectionError;
+        }
+        std::string::size_type npos = strLine.find("=");
+        if (npos == std::string::npos) {
+            DHCP_LOGE("Invalid config line");
+            sectionError++;
+            continue;
+        }
+        std::string key = strLine.substr(0, npos);
+        std::string value = strLine.substr(npos + 1);
+        TrimString(key);
+        TrimString(value);
+        /* template function, needing specialization */
+        sectionError += SetClassKeyValue(item, key, value);
+    }
+    DHCP_LOGE("Section config not end correctly");
+    sectionError++;
+    return sectionError;
+}
+
+static int32_t ReadNetwork(IpInfoCached &item, FILE *fp, char *line, size_t lineSize)
+{
+    int32_t networkError = 0;
+    while (fgets(line, lineSize, fp) != nullptr) {
+        std::string strLine = line;
+        TrimString(strLine);
+        if (strLine.empty()) {
+            continue;
+        }
+        if (strLine[0] == '<' && ((strLine.length() > 0) && (strLine[strLine.length() - 1] == '>'))) {
+            networkError += ReadNetworkSection(item, fp, line, lineSize);
+        } else if (strLine.compare("}") == 0) {
+            return networkError;
+        } else {
+            DHCP_LOGE("Invalid config line");
+            networkError++;
+        }
+    }
+    DHCP_LOGE("Network config not end correctly");
+    networkError++;
+    return networkError;
+}
+
+
 int32_t DhcpResultStoreManager::SaveIpInfoInLocalFile(const IpInfoCached ipResult)
 {
     std::unique_lock<std::mutex> lock(m_ipResultMutex);
@@ -119,24 +264,25 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
         DHCP_LOGE("File name is empty.");
         return -1;
     }
-    std::ifstream fs(m_fileName.c_str());
-    if (!fs.is_open()) {
-        DHCP_LOGE("Loading config file: %{public}s, fs.is_open() failed!", m_fileName.c_str());
+    FILE *fp = fopen(m_fileName.c_str(), "r");
+    if (!fp) {
+        DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", m_fileName.c_str());
         return -1;
     }
     m_allIpCached.clear();
     std::vector<IpInfoCached>().swap(m_allIpCached);
     IpInfoCached item;
-    std::string line;
+    char line[1024];
     int32_t configError;
-    while (std::getline(fs, line)) {
-        TrimString(line);
-        if (line.empty()) {
+    while (fgets(line, sizeof(line), fp) != nullptr) {
+        std::string strLine = line;
+        TrimString(strLine);
+        if (strLine.empty()) {
             continue;
         }
-        if (line[0] == '[' && ((line.length() > 0) && (line[line.length() - 1] == '{'))) {
+        if (strLine[0] == '[' && ((strLine.length() > 0) && (strLine[strLine.length() - 1] == '{'))) {
             ClearClass(item); /* template function, needing specialization */
-            configError = ReadNetwork(item, fs, line);
+            configError = ReadNetwork(item, fp, line, sizeof(line));
             if (configError > 0) {
                 DHCP_LOGE("Parse network failed.");
                 continue;
@@ -144,60 +290,11 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
             m_allIpCached.push_back(item);
         }
     }
-    fs.close();
+
+    (void)fclose(fp);
     return 0;
 }
 
-int32_t DhcpResultStoreManager::ReadNetworkSection(IpInfoCached &item, std::ifstream &fs, std::string &line)
-{
-    int32_t sectionError = 0;
-    while (std::getline(fs, line)) {
-        TrimString(line);
-        if (line.empty()) {
-            continue;
-        }
-        if (line[0] == '<' && ((line.length() > 0) && (line[line.length() - 1] == '>'))) {
-            return sectionError;
-        }
-        std::string::size_type npos = line.find("=");
-        if (npos == std::string::npos) {
-            DHCP_LOGE("Invalid config line");
-            sectionError++;
-            continue;
-        }
-        std::string key = line.substr(0, npos);
-        std::string value = line.substr(npos + 1);
-        TrimString(key);
-        TrimString(value);
-        /* template function, needing specialization */
-        sectionError += SetClassKeyValue(item, key, value);
-    }
-    DHCP_LOGE("Section config not end correctly");
-    sectionError++;
-    return sectionError;
-}
-
-int32_t DhcpResultStoreManager::ReadNetwork(IpInfoCached &item, std::ifstream &fs, std::string &line)
-{
-    int32_t networkError = 0;
-    while (std::getline(fs, line)) {
-        TrimString(line);
-        if (line.empty()) {
-            continue;
-        }
-        if (line[0] == '<' && ((line.length() > 0) && (line[line.length() - 1] == '>'))) {
-            networkError += ReadNetworkSection(item, fs, line);
-        } else if (line.compare("}") == 0) {
-            return networkError;
-        } else {
-            DHCP_LOGE("Invalid config line");
-            networkError++;
-        }
-    }
-    DHCP_LOGE("Network config not end correctly");
-    networkError++;
-    return networkError;
-}
 
 int32_t DhcpResultStoreManager::SaveConfig()
 {
@@ -210,14 +307,13 @@ int32_t DhcpResultStoreManager::SaveConfig()
         DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
         return -1;
     }
-    std::ostringstream ss;
+    std::string content = "";
     for (std::size_t i = 0; i < m_allIpCached.size(); ++i) {
         IpInfoCached &item = m_allIpCached[i];
-        ss << "[" << GetClassName() << "_" << (i + 1) << "] {" << std::endl;
-        ss << OutClassString(item) << std::endl;
-        ss << "}" << std::endl;
+        content += "[IpInfoCached_" + std::to_string(i + 1) + "] {\n";
+        content += OutClassString(item) + "\n";
+        content += "}\n";
     }
-    std::string content = ss.str();
     uint32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
     if (ret != static_cast<uint32_t>(content.length())) {
         DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", m_fileName.c_str());
@@ -230,87 +326,5 @@ int32_t DhcpResultStoreManager::SaveConfig()
     return 0;
 }
 
-int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::string &key, const std::string &value)
-{
-    int32_t errorKeyValue = 0;
-    std::string valueTmp = value;
-    if (key == "bssid") {
-        item.bssid = value;
-    } else if (key == "ssid") {
-        item.ssid = value;
-    } else if (key == "absoluteLeasetime") {
-        item.absoluteLeasetime = static_cast<int64_t>(CheckDataLegal(valueTmp));
-    } else if (key == "strYiaddr") {
-        if (strncpy_s(item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "strOptServerId") {
-        if (strncpy_s(
-            item.ipResult.strOptServerId, sizeof(item.ipResult.strOptServerId), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "strOptSubnet") {
-        if (strncpy_s(
-            item.ipResult.strOptSubnet, sizeof(item.ipResult.strOptSubnet), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "strOptDns1") {
-        if (strncpy_s(
-            item.ipResult.strOptDns1, sizeof(item.ipResult.strOptDns1), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "strOptDns2") {
-        if (strncpy_s(
-            item.ipResult.strOptDns2, sizeof(item.ipResult.strOptDns2), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "strOptRouter1") {
-        if (strncpy_s(
-            item.ipResult.strOptRouter1, sizeof(item.ipResult.strOptRouter1), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "strOptRouter2") {
-        if (strncpy_s(
-            item.ipResult.strOptRouter2, sizeof(item.ipResult.strOptRouter2), value.c_str(), value.size()) != EOK) {
-            errorKeyValue++;
-        }
-    } else if (key == "uOptLeasetime") {
-        item.ipResult.uOptLeasetime = static_cast<uint32_t>(CheckDataLegal(valueTmp));
-    } else {
-        errorKeyValue++;
-    }
-    return errorKeyValue;
-}
-
-std::string DhcpResultStoreManager::GetClassName()
-{
-    return "IpInfoCached";
-}
-
-std::string DhcpResultStoreManager::OutClassString(IpInfoCached &item)
-{
-    std::ostringstream ss;
-    ss << "    " <<"<IpInfoCached>" << std::endl;
-    ss << "    " <<"bssid=" << item.bssid << std::endl;
-    ss << "    " <<"ssid=" << item.ssid << std::endl;
-    ss << "    " <<"absoluteLeasetime=" << item.absoluteLeasetime << std::endl;
-    ss << "    " <<"strYiaddr=" << item.ipResult.strYiaddr << std::endl;
-    ss << "    " <<"strOptServerId=" << item.ipResult.strOptServerId << std::endl;
-    ss << "    " <<"strOptSubnet=" << item.ipResult.strOptSubnet << std::endl;
-    ss << "    " <<"strOptDns1=" << item.ipResult.strOptDns1 << std::endl;
-    ss << "    " <<"strOptDns2=" << item.ipResult.strOptDns2 << std::endl;
-    ss << "    " <<"strOptRouter1=" << item.ipResult.strOptRouter1 << std::endl;
-    ss << "    " <<"strOptRouter2=" << item.ipResult.strOptRouter2 << std::endl;
-    ss << "    " <<"uOptLeasetime=" << item.ipResult.uOptLeasetime << std::endl;
-    ss << "    " <<"<IpInfoCached>" << std::endl;
-    return ss.str();
-}
-
-void DhcpResultStoreManager::ClearClass(IpInfoCached &item)
-{
-    item.bssid.clear();
-    item.absoluteLeasetime = 0;
-    item.ipResult.uOptLeasetime = 0;
-}
-}  // namespace Wifi
+}  // namespace DHCP
 }  // namespace OHOS

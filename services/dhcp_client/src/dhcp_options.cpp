@@ -14,8 +14,8 @@
  */
 #include "dhcp_options.h"
 
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <string.h>
 
 #include "securec.h"
@@ -58,7 +58,7 @@ static int CheckOptionsData(const struct DhcpPacket *packet, int code, int index
 
     const uint8_t *pOption = packet->options;
     if (pOption[index + DHCP_OPT_CODE_INDEX] != code) {
-        return DHCP_OPT_NONE;
+        return DHCP_OPT_NULL;
     }
 
     if (index + DHCP_OPT_LEN_INDEX + pOption[index + DHCP_OPT_LEN_INDEX] >= maxLen) {
