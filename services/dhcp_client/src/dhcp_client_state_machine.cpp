@@ -278,16 +278,17 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
 
 void DhcpClientStateMachine::StartIpv4()
 {
-    int nRet, nMaxFds;
+    int nRet;
     fd_set readfds;
     struct timeval timeout;
+    timeout.tv_sec = 0;
+    timeout.tv_usec = SELECT_TIMEOUT_US;
     int sockFdRaw = -1;
     int sockFdkernel = -1;
     if ((m_action != ACTION_RENEW_T1) && (m_action != ACTION_RENEW_T2) && (m_action != ACTION_RENEW_T3)) {
          DhcpInit();
     }
     firstSendPacketTime_ = 0;
-    InitSignalHandle();
     if (!InitSocketFd(sockFdRaw, sockFdkernel)) {
         return;
     }
@@ -300,36 +301,27 @@ void DhcpClientStateMachine::StartIpv4()
         int sockFd = (m_socketMode == SOCKET_MODE_RAW) ? sockFdRaw : sockFdkernel;
         FD_ZERO(&readfds);
         FD_SET(sockFd, &readfds);
-        FD_SET(m_sigSockFds[0], &readfds);
         time_t curTimestamp = time(NULL);
         if (curTimestamp == static_cast<time_t>(-1)) {
-            DHCP_LOGI("StartIpv4, time reurn failed");
+            DHCP_LOGI("StartIpv4, time return failed");
         }
-        timeout.tv_sec = static_cast<time_t>(m_timeoutTimestamp - curTimestamp);
-        timeout.tv_usec = (GetRandomId() % USECOND_CONVERT) * USECOND_CONVERT;
-        if (timeout.tv_sec <= 0) {
+        if (m_timeoutTimestamp - curTimestamp <= 0) {
             DHCP_LOGI("StartIpv4 already timed out, need send or resend packet...");
             DhcpRequestHandle(curTimestamp);
             continue;
         }
-        nMaxFds = (m_sigSockFds[0] > sockFd) ? m_sigSockFds[0] : sockFd;
-        nRet = select(nMaxFds + 1, &readfds, NULL, NULL, &timeout);
+        nRet = select(sockFd + 1, &readfds, NULL, NULL, &timeout);
         if ((nRet == -1) && (errno == EINTR)) {
             DHCP_LOGI("StartIpv4 select err:%{public}d, a signal was caught!", errno);
             continue;
         }
-        if (FD_ISSET(m_sigSockFds[0], &readfds) && SignalReceiver()) {
-            break;
-        }
         if (FD_ISSET(sockFd, &readfds)) {
             DhcpResponseHandle(curTimestamp, sockFd);
-        } else {
-            DHCP_LOGI("StartIpv4 nRet:%{public}d, m_socketMode:%{public}d, continue select...", nRet, m_socketMode);
         }
     }
     close(sockFdRaw);
     close(sockFdkernel);
-    ExitIpv4();
+    DHCP_LOGI("StartIpv4 exit");
 }
 
 int DhcpClientStateMachine::ExitIpv4(void)
@@ -345,7 +337,6 @@ int DhcpClientStateMachine::StopIpv4(void)
 {
     DHCP_LOGI("StopIpv4 threadExit:%{public}d", threadExit_.load());
     if (!threadExit_.load()) {
-        SendStopSignal();
         threadExit_ = true;
         m_slowArpDetecting = false;
         m_conflictCount = 0;
