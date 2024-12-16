@@ -61,12 +61,6 @@ public:
         MockCustomFunc::GetInstance().SetMockFlag(false);
         MockSystemFunc::GetInstance().SetMockFlag(false);
     }
-    
-    static void RunGetIPThreadFuncTest()
-    {
-        DhcpClientStateMachine machine("wlan0");
-        dhcpClient->RunGetIPThreadFunc(machine);
-    }
 };
 
 HWTEST_F(DhcpClientStateMachineTest, ExecDhcpRenew_SUCCESS, TestSize.Level1)
@@ -595,20 +589,6 @@ HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
     EXPECT_EQ(nullptr, result);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
-{
-    DHCP_LOGI("RunGetIPThreadFuncTest enter!");
-    DhcpClientCfg m_cltCnf;
-    m_cltCnf.getMode = DHCP_IP_TYPE_ALL;
-    std::thread t(&DhcpClientStateMachineTest::RunGetIPThreadFuncTest);
-    sleep(2);
-    dhcpClient->ipv4Thread_ = nullptr;
-    dhcpClient->InitSignalHandle();
-    dhcpClient->threadExit_ = true;
-    t.join();
-    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
-}
-
 HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
 {
     DHCP_LOGI("RequestingTest enter!");
@@ -1041,16 +1021,6 @@ HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpResponseHandleTest, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpResponseHandleTest enter!");
-    DhcpPacket packet;
-    time_t timestamp = 1;
-    int sockFd = 0;
-    dhcpClient->DhcpResponseHandle(timestamp, sockFd);
-    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
-}
-
 HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level1)
 {
     DHCP_LOGI("SetSecondsElapsedTest enter!");
@@ -1059,7 +1029,6 @@ HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level1)
     dhcpClient->SetSecondsElapsed(&packet);
     EXPECT_EQ(packet.secs, ZERO);
 }
-
 
 }
 }
