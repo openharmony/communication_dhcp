@@ -169,11 +169,6 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
             close(sockFd);
             return SOCKET_OPT_FAILED;
         }
-        if (setsockopt(sockFd, SOL_SOCKET, SO_BINDTODEVICE, (char *)&ifaceReq, sizeof(ifaceReq)) == -1) {
-            DHCP_LOGE("BindKernelSocket() %{public}s SO_BINDTODEVICE error:%{public}d.", ifaceName, errno);
-            close(sockFd);
-            return SOCKET_OPT_FAILED;
-        }
     }
 
     /* Set the broadcast feature of the data sent by the socket. */
