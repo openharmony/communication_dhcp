@@ -33,10 +33,10 @@
 #define DHCP_ONE_BYTE_BITS 8
 
 inline constexpr char DHCP_ROOT[] = "/data/service/el1/public/dhcp/";
-inline constexpr char DHCPD_CONFIG_FILE[] = "etc/dhcpd.conf";
-inline constexpr char DHCPD_EXT_CONFIG_PATH[] = "etc/dhcpd.d";
-inline constexpr char DHCPD_LEASE_FILE[] = "dhcpd_lease.lease";
-inline constexpr char DHCPD_PID_FILE[] = "dhcpd.pid";
+inline constexpr char DHCPD_CONFIG_FILE[] = "/data/service/el1/public/dhcp/etc/dhcpd.conf";
+inline constexpr char DHCPD_EXT_CONFIG_PATH[] = "/data/service/el1/public/dhcp/etc/dhcpd.d";
+inline constexpr char DHCPD_LEASE_FILE[] = "/data/service/el1/public/dhcp/dhcpd_lease.lease";
+inline constexpr char DHCPD_PID_FILE[] = "/data/service/el1/public/dhcp/dhcpd.pid";
 inline constexpr char DHCPD_VERSION[] = "0.0.1";
 
 #define DHCPD_VERSION "0.0.1"
