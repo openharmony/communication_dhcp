@@ -74,6 +74,8 @@ extern "C" {
     DhcpErrorCode RemoveDhcpRange(const char *tagName, const void *range);
     DhcpErrorCode GetDhcpClientInfos(const char *ifname, int staNumber, DhcpStationInfo *staInfo, int *staSize);
     DhcpErrorCode UpdateLeasesTime(const char *leaseTime);
+    DhcpErrorCode StopDhcpdClientSa(void);
+    DhcpErrorCode StopDhcpdServerSa(void);
 #ifdef __cplusplus
 }
 #endif

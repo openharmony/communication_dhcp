@@ -297,3 +297,15 @@ NO_SANITIZE("cfi") DhcpErrorCode UpdateLeasesTime(const char *leaseTime)
     CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
     return GetCErrorCode(dhcpServerPtr->UpdateLeasesTime(leaseTime));
 }
+
+DhcpErrorCode StopDhcpdClientSa(void)
+{
+    CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
+    return GetCErrorCode(dhcpClientPtr->StopClientSa());
+}
+
+DhcpErrorCode StopDhcpdServerSa(void)
+{
+    CHECK_PTR_RETURN(dhcpServerPtr, DHCP_INVALID_PARAM);
+    return GetCErrorCode(dhcpServerPtr->StopServerSa());
+}

@@ -46,6 +46,7 @@ private:
     int OnSetConfiguration(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnDealWifiDhcpCache(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnStopDhcpClient(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int OnStopClientSa(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 #ifndef OHOS_ARCH_LITE
 public:
     class ClientDeathRecipient : public IRemoteObject::DeathRecipient {

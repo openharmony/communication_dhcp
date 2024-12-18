@@ -27,6 +27,9 @@
 #ifndef OHOS_ARCH_LITE
 #include "ipc_skeleton.h"
 #include "netsys_controller.h"
+#ifndef OHOS_EUPDATER
+#include "dhcp_sa_manager.h"
+#endif
 #endif
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImpl");
@@ -373,6 +376,27 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
         }
     }
     return DHCP_E_SUCCESS;
+}
+
+ErrCode DhcpClientServiceImpl::StopClientSa(void)
+{
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
+        DHCP_LOGE("StopDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("StopClientSa:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+#ifdef OHOS_ARCH_LITE
+    return DHCP_E_SUCCESS;
+#else
+#ifndef OHOS_EUPDATER
+    return DhcpSaLoadManager::GetInstance().UnloadWifiSa(DHCP_CLIENT_ABILITY_ID);
+#else
+    return DHCP_E_SUCCESS;
+#endif
+#endif
 }
 
 int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)

@@ -19,7 +19,10 @@
 "OHOS::DHCP::DhcpArpChecker::~DhcpArpChecker()";
 "OHOS::DHCP::DhcpArpChecker::Stop()";
 "OHOS::DHCP::DhcpArpChecker::GetGwMacAddrList(int, bool, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
- 
+"OHOS::DHCP::DhcpSaLoadManager::GetInstance()";
+"OHOS::DHCP::DhcpSaLoadManager::UnloadWifiSa(int)";
+"OHOS::DHCP::DhcpSaLoadManager::LoadWifiSa(int)";
+
  };
     local:
         *;

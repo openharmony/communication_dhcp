@@ -56,6 +56,7 @@ public:
     ErrCode GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& dhcpClientInfo) override;
     ErrCode UpdateLeasesTime(const std::string& leaseTime) override;
     bool IsRemoteDied() override;
+    ErrCode StopServerSa(void) override;
 
 #ifdef OHOS_ARCH_LITE
     void OnRemoteDied(void);
