@@ -75,6 +75,7 @@ public:
     ErrCode UpdateLeasesTime(const std::string& leaseTime) override;
     bool IsRemoteDied(void) override;
     ErrCode DeleteLeaseFile(const std::string& ifname);
+    ErrCode StopServerSa(void) override;
 
     /**
      * @Description : Fork child process function for start dhcp server process.

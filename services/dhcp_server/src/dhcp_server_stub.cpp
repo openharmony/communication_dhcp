@@ -72,6 +72,10 @@ void DhcpServerStub::InitHandleMap()
         [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
             return OnGetDhcpClientInfos(code, data, reply, option);
         };
+    handleFuncMap[static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_STOP_SA)] =
+        [this](uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option) {
+            return OnStopServerSa(code, data, reply, option);
+        };
 }
 
 int DhcpServerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
@@ -153,6 +157,15 @@ int DhcpServerStub::OnStopDhcpServer(uint32_t code, MessageParcel &data, Message
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
 
+    return 0;
+}
+
+int DhcpServerStub::OnStopServerSa(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)
+{
+    DHCP_LOGI("OnStopServerSa");
+    ErrCode ret = StopServerSa();
+    reply.WriteInt32(0);
+    reply.WriteInt32(ret);
     return 0;
 }
 

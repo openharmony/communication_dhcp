@@ -185,5 +185,12 @@ ErrCode DhcpServerImpl::UpdateLeasesTime(const std::string& leaseTime)
     RETURN_IF_FAIL(GetDhcpServerProxy());
     return client_->UpdateLeasesTime(leaseTime);
 }
+
+ErrCode DhcpServerImpl::StopServerSa(void)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    RETURN_IF_FAIL(GetDhcpServerProxy());
+    return client_->StopServerSa();
+}
 }  // namespace DHCP
 }  // namespace OHOS

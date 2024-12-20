@@ -72,7 +72,6 @@ if (defined(ohos_lite)) {
     "src/dhcp_client.cpp",
     "src/dhcp_client_callback_stub.cpp",
     "src/dhcp_event.cpp",
-    "src/dhcp_sa_manager.cpp",
     "src/dhcp_server.cpp",
   ]
   config("dhcp_sdk_header") {
@@ -111,6 +110,7 @@ if (defined(ohos_lite)) {
       ":dhcp_sdk_header",
     ]
     defines = []
+    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
@@ -140,11 +140,11 @@ if (defined(ohos_lite)) {
       ":dhcp_sdk_header",
     ]
     defines = []
+    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
     external_deps = [
       "c_utils:utils",
       "hilog:libhilog",
       "ipc:ipc_single",
-      "samgr:samgr_proxy",
     ]
   }
 

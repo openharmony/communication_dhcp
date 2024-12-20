@@ -396,6 +396,38 @@ ErrCode DhcpServerProxy::StopDhcpServer(const std::string& ifname)
     DHCP_LOGI("DhcpServerProxy StopDhcpServer ok, exception:%{public}d", exception);
     return DHCP_E_SUCCESS;
 }
+
+ErrCode DhcpServerProxy::StopServerSa(void)
+{
+    DHCP_LOGI("DhcpServerProxy enter StopServerSa mRemoteDied:%{public}d", mRemoteDied);
+    if (mRemoteDied) {
+        DHCP_LOGE("failed to %{public}s,remote service is died!", __func__);
+        return DHCP_E_FAILED;
+    }
+    MessageParcel data;
+    MessageParcel reply;
+    MessageOption option;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        DHCP_LOGE("Write interface token error: %{public}s", __func__);
+        return DHCP_E_FAILED;
+    }
+    data.WriteInt32(0);
+    int error = Remote()->SendRequest(
+        static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_STOP_SA), data, reply, option);
+    if (error != ERR_NONE) {
+        DHCP_LOGE("Set Attr(%{public}d) failed, code is %{public}d",
+            static_cast<int32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_STOP_SA), error);
+        return DHCP_E_FAILED;
+    }
+    int exception = reply.ReadInt32();
+    if (exception) {
+        DHCP_LOGE("exception failed, exception:%{public}d", exception);
+        return DHCP_E_FAILED;
+    }
+    DHCP_LOGI("DhcpServerProxy StopServerSa ok, exception:%{public}d", exception);
+    return DHCP_E_SUCCESS;
+}
+
 ErrCode DhcpServerProxy::RemoveDhcpRange(const std::string& tagName, const DhcpRange& range)
 {
     DHCP_LOGI("DhcpServerProxy enter RemoveDhcpRange mRemoteDied:%{public}d", mRemoteDied);

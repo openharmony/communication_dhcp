@@ -44,6 +44,7 @@ public:
     virtual ErrCode StartDhcpClient(const RouterConfig &config) = 0;
     virtual ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) = 0;
     virtual ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) = 0;
+    virtual ErrCode StopClientSa(void) = 0;
     virtual bool IsRemoteDied() = 0;
 #ifndef OHOS_ARCH_LITE
 public:

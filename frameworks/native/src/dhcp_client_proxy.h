@@ -51,6 +51,7 @@ public:
     ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) override;
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
     bool IsRemoteDied() override;
+    ErrCode StopClientSa(void) override;
 #ifdef OHOS_ARCH_LITE
     void OnRemoteDied(void);
 private:

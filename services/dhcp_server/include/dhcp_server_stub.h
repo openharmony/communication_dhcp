@@ -52,6 +52,7 @@ public:
     int OnGetDhcpClientInfos(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnUpdateLeasesTime(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
     int OnPutDhcpRange(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
+    int OnStopServerSa(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option);
 
 private:
     void InitHandleMap(void);

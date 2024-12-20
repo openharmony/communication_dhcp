@@ -30,7 +30,7 @@ DhcpSaLoadManager& DhcpSaLoadManager::GetInstance()
     return *instance;
 }
 
-ErrCode DhcpSaLoadManager::LoadWifiSa(int32_t systemAbilityId) __attribute__((no_sanitize("cfi")))
+ErrCode DhcpSaLoadManager::LoadWifiSa(int systemAbilityId) __attribute__((no_sanitize("cfi")))
 {
     DHCP_LOGD("%{public}s enter, systemAbilityId = [%{public}d] loading", __func__, systemAbilityId);
     sptr<ISystemAbilityManager> samgr =
@@ -80,7 +80,7 @@ ErrCode DhcpSaLoadManager::WaitLoadStateChange(int32_t systemAbilityId)
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpSaLoadManager::UnloadWifiSa(int32_t systemAbilityId)
+ErrCode DhcpSaLoadManager::UnloadWifiSa(int systemAbilityId)
 {
     DHCP_LOGI("%{public}s enter, systemAbilityId = [%{public}d] unloading", __func__, systemAbilityId);
     sptr<ISystemAbilityManager> samgr = SystemAbilityManagerClient::GetInstance().GetSystemAbilityManager();

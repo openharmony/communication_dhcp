@@ -68,12 +68,14 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_permission_utils.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_sa_manager.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
     ]
 
     include_dirs = [
       "$DHCP_ROOT_DIR/services",
       "$DHCP_ROOT_DIR/services/utils/include",
+      "$DHCP_ROOT_DIR/frameworks/native/include",
     ]
     if (is_asan) {
       defines = [ "DTFUZZ_TEST" ]

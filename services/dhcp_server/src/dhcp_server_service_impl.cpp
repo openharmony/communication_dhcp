@@ -32,6 +32,7 @@
 #include "dhcp_function.h"
 #include "dhcp_permission_utils.h"
 #ifndef OHOS_ARCH_LITE
+#include "dhcp_sa_manager.h"
 #include "ipc_skeleton.h"
 #endif
 
@@ -315,6 +316,23 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
         }
     }
     return DHCP_E_SUCCESS;
+}
+
+ErrCode DhcpServerServiceImpl::StopServerSa(void)
+{
+    if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
+        DHCP_LOGE("PutDhcpRange:NOT NATIVE PROCESS, PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+    if (!DhcpPermissionUtils::VerifyDhcpNetworkPermission("ohos.permission.NETWORK_DHCP")) {
+        DHCP_LOGE("PutDhcpRange:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
+        return DHCP_E_PERMISSION_DENIED;
+    }
+#ifdef OHOS_ARCH_LITE
+    return DHCP_E_SUCCESS;
+#else
+    return DhcpSaLoadManager::GetInstance().UnloadWifiSa(DHCP_SERVER_ABILITY_ID);
+#endif
 }
 
 ErrCode DhcpServerServiceImpl::PutDhcpRange(const std::string& tagName, const DhcpRange& range)

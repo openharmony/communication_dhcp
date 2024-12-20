@@ -37,7 +37,6 @@ ohos_fuzztest("DhcpServerFuzzTest") {
   sources = [
     "$DHCP_ROOT_DIR/frameworks/native/c_adapter/src/dhcp_c_utils.cpp",
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_event.cpp",
-    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_sa_manager.cpp",
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_server.cpp",
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_server_callback_stub.cpp",
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_server_impl.cpp",
@@ -46,7 +45,10 @@ ohos_fuzztest("DhcpServerFuzzTest") {
     "dhcpserver_fuzzer.cpp",
   ]
 
-  deps = [ "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk" ]
+  deps = [
+    "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
+  ]
 
   external_deps = [
     "c_utils:utils",

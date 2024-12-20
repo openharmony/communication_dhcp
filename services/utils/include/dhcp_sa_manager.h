@@ -25,15 +25,15 @@ namespace OHOS {
 namespace DHCP {
 class DhcpSaLoadCallback : public SystemAbilityLoadCallbackStub {
 public:
-    void OnLoadSystemAbilitySuccess(int32_t systemAbilityId, const sptr<IRemoteObject>& remoteObject) override;
-    void OnLoadSystemAbilityFail(int32_t systemAbilityId) override;
+    void OnLoadSystemAbilitySuccess(int systemAbilityId, const sptr<IRemoteObject>& remoteObject) override;
+    void OnLoadSystemAbilityFail(int systemAbilityId) override;
 };
 
 class DhcpSaLoadManager {
 public:
     static DhcpSaLoadManager& GetInstance();
-    ErrCode LoadWifiSa(int32_t systemAbilityId);
-    ErrCode UnloadWifiSa(int32_t systemAbilityId);
+    ErrCode LoadWifiSa(int systemAbilityId);
+    ErrCode UnloadWifiSa(int systemAbilityId);
     void LoadSystemAbilitySuccess();
     void LoadSystemAbilityFail();
 private:

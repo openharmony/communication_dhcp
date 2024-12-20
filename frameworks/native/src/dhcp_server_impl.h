@@ -45,6 +45,7 @@ public:
     ErrCode SetDhcpName(const std::string& ifname, const std::string& tagName) override;
     ErrCode GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& dhcpClientInfo) override;
     ErrCode UpdateLeasesTime(const std::string& leaseTime) override;
+    ErrCode StopServerSa(void) override;
 private:
     bool GetDhcpServerProxy();
     int systemAbilityId_;

@@ -40,12 +40,14 @@ ohos_fuzztest("DhcpClientFuzzTest") {
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_impl.cpp",
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_proxy.cpp",
     "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_event.cpp",
-    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_sa_manager.cpp",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
     "dhcpclient_fuzzer.cpp",
   ]
 
-  deps = [ "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk" ]
+  deps = [
+    "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
+  ]
 
   external_deps = [
     "c_utils:utils",

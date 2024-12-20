@@ -244,5 +244,36 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
     DHCP_LOGI("StopDhcpClient ok, exception:%{public}d", exception);
     return DHCP_E_SUCCESS;
 }
+
+ErrCode DhcpClientProxy::StopClientSa(void)
+{
+    DHCP_LOGI("DhcpClientProxy enter StopClientSa mRemoteDied:%{public}d", mRemoteDied);
+    if (mRemoteDied) {
+        DHCP_LOGI("failed to %{public}s,remote service is died!", __func__);
+        return DHCP_E_FAILED;
+    }
+    MessageOption option;
+    MessageParcel data;
+    MessageParcel reply;
+    if (!data.WriteInterfaceToken(GetDescriptor())) {
+        DHCP_LOGI("Write interface token error: %{public}s", __func__);
+        return DHCP_E_FAILED;
+    }
+    data.WriteInt32(0);
+    int error = Remote()->SendRequest(
+        static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_SA), data, reply, option);
+    if (error != ERR_NONE) {
+        DHCP_LOGI("Set Attr(%{public}d) failed, code is %{public}d",
+            static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_SA), error);
+        return DHCP_E_FAILED;
+    }
+    int exception = reply.ReadInt32();
+    if (exception) {
+        DHCP_LOGI("exception failed, exception:%{public}d", exception);
+        return DHCP_E_FAILED;
+    }
+    DHCP_LOGI("StopClientSa ok, exception:%{public}d", exception);
+    return DHCP_E_SUCCESS;
+}
 }  // namespace DHCP
 }  // namespace OHOS

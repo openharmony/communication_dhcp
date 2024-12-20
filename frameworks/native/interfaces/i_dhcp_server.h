@@ -50,6 +50,7 @@ public:
     virtual ErrCode SetDhcpName(const std::string& ifname, const std::string& tagName) = 0;
     virtual ErrCode GetDhcpClientInfos(const std::string& ifname, std::vector<std::string>& dhcpClientInfo) = 0;
     virtual ErrCode UpdateLeasesTime(const std::string& leaseTime) = 0;
+    virtual ErrCode StopServerSa(void) = 0;
     virtual bool IsRemoteDied() = 0;
 #ifndef OHOS_ARCH_LITE
 public:
