@@ -74,8 +74,6 @@ ohos_unittest("dhcp_native_unittest") {
     "--coverage",
   ]
 
-  configs = [ ":module_private_config" ]
-
   defines = [
     "DHCP_SEL_WAIT_TIMEOUTS=1",
     "private = public",
