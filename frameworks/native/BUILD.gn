@@ -145,6 +145,7 @@ if (defined(ohos_lite)) {
       "c_utils:utils",
       "hilog:libhilog",
       "ipc:ipc_single",
+      "samgr:samgr_proxy",
     ]
   }
 
