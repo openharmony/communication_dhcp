@@ -64,6 +64,7 @@ ohos_unittest("dhcp_native_unittest") {
     "hilog:libhilog",
     "ipc:ipc_single",
     "safwk:system_ability_fwk",
+    "samgr:samgr_common",
     "samgr:samgr_proxy",
   ]
 
