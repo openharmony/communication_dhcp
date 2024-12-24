@@ -70,7 +70,7 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
     }
     struct nlmsghdr *hdrMsg = (struct nlmsghdr*)msg;
     struct rtmsg* rtMsg = reinterpret_cast<struct rtmsg*>(NLMSG_DATA(hdrMsg));
-    if (hdrMsg->nlmsg_len < sizeof(struct rtmsg)) {
+    if (hdrMsg->nlmsg_len < sizeof(struct rtmsg) + NLMSG_LENGTH(0)) {
         DHCP_LOGE("invliad msglen:%{public}d", hdrMsg->nlmsg_len);
         return;
     }
@@ -89,18 +89,27 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
     for (rtaInfo = RTM_RTA(rtMsg); RTA_OK(rtaInfo, (int)size); rtaInfo = RTA_NEXT(rtaInfo, size)) {
         switch (rtaInfo->rta_type) {
             case RTA_GATEWAY:
+                if (rtaInfo->rta_len < RTA_LENGTH(0) = sizeof(gateway)) {
+                    return;
+                }
                 if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, gateway, sizeof(gateway)) != 0) {
                     DHCP_LOGE("inet_ntop RTA_GATEWAY failed.");
                     return;
                 }
                 break;
             case RTA_DST:
+                if (rtaInfo->rta_len < RTA_LENGTH(0) = sizeof(dst)) {
+                    return;
+                }
                 if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, dst, sizeof(dst)) != 0) {
                     DHCP_LOGE("inet_ntop RTA_DST failed.");
                     return;
                 }
                 break;
             case RTA_OIF:
+                if (rtaInfo->rta_len < RTA_LENGTH(0) = sizeof(uint32_t)) {
+                    return;
+                }
                 ifindex = *(reinterpret_cast<int32_t*>(RTA_DATA(rtaInfo)));
                 break;
             default:
@@ -116,6 +125,9 @@ void DhcpIpv6Client::parseNewneighMessage(void* msg)
         return;
     }
     struct nlmsghdr *nlh = (struct nlmsghdr*)msg;
+    if (nlh->nlmsg_len < sizeof(struct ndmsg) + sizeof(struct nlmsghdr)) {
+        return;
+    }
     struct ndmsg *ndm = (struct ndmsg *)NLMSG_DATA(nlh);
     if (!ndm) {
         return;
@@ -126,6 +138,9 @@ void DhcpIpv6Client::parseNewneighMessage(void* msg)
         int rtl = static_cast<int>(RTM_PAYLOAD(nlh));
         while (RTA_OK(rta, rtl)) {
             if (rta->rta_type == NDA_DST) {
+                if (rtaInfo->rta_len < RTA_LENGTH(0) + DHCP_INET6_ADDRSTRLEN) {
+                    return;
+                }
                 struct in6_addr *addr = (struct in6_addr *)RTA_DATA(rta);
                 char gateway[DHCP_INET6_ADDRSTRLEN] = {0};
                 char dst[DHCP_INET6_ADDRSTRLEN] = {0};
@@ -170,6 +185,9 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
     struct nlmsghdr *nlh = (struct nlmsghdr*)data;
     while (nlh && NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
         DHCP_LOGD("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
+        if (nlh->nlmsg_type == NLMSG_DONE) {
+            break;
+        }
         if (nlh->nlmsg_type == RTM_NEWADDR) {
             struct ifaddrmsg *ifa = (struct ifaddrmsg*)NLMSG_DATA(nlh);
             struct rtattr *rth = IFA_RTA(ifa);
@@ -192,7 +210,7 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             struct nduseroptmsg* ndmsg = (struct nduseroptmsg*)NLMSG_DATA(nlh);
             if (sizeof(*ndmsg) > (size_t)optLen) {
                 DHCP_LOGE("ndoption get invalid length.");
-                continue;
+                return;
             }
             size_t optsize = NLMSG_PAYLOAD(nlh, sizeof(*ndmsg));
             parseNdUserOptMessage((void*)ndmsg, optsize);

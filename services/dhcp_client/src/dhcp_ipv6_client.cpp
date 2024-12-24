@@ -334,7 +334,9 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             }
         }
         if (strlen(dhcpIpv6Info.globalIpv6Addr) != 0 || strlen(dhcpIpv6Info.randIpv6Addr) != 0) {
-            onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
+            if (onIpv6AddressChanged != nullptr) {
+                onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
+            }
         }
     } else if (first == NUMBER_FIFTY_FOUR) {  // begin 'f'->54
         if (IsEui64ModeIpv6Address(ipv6addr, len)) {
@@ -351,7 +353,9 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             DHCP_LOGI("AddIpv6Address add uniqueLocalAddr2, first=%{public}d", first);
         }
         if (strlen(dhcpIpv6Info.uniqueLocalAddr1) != 0 || strlen(dhcpIpv6Info.uniqueLocalAddr2) != 0) {
-            onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
+            if (onIpv6AddressChanged != nullptr) {
+                onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
+            }
         }
     } else {
         DHCP_LOGI("AddIpv6Address other first=%{public}d", first);
