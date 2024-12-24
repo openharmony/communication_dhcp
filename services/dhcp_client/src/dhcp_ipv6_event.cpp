@@ -89,7 +89,7 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
     for (rtaInfo = RTM_RTA(rtMsg); RTA_OK(rtaInfo, (int)size); rtaInfo = RTA_NEXT(rtaInfo, size)) {
         switch (rtaInfo->rta_type) {
             case RTA_GATEWAY:
-                if (rtaInfo->rta_len < RTA_LENGTH(0) = sizeof(gateway)) {
+                if (rtaInfo->rta_len < (RTA_LENGTH(0) + sizeof(gateway))) {
                     return;
                 }
                 if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, gateway, sizeof(gateway)) != 0) {
@@ -98,7 +98,7 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
                 }
                 break;
             case RTA_DST:
-                if (rtaInfo->rta_len < RTA_LENGTH(0) = sizeof(dst)) {
+                if (rtaInfo->rta_len < (RTA_LENGTH(0) + sizeof(dst))) {
                     return;
                 }
                 if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, dst, sizeof(dst)) != 0) {
@@ -107,7 +107,7 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
                 }
                 break;
             case RTA_OIF:
-                if (rtaInfo->rta_len < RTA_LENGTH(0) = sizeof(uint32_t)) {
+                if (rtaInfo->rta_len < (RTA_LENGTH(0) + sizeof(uint32_t))) {
                     return;
                 }
                 ifindex = *(reinterpret_cast<int32_t*>(RTA_DATA(rtaInfo)));
@@ -138,7 +138,7 @@ void DhcpIpv6Client::parseNewneighMessage(void* msg)
         int rtl = static_cast<int>(RTM_PAYLOAD(nlh));
         while (RTA_OK(rta, rtl)) {
             if (rta->rta_type == NDA_DST) {
-                if (rtaInfo->rta_len < RTA_LENGTH(0) + DHCP_INET6_ADDRSTRLEN) {
+                if (rtaInfo->rta_len < (RTA_LENGTH(0) + DHCP_INET6_ADDRSTRLEN)) {
                     return;
                 }
                 struct in6_addr *addr = (struct in6_addr *)RTA_DATA(rta);
