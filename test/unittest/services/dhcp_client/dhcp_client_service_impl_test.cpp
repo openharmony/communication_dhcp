@@ -62,6 +62,7 @@ HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StopDhcpClient(config.ifname, false));
 }
 
+
 HWTEST_F(DhcpClientServiceImplTest, OnStartTest, TestSize.Level1)
 {
     DHCP_LOGE("enter OnStartTest");
