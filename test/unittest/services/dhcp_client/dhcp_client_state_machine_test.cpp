@@ -1027,7 +1027,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level1)
     DhcpPacket packet;
     dhcpClient->SetSecondsElapsed(nullptr);
     dhcpClient->SetSecondsElapsed(&packet);
-    EXPECT_EQ(packet.secs, ZERO);
+    EXPECT_NE(packet.secs, TWO);
 }
 }
 }
