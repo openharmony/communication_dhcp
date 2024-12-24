@@ -138,7 +138,7 @@ void DhcpIpv6Client::parseNewneighMessage(void* msg)
         int rtl = static_cast<int>(RTM_PAYLOAD(nlh));
         while (RTA_OK(rta, rtl)) {
             if (rta->rta_type == NDA_DST) {
-                if (rtaInfo->rta_len < (RTA_LENGTH(0) + DHCP_INET6_ADDRSTRLEN)) {
+                if (rta->rta_len < (RTA_LENGTH(0) + DHCP_INET6_ADDRSTRLEN)) {
                     return;
                 }
                 struct in6_addr *addr = (struct in6_addr *)RTA_DATA(rta);
