@@ -56,7 +56,7 @@ HWTEST_F(DhcpClientServiceImplTest, IsNativeProcessTest, TestSize.Level1)
 
     RouterConfig config;
     config.ifname = "wlan0";
-    config.bIpv6 = true;
+    config.bIpv6 = false;
     config.prohibitUseCacheIp = false;
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpClient(config));
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StopDhcpClient(config.ifname, false));
