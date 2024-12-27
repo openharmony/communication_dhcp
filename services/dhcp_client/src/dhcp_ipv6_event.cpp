@@ -69,6 +69,9 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
         return;
     }
     struct nlmsghdr *hdrMsg = (struct nlmsghdr*)msg;
+    if (hdrMsg->nlmsg_len < sizeof(struct ndmsg) + sizeof(struct rtmsg)) {
+        return;
+    }
     struct rtmsg* rtMsg = reinterpret_cast<struct rtmsg*>(NLMSG_DATA(hdrMsg));
     if (hdrMsg->nlmsg_len < sizeof(struct rtmsg) + NLMSG_LENGTH(0)) {
         DHCP_LOGE("invliad msglen:%{public}d", hdrMsg->nlmsg_len);
@@ -185,10 +188,10 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
     struct nlmsghdr *nlh = (struct nlmsghdr*)data;
     while (nlh && NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
         DHCP_LOGD("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
-        if (nlh->nlmsg_type == NLMSG_DONE) {
-            break;
-        }
         if (nlh->nlmsg_type == RTM_NEWADDR) {
+            if (nlh->nlmsg_len < (sizeof(struct nlmsghdr) + sizeof(struct ifaddrmsg))) {
+                return;
+            }
             struct ifaddrmsg *ifa = (struct ifaddrmsg*)NLMSG_DATA(nlh);
             struct rtattr *rth = IFA_RTA(ifa);
             int rtl = static_cast<int>(IFA_PAYLOAD(nlh));
@@ -207,10 +210,13 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             } else {
                 return;
             }
+            if (nlh->nlmsg_len < (sizeof(struct nlmsghdr) + sizeof(struct nduseroptmsg))) {
+                return;
+            }
             struct nduseroptmsg* ndmsg = (struct nduseroptmsg*)NLMSG_DATA(nlh);
             if (sizeof(*ndmsg) > (size_t)optLen) {
                 DHCP_LOGE("ndoption get invalid length.");
-                return;
+                continue;
             }
             size_t optsize = NLMSG_PAYLOAD(nlh, sizeof(*ndmsg));
             parseNdUserOptMessage((void*)ndmsg, optsize);
