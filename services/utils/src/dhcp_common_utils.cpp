@@ -242,7 +242,7 @@ int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const s
         return -1;
     }
 
-    int32_t ret = ioctl(sockFd, SIOCSARP, req);
+    int32_t ret = ioctl(sockFd, SIOCSARP, &req);
     if (ret < 0) {
         DHCP_LOGE("DoArpItem ioctl error");
     }
