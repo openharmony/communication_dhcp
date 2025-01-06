@@ -1721,13 +1721,14 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
 {
     DHCP_LOGI("start %{public}s %{public}d", __func__, __LINE__);
     if (msg->length < (DHCP_MSG_HEADER_SIZE + MAGIC_COOKIE_LENGTH)) {
+        DHCP_LOGE("ParseMessageOptions, msg length:%{public}d error", msg->length);
         return RET_FAILED;
     }
     DhcpOption *current, *end;
     current = (DhcpOption *)msg->packet.options;
     end = (DhcpOption *)(((uint8_t *)msg->packet.options) + (msg->length - DHCP_MSG_HEADER_SIZE));
     if (memcmp(current, MAGIC_COOKIE_DATA, sizeof(MAGIC_COOKIE_DATA)) != 0) {
-        DHCP_LOGD("bad magic cookie.");
+        DHCP_LOGE("bad magic cookie.");
         return RET_FAILED;
     }
 
@@ -1737,7 +1738,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
         if (((uint8_t *)end) - ((uint8_t *)current) < OPT_HEADER_LENGTH) {
-            DHCP_LOGE("current->code out of option range.");
+            DHCP_LOGE("current->code:%{publc}d out of option range.", current->code);
             return RET_FAILED;
         }
         DHCP_LOGD("ParseMessageOptions, current code:%{public}d, len:%{public}d.", current->code, current->length);
