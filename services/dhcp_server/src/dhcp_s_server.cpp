@@ -1763,7 +1763,6 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         optTotal++;
     }
     if (current < end && current->code == END_OPTION) {
-        DHCP_LOGD("option list size:%zu xid:%u", msg->options.size, msg->packet.xid);
         return RET_SUCCESS;
     }
     DHCP_LOGE("option list parse failed.");
