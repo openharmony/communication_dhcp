@@ -1741,9 +1741,20 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
             DHCP_LOGE("current->code out of option range.");
             return RET_FAILED;
         }
+        DHCP_LOGD("ParseMessageOptions, current code:%{public}d, len:%{public}d.", current->code, current->length);
+        if (current->code == PAD_OPTION) {
+            current = (DhcpOption *)(((uint8_t *)current) + 1);
+            DHCP_LOGI("ParseMessageOptions, pad filed, continue.");
+            continue;
+        }
+        if (current->code == TIME_OFFSET_OPTION) {
+            current = (DhcpOption *)(((uint8_t *)current) + OPT_HEADER_LENGTH + current->length);
+            DHCP_LOGI("ParseMessageOptions, time offset filed, len:%{public}d, continue.", current->length);
+            continue;
+        }
         pos += (OPT_HEADER_LENGTH + current->length);
         if (pos >= maxPos) {
-            DHCP_LOGD("out of option max pos.");
+            DHCP_LOGE("out of option max pos.");
             return RET_FAILED;
         }
         if (PushBackOption(&msg->options, current) != RET_SUCCESS) {
@@ -1757,7 +1768,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         return RET_SUCCESS;
     }
 
-    DHCP_LOGD("option list parse failed.");
+    DHCP_LOGE("option list parse failed.");
     return RET_FAILED;
 }
 
