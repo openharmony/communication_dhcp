@@ -1726,7 +1726,6 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
     DhcpOption *current, *end;
     current = (DhcpOption *)msg->packet.options;
     end = (DhcpOption *)(((uint8_t *)msg->packet.options) + (msg->length - DHCP_MSG_HEADER_SIZE));
-
     if (memcmp(current, MAGIC_COOKIE_DATA, sizeof(MAGIC_COOKIE_DATA)) != 0) {
         DHCP_LOGD("bad magic cookie.");
         return RET_FAILED;
@@ -1767,7 +1766,6 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         DHCP_LOGD("option list size:%zu xid:%u", msg->options.size, msg->packet.xid);
         return RET_SUCCESS;
     }
-
     DHCP_LOGE("option list parse failed.");
     return RET_FAILED;
 }
