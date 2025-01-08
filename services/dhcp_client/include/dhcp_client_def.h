@@ -277,6 +277,7 @@ enum TimerType {
     TIMER_RENEW_DELAY,
     TIMER_REBIND_DELAY,
     TIMER_REMAINING_DELAY,
+    TIMER_SLOW_ARP,
 };
 
 struct RouterCfg {

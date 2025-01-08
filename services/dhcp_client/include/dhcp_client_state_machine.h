@@ -89,6 +89,7 @@ private:
     void FastArpDetect();
     void SlowArpDetect(time_t timestamp);
     void SlowArpDetectCallback(bool isReachable);
+    void SlowArpTimeoutCallback();
     bool IsArpReachable(uint32_t timeoutMillis, std::string ipAddress);
     void SaveIpInfoInLocalFile(const DhcpIpResult ipResult);
     int32_t GetCachedDhcpResult(std::string targetBssid, IpInfoCached &ipCached);
@@ -160,6 +161,7 @@ private:
     std::function<void(bool isReachable)> m_slowArpCallback;
     bool m_slowArpDetecting;
     int64_t firstSendPacketTime_;
+    uint32_t slowArpTimeoutTimerId_;
 };
 
 typedef struct{

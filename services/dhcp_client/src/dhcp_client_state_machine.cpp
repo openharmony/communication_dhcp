@@ -58,8 +58,8 @@ namespace DHCP {
 constexpr uint32_t FAST_ARP_DETECTION_TIME_MS = 50;
 constexpr uint32_t SLOW_ARP_DETECTION_TIME_MS = 80;
 constexpr uint32_t SLOW_ARP_TOTAL_TIME_MS = 4 * 1000;
+constexpr uint32_t SLOW_ARP_TOTAL_TIME_S = 4;
 constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
-constexpr uint32_t RATE_S_MS = 1000;
 constexpr int DHCP_IP_TYPE_A = 128;
 constexpr int DHCP_IP_TYPE_B = 192;
 constexpr int DHCP_IP_TYPE_C = 224;
@@ -82,7 +82,8 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_ifName(ifname),
     ipv4Thread_(nullptr),
     m_slowArpDetecting(false),
-    firstSendPacketTime_(0)
+    firstSendPacketTime_(0),
+    slowArpTimeoutTimerId_(0)
 {
 #ifndef OHOS_ARCH_LITE
     m_slowArpTaskId =0 ;
@@ -342,6 +343,7 @@ int DhcpClientStateMachine::StopIpv4(void)
         m_conflictCount = 0;
 #ifndef OHOS_ARCH_LITE
         StopTimer(getIpTimerId);
+        StopTimer(slowArpTimeoutTimerId_);
         DHCP_LOGI("UnRegister slowArpTask: %{public}u", m_slowArpTaskId);
         DhcpTimer::GetInstance()->UnRegister(m_slowArpTaskId);
         m_slowArpTaskId = 0;
@@ -1751,6 +1753,9 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
         m_dhcp4State = DHCP_STATE_DECLINE;
         m_timeoutTimestamp = 0;
         SetSocketMode(SOCKET_MODE_RAW);
+    #ifndef OHOS_ARCH_LITE
+        StopTimer(slowArpTimeoutTimerId_);
+    #endif
     } else {
         m_dhcp4State = DHCP_STATE_BOUND;
         m_sentPacketNum = 0;
@@ -1765,6 +1770,25 @@ void DhcpClientStateMachine::SlowArpDetectCallback(bool isReachable)
 #endif
 }
 
+void DhcpClientStateMachine::SlowArpTimeoutCallback()
+{
+    DHCP_LOGI("SlowArpTimeoutCallback, enter");
+    if (!m_slowArpDetecting) {
+        DHCP_LOGI("SlowArpTimeoutCallback, it is not arpchecking");
+        return;
+    }
+    m_dhcp4State = DHCP_STATE_BOUND;
+    m_sentPacketNum = 0;
+    m_resendTimer = 0;
+    time_t curTimestamp = time(NULL);
+    if (curTimestamp == static_cast<time_t>(-1)) {
+        DHCP_LOGI("StartIpv4, time return failed");
+    }
+    m_timeoutTimestamp = curTimestamp + static_cast<time_t>(m_renewalSec);
+    StopIpv4();
+    ScheduleLeaseTimers(false);
+}
+
 void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
 {
     DHCP_LOGI("SlowArpDetect() enter, %{public}d", m_sentPacketNum);
@@ -1776,7 +1800,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
         StopIpv4();
         ScheduleLeaseTimers(false);
     } else if (m_sentPacketNum == SLOW_ARP_DETECTION_TRY_CNT) {
-        m_timeoutTimestamp = static_cast<int64_t>(SLOW_ARP_TOTAL_TIME_MS / RATE_S_MS) + time(NULL) + 1;
+        m_timeoutTimestamp = SLOW_ARP_TOTAL_TIME_S + SLOW_ARP_TOTAL_TIME_S + timestamp;
     #ifndef OHOS_ARCH_LITE
         std::function<void()> func = [this]() {
             DHCP_LOGI("SlowArpDetectTask enter");
@@ -1790,6 +1814,7 @@ void DhcpClientStateMachine::SlowArpDetect(time_t timestamp)
             m_slowArpCallback(ret);
             };
         DhcpTimer::GetInstance()->Register(func, m_slowArpTaskId, 0);
+        StartTimer(TIMER_SLOW_ARP, slowArpTimeoutTimerId_, static_cast<int64_t>(SLOW_ARP_TOTAL_TIME_MS), true);
         DHCP_LOGI("Register m_slowArpTaskId is %{public}u", m_slowArpTaskId);
     #endif
     } else {
@@ -1946,6 +1971,9 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, int64
             break;
         case TIMER_REMAINING_DELAY:
             timeCallback = [this] { this->RemainingDelayCallback(); };
+            break;
+        case TIMER_SLOW_ARP:
+            timeCallback = [this] { this->SlowArpTimeoutCallback(); };
             break;
         default:
             DHCP_LOGE("StartTimer default timerId:%{public}u", timerId);
