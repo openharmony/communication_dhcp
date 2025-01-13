@@ -46,6 +46,11 @@ constexpr size_t DHCP_SLEEP_1 = 1;
 const std::u16string FORMMGR_INTERFACE_TOKEN = u"ohos.wifi.IDhcpClient";
 sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
 
+
+
+
+
+
 void OnRegisterCallBackTest(const std::string& ifname, size_t size)
 {
     uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);

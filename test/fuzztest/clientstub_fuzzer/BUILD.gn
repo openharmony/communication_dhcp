@@ -44,6 +44,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
   ]
   sources = [
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
+    "$DHCP_ROOT_DIR/frameworks/native/src/dhcp_client_callback_stub.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_state_machine.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_stub.cpp",
@@ -79,6 +80,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
   ]
 
   defines = [
+    "private = public",
     "OHOS_EUPDATER",
     "DTFUZZ_TEST",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
