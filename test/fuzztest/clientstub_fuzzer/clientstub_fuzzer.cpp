@@ -51,8 +51,7 @@ sptr<DhcpClientStub> pDhcpClientStub = DhcpClientServiceImpl::GetInstance();
 static sptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub =
     sptr<DhcpClientCallBackStub>(new (std::nothrow)DhcpClientCallBackStub());
 std::shared_ptr<DhcpClientServiceImpl> pDhcpClientServiceImpl = std::make_shared<DhcpClientServiceImpl>();
-
-static   std::unique_ptr<DhcpIpv6Client> ipv6Client = std::make_unique<DhcpIpv6Client>("wlan0");
+static std::unique_ptr<DhcpIpv6Client> ipv6Client = std::make_unique<DhcpIpv6Client>("wlan0");
 
 void OnRegisterCallBackTest(const std::string& ifname, size_t size, const uint8_t* data)
 {
