@@ -53,7 +53,7 @@ static sptr<DhcpClientCallBackStub> g_dhcpClientCallBackStub =
 std::shared_ptr<DhcpClientServiceImpl> pDhcpClientServiceImpl = std::make_shared<DhcpClientServiceImpl>();
 static std::unique_ptr<DhcpIpv6Client> ipv6Client = std::make_unique<DhcpIpv6Client>("wlan0");
 
-void OnRegisterCallBackTest(const std::string& ifname, size_t size, const uint8_t* data)
+void OnRegisterCallBackTest(const std::string& ifname, size_t size)
 {
     uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_REG_CALL_BACK);
     MessageParcel datas;
@@ -81,13 +81,13 @@ void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, co
     datas.WriteBool(ipv6);
     datas.WriteBool(static_cast<int>(data[0]) % THREE);
     datas.RewindRead(0);
-   ipv6Client->runFlag = true;
+    ipv6Client->runFlag = true;
     MessageParcel reply;
     MessageOption option;
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
 }
 
-void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, const uint8_t* data)
+void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
 {
     uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT);
     MessageParcel datas;
@@ -153,9 +153,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     std::string ifname = "wlan0";
-    OnRegisterCallBackTest(ifname, size, data);
+    OnRegisterCallBackTest(ifname, size);
     OnStartDhcpClientTest(ifname, size, false, data);
-    OnStopDhcpClientTest(ifname, size, false, data);
+    OnStopDhcpClientTest(ifname, size, false);
     OnDealWifiDhcpCacheTest(data, size);
     DhcpOfferResultSuccessTest(data, size);
     OnStopClientSaTest(data, size);
