@@ -1,0 +1,24 @@
+1.0 {
+    global:
+    extern "C++" {
+        "RegisterDhcpClientCallBack";
+        "RegisterDhcpClientReportCallBack";
+        "StartDhcpClient";
+        "SetConfiguration";
+        "StartDhcpClient";
+        "StopDhcpClient";
+        "RegisterDhcpServerCallBack";
+        "StartDhcpServer";
+        "StopDhcpServer";
+        "SetDhcpRange";
+        "SetDhcpName";
+        "PutDhcpRange";
+        "RemoveAllDhcpRange";
+        "RemoveDhcpRange";
+        "GetDhcpClientInfos";
+        "UpdateLeasesTime";
+        "DealWifiDhcpCache";
+    };
+    local:
+        *;
+};
