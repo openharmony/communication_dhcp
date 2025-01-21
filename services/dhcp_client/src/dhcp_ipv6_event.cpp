@@ -184,7 +184,7 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             }
         } else if (nlh->nlmsg_type == RTM_NEWNDUSEROPT) {
             unsigned int optLen = 0;
-            if ((nlh->nlmsg_len - sizeof(*nlh)) >= 0) {
+            if (nlh->nlmsg_len >= sizeof(*nlh)) {
                 optLen = nlh->nlmsg_len - sizeof(*nlh);
             } else {
                 return;

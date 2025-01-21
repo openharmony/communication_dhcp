@@ -194,7 +194,7 @@ int32_t DhcpResultStoreManager::SetClassKeyValue(IpInfoCached &item, const std::
     if (key == "bssid") {
         item.bssid = value;
     } else if (key == "absoluteLeasetime") {
-        item.absoluteLeasetime = static_cast<uint32_t>(CheckDataLegal(valueTmp));
+        item.absoluteLeasetime = static_cast<int64_t>(CheckDataLegal(valueTmp));
     } else if (key == "strYiaddr") {
         if (strncpy_s(
             item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {

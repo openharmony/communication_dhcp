@@ -159,6 +159,13 @@ long long CheckDataTolonglong(std::string &data, int base)
     return num;
 }
 
+int64_t GetElapsedSecondsSinceBoot()
+{
+    struct timespec times = {0, 0};
+    clock_gettime(CLOCK_BOOTTIME, &times);
+    return static_cast<int64_t>(times.tv_sec);
+}
+
 std::string Ip4IntConvertToStr(uint32_t uIp, bool bHost)
 {
     char bufIp4[INET_ADDRSTRLEN] = {0};

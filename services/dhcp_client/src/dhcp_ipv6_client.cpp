@@ -25,6 +25,7 @@
 #include <sys/time.h>
 #include <net/if.h>
 #include <errno.h>
+#include <fstream>
 #include <thread>
 #include "securec.h"
 #include "dhcp_logger.h"
@@ -70,7 +71,9 @@ const int MASK_FILTER = 0x7;
 const int KERNEL_BUFF_SIZE = (8 * 1024);
 const int ND_OPT_MIN_LEN = 3;
 const int ROUTE_BUFF_SIZE = 1024;
-const int IPV6_TIMEOUT_USEC = 500000;
+const std::string IPV6_ACCEPT_RA_CONFIG_PATH = "/proc/sys/net/ipv6/conf/";
+const std::string ACCEPT_RA = "accept_ra";
+const std::string ACCEPT_OVERRULE_FORWORGING = "2";
 
 #define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
 #define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
@@ -492,7 +495,7 @@ int DhcpIpv6Client::StartIpv6()
     struct timeval timeout = {0};
     fd_set rSet;
     timeout.tv_sec = 0;
-    timeout.tv_usec = IPV6_TIMEOUT_USEC;
+    timeout.tv_usec = SELECT_TIMEOUT_US;
     while (runFlag) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0, KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
@@ -538,11 +541,28 @@ void *DhcpIpv6Client::DhcpIpv6Start()
         DHCP_LOGI("DhcpIpv6Client already started.");
         return NULL;
     }
+
+    SetAcceptRa(ACCEPT_OVERRULE_FORWORGING);
     int result = StartIpv6();
     if (result < 0) {
         DHCP_LOGE("dhcp6 run failed.");
     }
     return NULL;
+}
+
+void DhcpIpv6Client::SetAcceptRa(const std::string &content)
+{
+    std::string fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ACCEPT_RA;
+    std::ofstream outf(fileName, std::ios::out);
+    if (!outf) {
+        DHCP_LOGE("SetAcceptRa, write content [%{public}s] to file [%{public}s] failed. error: %{public}d.",
+            content.c_str(), fileName.c_str(), errno);
+        return;
+    }
+    outf.write(content.c_str(), content.length());
+    outf.close();
+    DHCP_LOGI("SetAcceptRa, write content [%{public}s] to file [%{public}s] success.",
+        content.c_str(), fileName.c_str());
 }
 
 void DhcpIpv6Client::DhcpIPV6Stop(void)

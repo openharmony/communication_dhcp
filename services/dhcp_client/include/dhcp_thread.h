@@ -65,7 +65,7 @@ public:
 
 private:
     class DhcpThreadImpl;
-    std::unique_ptr<DhcpThreadImpl> ptr;
+    std::unique_ptr<DhcpThreadImpl> ptr_{nullptr};
 };
 
 #ifndef OHOS_ARCH_LITE

@@ -1,0 +1,26 @@
+1.0 {
+    global:
+ extern "C++" {
+"OHOS::DHCP::CheckDataLegal(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, int)";
+"OHOS::DHCP::Ip4IntConvertToStr(unsigned int, bool)";
+"OHOS::DHCP::AddArpEntry(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+"OHOS::DHCP::IntIpv4ToAnonymizeStr(unsigned int)";
+"OHOS::DHCP::DhcpPermissionUtils::VerifyIsNativeProcess()";
+"OHOS::DHCP::DhcpPermissionUtils::VerifyDhcpNetworkPermission(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+"OHOS::DHCP::DhcpArpChecker::DhcpArpChecker()";
+"OHOS::DHCP::GetElapsedSecondsSinceBoot()";
+"OHOS::DHCP::DhcpSysTimer::DhcpSysTimer(bool, unsigned long, bool, bool)";
+"OHOS::DHCP::DhcpSysTimer::DhcpSysTimer(bool, unsigned long long, bool, bool)";
+"OHOS::DHCP::DhcpSysTimer::SetCallbackInfo(std::__h::function<void ()> const&)";
+"OHOS::DHCP::Ipv4Anonymize(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>)";
+"OHOS::DHCP::DhcpArpChecker::Start(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
+"OHOS::DHCP::DhcpArpChecker::DoArpCheck(int, bool, unsigned long&)";
+"OHOS::DHCP::DhcpArpChecker::DoArpCheck(int, bool, unsigned long long&)";
+"OHOS::DHCP::DhcpArpChecker::~DhcpArpChecker()";
+"OHOS::DHCP::DhcpArpChecker::Stop()";
+"OHOS::DHCP::DhcpArpChecker::GetGwMacAddrList(int, bool, std::__h::vector<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>, std::__h::allocator<std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>>>&)";
+ 
+ };
+    local:
+        *;
+};

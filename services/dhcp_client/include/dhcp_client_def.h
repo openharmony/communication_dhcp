@@ -47,6 +47,7 @@
 #define SLEEP_TIME_500_MS       (500 * 1000)
 #define DHCP_FAILE_TIMEOUT_THR  6
 #define MAX_CONFLICTS_COUNT     2
+#define SELECT_TIMEOUT_US       100000
 
 #define MAC_ADDR_LEN            6
 #define MAC_ADDR_CHAR_NUM       3
@@ -90,7 +91,7 @@
 #define DHCP_HWADDR_LENGTH          16
 #define DHCP_HOST_NAME_LENGTH       64
 #define DHCP_BOOT_FILE_LENGTH       128
-#define DHCP_OPT_SIZE               308
+#define DHCP_OPT_SIZE               1780
 #define DHCP_OPT_CODE_INDEX         0
 #define DHCP_OPT_LEN_INDEX          1
 #define DHCP_OPT_DATA_INDEX         2
@@ -384,8 +385,7 @@ enum DHCP_IP_TYPE {
 
 typedef struct{
     int  ifaceIndex;                        /* Index of the network interface used by the current process. */
-    bool timeoutExit;                       /* DHCP packet sending times out and exits automatically. */
-    bool isIpv6;                             /* IPv6 address of the network interface used to get. */
+    bool isIpv6;                            /* IPv6 address of the network interface used to get. */
     unsigned int ifaceIpv4;                 /* IPv4 of the network interface used by the current process. */
     unsigned int getMode;                   /* Current process obtaining IPv4 address mode. */
     unsigned char ifaceMac[MAC_ADDR_LEN];   /* Mac addr of the network interface used by the current process. */

@@ -45,7 +45,8 @@ bool DhcpClientStateMachineFunFuzzerTest(const uint8_t *data, size_t size)
     }
     dhcpClient->DhcpRequestHandle(curTimestamp);
     sleep(DHCP_SLEEP_2);
-    dhcpClient->DhcpResponseHandle(curTimestamp);
+    int sockFd = 0;
+    dhcpClient->DhcpResponseHandle(curTimestamp, sockFd);
     return true;
 }
 
@@ -373,7 +374,8 @@ void CloseSignalHandleFuzzerTest(const uint8_t *data, size_t size)
 void RunGetIPThreadFuncFuzzerTest(const uint8_t *data, size_t size)
 {
     dhcpClient->m_cltCnf.getMode = 0;
-    dhcpClient->RunGetIPThreadFunc();
+    DhcpClientStateMachine machine("wlan0");
+    dhcpClient->RunGetIPThreadFunc(machine);
 }
 
 void InitConfigFuzzerTest(const uint8_t *data, size_t size)
@@ -418,23 +420,18 @@ void DhcpInitFuzzerTest(const uint8_t *data, size_t size)
     dhcpClient->DhcpInit();
 }
 
-void DhcpStopFuzzerTest(const uint8_t *data, size_t size)
-{
-    dhcpClient->m_dhcp4State = 1;
-    dhcpClient->DhcpStop();
-}
-
 void InitSocketFdFuzzerTest(const uint8_t *data, size_t size)
 {
-    dhcpClient->m_sockFd = -1;
-    dhcpClient->InitSocketFd();
+    int sockFdRaw = 0;
+    int sockFdkernel = 0;
+    dhcpClient->InitSocketFd(sockFdRaw, sockFdkernel);
 
     dhcpClient->m_sockFd = 1;
     dhcpClient->m_socketMode = SOCKET_MODE_RAW;
-    dhcpClient->InitSocketFd();
+    dhcpClient->InitSocketFd(sockFdRaw, sockFdkernel);
 
     dhcpClient->m_socketMode = SOCKET_MODE_KERNEL;
-    dhcpClient->InitSocketFd();
+    dhcpClient->InitSocketFd(sockFdRaw, sockFdkernel);
 }
 
 void GetPacketReadSockFdFuzzerTest(const uint8_t *data, size_t size)
@@ -717,7 +714,8 @@ void GetDhcpOfferFuzzerTest(const uint8_t *data, size_t size)
 
 void DhcpResponseHandleFuzzerTest(const uint8_t *data, size_t size)
 {
-    dhcpClient->DhcpResponseHandle(1);
+    int sockFd = 0;
+    dhcpClient->DhcpResponseHandle(1, sockFd);
 }
 
 void SignalReceiverFuzzerTest(const uint8_t *data, size_t size)
@@ -900,7 +898,7 @@ void StartTimerFuzzerTest(const uint8_t *data, size_t size)
 {
     uint32_t timerId = static_cast<uint32_t>(data[0]);
     TimerType type = TimerType::TIMER_REBIND_DELAY;
-    uint32_t interval = static_cast<uint32_t>(data[0]);
+    int64_t interval = static_cast<int64_t>(data[0]);
     bool once = (static_cast<int>(data[0]) % TWO) ? true : false;
     dhcpClient->StartTimer(type, timerId, interval, once);
 
@@ -999,7 +997,6 @@ void DhcpClientStateMachineFuzzerTest(const uint8_t *data, size_t size)
     StopIpv4FuzzerTest(data, size);
     GetActionFuzzerTest(data, size);
     DhcpInitFuzzerTest(data, size);
-    DhcpStopFuzzerTest(data, size);
     InitSocketFdFuzzerTest(data, size);
     GetPacketReadSockFdFuzzerTest(data, size);
     GetSigReadSockFdFuzzerTest(data, size);

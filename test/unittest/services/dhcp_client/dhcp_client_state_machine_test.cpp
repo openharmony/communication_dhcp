@@ -60,7 +60,8 @@ public:
     
     static void RunGetIPThreadFuncTest()
     {
-        dhcpClient->RunGetIPThreadFunc();
+        DhcpClientStateMachine machine("wlan0");
+        dhcpClient->RunGetIPThreadFunc(machine);
     }
 };
 
@@ -344,12 +345,6 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
     dhcpClient->DhcpInit();
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpStopTest, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpStopTest enter!");
-    dhcpClient->DhcpStop();
-}
-
 HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
 {
     DHCP_LOGI("RenewingTest enter!");
@@ -555,9 +550,9 @@ HWTEST_F(DhcpClientStateMachineTest, RunGetIPThreadFuncTest, TestSize.Level1)
     m_cltCnf.getMode = DHCP_IP_TYPE_ALL;
     std::thread t(&DhcpClientStateMachineTest::RunGetIPThreadFuncTest);
     sleep(2);
-    dhcpClient->m_pthread = nullptr;
+    dhcpClient->ipv4Thread_ = nullptr;
     dhcpClient->InitSignalHandle();
-    dhcpClient->m_cltCnf.timeoutExit =true;
+    dhcpClient->threadExit_ = true;
     t.join();
 }
 
@@ -741,18 +736,18 @@ HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
 {
     DHCP_LOGI("StartTimerTest enter!");
-    uint32_t DEFAULT_TIMEROUT0 = 10000; //10 s
-    uint32_t DEFAULT_TIMEROUT1 = 30000;
-    uint32_t DEFAULT_TIMEROUT2 = 60000;
-    uint32_t DEFAULT_TIMEROUT3 = 90000;
+    int64_t dafaultInterval0 = 10000; //10 s
+    int64_t dafaultInterval1 = 30000;
+    int64_t dafaultInterval2 = 60000;
+    int64_t dafaultInterval3 = 90000;
     uint32_t getIpTimerId = 0;
     uint32_t renewDelayTimerId = 0;
     uint32_t rebindDelayTimerId = 0;
     uint32_t remainingDelayTimerId = 0;
-    dhcpClient->StartTimer(TIMER_RENEW_DELAY, getIpTimerId, DEFAULT_TIMEROUT0, true);
-    dhcpClient->StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, DEFAULT_TIMEROUT1, true);
-    dhcpClient->StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, DEFAULT_TIMEROUT2, true);
-    dhcpClient->StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, DEFAULT_TIMEROUT3, true);
+    dhcpClient->StartTimer(TIMER_RENEW_DELAY, getIpTimerId, dafaultInterval0, true);
+    dhcpClient->StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, dafaultInterval1, true);
+    dhcpClient->StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, dafaultInterval2, true);
+    dhcpClient->StartTimer(TIMER_REMAINING_DELAY, remainingDelayTimerId, dafaultInterval3, true);
     dhcpClient->StopTimer(getIpTimerId);
     dhcpClient->StopTimer(renewDelayTimerId);
     dhcpClient->StopTimer(rebindDelayTimerId);
@@ -762,6 +757,23 @@ HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("GetIpTimerCallbackTest enter!");
+    dhcpClient->GetIpTimerCallback();
+}
+
+HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
+{
+    DHCP_LOGI("GetIpTimerCallbackTest1 enter!");
+    dhcpClient->threadExit_ = 0;
+    dhcpClient->m_action = ACTION_RENEW_T1;
+    dhcpClient->GetIpTimerCallback();
+
+    dhcpClient->m_action = ACTION_RENEW_T3;
+    dhcpClient->GetIpTimerCallback();
+
+    dhcpClient->m_action = ACTION_START_NEW;
+    dhcpClient->GetIpTimerCallback();
+
+    dhcpClient->m_action = ACTION_INVALID;
     dhcpClient->GetIpTimerCallback();
 }
 
@@ -786,7 +798,8 @@ HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest, TestSize.Level1
 HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level1)
 {
     DHCP_LOGI("ScheduleLeaseTimersTest enter!");
-    dhcpClient->ScheduleLeaseTimers();
+    dhcpClient->ScheduleLeaseTimers(true);
+    dhcpClient->ScheduleLeaseTimers(false);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, CloseAllRenewTimerTest, TestSize.Level1)
