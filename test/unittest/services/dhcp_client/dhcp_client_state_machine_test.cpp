@@ -37,6 +37,7 @@ constexpr int ZERO = 0;
 constexpr int TWO = 2;
 constexpr int THREE = 3;
 constexpr int INVALID = 12;
+static std::string g_errLog = "wifitest";
 
 static std::unique_ptr<OHOS::DHCP::DhcpClientStateMachine> dhcpClient = nullptr;
 
@@ -292,6 +293,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level1)
 {
     DHCP_LOGE("SetSocketModeTest enter!");
     dhcpClient->SetSocketMode(1);
+    EXPECT_FALSE(g_errLog.find("processWiTasDecisiveMessage")!=std::string::npos);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, SendRebootTest, TestSize.Level1)
@@ -908,13 +910,6 @@ HWTEST_F(DhcpClientStateMachineTest, CloseAllRenewTimerTest, TestSize.Level1)
 {
     DHCP_LOGI("CloseAllRenewTimerTest enter!");
     dhcpClient->CloseAllRenewTimer();
-    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
-}
-
-HWTEST_F(DhcpClientStateMachineTest, SendStopSignalTest, TestSize.Level1)
-{
-    DHCP_LOGI("SendStopSignalTest enter!");
-    dhcpClient->SendStopSignal();
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 

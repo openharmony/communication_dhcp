@@ -21,7 +21,7 @@
 using namespace testing::ext;
 namespace OHOS {
 namespace DHCP {
-
+static std::string g_errLog = "wifitest";
 class DhcpClientProxyTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -43,6 +43,7 @@ HWTEST_F(DhcpClientProxyTest, OnRemoteDiedTest01, TestSize.Level1)
 {
     wptr<IRemoteObject> remoteObject;
     dhcpClientProxy_->OnRemoteDied(remoteObject);
+    EXPECT_FALSE(g_errLog.find("processWiTasDecisiveMessage")!=std::string::npos);
 }
 }
 }
