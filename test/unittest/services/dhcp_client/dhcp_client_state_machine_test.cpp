@@ -55,7 +55,9 @@ public:
         DhcpTimer::GetInstance()->timer_.reset();
     }
     virtual void SetUp()
-    {}
+    {
+        dhcpClient->threadExit_ = false;
+    }
     virtual void TearDown()
     {
         MockCustomFunc::GetInstance().SetMockFlag(false);
