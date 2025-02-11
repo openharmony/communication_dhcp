@@ -284,6 +284,10 @@ bool DhcpFunction::CheckSameNetwork(const uint32_t srcIp, const uint32_t dstIp, 
 
 bool DhcpFunction::IsExistFile(const std::string& filename)
 {
+    char *realPaths = realpath(filename.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
+    }
     FILE *file = fopen(filename.c_str(), "r");
     if (file) {
         (void)fclose(file);
@@ -296,6 +300,10 @@ bool DhcpFunction::IsExistFile(const std::string& filename)
 
 bool DhcpFunction::CreateFile(const std::string& filename, const std::string& filedata)
 {
+    char *realPaths = realpath(filename.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
+    }
     FILE *file = fopen(filename.c_str(), "w");
     if (!file) {
         DHCP_LOGE("CreateFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
@@ -371,6 +379,10 @@ int DhcpFunction::FormatString(struct DhcpPacketResult &result)
 #ifdef OHOS_ARCH_LITE
 int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPacketResult &result)
 {
+    char *realPaths = realpath(filename.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
+    }
     FILE *pFile = fopen(filename.c_str(), "r");
     if (pFile == nullptr) {
         DHCP_LOGE("GetDhcpPacketResult() fopen %{public}s fail, err:%{public}s!", filename.c_str(), strerror(errno));

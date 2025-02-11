@@ -48,7 +48,7 @@ struct LogLable {
 };
 
 #define DEFINE_DHCPLOG_DHCP_LABEL(name) \
-    static constexpr OHOS::DHCP::LogLable DHCP_LOG_LABEL = {OHOS::DHCP::LOG_ID_DHCP_DHCP, name};
+    static constexpr OHOS::DHCP::LogLable DHCP_LOG_LABEL = {OHOS::DHCP::LOG_ID_DHCP_DHCP, name}
 
 #define DHCP_LOGF(...) HILOG_IMPL(LOG_CORE, LOG_FATAL, DHCP_LOG_LABEL.dominId, DHCP_LOG_LABEL.tag, __VA_ARGS__)
 #define DHCP_LOGE(...) HILOG_IMPL(LOG_CORE, LOG_ERROR, DHCP_LOG_LABEL.dominId, DHCP_LOG_LABEL.tag, __VA_ARGS__)

@@ -52,6 +52,9 @@ void DhcpClientStub::RemoveDeviceCbDeathRecipient(const wptr<IRemoteObject> &rem
 {
     DHCP_LOGI("RemoveDeathRecipient, remoteObject: %{private}p!", &remoteObject);
     std::lock_guard<std::mutex> lock(mutex_);
+    if (remoteObject == nullptr) {
+        DHCP_LOGI("remoteObject is nullptr");
+    }
     RemoteDeathMap::iterator iter = remoteDeathMap.find(remoteObject.promote());
     if (iter == remoteDeathMap.end()) {
         DHCP_LOGI("not find remoteObject to deal!");

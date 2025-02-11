@@ -219,7 +219,10 @@ static int ParseConfigFile(const char *configFile, const char *ifname, DhcpConfi
         DHCP_LOGE("ParseConfigFile param configFile or dhcpConfig is nullptr or len = 0!");
         return RET_FAILED;
     }
-
+    char *realPaths = realpath(configFile, nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
+    }
     FILE *fp = fopen(configFile, "r");
     if (fp == nullptr) {
         DHCP_LOGE("fopen %{public}s failed, err:%{public}d", configFile, errno);

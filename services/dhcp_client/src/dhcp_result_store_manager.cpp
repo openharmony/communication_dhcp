@@ -264,6 +264,10 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
         DHCP_LOGE("File name is empty.");
         return -1;
     }
+    char *realPaths = realpath(m_fileName.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
+    }
     FILE *fp = fopen(m_fileName.c_str(), "r");
     if (!fp) {
         DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", m_fileName.c_str());
@@ -301,6 +305,10 @@ int32_t DhcpResultStoreManager::SaveConfig()
     if (m_fileName.empty()) {
         DHCP_LOGE("File name is empty.");
         return -1;
+    }
+    char *realPaths = realpath(m_fileName.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
     }
     FILE* fp = fopen(m_fileName.c_str(), "w");
     if (!fp) {

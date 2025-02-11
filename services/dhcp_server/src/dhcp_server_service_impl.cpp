@@ -600,6 +600,10 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
         return DHCP_E_FAILED;
     }
     leases.clear();
+    char *realPaths = realpath(strFile.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");  
+    }
     FILE *inFile = fopen(strFile.c_str(), "r");
     if (!inFile) {
         DHCP_LOGE("GetDhcpClientInfos() failed, unable to open file: %{public}s", strFile.c_str());
