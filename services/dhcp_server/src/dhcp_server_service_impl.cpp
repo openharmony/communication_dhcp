@@ -248,7 +248,7 @@ void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string>
         char leaseTime[length], bindingTime[length], pendingTime[length];
         char pendingInterval[length], bindingMode[length], bindingStatus[length];
         const int nSize = 9;
-        if (sscanf_s(lease.c_str(), "%127s %127s %127s %127s %127s %127s %127s %127s %127s",
+        if (sscanf_s(lease.c_str(), "%17s %15s %127s %127s %127s %127s %127s %127s %127s",
             info.macAddr, MAC_ADDR_MAX_LEN,
             info.ipAddr, INET_ADDRSTRLEN,
             leaseTime, length,
