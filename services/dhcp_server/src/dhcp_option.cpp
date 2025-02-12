@@ -250,7 +250,7 @@ int FillOption(PDhcpOption pOption, const char *data, size_t len)
     if (memcpy_s(pOption->data, sizeof(pOption->data) - 1, data, flen) != EOK) {
         return RET_ERROR;
     }
-    pOption->length = static_cast<uint16_t>(flen);
+    pOption->length = static_cast<uint8_t>(flen);
     return RET_SUCCESS;
 }
 
