@@ -286,7 +286,8 @@ bool DhcpFunction::IsExistFile(const std::string& filename)
 {
     char *realPaths = realpath(filename.c_str(), nullptr);
     if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");  
+        DHCP_LOGE("realpath failed error");
+        return false;
     }
     FILE *file = fopen(filename.c_str(), "r");
     if (file) {
@@ -302,7 +303,8 @@ bool DhcpFunction::CreateFile(const std::string& filename, const std::string& fi
 {
     char *realPaths = realpath(filename.c_str(), nullptr);
     if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");  
+        DHCP_LOGE("realpath failed error");
+        return false;
     }
     FILE *file = fopen(filename.c_str(), "w");
     if (!file) {
@@ -381,7 +383,8 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
 {
     char *realPaths = realpath(filename.c_str(), nullptr);
     if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");  
+        DHCP_LOGE("realpath failed error");
+        return DHCP_OPT_FAILED;  
     }
     FILE *pFile = fopen(filename.c_str(), "r");
     if (pFile == nullptr) {

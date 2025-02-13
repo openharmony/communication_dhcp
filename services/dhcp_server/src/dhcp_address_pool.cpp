@@ -534,7 +534,8 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
     char line[DHCP_FILE_LINE_LENGTH] = {0};
     char *realPaths = realpath(filePath, nullptr);
     if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");  
+        DHCP_LOGE("realpath failed error");
+        return RET_FAILED;
     }
     FILE *fp = fopen(filePath, "w");
     if (fp == nullptr) {

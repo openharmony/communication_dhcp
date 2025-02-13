@@ -602,7 +602,8 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
     leases.clear();
     char *realPaths = realpath(strFile.c_str(), nullptr);
     if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");  
+        DHCP_LOGE("realpath failed error");
+        return DHCP_E_FAILED;
     }
     FILE *inFile = fopen(strFile.c_str(), "r");
     if (!inFile) {

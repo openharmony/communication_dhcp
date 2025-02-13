@@ -388,7 +388,8 @@ void DhcpClientStateMachine::ModifyKernelFile(const char* filePath, const char* 
 {
     char *realPaths = realpath(filePath, nullptr);
     if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");  
+        DHCP_LOGE("realpath failed error");
+        return;
     }
     FILE* file = fopen(filePath, "w");
     if (file == nullptr) {
