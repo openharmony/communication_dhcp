@@ -267,6 +267,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
     char *realPaths = realpath(m_fileName.c_str(), nullptr);
     if (realPaths == nullptr) {
         DHCP_LOGE("realpath failed error");
+        return -1;
     }
     FILE *fp = fopen(m_fileName.c_str(), "r");
     if (!fp) {
