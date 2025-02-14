@@ -15,6 +15,7 @@
 
 #include "dhcp_client_service_impl.h"
 #include <unistd.h>
+#include "dhcp_common_utils.h"
 #ifndef OHOS_ARCH_LITE
 #include "dhcp_client_death_recipient.h"
 #endif
@@ -569,10 +570,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
 {
     if (strlen(info.dnsAddr) == 0 || strlen(info.linkIpv6Addr) == 0) {
-        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ipaddr:%{private}s, route:%{private}s, linkIpv6Addr:%{private}s "
-            "randIpv6Addr:%{private}s ipv6SubnetAddr:%{private}s dnsAddr:%{private}s dnsAddr2:%{private}s "
-            "status:%{public}d", info.globalIpv6Addr, info.routeAddr, info.linkIpv6Addr, info.randIpv6Addr,
-            info.ipv6SubnetAddr, info.dnsAddr, info.dnsAddr2, info.status);
+        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ifname:%{public}s, status:%{public}d", ifname.c_str(), info.status);
         return;
     }
     OHOS::DHCP::DhcpResult result;
@@ -595,14 +593,16 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     }
 
     PushDhcpResult(ifname, result);
-    DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{private}s, server:%{private}s, "
-        "Subnet:%{private}s, Dns1:%{private}s, Dns2:%{private}s, Router1:%{private}s, Router2:%{private}s, "
-        "strVendor:%{public}s, strLinkIpv6Addr:%{private}s, strRandIpv6Addr:%{private}s, uLeaseTime:%{public}u, "
+    DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{public}s, server:%{public}s, "
+        "Subnet:%{public}s, Dns1:%{public}s, Dns2:%{public}s, Router1:%{public}s, Router2:%{public}s, "
+        "strVendor:%{public}s, strLinkIpv6Addr:%{public}s, strRandIpv6Addr:%{public}s, uLeaseTime:%{public}u, "
         "uAddTime:%{public}u, uGetTime:%{public}u.",
-        ifname.c_str(), result.iptype, result.isOptSuc, result.strYourCli.c_str(), result.strServer.c_str(),
-        result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
-        result.strRouter2.c_str(), result.strVendor.c_str(), result.strLinkIpv6Addr.c_str(),
-        result.strRandIpv6Addr.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
+        ifname.c_str(), result.iptype, result.isOptSuc, Ipv6Anonymize(result.strYourCli).c_str(),
+        Ipv6Anonymize(result.strServer).c_str(), Ipv6Anonymize(result.strSubnet).c_str(),
+        Ipv6Anonymize(result.strDns1).c_str(), Ipv6Anonymize(result.strDns2).c_str(),
+        Ipv6Anonymize(result.strRouter1).c_str(), Ipv6Anonymize(result.strRouter2).c_str(),
+        Ipv6Anonymize(result.strVendor).c_str(), Ipv6Anonymize(result.strLinkIpv6Addr).c_str(),
+        Ipv6Anonymize(result.strRandIpv6Addr).c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
