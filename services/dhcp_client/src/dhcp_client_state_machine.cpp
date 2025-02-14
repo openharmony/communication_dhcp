@@ -51,7 +51,7 @@
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
 #endif
-#ifdef FALLTHROUGH_INTENDED
+#ifndef FALLTHROUGH_INTENDED
 #define FALLTHROUGH_INTENDED [[clang::fallthrough]] //NOLINT
 #endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
@@ -1409,7 +1409,6 @@ int DhcpClientStateMachine::DhcpResponseDataCheck(time_t &timestamp, int sockFd,
 void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
 {
     struct DhcpPacket packet;
-    int getLen;
     uint8_t u8Message = 0;
 
     if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
