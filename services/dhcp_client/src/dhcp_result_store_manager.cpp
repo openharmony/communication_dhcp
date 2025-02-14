@@ -272,6 +272,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
     FILE *fp = fopen(m_fileName.c_str(), "r");
     if (!fp) {
         DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", m_fileName.c_str());
+        free(realPaths);
         return -1;
     }
     m_allIpCached.clear();
@@ -297,6 +298,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
     }
 
     (void)fclose(fp);
+    free(realPaths);
     return 0;
 }
 
@@ -315,6 +317,7 @@ int32_t DhcpResultStoreManager::SaveConfig()
     FILE* fp = fopen(m_fileName.c_str(), "w");
     if (!fp) {
         DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
+        free(realPaths);
         return -1;
     }
     std::string content = "";
@@ -333,6 +336,7 @@ int32_t DhcpResultStoreManager::SaveConfig()
     (void)fclose(fp);
     m_allIpCached.clear(); /* clear values */
     std::vector<IpInfoCached>().swap(m_allIpCached);
+    free(realPaths);
     return 0;
 }
 

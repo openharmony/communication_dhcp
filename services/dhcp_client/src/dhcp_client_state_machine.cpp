@@ -394,16 +394,19 @@ void DhcpClientStateMachine::ModifyKernelFile(const char* filePath, const char* 
     FILE* file = fopen(filePath, "w");
     if (file == nullptr) {
         DHCP_LOGI("Failed to open file");
+        free(realPaths);
         return;
     }
     if (fwrite(num, 1, 1, file) != 1) {
         DHCP_LOGI("Failed to write file");
         (void)fclose(file);
+        free(realPaths);
         return;
     }
     (void)fflush(file);
     (void)fsync(fileno(file));
     (void)fclose(file);
+    free(realPaths);
 }
 
 bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
@@ -1367,18 +1370,13 @@ void DhcpClientStateMachine::GetDhcpOffer(DhcpPacket *packet, int64_t timestamp)
     PublishDhcpIpv4Result(dhcpIpResult);
 }
 #endif
-void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
-{
-    struct DhcpPacket packet;
-    int getLen;
-    uint8_t u8Message = 0;
 
-    if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
-        DHCP_LOGE("DhcpResponseHandle memset_s packet failed!");
-        return;
-    }
+int DhcpClientStateMachine::DhcpResponseDataCheck(time_t &timestamp, int sockFd,
+    uint8_t &u8Message, struct DhcpPacket &packet)
+{
+    int getLen = 0;
     getLen = (m_socketMode == SOCKET_MODE_RAW) ? GetDhcpRawPacket(&packet, sockFd)
-                                               : GetDhcpKernelPacket(&packet, sockFd);
+                                            : GetDhcpKernelPacket(&packet, sockFd);
     if (getLen < 0) {
         if ((getLen == SOCKET_OPT_ERROR) && (errno != EINTR)) {
             DHCP_LOGI(" DhcpResponseHandle get packet read error, reopening socket!");
@@ -1390,19 +1388,35 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
             m_dhcp4State = DHCP_STATE_INIT;
             m_timeoutTimestamp = timestamp;
         }
-        return;
+        return DHCP_OPT_FAILED;
     }
     DHCP_LOGI("DhcpResponseHandle get packet success, getLen:%{public}d.", getLen);
     /* Check packet data. */
     if (packet.xid != m_transID) {
         DHCP_LOGW("DhcpResponseHandle get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
-        return;
+        return DHCP_OPT_FAILED;
     }
 #ifndef OHOS_ARCH_LITE
     GetDhcpOffer(&packet, timestamp);
 #endif
     if (!GetDhcpOptionUint8(&packet, DHCP_MESSAGE_TYPE_OPTION, &u8Message)) {
         DHCP_LOGE("DhcpResponseHandle GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
+        return DHCP_OPT_FAILED;
+    }
+    return DHCP_OPT_SUCCESS;
+}
+
+void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
+{
+    struct DhcpPacket packet;
+    int getLen;
+    uint8_t u8Message = 0;
+
+    if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
+        DHCP_LOGE("DhcpResponseHandle memset_s packet failed!");
+        return;
+    }
+    if (DhcpResponseDataCheck(timestamp, sockFd, u8Message, packet) != DHCP_OPT_SUCCESS) {
         return;
     }
     DHCP_LOGI("DhcpResponseHandle m_dhcp4State:%{public}d.", m_dhcp4State);

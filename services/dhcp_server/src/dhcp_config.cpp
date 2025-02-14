@@ -213,23 +213,8 @@ static int SetDhcpConfig(DhcpConfig *dhcpConfig, const char *strLine, int common
     }
 }
 
-static int ParseConfigFile(const char *configFile, const char *ifname, DhcpConfig *dhcpConfig)
+static int ProcessFile(FILE *fp, const char *ifname, DhcpConfig *dhcpConfig, const char *configFile)
 {
-    if ((configFile == nullptr) || (strlen(configFile) == 0) || (dhcpConfig == nullptr)) {
-        DHCP_LOGE("ParseConfigFile param configFile or dhcpConfig is nullptr or len = 0!");
-        return RET_FAILED;
-    }
-    char *realPaths = realpath(configFile, nullptr);
-    if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");
-        return RET_FAILED;
-    }
-    FILE *fp = fopen(configFile, "r");
-    if (fp == nullptr) {
-        DHCP_LOGE("fopen %{public}s failed, err:%{public}d", configFile, errno);
-        return RET_FAILED;
-    }
-
     int bComm = 1;
     int bValid = 1;
     char strLine[FILE_LINE_LEN_MAX] = {0};
@@ -254,16 +239,42 @@ static int ParseConfigFile(const char *configFile, const char *ifname, DhcpConfi
         }
         if (bValid && SetDhcpConfig(dhcpConfig, strLine, bComm) != RET_SUCCESS) {
             DHCP_LOGE("set dhcp config %s %s failed", configFile, strLine);
-            (void)fclose(fp);
+ 
             return RET_FAILED;
         }
         if (memset_s(strLine, FILE_LINE_LEN_MAX, 0, FILE_LINE_LEN_MAX) != EOK) {
             break;
         }
     }
+    return RET_SUCCESS;
+}
+
+static int ParseConfigFile(const char *configFile, const char *ifname, DhcpConfig *dhcpConfig)
+{
+    if ((configFile == nullptr) || (strlen(configFile) == 0) || (dhcpConfig == nullptr)) {
+        DHCP_LOGE("ParseConfigFile param configFile or dhcpConfig is nullptr or len = 0!");
+        return RET_FAILED;
+    }
+    char *realPaths = realpath(configFile, nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed, error: ");
+        return RET_FAILED;
+     }
+    FILE *fp = fopen(configFile, "r");
+    if (fp == nullptr) {
+        DHCP_LOGE("fopen %{public}s failed, err:%{public}d", configFile, errno);
+        free(realPaths);
+        return RET_FAILED;
+    }
+    if (ProcessFile(fp, ifname, dhcpConfig, configFile) != RET_SUCCESS) {
+        (void)fclose(fp);
+        free(realPaths);
+        return RET_FAILED;
+    }
     if (fclose(fp) != 0) {
         DHCP_LOGE("ParseConfigFile fclose fp failed!");
     }
+    free(realPaths);
     return RET_SUCCESS;
 }
 

@@ -18,8 +18,8 @@
 #include <string>
 #include <sys/types.h>
 #include <stdint.h>
-#ifndef OHOS_ARCH_LITE
 #include "dhcp_client_def.h"
+#ifndef OHOS_ARCH_LITE
 #include "common_timer_errors.h"
 #include "timer.h"
 #endif

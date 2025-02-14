@@ -292,9 +292,11 @@ bool DhcpFunction::IsExistFile(const std::string& filename)
     FILE *file = fopen(filename.c_str(), "r");
     if (file) {
         (void)fclose(file);
+        free(realPaths);
         return true;
     } else {
         DHCP_LOGE("IsExistFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
+        free(realPaths);
         return false;
     }
 }
@@ -309,16 +311,19 @@ bool DhcpFunction::CreateFile(const std::string& filename, const std::string& fi
     FILE *file = fopen(filename.c_str(), "w");
     if (!file) {
         DHCP_LOGE("CreateFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
+        free(realPaths);
         return false;
     }
     if (fputs(filedata.c_str(), file) == EOF) {
         DHCP_LOGE("Write to file %{public}s failed, err:%{public}d", filename.c_str(), errno);
         (void)fclose(file);
+        free(realPaths);
         return false;
     }
     (void)fflush(file);
     (void)fsync(fileno(file));
     (void)fclose(file);
+    free(realPaths);
     return true;
 }
 
@@ -384,17 +389,19 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
     char *realPaths = realpath(filename.c_str(), nullptr);
     if (realPaths == nullptr) {
         DHCP_LOGE("realpath failed error");
-        return DHCP_OPT_FAILED;  
+        return DHCP_OPT_FAILED;
     }
     FILE *pFile = fopen(filename.c_str(), "r");
     if (pFile == nullptr) {
         DHCP_LOGE("GetDhcpPacketResult() fopen %{public}s fail, err:%{public}s!", filename.c_str(), strerror(errno));
+        free(realPaths);
         return DHCP_OPT_FAILED;
     }
 
     char strIpFlag[DHCP_NUM_EIGHT];
     if (memset_s(strIpFlag, sizeof(strIpFlag), 0, sizeof(strIpFlag)) != EOK) {
         (void)fclose(pFile);
+        free(realPaths);
         return DHCP_OPT_FAILED;
     }
     /* Format: IpFlag AddTime cliIp servIp subnet dns1 dns2 router1 router2 vendor lease */
@@ -405,28 +412,33 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
     if (nRes == EOF) {
         DHCP_LOGE("GetDhcpPacketResult() fscanf %{public}s err:%{public}s!", filename.c_str(), strerror(errno));
         (void)fclose(pFile);
+        free(realPaths);
         return DHCP_OPT_FAILED;
     } else if (nRes == 0) {
         DHCP_LOGW("GetDhcpPacketResult() fscanf file:%{public}s nRes:0 nullptr!", filename.c_str());
         (void)fclose(pFile);
+        free(realPaths);
         return DHCP_OPT_NULL;
     } else if (nRes != EVENT_DATA_NUM) {
         DHCP_LOGE("GetDhcpPacketResult() fscanf file:%{public}s nRes:%{public}d ERROR!", filename.c_str(), nRes);
         (void)fclose(pFile);
+        free(realPaths);
         return DHCP_OPT_FAILED;
     }
 
     if (fclose(pFile) != 0) {
         DHCP_LOGE("GetDhcpPacketResult() fclose file:%{public}s failed!", filename.c_str());
+        free(realPaths);
         return DHCP_OPT_FAILED;
     }
 
     /* Format dhcp packet result */
     if (FormatString(result) != 0) {
         DHCP_LOGE("GetDhcpPacketResult() file:%{public}s failed, FormatString result error!", filename.c_str());
+        free(realPaths);
         return DHCP_OPT_FAILED;
     }
-
+    free(realPaths);
     return DHCP_OPT_SUCCESS;
 }
 #endif

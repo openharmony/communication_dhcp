@@ -608,6 +608,7 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
     FILE *inFile = fopen(strFile.c_str(), "r");
     if (!inFile) {
         DHCP_LOGE("GetDhcpClientInfos() failed, unable to open file: %{public}s", strFile.c_str());
+        free(realPaths);
         return DHCP_E_FAILED;
     }
 
@@ -624,6 +625,7 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
     }
     (void)fclose(inFile);
     DHCP_LOGI("GetDhcpClientInfos leases.size:%{public}d.", (int)leases.size());
+    free(realPaths);
     return DHCP_E_SUCCESS;
 }
 

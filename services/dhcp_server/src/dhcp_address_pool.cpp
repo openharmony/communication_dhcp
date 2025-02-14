@@ -540,6 +540,7 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
     FILE *fp = fopen(filePath, "w");
     if (fp == nullptr) {
         DHCP_LOGE("Save binding records %{private}s failed: %{public}d", filePath, errno);
+        free(realPaths);
         return RET_FAILED;
     }
     for (auto index: pool->leaseTable) {
@@ -555,6 +556,7 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         DHCP_LOGE("SaveBindingRecoders fclose fp failed!");
     }
     lastTime = currTime;
+    free(realPaths);
     return RET_SUCCESS;
 }
 
