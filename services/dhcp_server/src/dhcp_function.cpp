@@ -284,46 +284,31 @@ bool DhcpFunction::CheckSameNetwork(const uint32_t srcIp, const uint32_t dstIp, 
 
 bool DhcpFunction::IsExistFile(const std::string& filename)
 {
-    char *realPaths = realpath(filename.c_str(), nullptr);
-    if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");
-        return false;
-    }
     FILE *file = fopen(filename.c_str(), "r");
     if (file) {
         (void)fclose(file);
-        free(realPaths);
         return true;
     } else {
         DHCP_LOGE("IsExistFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
-        free(realPaths);
         return false;
     }
 }
 
 bool DhcpFunction::CreateFile(const std::string& filename, const std::string& filedata)
 {
-    char *realPaths = realpath(filename.c_str(), nullptr);
-    if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");
-        return false;
-    }
     FILE *file = fopen(filename.c_str(), "w");
     if (!file) {
         DHCP_LOGE("CreateFile %{public}s failed, err:%{public}d", filename.c_str(), errno);
-        free(realPaths);
         return false;
     }
     if (fputs(filedata.c_str(), file) == EOF) {
         DHCP_LOGE("Write to file %{public}s failed, err:%{public}d", filename.c_str(), errno);
         (void)fclose(file);
-        free(realPaths);
         return false;
     }
     (void)fflush(file);
     (void)fsync(fileno(file));
     (void)fclose(file);
-    free(realPaths);
     return true;
 }
 
