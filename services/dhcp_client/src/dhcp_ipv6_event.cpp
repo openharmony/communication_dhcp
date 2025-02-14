@@ -25,7 +25,6 @@ DEFINE_DHCPLOG_DHCP_LABEL("WifiDhcpIpv6Event");
 const int KERNEL_SOCKET_FAMILY = 16;
 const int KERNEL_SOCKET_IFA_FAMILY = 10;
 const int KERNEL_ICMP_TYPE = 134;
-const int IPV6_LENGTH_BYTES = 16;
 
 void DhcpIpv6Client::setSocketFilter(void* addr)
 {
