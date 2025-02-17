@@ -1376,7 +1376,7 @@ int DhcpClientStateMachine::DhcpResponseDataCheck(time_t timestamp, int sockFd,
 {
     int getLen = 0;
     getLen = (m_socketMode == SOCKET_MODE_RAW) ? GetDhcpRawPacket(&packet, sockFd)
-                                            : GetDhcpKernelPacket(&packet, sockFd);
+                                               : GetDhcpKernelPacket(&packet, sockFd);
     if (getLen < 0) {
         if ((getLen == SOCKET_OPT_ERROR) && (errno != EINTR)) {
             DHCP_LOGI(" DhcpResponseHandle get packet read error, reopening socket!");
