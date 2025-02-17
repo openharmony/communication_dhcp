@@ -37,6 +37,43 @@ constexpr int32_t MAC_INDEX_3 = 3;
 constexpr int32_t MAC_INDEX_4 = 4;
 constexpr int32_t MAC_INDEX_5 = 5;
 constexpr int32_t MAC_LENTH = 6;
+constexpr int32_t MIN_DELIM_SIZE = 2;
+constexpr int32_t MIN_KEEP_SIZE = 6;
+
+static std::string DataAnonymize(const std::string &str, char delim, char hiddenCh, int32_t startIdx = 0)
+{
+    std::string s = str;
+    int32_t strLen = std::count(s.begin(), s.end(), delim);
+    if (strLen < MIN_DELIM_SIZE) {
+        if (s.size() <= MIN_KEEP_SIZE) {
+            return std::string(s.size(), hiddenCh);
+        }
+        int32_t idx1 = MIN_DELIM_SIZE;
+        int32_t idx2 = static_cast<int32_t>(s.size() - MAC_INDEX_4);
+        while (idx1++ < idx2) {
+            s[idx1] = hiddenCh;
+        }
+        return s;
+    }
+
+    std::string::size_type begin = s.find_first_of(delim);
+    std::string::size_type end = s.find_last_of(delim);
+    int idx = 0;
+    while (idx++ < startIdx && begin < end) {
+        begin = s.find_first_of(delim, begin + 1);
+    }
+    while (begin++ != end) {
+        if (s[begin] != delim) {
+            s[begin] = hiddenCh;
+        }
+    }
+    return s;
+}
+
+std::string Ipv6Anonymize(const std::string &str)
+{
+    return DataAnonymize(str, ':', '*', 1);
+}
 
 std::string Ipv4Anonymize(const std::string str)
 {

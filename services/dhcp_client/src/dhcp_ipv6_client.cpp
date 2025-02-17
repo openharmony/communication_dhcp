@@ -406,12 +406,6 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
         return;
     }
     dhcpIpv6Info.status |= (1 << 1);
-    (void)strncpy_s(dhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, DEFAULUT_BAK_DNS, strlen(DEFAULUT_BAK_DNS));
-    std::vector<std::string>::iterator iter = find(dhcpIpv6Info.vectorDnsAddr.begin(),
-        dhcpIpv6Info.vectorDnsAddr.end(), DEFAULUT_BAK_DNS);
-    if (iter == dhcpIpv6Info.vectorDnsAddr.end()) {
-        dhcpIpv6Info.vectorDnsAddr.push_back(DEFAULUT_BAK_DNS);
-    }
     if (!data) {
         DHCP_LOGE("onIpv6DnsAddEvent failed, data invalid.");
         return;
@@ -430,17 +424,17 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
         DHCP_LOGE("dns optLen invlid:%{public}d", optlen);
         return;
     }
-    (void)memset_s(dhcpIpv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
     int numaddrs = (optlen - 1) / 2;
     struct nd_opt_rdnss *rndsopt = (struct nd_opt_rdnss *)opthdr;
     struct in6_addr *addrs = (struct in6_addr *)(rndsopt + 1);
     if (numaddrs > 0) {
-        inet_ntop(AF_INET6, addrs + 0, dhcpIpv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN);
+        (void)memset_s(dhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
+        inet_ntop(AF_INET6, addrs, dhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN);
     }
     for (int i = 0; i < numaddrs; i++) {
         char dnsAddr[DHCP_INET6_ADDRSTRLEN] = {0};
         inet_ntop(AF_INET6, addrs + i, dnsAddr, DHCP_INET6_ADDRSTRLEN);
-        iter = find(dhcpIpv6Info.vectorDnsAddr.begin(), dhcpIpv6Info.vectorDnsAddr.end(), dnsAddr);
+        auto iter = find(dhcpIpv6Info.vectorDnsAddr.begin(), dhcpIpv6Info.vectorDnsAddr.end(), dnsAddr);
         if (iter == dhcpIpv6Info.vectorDnsAddr.end()) {
             dhcpIpv6Info.vectorDnsAddr.push_back(dnsAddr);
             DHCP_LOGI("onIpv6DnsAddEvent add dns:%{public}d", i);
