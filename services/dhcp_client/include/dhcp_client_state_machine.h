@@ -59,7 +59,7 @@ private:
     void SendReboot(uint32_t targetIp, time_t timestamp);
     void AddParamaterRequestList(struct DhcpPacket *packet);
     void DhcpResponseHandle(time_t timestamp, int sockFd);
-    int DhcpResponseDataCheck(time_t &timestamp, int sockFd, uint8_t &u8Message, struct DhcpPacket &packet);
+    int DhcpResponseDataCheck(time_t timestamp, int sockFd, uint8_t &u8Message, struct DhcpPacket &packet);
     void DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpPacket *packet, time_t timestamp);
     void ParseDhcpAckPacket(const struct DhcpPacket *packet, time_t timestamp);
     void ParseDhcpNakPacket(const struct DhcpPacket *packet, time_t timestamp);

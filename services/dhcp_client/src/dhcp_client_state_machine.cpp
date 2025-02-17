@@ -1371,7 +1371,7 @@ void DhcpClientStateMachine::GetDhcpOffer(DhcpPacket *packet, int64_t timestamp)
 }
 #endif
 
-int DhcpClientStateMachine::DhcpResponseDataCheck(time_t &timestamp, int sockFd,
+int DhcpClientStateMachine::DhcpResponseDataCheck(time_t timestamp, int sockFd,
     uint8_t &u8Message, struct DhcpPacket &packet)
 {
     int getLen = 0;
