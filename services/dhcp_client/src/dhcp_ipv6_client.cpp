@@ -117,7 +117,8 @@ bool DhcpIpv6Client::IsRunning()
 void DhcpIpv6Client::SetCallback(std::function<void(const std::string ifname, DhcpIpv6Info &info)> callback)
 {
     DHCP_LOGI("SetCallback()");
-    onIpv6AddressChanged = callback;
+    std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+    onIpv6AddressChanged_ = callback;
 }
 
 void DhcpIpv6Client::RunIpv6ThreadFunc()
@@ -307,6 +308,9 @@ void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaInd
         }
         DHCP_LOGD("onIpv6AddressAddEvent addr:%{public}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
             addr_str, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
+        if (strlen(dhcpIpv6Info.linkIpv6Addr) != 0) {
+            PublishIpv6Result();
+        }
     } else {
         DHCP_LOGD("onIpv6AddressAddEvent other scope:%{public}d", scope);
     }
@@ -334,9 +338,7 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             }
         }
         if (strlen(dhcpIpv6Info.globalIpv6Addr) != 0 || strlen(dhcpIpv6Info.randIpv6Addr) != 0) {
-            if (onIpv6AddressChanged != nullptr) {
-                onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
-            }
+            PublishIpv6Result();
         }
     } else if (first == NUMBER_FIFTY_FOUR) {  // begin 'f'->54
         if (IsEui64ModeIpv6Address(ipv6addr, len)) {
@@ -353,9 +355,7 @@ void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             DHCP_LOGI("AddIpv6Address add uniqueLocalAddr2, first=%{public}d", first);
         }
         if (strlen(dhcpIpv6Info.uniqueLocalAddr1) != 0 || strlen(dhcpIpv6Info.uniqueLocalAddr2) != 0) {
-            if (onIpv6AddressChanged != nullptr) {
-                onIpv6AddressChanged(interfaceName, dhcpIpv6Info);
-            }
+            PublishIpv6Result();
         }
     } else {
         DHCP_LOGI("AddIpv6Address other first=%{public}d", first);
@@ -613,10 +613,20 @@ void DhcpIpv6Client::SetAcceptRa(const std::string &content)
         content.c_str(), fileName.c_str());
 }
 
+void DhcpIpv6Client::PublishIpv6Result()
+{
+    std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+    if (onIpv6AddressChanged_ != nullptr) {
+        onIpv6AddressChanged_(interfaceName, dhcpIpv6Info);
+    }
+}
+
 void DhcpIpv6Client::DhcpIPV6Stop(void)
 {
     DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag);
     runFlag = false;
+    std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+    onIpv6AddressChanged_ = nullptr;
 }
 
 #ifndef OHOS_ARCH_LITE

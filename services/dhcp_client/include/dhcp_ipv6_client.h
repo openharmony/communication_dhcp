@@ -15,6 +15,7 @@
 #ifndef OHOS_DHCP_IP6_H
 #define OHOS_DHCP_IP6_H
 
+#include <mutex>
 #include <string>
 #include <sys/types.h>
 #include <stdint.h>
@@ -82,8 +83,10 @@ private:
     void fillRouteData(char* buff, int &len);
     bool IsEui64ModeIpv6Address(char *ipv6addr, int len);
     void SetAcceptRa(const std::string &content);
+    void PublishIpv6Result();
 
-    std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged;
+    std::mutex ipv6CallbackMutex_;
+    std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged_ { nullptr };
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;
     int32_t ipv6SocketFd = 0;
