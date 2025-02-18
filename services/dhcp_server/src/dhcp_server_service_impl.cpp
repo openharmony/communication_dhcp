@@ -248,7 +248,7 @@ void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string>
         char leaseTime[length], bindingTime[length], pendingTime[length];
         char pendingInterval[length], bindingMode[length], bindingStatus[length];
         const int nSize = 9;
-        if (sscanf_s(lease.c_str(), "%127s %127s %127s %127s %127s %127s %127s %127s %127s",
+        if (sscanf_s(lease.c_str(), "%17s %15s %127s %127s %127s %127s %127s %127s %127s",
             info.macAddr, MAC_ADDR_MAX_LEN,
             info.ipAddr, INET_ADDRSTRLEN,
             leaseTime, length,
@@ -600,9 +600,15 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
         return DHCP_E_FAILED;
     }
     leases.clear();
+    char *realPaths = realpath(strFile.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");
+        return DHCP_E_FAILED;
+    }
     FILE *inFile = fopen(strFile.c_str(), "r");
     if (!inFile) {
         DHCP_LOGE("GetDhcpClientInfos() failed, unable to open file: %{public}s", strFile.c_str());
+        free(realPaths);
         return DHCP_E_FAILED;
     }
 
@@ -619,6 +625,7 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
     }
     (void)fclose(inFile);
     DHCP_LOGI("GetDhcpClientInfos leases.size:%{public}d.", (int)leases.size());
+    free(realPaths);
     return DHCP_E_SUCCESS;
 }
 

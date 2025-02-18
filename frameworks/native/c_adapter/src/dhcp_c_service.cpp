@@ -23,8 +23,10 @@
 #include <string_ex.h>
 #endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpCService");
-std::shared_ptr<OHOS::DHCP::DhcpClient> dhcpClientPtr = nullptr;
-std::shared_ptr<OHOS::DHCP::DhcpServer> dhcpServerPtr = nullptr;
+namespace {
+    std::shared_ptr<OHOS::DHCP::DhcpClient> dhcpClientPtr = nullptr;
+    std::shared_ptr<OHOS::DHCP::DhcpServer> dhcpServerPtr = nullptr;
+}
 
 #ifdef OHOS_ARCH_LITE
     static std::shared_ptr<DhcpClientCallBack> dhcpClientCallBack = nullptr;

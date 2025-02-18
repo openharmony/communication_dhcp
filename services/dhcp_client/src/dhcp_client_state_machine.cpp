@@ -51,6 +51,9 @@
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
 #endif
+#ifndef FALLTHROUGH_INTENDED
+#define FALLTHROUGH_INTENDED [[clang::fallthrough]] //NOLINT
+#endif
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv4");
 
 namespace OHOS {
@@ -94,6 +97,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
 #endif
     m_cltCnf.ifaceIndex = 0;
     threadExit_ = true;
+    m_conflictCount = 0;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
     m_cltCnf.isIpv6 = false;
@@ -382,19 +386,27 @@ void DhcpClientStateMachine::DhcpInit(void)
 
 void DhcpClientStateMachine::ModifyKernelFile(const char* filePath, const char* num)
 {
+    char *realPaths = realpath(filePath, nullptr);
+    if (realPaths == nullptr) {
+        DHCP_LOGE("realpath failed error");
+        return;
+    }
     FILE* file = fopen(filePath, "w");
     if (file == nullptr) {
         DHCP_LOGI("Failed to open file");
+        free(realPaths);
         return;
     }
     if (fwrite(num, 1, 1, file) != 1) {
         DHCP_LOGI("Failed to write file");
         (void)fclose(file);
+        free(realPaths);
         return;
     }
     (void)fflush(file);
     (void)fsync(fileno(file));
     (void)fclose(file);
+    free(realPaths);
 }
 
 bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
@@ -456,11 +468,14 @@ int DhcpClientStateMachine::ExecDhcpRenew(void)
     /* Set socket mode and dhcp ipv4 state, make sure dhcp packets can be sent normally. */
     switch (m_dhcp4State) {
         case DHCP_STATE_INIT:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_SELECTING:
             DHCP_LOGI("ExecDhcpRenew() dhcp ipv4 old state:%{public}d, no need change state.", m_dhcp4State);
             break;
         case DHCP_STATE_REQUESTING:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RELEASED:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RENEWED:
             DHCP_LOGI("ExecDhcpRenew() dhcp ipv4 old state:%{public}d, init state:INIT.", m_dhcp4State);
             /* Init socket mode and dhcp ipv4 state. */
@@ -472,6 +487,7 @@ int DhcpClientStateMachine::ExecDhcpRenew(void)
             SetSocketMode(SOCKET_MODE_KERNEL);
             /* fall through */
         case DHCP_STATE_RENEWING:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_REBINDING:
             DHCP_LOGI("ExecDhcpRenew() dhcp ipv4 old state:%{public}d, set state:RENEWED.", m_dhcp4State);
             /* Set dhcp ipv4 state, send request packet. */
@@ -798,10 +814,12 @@ void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
         "initreboot-6 released-7 renewed-8 fastarp-9 slowarp-10 decline-11]", m_dhcp4State);
     switch (m_dhcp4State) {
         case DHCP_STATE_INIT:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_SELECTING:
             InitSelecting(timestamp);
             break;
         case DHCP_STATE_REQUESTING:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RENEWED:
             Requesting(timestamp);
             break;
@@ -1352,16 +1370,11 @@ void DhcpClientStateMachine::GetDhcpOffer(DhcpPacket *packet, int64_t timestamp)
     PublishDhcpIpv4Result(dhcpIpResult);
 }
 #endif
-void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
-{
-    struct DhcpPacket packet;
-    int getLen;
-    uint8_t u8Message = 0;
 
-    if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
-        DHCP_LOGE("DhcpResponseHandle memset_s packet failed!");
-        return;
-    }
+int DhcpClientStateMachine::DhcpResponseDataCheck(time_t timestamp, int sockFd,
+    uint8_t &u8Message, struct DhcpPacket &packet)
+{
+    int getLen = 0;
     getLen = (m_socketMode == SOCKET_MODE_RAW) ? GetDhcpRawPacket(&packet, sockFd)
                                                : GetDhcpKernelPacket(&packet, sockFd);
     if (getLen < 0) {
@@ -1375,19 +1388,34 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
             m_dhcp4State = DHCP_STATE_INIT;
             m_timeoutTimestamp = timestamp;
         }
-        return;
+        return DHCP_OPT_FAILED;
     }
     DHCP_LOGI("DhcpResponseHandle get packet success, getLen:%{public}d.", getLen);
     /* Check packet data. */
     if (packet.xid != m_transID) {
         DHCP_LOGW("DhcpResponseHandle get xid:%{public}u and m_transID:%{public}u not same!", packet.xid, m_transID);
-        return;
+        return DHCP_OPT_FAILED;
     }
 #ifndef OHOS_ARCH_LITE
     GetDhcpOffer(&packet, timestamp);
 #endif
     if (!GetDhcpOptionUint8(&packet, DHCP_MESSAGE_TYPE_OPTION, &u8Message)) {
         DHCP_LOGE("DhcpResponseHandle GetDhcpOptionUint8 DHCP_MESSAGE_TYPE_OPTION failed!");
+        return DHCP_OPT_FAILED;
+    }
+    return DHCP_OPT_SUCCESS;
+}
+
+void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
+{
+    struct DhcpPacket packet;
+    uint8_t u8Message = 0;
+
+    if (memset_s(&packet, sizeof(packet), 0, sizeof(packet)) != EOK) {
+        DHCP_LOGE("DhcpResponseHandle memset_s packet failed!");
+        return;
+    }
+    if (DhcpResponseDataCheck(timestamp, sockFd, u8Message, packet) != DHCP_OPT_SUCCESS) {
         return;
     }
     DHCP_LOGI("DhcpResponseHandle m_dhcp4State:%{public}d.", m_dhcp4State);
@@ -1396,9 +1424,13 @@ void DhcpClientStateMachine::DhcpResponseHandle(time_t timestamp, int sockFd)
             DhcpOfferPacketHandle(u8Message, &packet, timestamp);
             break;
         case DHCP_STATE_REQUESTING:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RENEWING:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_REBINDING:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_INITREBOOT:
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RENEWED:
             DhcpAckOrNakPacketHandle(u8Message, &packet, timestamp);
             break;
@@ -1467,14 +1499,20 @@ int DhcpClientStateMachine::GetPacketHeaderInfo(struct DhcpPacket *packet, uint8
 
     switch (type) {
         case DHCP_DISCOVER:
+            FALLTHROUGH_INTENDED;
         case DHCP_REQUEST:
+            FALLTHROUGH_INTENDED;
         case DHCP_DECLINE:
+            FALLTHROUGH_INTENDED;
         case DHCP_RELEASE:
+            FALLTHROUGH_INTENDED;
         case DHCP_INFORM:
             packet->op = BOOT_REQUEST;
             break;
         case DHCP_OFFER:
+            FALLTHROUGH_INTENDED;
         case DHCP_ACK:
+            FALLTHROUGH_INTENDED;
         case DHCP_NAK:
             packet->op = BOOT_REPLY;
             break;
