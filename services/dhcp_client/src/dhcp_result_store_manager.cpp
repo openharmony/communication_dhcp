@@ -271,7 +271,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
     }
     FILE *fp = fopen(realPaths, "r");
     if (!fp) {
-        DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", realPaths);
+        DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", m_fileName.c_str());
         free(realPaths);
         return -1;
     }
