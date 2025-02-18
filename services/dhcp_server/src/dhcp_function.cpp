@@ -376,7 +376,7 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
         DHCP_LOGE("realpath failed error");
         return DHCP_OPT_FAILED;
     }
-    FILE *pFile = fopen(filename.c_str(), "r");
+    FILE *pFile = fopen(realPaths, "r");
     if (pFile == nullptr) {
         DHCP_LOGE("GetDhcpPacketResult() fopen %{public}s fail, err:%{public}s!", filename.c_str(), strerror(errno));
         free(realPaths);
