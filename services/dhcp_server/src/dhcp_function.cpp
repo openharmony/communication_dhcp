@@ -376,7 +376,7 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
         DHCP_LOGE("realpath failed error");
         return DHCP_OPT_FAILED;
     }
-    FILE *pFile = fopen(filename.c_str(), "r");
+    FILE *pFile = fopen(realPaths, "r");
     if (pFile == nullptr) {
         DHCP_LOGE("GetDhcpPacketResult() fopen %{public}s fail, err:%{public}s!", filename.c_str(), strerror(errno));
         free(realPaths);
@@ -395,31 +395,31 @@ int DhcpFunction::GetDhcpPacketResult(const std::string& filename, struct DhcpPa
         result.strOptDns1, INET_ADDRSTRLEN, result.strOptDns2, INET_ADDRSTRLEN, result.strOptRouter1, INET_ADDRSTRLEN,
         result.strOptRouter2, INET_ADDRSTRLEN, result.strOptVendor, DHCP_FILE_MAX_BYTES, &result.uOptLeasetime);
     if (nRes == EOF) {
-        DHCP_LOGE("GetDhcpPacketResult() fscanf %{public}s err:%{public}s!", filename.c_str(), strerror(errno));
+        DHCP_LOGE("GetDhcpPacketResult() fscanf %{public}s err:%{public}s!", realPaths, strerror(errno));
         (void)fclose(pFile);
         free(realPaths);
         return DHCP_OPT_FAILED;
     } else if (nRes == 0) {
-        DHCP_LOGW("GetDhcpPacketResult() fscanf file:%{public}s nRes:0 nullptr!", filename.c_str());
+        DHCP_LOGW("GetDhcpPacketResult() fscanf file:%{public}s nRes:0 nullptr!", realPaths);
         (void)fclose(pFile);
         free(realPaths);
         return DHCP_OPT_NULL;
     } else if (nRes != EVENT_DATA_NUM) {
-        DHCP_LOGE("GetDhcpPacketResult() fscanf file:%{public}s nRes:%{public}d ERROR!", filename.c_str(), nRes);
+        DHCP_LOGE("GetDhcpPacketResult() fscanf file:%{public}s nRes:%{public}d ERROR!", realPaths, nRes);
         (void)fclose(pFile);
         free(realPaths);
         return DHCP_OPT_FAILED;
     }
 
     if (fclose(pFile) != 0) {
-        DHCP_LOGE("GetDhcpPacketResult() fclose file:%{public}s failed!", filename.c_str());
+        DHCP_LOGE("GetDhcpPacketResult() fclose file:%{public}s failed!", realPaths);
         free(realPaths);
         return DHCP_OPT_FAILED;
     }
 
     /* Format dhcp packet result */
     if (FormatString(result) != 0) {
-        DHCP_LOGE("GetDhcpPacketResult() file:%{public}s failed, FormatString result error!", filename.c_str());
+        DHCP_LOGE("GetDhcpPacketResult() file:%{public}s failed, FormatString result error!", realPaths);
         free(realPaths);
         return DHCP_OPT_FAILED;
     }

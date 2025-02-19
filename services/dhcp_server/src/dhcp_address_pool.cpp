@@ -537,7 +537,7 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         DHCP_LOGE("realpath failed error");
         return RET_FAILED;
     }
-    FILE *fp = fopen(filePath, "w");
+    FILE *fp = fopen(realPaths, "w");
     if (fp == nullptr) {
         DHCP_LOGE("Save binding records %{private}s failed: %{public}d", filePath, errno);
         free(realPaths);

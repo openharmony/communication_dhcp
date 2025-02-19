@@ -605,7 +605,7 @@ ErrCode DhcpServerServiceImpl::GetDhcpClientInfos(const std::string& ifname, std
         DHCP_LOGE("realpath failed error");
         return DHCP_E_FAILED;
     }
-    FILE *inFile = fopen(strFile.c_str(), "r");
+    FILE *inFile = fopen(realPaths, "r");
     if (!inFile) {
         DHCP_LOGE("GetDhcpClientInfos() failed, unable to open file: %{public}s", strFile.c_str());
         free(realPaths);

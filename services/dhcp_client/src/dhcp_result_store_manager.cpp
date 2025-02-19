@@ -269,7 +269,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
         DHCP_LOGE("realpath failed error");
         return -1;
     }
-    FILE *fp = fopen(m_fileName.c_str(), "r");
+    FILE *fp = fopen(realPaths, "r");
     if (!fp) {
         DHCP_LOGE("Loading config file: %{public}s, fopen() failed!", m_fileName.c_str());
         free(realPaths);
@@ -314,7 +314,7 @@ int32_t DhcpResultStoreManager::SaveConfig()
         DHCP_LOGE("realpath failed error");
         return -1;
     }
-    FILE* fp = fopen(m_fileName.c_str(), "w");
+    FILE* fp = fopen(realPaths, "w");
     if (!fp) {
         DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
         free(realPaths);
@@ -329,7 +329,7 @@ int32_t DhcpResultStoreManager::SaveConfig()
     }
     uint32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
     if (ret != static_cast<uint32_t>(content.length())) {
-        DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", m_fileName.c_str());
+        DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", realPaths);
     }
     (void)fflush(fp);
     (void)fsync(fileno(fp));
