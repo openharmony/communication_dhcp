@@ -44,10 +44,6 @@
 #include "dhcp_thread.h"
 #include "dhcp_define.h"
 
-#ifndef OHOS_ARCH_LITE
-#include "dhcp_system_timer.h"
-#endif
-
 #ifdef INIT_LIB_ENABLE
 #include "parameter.h"
 #endif
@@ -1963,7 +1959,8 @@ void DhcpClientStateMachine::SetSecondsElapsed(struct DhcpPacket *packet)
 #ifndef OHOS_ARCH_LITE
 void DhcpClientStateMachine::GetIpTimerCallback()
 {
-    DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}u %{public}u %{public}u %{public}u",
+    DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}" PRIu64",%{public}" PRIu64","
+        "%{public}" PRIu64",%{public}" PRIu64"",
         threadExit_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     if (threadExit_.load()) {
         DHCP_LOGE("GetIpTimerCallback return!");
@@ -1987,16 +1984,45 @@ void DhcpClientStateMachine::GetIpTimerCallback()
     }
 }
 
-void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, int64_t interval, bool once)
+void DhcpClientStateMachine::StartTimer(TimerType type, uint64_t &timerId, int64_t interval, bool once)
 {
-    DHCP_LOGI("StartTimer timerId:%{public}u type:%{public}u interval:%{public}" PRId64" once:%{public}d", timerId,
-        type, interval, once);
-    std::unique_lock<std::mutex> lock(getIpTimerMutex);
-    std::function<void()> timeCallback = nullptr;
+    DHCP_LOGI("StartTimer timerId:%{public}" PRIu64" type:%{public}u interval:%{public}" PRId64" once:%{public}d",
+        timerId, type, interval, once);
     if (timerId != 0) {
-        DHCP_LOGE("StartTimer timerId !=0 id:%{public}u", timerId);
+        DHCP_LOGE("StartTimer timerId !=0 id:%{public}" PRIu64"", timerId);
         return;
     }
+    std::unique_lock<std::mutex> lock(getIpTimerMutex);
+    std::function<void()> timeCallback = nullptr;
+#ifndef OHOS_EUPDATER
+    std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer =
+        std::make_shared<OHOS::DHCP::DhcpSysTimer>(false, 0, false, false);
+    if (dhcpSysTimer == nullptr) {
+        DHCP_LOGE("StartTimer dhcpSysTimer is nullptr");
+        return;
+    }
+#endif
+    SetTimerCallback(type, timeCallback);
+    if (timeCallback != nullptr) {
+#ifndef OHOS_EUPDATER
+        SetTimerName(type, dhcpSysTimer);
+        dhcpSysTimer->SetCallbackInfo(timeCallback);
+        timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
+        int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
+        MiscServices::TimeServiceClient::GetInstance()->StartTimer(timerId, currentTime + interval);
+#else
+        uint32_t tempTimerId = 0;
+        DhcpTimer::GetInstance()->Register(timeCallback, tempTimerId, interval, once);
+        timerId = tempTimerId;
+#endif
+        DHCP_LOGI("StartTimer timerId:%{public}" PRIu64" [%{public}" PRIu64",%{public}" PRIu64",%{public}" PRIu64","
+            "%{public}" PRIu64"]",
+            timerId, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+    }
+}
+
+void DhcpClientStateMachine::SetTimerCallback(TimerType type, std::function<void()> &timeCallback)
+{
     switch (type) {
         case TIMER_GET_IP:
             timeCallback = [this] { this->GetIpTimerCallback(); };
@@ -2014,39 +2040,63 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint32_t &timerId, int64
             timeCallback = [this] { this->SlowArpTimeoutCallback(); };
             break;
         default:
-            DHCP_LOGE("StartTimer default timerId:%{public}u", timerId);
+            DHCP_LOGI("SetTimerCallback: invalid type:%{public}d", static_cast<int32_t>(type));
             break;
-    }
-    if (timeCallback != nullptr && (timerId == 0)) {
-        std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer =
-            std::make_shared<OHOS::DHCP::DhcpSysTimer>(false, 0, false, false);
-        dhcpSysTimer->SetCallbackInfo(timeCallback);
-        timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
-        int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
-        MiscServices::TimeServiceClient::GetInstance()->StartTimer(timerId, currentTime + interval);
-        DHCP_LOGI("StartTimer timerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", timerId, getIpTimerId,
-            renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     }
 }
 
-void DhcpClientStateMachine::StopTimer(uint32_t &timerId)
+#ifndef OHOS_EUPDATER
+void DhcpClientStateMachine::SetTimerName(TimerType type, std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer)
 {
-    uint32_t stopTimerId = timerId;
+    if (dhcpSysTimer == nullptr) {
+        return;
+    }
+
+    switch (type) {
+        case TIMER_GET_IP:
+            dhcpSysTimer->SetName("getIpTimer");
+            break;
+        case TIMER_RENEW_DELAY:
+            dhcpSysTimer->SetName("renewIpTimer");
+            break;
+        case TIMER_REBIND_DELAY:
+            dhcpSysTimer->SetName("rebindIpTimer");
+            break;
+        case TIMER_REMAINING_DELAY:
+            dhcpSysTimer->SetName("remainingIpTimer");
+            break;
+        case TIMER_SLOW_ARP:
+            dhcpSysTimer->SetName("slowArpTimer");
+            break;
+        default:
+            break;
+    }
+}
+#endif
+
+void DhcpClientStateMachine::StopTimer(uint64_t &timerId)
+{
+    uint64_t stopTimerId = timerId;
     if (timerId == 0) {
         DHCP_LOGE("StopTimer timerId is 0, no unregister timer");
         return;
     }
     std::unique_lock<std::mutex> lock(getIpTimerMutex);
+#ifndef OHOS_EUPDATER
     MiscServices::TimeServiceClient::GetInstance()->StopTimer(timerId);
     MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(timerId);
+#else
+    DhcpTimer::GetInstance()->UnRegister(static_cast<uint32_t>(timerId));
+#endif
     timerId = 0;
-    DHCP_LOGI("StopTimer stopTimerId:%{public}u [%{public}u %{public}u %{public}u %{public}u]", stopTimerId,
-        getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+    DHCP_LOGI("StopTimer stopTimerId:%{public}" PRIu64" [%{public}" PRIu64",%{public}" PRIu64",%{public}" PRIu64","
+        "%{public}" PRIu64"]",
+        stopTimerId, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
 }
 
 void DhcpClientStateMachine::RenewDelayCallback()
 {
-    DHCP_LOGI("RenewDelayCallback timerId:%{public}u", renewDelayTimerId);
+    DHCP_LOGI("RenewDelayCallback timerId:%{public}" PRIu64"", renewDelayTimerId);
     StopTimer(renewDelayTimerId);
     StopIpv4();
     m_action = ACTION_RENEW_T1; // T1 begin renew
@@ -2062,7 +2112,7 @@ void DhcpClientStateMachine::RenewDelayCallback()
 
 void DhcpClientStateMachine::RebindDelayCallback()
 {
-    DHCP_LOGI("RebindDelayCallback timerId:%{public}u", rebindDelayTimerId);
+    DHCP_LOGI("RebindDelayCallback timerId:%{public}" PRIu64"", rebindDelayTimerId);
     StopTimer(rebindDelayTimerId);
     StopIpv4();
     m_action = ACTION_RENEW_T2; // T2 begin rebind
@@ -2077,7 +2127,7 @@ void DhcpClientStateMachine::RebindDelayCallback()
 
 void DhcpClientStateMachine::RemainingDelayCallback()
 {
-    DHCP_LOGI("RemainingDelayCallback timerId:%{public}u", remainingDelayTimerId);
+    DHCP_LOGI("RemainingDelayCallback timerId:%{public}" PRIu64"", remainingDelayTimerId);
     StopTimer(remainingDelayTimerId);
     StopIpv4();
     m_action = ACTION_RENEW_T3;  // T3 expired,

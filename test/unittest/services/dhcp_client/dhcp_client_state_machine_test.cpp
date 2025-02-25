@@ -837,10 +837,10 @@ HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
     int64_t dafaultInterval1 = 30000;
     int64_t dafaultInterval2 = 60000;
     int64_t dafaultInterval3 = 90000;
-    uint32_t getIpTimerId = 0;
-    uint32_t renewDelayTimerId = 0;
-    uint32_t rebindDelayTimerId = 0;
-    uint32_t remainingDelayTimerId = 0;
+    uint64_t getIpTimerId = 0;
+    uint64_t renewDelayTimerId = 0;
+    uint64_t rebindDelayTimerId = 0;
+    uint64_t remainingDelayTimerId = 0;
     dhcpClient->StartTimer(TIMER_RENEW_DELAY, getIpTimerId, dafaultInterval0, true);
     dhcpClient->StartTimer(TIMER_RENEW_DELAY, renewDelayTimerId, dafaultInterval1, true);
     dhcpClient->StartTimer(TIMER_REBIND_DELAY, rebindDelayTimerId, dafaultInterval2, true);

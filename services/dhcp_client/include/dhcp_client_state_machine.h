@@ -23,6 +23,9 @@
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
 #include "dhcp_thread.h"
+#ifndef OHOS_EUPDATER
+#include "dhcp_system_timer.h"
+#endif
 
 #ifndef OHOS_ARCH_LITE
 #include "common_timer_errors.h"
@@ -98,12 +101,16 @@ private:
     void SetDefaultNetMask(struct DhcpIpResult *result);
 #ifndef OHOS_ARCH_LITE
     void GetDhcpOffer(DhcpPacket *getPacket, int64_t timestamp);
+    void SetTimerCallback(TimerType type, std::function<void()> &timeCallback);
+#ifndef OHOS_EUPDATER
+    void SetTimerName(TimerType type, std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer);
+#endif
 #endif
 
 public:
 #ifndef OHOS_ARCH_LITE
-    void StartTimer(TimerType type, uint32_t &timerId, int64_t interval, bool once);
-    void StopTimer(uint32_t &timerId);
+    void StartTimer(TimerType type, uint64_t &timerId, int64_t interval, bool once);
+    void StopTimer(uint64_t &timerId);
     void GetIpTimerCallback();
     void RenewDelayCallback();
     void RebindDelayCallback();
@@ -148,10 +155,10 @@ private:
     ActionMode m_action;
 #ifndef OHOS_ARCH_LITE
     std::mutex getIpTimerMutex;
-    uint32_t getIpTimerId;
-    uint32_t renewDelayTimerId;
-    uint32_t rebindDelayTimerId;
-    uint32_t remainingDelayTimerId;
+    uint64_t getIpTimerId;
+    uint64_t renewDelayTimerId;
+    uint64_t rebindDelayTimerId;
+    uint64_t remainingDelayTimerId;
     uint32_t m_slowArpTaskId;
 #endif
     std::string m_arpDectionTargetIp;
@@ -162,7 +169,7 @@ private:
     std::function<void(bool isReachable)> m_slowArpCallback;
     bool m_slowArpDetecting;
     int64_t firstSendPacketTime_;
-    uint32_t slowArpTimeoutTimerId_;
+    uint64_t slowArpTimeoutTimerId_;
 };
 
 typedef struct{
