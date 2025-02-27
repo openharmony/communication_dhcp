@@ -58,6 +58,8 @@ std::string Ip4IntConvertToStr(uint32_t uIp, bool bHost);
 int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const std::string& macAddr);
 
 std::string Ipv6Anonymize(const std::string &str);
+
+bool IsValidPath(const std::string &filePath);
 }
 }
 #endif
