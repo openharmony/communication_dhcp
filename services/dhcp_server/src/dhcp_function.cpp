@@ -25,6 +25,7 @@
 
 #include "securec.h"
 #include "dhcp_logger.h"
+#include "dhcp_common_utils.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -296,6 +297,11 @@ bool DhcpFunction::IsExistFile(const std::string& filename)
 
 bool DhcpFunction::CreateFile(const std::string& filename, const std::string& filedata)
 {
+    if (!IsValidPath(filename)) {
+        DHCP_LOGE("invalid path:%{public}s", filename.c_str());
+        return false;
+    }
+
     FILE *file = fopen(filename.c_str(), "w");
     if (!file) {
         DHCP_LOGE("CreateFile %{public}s failed, err:%{public}d", filename.c_str(), errno);

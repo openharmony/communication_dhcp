@@ -23,6 +23,7 @@
 #include "address_utils.h"
 #include "common_util.h"
 #include "dhcp_logger.h"
+#include "dhcp_common_utils.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerAddressPool");
 
@@ -532,15 +533,14 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         return RET_FAILED;
     }
     char line[DHCP_FILE_LINE_LENGTH] = {0};
-    char *realPaths = realpath(filePath, nullptr);
-    if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");
+    if (!OHOS::DHCP::IsValidPath(filePath)) {
+        DHCP_LOGE("invalid path:%{public}s", filePath);
         return RET_FAILED;
     }
-    FILE *fp = fopen(realPaths, "w");
+
+    FILE *fp = fopen(filePath, "w");
     if (fp == nullptr) {
         DHCP_LOGE("Save binding records %{private}s failed: %{public}d", filePath, errno);
-        free(realPaths);
         return RET_FAILED;
     }
     for (auto index: pool->leaseTable) {
@@ -556,7 +556,6 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         DHCP_LOGE("SaveBindingRecoders fclose fp failed!");
     }
     lastTime = currTime;
-    free(realPaths);
     return RET_SUCCESS;
 }
 

@@ -286,5 +286,22 @@ int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const s
     close(sockFd);
     return ret;
 }
+
+bool IsValidPath(const std::string &filePath)
+{
+    if (filePath.empty()) {
+        return false;
+    }
+
+    int32_t index = filePath.find_last_of('/');
+    std::string path = filePath.substr(0, index);
+    char *realPaths = realpath(path.c_str(), nullptr);
+    if (realPaths == nullptr) {
+        return false;
+    }
+
+    free(realPaths);
+    return true;
+}
 }
 }

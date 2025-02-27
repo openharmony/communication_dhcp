@@ -305,19 +305,14 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
 
 int32_t DhcpResultStoreManager::SaveConfig()
 {
-    if (m_fileName.empty()) {
-        DHCP_LOGE("File name is empty.");
+    if (!IsValidPath(m_fileName)) {
+        DHCP_LOGE("invalid path:%{public}s", m_fileName.c_str());
         return -1;
     }
-    char *realPaths = realpath(m_fileName.c_str(), nullptr);
-    if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");
-        return -1;
-    }
-    FILE* fp = fopen(realPaths, "w");
+
+    FILE* fp = fopen(m_fileName.c_str(), "w");
     if (!fp) {
         DHCP_LOGE("Save config file: %{public}s, fopen() failed!", m_fileName.c_str());
-        free(realPaths);
         return -1;
     }
     std::string content = "";
@@ -329,14 +324,13 @@ int32_t DhcpResultStoreManager::SaveConfig()
     }
     uint32_t ret = fwrite(content.c_str(), 1, content.length(), fp);
     if (ret != static_cast<uint32_t>(content.length())) {
-        DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", realPaths);
+        DHCP_LOGE("Save config file: %{public}s, fwrite() failed!", m_fileName.c_str());
     }
     (void)fflush(fp);
     (void)fsync(fileno(fp));
     (void)fclose(fp);
     m_allIpCached.clear(); /* clear values */
     std::vector<IpInfoCached>().swap(m_allIpCached);
-    free(realPaths);
     return 0;
 }
 

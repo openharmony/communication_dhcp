@@ -33,6 +33,7 @@
 #include "dhcp_result.h"
 #include "dhcp_thread.h"
 #include "dhcp_function.h"
+#include "dhcp_common_utils.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -601,6 +602,10 @@ void *DhcpIpv6Client::DhcpIpv6Start()
 void DhcpIpv6Client::SetAcceptRa(const std::string &content)
 {
     std::string fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ACCEPT_RA;
+    if (!IsValidPath(fileName)) {
+        DHCP_LOGE("invalid path:%{public}s", fileName.c_str());
+        return;
+    }
     std::ofstream outf(fileName, std::ios::out);
     if (!outf) {
         DHCP_LOGE("SetAcceptRa, write content [%{public}s] to file [%{public}s] failed. error: %{public}d.",

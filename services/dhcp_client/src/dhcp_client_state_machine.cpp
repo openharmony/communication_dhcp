@@ -369,9 +369,9 @@ void DhcpClientStateMachine::DhcpInit(void)
     SetSocketMode(SOCKET_MODE_RAW);
 
     std::string arpIgnore = "/proc/sys/net/ipv4/conf/" + m_ifName + "/arp_ignore";
-    ModifyKernelFile(arpIgnore.c_str(), "2");
+    ModifyKernelFile(arpIgnore, "2");
     std::string arpAnnounce = "/proc/sys/net/ipv4/conf/" + m_ifName + "/arp_announce";
-    ModifyKernelFile(arpAnnounce.c_str(), "2");
+    ModifyKernelFile(arpAnnounce, "2");
 
     time_t t = time(NULL);
     if (t == (time_t)-1) {
@@ -380,29 +380,25 @@ void DhcpClientStateMachine::DhcpInit(void)
     Reboot(t);
 }
 
-void DhcpClientStateMachine::ModifyKernelFile(const char* filePath, const char* num)
+void DhcpClientStateMachine::ModifyKernelFile(const std::string &filePath, const char* num)
 {
-    char *realPaths = realpath(filePath, nullptr);
-    if (realPaths == nullptr) {
-        DHCP_LOGE("realpath failed error");
+    if (!IsValidPath(filePath)) {
+        DHCP_LOGE("invalid path:%{public}s", filePath.c_str());
         return;
     }
-    FILE* file = fopen(realPaths, "w");
+    FILE* file = fopen(filePath.c_str(), "w");
     if (file == nullptr) {
         DHCP_LOGI("Failed to open file");
-        free(realPaths);
         return;
     }
     if (fwrite(num, 1, 1, file) != 1) {
         DHCP_LOGI("Failed to write file");
         (void)fclose(file);
-        free(realPaths);
         return;
     }
     (void)fflush(file);
     (void)fsync(fileno(file));
     (void)fclose(file);
-    free(realPaths);
 }
 
 bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)

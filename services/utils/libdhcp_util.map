@@ -23,6 +23,7 @@
 "OHOS::DHCP::DhcpSaLoadManager::UnloadWifiSa(int)";
 "OHOS::DHCP::DhcpSaLoadManager::LoadWifiSa(int)";
 "OHOS::DHCP::Ipv6Anonymize(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
+"OHOS::DHCP::IsValidPath(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
  };
     local:
         *;
