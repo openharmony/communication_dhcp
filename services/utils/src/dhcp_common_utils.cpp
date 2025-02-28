@@ -293,7 +293,12 @@ bool IsValidPath(const std::string &filePath)
         return false;
     }
 
-    int32_t index = filePath.find_last_of('/');
+    // filePath must be the full path of a file, so the last one character cannot be '/'
+    size_t index = filePath.find_last_of('/');
+    if (index == std::string::npos || index == filePath.length() - 1) {
+        return false;
+    }
+
     std::string path = filePath.substr(0, index);
     char *realPaths = realpath(path.c_str(), nullptr);
     if (realPaths == nullptr) {
