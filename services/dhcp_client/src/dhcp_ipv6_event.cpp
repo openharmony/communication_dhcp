@@ -179,12 +179,8 @@ void DhcpIpv6Client::fillRouteData(char* buff, int &len)
 
 void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
 {
-    if (!data) {
-        DHCP_LOGE("handleKernelEvent failed, data invalid.");
-        return;
-    }
-    if (len < (int32_t)sizeof(struct nlmsghdr)) {
-        DHCP_LOGE("recv kernel data not full continue.");
+    if (!data || len < static_cast<int32_t>(sizeof(struct nlmsghdr))) {
+        DHCP_LOGE("handleKernelEvent failed, data invalid, len:%{public}d.", len);
         return;
     }
     struct nlmsghdr *nlh = (struct nlmsghdr*)data;
@@ -202,24 +198,19 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
                     rth = RTA_NEXT(rth, rtl);
                     continue;
                 }
+                if (rth->rta_len < RTA_LENGTH(IPV6_LENGTH_BYTES)) {
+                    DHCP_LOGE("handleKernelEvent rta_len:%{public}u is invalid.", rth->rta_len);
+                    return;
+                }
                 onIpv6AddressAddEvent(RTA_DATA(rth), ifa->ifa_prefixlen, ifa->ifa_index);
                 rth = RTA_NEXT(rth, rtl);
             }
         } else if (nlh->nlmsg_type == RTM_NEWNDUSEROPT) {
-            unsigned int optLen = 0;
-            if (nlh->nlmsg_len >= sizeof(*nlh)) {
-                optLen = nlh->nlmsg_len - sizeof(*nlh);
-            } else {
-                return;
-            }
             if (nlh->nlmsg_len < (sizeof(struct nlmsghdr) + sizeof(struct nduseroptmsg))) {
+                DHCP_LOGE("handleKernelEvent nlmsg_len:%{public}u is invalid.", nlh->nlmsg_len);
                 return;
             }
             struct nduseroptmsg* ndmsg = (struct nduseroptmsg*)NLMSG_DATA(nlh);
-            if (sizeof(*ndmsg) > (size_t)optLen) {
-                DHCP_LOGE("ndoption get invalid length.");
-                continue;
-            }
             size_t optsize = NLMSG_PAYLOAD(nlh, sizeof(*ndmsg));
             parseNdUserOptMessage((void*)ndmsg, optsize);
         } else if (nlh->nlmsg_type == RTM_NEWROUTE) {
