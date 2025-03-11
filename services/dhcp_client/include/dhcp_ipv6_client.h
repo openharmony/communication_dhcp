@@ -77,6 +77,7 @@ private:
     void setSocketFilter(void* addr);
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
+    void ParseAddrMessage(void *msg);
     void parseNDRouteMessage(void* msg);
     void parseNewneighMessage(void* msg);
     void getIpv6RouteAddr();

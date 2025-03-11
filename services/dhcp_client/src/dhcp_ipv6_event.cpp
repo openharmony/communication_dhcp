@@ -26,6 +26,7 @@ const int KERNEL_SOCKET_FAMILY = 16;
 const int KERNEL_SOCKET_IFA_FAMILY = 10;
 const int KERNEL_ICMP_TYPE = 134;
 const int IPV6_LENGTH_BYTES = 16;
+constexpr int ND_OPT_HDR_LENGTH_BYTES = 2;
 
 void DhcpIpv6Client::setSocketFilter(void* addr)
 {
@@ -43,6 +44,10 @@ void DhcpIpv6Client::parseNdUserOptMessage(void* data, int len)
 {
     if (!data) {
         DHCP_LOGE("parseNdUserOptMessage failed, msg invalid.");
+        return;
+    }
+    if (len < (static_cast<int>(sizeof(struct nduseroptmsg)) + ND_OPT_HDR_LENGTH_BYTES)) {
+        DHCP_LOGE("parseNdUserOptMessage invalid len:%{public}d.", len);
         return;
     }
     struct nduseroptmsg *msg = (struct nduseroptmsg *)data;
@@ -187,24 +192,7 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
     while (nlh && NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
         DHCP_LOGD("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
         if (nlh->nlmsg_type == RTM_NEWADDR) {
-            if (nlh->nlmsg_len < (sizeof(struct nlmsghdr) + sizeof(struct ifaddrmsg))) {
-                return;
-            }
-            struct ifaddrmsg *ifa = (struct ifaddrmsg*)NLMSG_DATA(nlh);
-            struct rtattr *rth = IFA_RTA(ifa);
-            int rtl = static_cast<int>(IFA_PAYLOAD(nlh));
-            while (rtl && RTA_OK(rth, rtl)) {
-                if (rth->rta_type != IFA_ADDRESS || ifa->ifa_family != KERNEL_SOCKET_IFA_FAMILY) {
-                    rth = RTA_NEXT(rth, rtl);
-                    continue;
-                }
-                if (rth->rta_len < RTA_LENGTH(IPV6_LENGTH_BYTES)) {
-                    DHCP_LOGE("handleKernelEvent rta_len:%{public}u is invalid.", rth->rta_len);
-                    return;
-                }
-                onIpv6AddressAddEvent(RTA_DATA(rth), ifa->ifa_prefixlen, ifa->ifa_index);
-                rth = RTA_NEXT(rth, rtl);
-            }
+            ParseAddrMessage((void *)nlh);
         } else if (nlh->nlmsg_type == RTM_NEWNDUSEROPT) {
             if (nlh->nlmsg_len < (sizeof(struct nlmsghdr) + sizeof(struct nduseroptmsg))) {
                 DHCP_LOGE("handleKernelEvent nlmsg_len:%{public}u is invalid.", nlh->nlmsg_len);
@@ -219,6 +207,37 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             parseNewneighMessage((void*)nlh);
         }
         nlh = NLMSG_NEXT(nlh, len);
+    }
+}
+
+void DhcpIpv6Client::ParseAddrMessage(void *msg)
+{
+    if (msg == nullptr) {
+        DHCP_LOGE("ParseAddrMessage msg is nullptr.");
+        return;
+    }
+
+    struct nlmsghdr *nlh = (struct nlmsghdr*)msg;
+    if (nlh->nlmsg_len < (sizeof(struct nlmsghdr) + sizeof(struct ifaddrmsg))) {
+        DHCP_LOGE("ParseAddrMessage nlmsg_len:%{public}u is invalid.", nlh->nlmsg_len);
+        return;
+    }
+
+    struct ifaddrmsg *ifa = (struct ifaddrmsg*)NLMSG_DATA(nlh);
+    struct rtattr *rth = IFA_RTA(ifa);
+    int rtl = static_cast<int>(IFA_PAYLOAD(nlh));
+    while (rtl && RTA_OK(rth, rtl)) {
+        if (rth->rta_type != IFA_ADDRESS || ifa->ifa_family != KERNEL_SOCKET_IFA_FAMILY) {
+            rth = RTA_NEXT(rth, rtl);
+            continue;
+        }
+        if (rth->rta_len < RTA_LENGTH(IPV6_LENGTH_BYTES)) {
+            DHCP_LOGI("handleKernelEvent rta_len:%{public}u is invalid.", rth->rta_len);
+            rth = RTA_NEXT(rth, rtl);
+            continue;
+        }
+        onIpv6AddressAddEvent(RTA_DATA(rth), ifa->ifa_prefixlen, ifa->ifa_index);
+        rth = RTA_NEXT(rth, rtl);
     }
 }
 }  // namespace DHCP
