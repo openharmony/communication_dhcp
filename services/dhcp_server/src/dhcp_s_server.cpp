@@ -1737,7 +1737,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
         if (((uint8_t *)end) - ((uint8_t *)current) < OPT_HEADER_LENGTH) {
-            DHCP_LOGE("current->code:%{publc}d out of option range.", current->code);
+            DHCP_LOGE("current->code:%{public}d out of option range.", current->code);
             return RET_FAILED;
         }
         DHCP_LOGD("ParseMessageOptions, current code:%{public}d, len:%{public}d.", current->code, current->length);
