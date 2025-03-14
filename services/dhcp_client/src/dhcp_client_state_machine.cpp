@@ -475,9 +475,7 @@ int DhcpClientStateMachine::ExecDhcpRenew(void)
             SetSocketMode(SOCKET_MODE_RAW);
             break;
         case DHCP_STATE_BOUND:
-            /* Set socket mode, send unicast packet. */
-            SetSocketMode(SOCKET_MODE_KERNEL);
-            /* fall through */
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RENEWING:
             FALLTHROUGH_INTENDED;
         case DHCP_STATE_REBINDING:
@@ -818,8 +816,7 @@ void DhcpClientStateMachine::DhcpRequestHandle(time_t timestamp)
         case DHCP_STATE_BOUND:
             /* Now the renewal time run out, ready to enter renewing state. */
             m_dhcp4State = DHCP_STATE_RENEWING;
-            SetSocketMode(SOCKET_MODE_KERNEL);
-            /* fall through */
+            FALLTHROUGH_INTENDED;
         case DHCP_STATE_RENEWING:
             Renewing(timestamp);
             break;
@@ -2102,7 +2099,6 @@ void DhcpClientStateMachine::RenewDelayCallback()
     m_dhcp4State = DHCP_STATE_RENEWING;
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
-    SetSocketMode(SOCKET_MODE_KERNEL); // Set socket mode, send unicast packet
     InitStartIpv4Thread(m_ifName, m_cltCnf.isIpv6);
 }
 
