@@ -38,6 +38,7 @@ constexpr uint32_t IPV4_PROTOCOL = ETHER_HEADER_LEN + offsetof(iphdr, protocol);
 constexpr uint32_t IPV4_FLAGS_OFFSET = ETHER_HEADER_LEN + offsetof(iphdr, frag_off);
 constexpr uint32_t UDP_DST_PORT_INDIRECT_OFFSET = ETHER_HEADER_LEN + offsetof(udphdr, dest);
 constexpr uint16_t DHCP_CLIENT_PORT = 68;
+constexpr int32_t DHCP_MAX_PACKET_LEN = 1500;
 sock_filter g_filterCode[] = {
     // Check the protocol is UDP.
     BPF_STMT(BPF_LD  | BPF_B    | BPF_ABS, IPV4_PROTOCOL),
@@ -309,7 +310,14 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
         return SOCKET_OPT_FAILED;
     }
 
-    ssize_t nBytes = write(nFd, sendPacket, sizeof(struct DhcpPacket));
+    /* get append options length , include endpoint length(2) */
+    int32_t optionLen = GetEndOptionIndex(sendPacket->options) + DHCP_APPEND_LEN;
+    int32_t sendLen = sizeof(struct DhcpPacket) - DHCP_OPT_SIZE + optionLen;
+    if (sendLen <= 0 || sendLen > DHCP_MAX_PACKET_LEN) {
+        DHCP_LOGE("SendDhcpPacket invalid sendLen:%{public}d.", sendLen);
+        return SOCKET_OPT_FAILED;
+    }
+    ssize_t nBytes = write(nFd, sendPacket, sendLen);
     if (nBytes <= 0) {
         DHCP_LOGE("SendDhcpPacket fd:%{public}d failed, write error:%{public}d.", nFd, errno);
     } else {
