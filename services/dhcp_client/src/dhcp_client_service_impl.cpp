@@ -375,6 +375,14 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             (iter2->second).pipv6Client->StopIpv6Timer();
 #endif
         }
+        {
+            std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
+            auto iter = m_mapDhcpResult.find(ifname);
+            if (iter != m_mapDhcpResult.end()) {
+                DHCP_LOGI("m_mapDhcpResult erase ifName:%{public}s", ifname.c_str());
+                m_mapDhcpResult.erase(iter);
+            }
+        }
     }
     return DHCP_E_SUCCESS;
 }
