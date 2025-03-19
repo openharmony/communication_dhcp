@@ -380,7 +380,10 @@ bool DhcpIpv6Client::IsEui64ModeIpv6Address(char *ipv6addr, int len)
         DHCP_LOGE("IsEui64ModeIpv6Address memset_s failed!");
         return false;
     }
-    MacChConToMacStr(ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    if (!MacChConToMacStr(ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr))) {
+        DHCP_LOGE("MacChConToMacStr() failed!");
+        return false;
+    }
     std::string localMacString = macAddr;
     std::string ipv6AddrString = ipv6addr;
     size_t macPosition = localMacString.find_last_of(':');
