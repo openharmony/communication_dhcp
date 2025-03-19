@@ -26,8 +26,8 @@ namespace DHCP {
 static constexpr int32_t DHCP_LOADSA_TIMEOUT_MS = 1000;
 DhcpSaLoadManager& DhcpSaLoadManager::GetInstance()
 {
-    static auto instance = new DhcpSaLoadManager();
-    return *instance;
+    static DhcpSaLoadManager gDhcpSaLoadManager;
+    return gDhcpSaLoadManager;
 }
 
 ErrCode DhcpSaLoadManager::LoadWifiSa(int systemAbilityId) __attribute__((no_sanitize("cfi")))
