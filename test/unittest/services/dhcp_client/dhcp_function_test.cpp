@@ -85,7 +85,7 @@ HWTEST_F(DhcpFunctionTest, MacChConToMacStr_SUCCESS, TestSize.Level1)
     EXPECT_EQ(false, MacChConToMacStr(hwaddr, MAC_ADDR_LEN, NULL, 0));
 
     char buf[MAC_ADDR_LEN * MAC_ADDR_CHAR_NUM] = {0};
-    EXPECT_NE(-1, MacChConToMacStr(hwaddr, MAC_ADDR_LEN, buf, sizeof(buf)));
+    EXPECT_NE(false, MacChConToMacStr(hwaddr, MAC_ADDR_LEN, buf, sizeof(buf)));
 }
 
 HWTEST_F(DhcpFunctionTest, GetLocalInterface_SUCCESS, TestSize.Level1)
