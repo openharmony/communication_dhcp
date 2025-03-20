@@ -1870,7 +1870,7 @@ bool DhcpClientStateMachine::IsArpReachable(uint32_t timeoutMillis, std::string 
     }
     if (!MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr))) {
         DHCP_LOGE("MacChConToMacStr() failed!");
-        return DHCP_OPT_FAILED;
+        return false;
     }
     std::string localMac = macAddr;
     uint64_t timeCost = 0;
