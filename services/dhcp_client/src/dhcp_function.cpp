@@ -94,16 +94,16 @@ bool Ip6StrConToChar(const char *strIp, uint8_t chIp[], size_t chlen)
     return true;
 }
 
-const char *MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, size_t strLen)
+bool MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, size_t strLen)
 {
     if ((pChMac == NULL) || (chLen == 0)) {
         DHCP_LOGE("MacChConToMacStr failed, pChMac == NULL or chLen == 0!");
-        return NULL;
+        return false;
     }
 
     if ((pStrMac == NULL) || (strLen < (chLen * MAC_ADDR_CHAR_NUM))) {
         DHCP_LOGE("MacChConToMacStr failed, pStrMac == NULL or strLen:%{public}d error!", (int)strLen);
-        return NULL;
+        return false;
     }
 
     const unsigned char *pSrc = pChMac;
@@ -114,11 +114,16 @@ const char *MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pS
         if (pSrc != pChMac) {
             *(pDest++) = ':';
         }
-        pDest += snprintf_s(pDest, MAC_ADDR_CHAR_NUM, MAC_ADDR_CHAR_NUM - 1, "%.2x", *pSrc);
+        int ret = snprintf_s(pDest, MAC_ADDR_CHAR_NUM, MAC_ADDR_CHAR_NUM - 1, "%.2x", *pSrc);
+        if (ret < 0) {
+            DHCP_LOGE("snprintf_s failed!");
+            return false;
+        }
+        pDest += ret;
     }
     /* The last character of pStrMac ends with '\0'. */
     *(pDest++) = '\0';
-    return pStrMac;
+    return true;
 }
 
 int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, uint32_t *ifaddr4)

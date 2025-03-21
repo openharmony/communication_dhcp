@@ -259,7 +259,10 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
         DHCP_LOGE("GetClientNetworkInfo() memset_s failed!");
         return DHCP_OPT_FAILED;
     }
-    MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    if (!MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr))) {
+        DHCP_LOGE("MacChConToMacStr() failed!");
+        return DHCP_OPT_FAILED;
+    }
     DHCP_LOGI("GetClientNetworkInfo() m_cltCnf.ifaceName:%{public}s -> ifaceIndex:%{public}d,ifaceMac:%{private}s.",
         m_cltCnf.ifaceName, m_cltCnf.ifaceIndex, macAddr);
 
@@ -1541,7 +1544,10 @@ int DhcpClientStateMachine::AddClientIdToOpts(struct DhcpPacket *packet)
         return DHCP_OPT_FAILED;
     }
     char macAddr[MAC_ADDR_LEN * MAC_ADDR_CHAR_NUM] = {0};
-    MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    if (!MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr))) {
+        DHCP_LOGE("MacChConToMacStr() failed!");
+        return DHCP_OPT_FAILED;
+    }
 
     unsigned char optValue[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
     optValue[DHCP_OPT_CODE_INDEX] = CLIENT_IDENTIFIER_OPTION;
@@ -1862,7 +1868,10 @@ bool DhcpClientStateMachine::IsArpReachable(uint32_t timeoutMillis, std::string 
         DHCP_LOGI("IsArpReachable memset_s error");
         return false;
     }
-    MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr));
+    if (!MacChConToMacStr(m_cltCnf.ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr))) {
+        DHCP_LOGE("MacChConToMacStr() failed!");
+        return false;
+    }
     std::string localMac = macAddr;
     uint64_t timeCost = 0;
     m_dhcpArpChecker.Start(m_ifName, localMac, senderIp, ipAddress);
