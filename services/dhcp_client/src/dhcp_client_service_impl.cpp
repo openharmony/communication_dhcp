@@ -375,6 +375,14 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             (iter2->second).pipv6Client->StopIpv6Timer();
 #endif
         }
+        {
+            std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
+            auto iter = m_mapDhcpResult.find(ifname);
+            if (iter != m_mapDhcpResult.end()) {
+                DHCP_LOGI("m_mapDhcpResult erase ifName:%{public}s", ifname.c_str());
+                m_mapDhcpResult.erase(iter);
+            }
+        }
     }
     return DHCP_E_SUCCESS;
 }
@@ -427,12 +435,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
         result.strSubnet.c_str(), result.strDns1.c_str(), result.strDns2.c_str(), result.strRouter1.c_str(),
         result.strRouter2.c_str(), result.strVendor.c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
     
-    if (CheckDhcpResultExist(ifname, result)) {
-        DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s equal new addtime %{public}u, no need update.",
-            ifname.c_str(), result.uAddTime);
-        return DHCP_OPT_SUCCESS;
-    }
-    PushDhcpResult(ifname, result);
     std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
     auto iter = m_mapClientCallBack.find(ifname);
     if (iter == m_mapClientCallBack.end()) {
@@ -443,6 +445,12 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
         DHCP_LOGE("DhcpIpv4ResultSuccess mclientCallback is nullptr!");
         return DHCP_OPT_FAILED;
     }
+    if (CheckDhcpResultExist(ifname, result)) {
+        DHCP_LOGI("DhcpIpv4ResultSuccess DhcpResult %{public}s equal new addtime %{public}u, no need update.",
+            ifname.c_str(), result.uAddTime);
+        return DHCP_OPT_SUCCESS;
+    }
+    PushDhcpResult(ifname, result);
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
     return DHCP_OPT_SUCCESS;
 }
