@@ -284,7 +284,6 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const RouterCfg &config, DhcpClien
 #ifndef OHOS_ARCH_LITE
         NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
         NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
-        dhcpClient.pipv6Client->StartIpv6Timer();
 #endif
         dhcpClient.pipv6Client->Reset();
         dhcpClient.pipv6Client->SetCallback(
@@ -311,7 +310,6 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const RouterCfg &config)
 #ifndef OHOS_ARCH_LITE
         NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
         NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
-        pipv6Client->StartIpv6Timer();
 #endif
         pipv6Client->Reset();
         pipv6Client->SetCallback(
@@ -372,7 +370,6 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
             (iter2->second).pipv6Client->DhcpIPV6Stop();
 #ifndef OHOS_ARCH_LITE
             NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
-            (iter2->second).pipv6Client->StopIpv6Timer();
 #endif
         }
     }
@@ -632,9 +629,6 @@ int DhcpClientServiceImpl::DhcpFreeIpv6(const std::string ifname)
     if (iter != m_mapClientService.end()) {
         if ((iter->second).pipv6Client != nullptr) {
             (iter->second).pipv6Client->DhcpIPV6Stop();
-#ifndef OHOS_ARCH_LITE
-            (iter->second).pipv6Client->StopIpv6Timer();
-#endif
         }
     }
     return DHCP_OPT_SUCCESS;
