@@ -34,6 +34,9 @@
 #include "dhcp_thread.h"
 #include "dhcp_function.h"
 #include "dhcp_common_utils.h"
+#ifndef OHOS_EUPDATER
+#include "dhcp_system_timer.h"
+#endif
 
 namespace OHOS {
 namespace DHCP {
@@ -93,10 +96,10 @@ struct nd_opt_rdnss {
 } _packed;
 #endif
 
-DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname), runFlag(false)
+DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname)
 {
 #ifndef OHOS_ARCH_LITE
-    ipv6TimerId = 0;
+    ipv6TimerId_ = 0;
 #endif
     ipv6Thread_ = std::make_unique<DhcpThread>("InnerIpv6Thread");
     DHCP_LOGI("DhcpIpv6Client()");
@@ -113,7 +116,7 @@ DhcpIpv6Client::~DhcpIpv6Client()
 bool DhcpIpv6Client::IsRunning()
 {
     DHCP_LOGI("IsRunning()");
-    return runFlag;
+    return runFlag_.load();
 }
 void DhcpIpv6Client::SetCallback(std::function<void(const std::string ifname, DhcpIpv6Info &info)> callback)
 {
@@ -129,12 +132,17 @@ void DhcpIpv6Client::RunIpv6ThreadFunc()
 
 int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
 {
-    DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6, runFlag);
-    if (!runFlag) {
+    DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6,
+        runFlag_.load());
+    if (!runFlag_.load()) {
+        runFlag_ = true;
         interfaceName = ifname;
         if (ipv6Thread_ == nullptr) {
             ipv6Thread_ = std::make_unique<DhcpThread>("InnerIpv6Thread");
         }
+#ifndef OHOS_ARCH_LITE
+        StartIpv6Timer();
+#endif
         std::function<void()> func = [this]() { this->RunIpv6ThreadFunc(); };
         int delayTime = 0;
         bool result = ipv6Thread_->PostAsyncTask(func, delayTime);
@@ -528,10 +536,9 @@ int DhcpIpv6Client::StartIpv6()
 {
     DHCP_LOGI("StartIpv6 enter. %{public}s", interfaceName.c_str());
     (void)memset_s(&dhcpIpv6Info, sizeof(dhcpIpv6Info), 0, sizeof(dhcpIpv6Info));
-    runFlag = true;
     ipv6SocketFd = createKernelSocket();
     if (ipv6SocketFd < 0) {
-        runFlag = false;
+        runFlag_ = false;
         DHCP_LOGE("StartIpv6 ipv6SocketFd < 0 failed!");
         return -1;
     }
@@ -539,14 +546,14 @@ int DhcpIpv6Client::StartIpv6()
     if (buff == NULL) {
         DHCP_LOGE("StartIpv6 ipv6 malloc buff failed.");
         close(ipv6SocketFd);
-        runFlag = false;
+        runFlag_ = false;
         return -1;
     }
     struct timeval timeout = {0};
     fd_set rSet;
     timeout.tv_sec = 0;
     timeout.tv_usec = SELECT_TIMEOUT_US;
-    while (runFlag) {
+    while (runFlag_.load()) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0, KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
         if (ipv6SocketFd < 0) {
@@ -580,7 +587,6 @@ int DhcpIpv6Client::StartIpv6()
     }
     close(ipv6SocketFd);
     ipv6SocketFd = 0;
-    runFlag = false;
     free(buff);
     buff = NULL;
     DHCP_LOGI("DhcpIpv6Client thread exit.");
@@ -589,11 +595,6 @@ int DhcpIpv6Client::StartIpv6()
 
 void *DhcpIpv6Client::DhcpIpv6Start()
 {
-    if (runFlag) {
-        DHCP_LOGI("DhcpIpv6Client already started.");
-        return NULL;
-    }
-
     SetAcceptRa(ACCEPT_OVERRULE_FORWORGING);
     int result = StartIpv6();
     if (result < 0) {
@@ -631,8 +632,14 @@ void DhcpIpv6Client::PublishIpv6Result()
 
 void DhcpIpv6Client::DhcpIPV6Stop(void)
 {
-    DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag);
-    runFlag = false;
+    DHCP_LOGI("DhcpIPV6Stop exit ipv6 thread, runFlag:%{public}d", runFlag_.load());
+    if (!runFlag_.load()) {
+        return;
+    }
+    runFlag_ = false;
+#ifndef OHOS_ARCH_LITE
+    StopIpv6Timer();
+#endif
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     onIpv6AddressChanged_ = nullptr;
 }
@@ -641,29 +648,61 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
 using TimeOutCallback = std::function<void()>;
 void DhcpIpv6Client::Ipv6TimerCallback()
 {
-    DHCP_LOGI("enter Ipv6TimerCallback, ipv6TimerId:%{public}u", ipv6TimerId);
+    DHCP_LOGI("enter Ipv6TimerCallback, ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
     StopIpv6Timer();
     DhcpIpv6TimerCallbackEvent(interfaceName.c_str());
 }
 
 void DhcpIpv6Client::StartIpv6Timer()
 {
-    DHCP_LOGI("StartIpv6Timer ipv6TimerId:%{public}u", ipv6TimerId);
     std::unique_lock<std::mutex> lock(ipv6TimerMutex);
-    if (ipv6TimerId == 0) {
-        TimeOutCallback timeoutCallback = [this] { this->Ipv6TimerCallback(); };
-        DhcpTimer::GetInstance()->Register(timeoutCallback, ipv6TimerId, DhcpTimer::DEFAULT_TIMEROUT);
-        DHCP_LOGI("StartIpv6Timer success! ipv6TimerId:%{public}u", ipv6TimerId);
+    DHCP_LOGI("StartIpv6Timer ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
+    if (ipv6TimerId_ != 0) {
+        DHCP_LOGE("StartIpv6Timer ipv6TimerId !=0 id:%{public}" PRIu64, ipv6TimerId_);
+        return;
     }
-    return;
+
+#ifndef OHOS_EUPDATER
+    std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer =
+        std::make_shared<OHOS::DHCP::DhcpSysTimer>(false, 0, false, false);
+    if (dhcpSysTimer == nullptr) {
+        DHCP_LOGE("StartIpv6Timer dhcpSysTimer is nullptr");
+        return;
+    }
+#endif
+
+    std::function<void()> timeCallback = [this] { this->Ipv6TimerCallback(); };
+    if (timeCallback != nullptr) {
+#ifndef OHOS_EUPDATER
+        dhcpSysTimer->SetCallbackInfo(timeCallback);
+        ipv6TimerId_ = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
+        int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
+        MiscServices::TimeServiceClient::GetInstance()->StartTimer(ipv6TimerId_,
+            currentTime + DhcpTimer::DEFAULT_TIMEROUT);
+#else
+        uint32_t tempTimerId = 0;
+        DhcpTimer::GetInstance()->Register(timeCallback, tempTimerId, DhcpTimer::DEFAULT_TIMEROUT);
+        ipv6TimerId_ = tempTimerId;
+#endif
+        DHCP_LOGI("StartIpv6Timer success! ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
+    }
 }
 
 void DhcpIpv6Client::StopIpv6Timer()
 {
-    DHCP_LOGI("StopIpv6Timer ipv6TimerId:%{public}u", ipv6TimerId);
     std::unique_lock<std::mutex> lock(ipv6TimerMutex);
-    DhcpTimer::GetInstance()->UnRegister(ipv6TimerId);
-    ipv6TimerId = 0;
+    DHCP_LOGI("StopIpv6Timer ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
+    if (ipv6TimerId_ == 0) {
+        DHCP_LOGE("StopIpv6Timer ipv6TimerId is 0");
+        return;
+    }
+#ifndef OHOS_EUPDATER
+    MiscServices::TimeServiceClient::GetInstance()->StopTimer(ipv6TimerId_);
+    MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(ipv6TimerId_);
+#else
+    DhcpTimer::GetInstance()->UnRegister(static_cast<uint32_t>(ipv6TimerId_));
+#endif
+    ipv6TimerId_ = 0;
     return;
 }
 #endif
