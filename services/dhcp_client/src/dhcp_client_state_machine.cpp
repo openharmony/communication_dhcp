@@ -294,6 +294,7 @@ void DhcpClientStateMachine::StartIpv4()
     }
     firstSendPacketTime_ = 0;
     if (!InitSocketFd(sockFdRaw, sockFdkernel)) {
+        threadExit_ = true;
         return;
     }
     DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
@@ -1685,6 +1686,7 @@ int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint3
     SetSecondsElapsed(&packet);
     packet.ciaddr = clientip;
     AddParamaterRequestList(&packet);
+    AddOptValueToOpts(packet.options, MAXIMUM_DHCP_MESSAGE_SIZE_OPTION, MAX_MSG_SIZE); //57
 
     /* Begin broadcast or unicast dhcp request packet. */
     if (serverip == 0) {
@@ -2007,7 +2009,6 @@ void DhcpClientStateMachine::StartTimer(TimerType type, uint64_t &timerId, int64
     SetTimerCallback(type, timeCallback);
     if (timeCallback != nullptr) {
 #ifndef OHOS_EUPDATER
-        SetTimerName(type, dhcpSysTimer);
         dhcpSysTimer->SetCallbackInfo(timeCallback);
         timerId = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
         int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
@@ -2103,7 +2104,6 @@ void DhcpClientStateMachine::RenewDelayCallback()
     StopIpv4();
     m_action = ACTION_RENEW_T1; // T1 begin renew
     InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StopTimer(getIpTimerId);
     StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
     m_dhcp4State = DHCP_STATE_RENEWING;
     m_sentPacketNum = 0;
