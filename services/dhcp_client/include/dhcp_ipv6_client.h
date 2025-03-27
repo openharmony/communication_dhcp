@@ -92,9 +92,9 @@ private:
     struct DhcpIpv6Info dhcpIpv6Info;
     int32_t ipv6SocketFd = 0;
     std::unique_ptr<DhcpThread> ipv6Thread_ = nullptr;
-    bool runFlag;
+    std::atomic<bool> runFlag_ { false };
 #ifndef OHOS_ARCH_LITE
-    uint32_t ipv6TimerId;
+    uint64_t ipv6TimerId_ { 0 };
     std::mutex ipv6TimerMutex;
 #endif
 };
