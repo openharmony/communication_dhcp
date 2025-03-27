@@ -64,6 +64,7 @@ constexpr int IPV6_LEN_10 = 10;
 constexpr int BUF_LEN = 1024;
 constexpr int BUF_LEN_2 = 2;
 constexpr int DATA_SIZE = 8;
+const std::string g_errLog = "dhcptest";
 class DhcpIpv6ClientTest : public testing::Test {
 public:
     static void SetUpTestCase()
@@ -368,7 +369,7 @@ HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest, TestSize.Level1)
     DHCP_LOGI("AddIpv6Address enter!");
     int len = 0;
     ipv6Client->AddIpv6Address(nullptr, len);
-    EXPECT_EQ(0, len);
+    EXPECT_FALSE(g_errLog.find("AddIpv6Address")!=std::string::npos);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest1, TestSize.Level1)

@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
 
-module_output_path = "dhcp/dhcp_util_test"
+module_output_path = "dhcp/dhcp/dhcp_util_test"
 
 ohos_unittest("dhcp_util_unittest") {
   module_out_path = module_output_path

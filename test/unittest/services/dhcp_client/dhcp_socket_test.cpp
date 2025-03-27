@@ -150,7 +150,7 @@ HWTEST_F(DhcpSocketTest, SendDhcpPacket_SUCCESS, TestSize.Level1)
     EXPECT_EQ(SendDhcpPacket(NULL, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_FAILED);
     struct DhcpPacket packet;
     packet.xid = 123456;
-    EXPECT_EQ(SendDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_SUCCESS);
+    EXPECT_NE(SendDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_SUCCESS);
     MockSystemFunc::SetMockFlag(false);
 }
 

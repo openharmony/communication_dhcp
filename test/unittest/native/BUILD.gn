@@ -14,7 +14,7 @@
 import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
 
-module_output_path = "dhcp/dhcp_native_test"
+module_output_path = "dhcp/dhcp/dhcp_native_test"
 
 config("module_private_config") {
   visibility = [ ":*" ]

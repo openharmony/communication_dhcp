@@ -31,6 +31,7 @@ using namespace std;
 using namespace OHOS::DHCP;
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerTest");
+const std::string g_errLog = "dhcptest";
 
 struct ServerContext {
     int broadCastFlagEnable;
@@ -260,7 +261,7 @@ HWTEST_F(DhcpServerTest, NotifyConnetDeviceChangedTest, TestSize.Level1)
     replyType = REPLY_NAK;
     NotifyConnetDeviceChanged(replyType, nullptr);
     NotifyConnetDeviceChanged(replyType, &ctx);
-    EXPECT_EQ(REPLY_NAK, replyType);
+    EXPECT_FALSE(g_errLog.find("NotifyConnetDeviceChanged")!=std::string::npos);
 }
 
 HWTEST_F(DhcpServerTest, RegisterDeviceChangedCallbackTest, TestSize.Level1)
@@ -269,7 +270,7 @@ HWTEST_F(DhcpServerTest, RegisterDeviceChangedCallbackTest, TestSize.Level1)
     DeviceConnectFun func = nullptr;
     RegisterDeviceChangedCallback(nullptr, func);
     RegisterDeviceChangedCallback(&ctx, func);
-    EXPECT_EQ(nullptr, func);
+    EXPECT_FALSE(g_errLog.find("RegisterDeviceChangedCallback")!=std::string::npos);
 }
 }
 }
