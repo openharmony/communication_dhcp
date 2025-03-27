@@ -81,7 +81,7 @@ void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, co
     datas.WriteBool(ipv6);
     datas.WriteBool(static_cast<int>(data[0]) % THREE);
     datas.RewindRead(0);
-    ipv6Client->runFlag = true;
+    ipv6Client->runFlag_ = true;
     MessageParcel reply;
     MessageOption option;
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
