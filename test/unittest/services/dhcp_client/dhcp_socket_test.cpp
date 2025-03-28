@@ -144,11 +144,10 @@ HWTEST_F(DhcpSocketTest, SendDhcpPacket_SUCCESS, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), connect(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), write(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
-
-    EXPECT_EQ(SendDhcpPacket(NULL, 0, 0), SOCKET_OPT_FAILED);
-    EXPECT_EQ(SendDhcpPacket(NULL, INADDR_ANY, 0), SOCKET_OPT_FAILED);
-    EXPECT_EQ(SendDhcpPacket(NULL, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_FAILED);
     struct DhcpPacket packet;
+    EXPECT_EQ(SendDhcpPacket(&packet, 0, 0), SOCKET_OPT_FAILED);
+    EXPECT_EQ(SendDhcpPacket(&packet, INADDR_ANY, 0), SOCKET_OPT_FAILED);
+    EXPECT_EQ(SendDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_FAILED);
     packet.xid = 123456;
     EXPECT_NE(SendDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST), SOCKET_OPT_SUCCESS);
     MockSystemFunc::SetMockFlag(false);
