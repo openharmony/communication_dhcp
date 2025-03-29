@@ -31,7 +31,7 @@ using namespace std;
 using namespace OHOS::DHCP;
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerTest");
-const std::string g_errLog = "dhcptest";
+const std::string g_errLog = "DhcpTest";
 
 struct ServerContext {
     int broadCastFlagEnable;

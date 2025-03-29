@@ -64,7 +64,7 @@ constexpr int IPV6_LEN_10 = 10;
 constexpr int BUF_LEN = 1024;
 constexpr int BUF_LEN_2 = 2;
 constexpr int DATA_SIZE = 8;
-const std::string g_errLog = "dhcptest";
+const std::string g_errLog = "DhcpTest";
 class DhcpIpv6ClientTest : public testing::Test {
 public:
     static void SetUpTestCase()

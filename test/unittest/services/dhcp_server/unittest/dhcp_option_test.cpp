@@ -23,7 +23,7 @@
 #include "dhcp_logger.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpOptionTest");
-const std::string g_errLog = "dhcptest";
+const std::string g_errLog = "DhcpTest";
 using namespace testing::ext;
 namespace OHOS {
 namespace DHCP {
