@@ -350,12 +350,15 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
         DHCP_LOGE("StopDhcpClient ifname is empty!");
         return DHCP_E_FAILED;
     }
-    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-    auto iter = m_mapClientCallBack.find(ifname);
-    if (iter != m_mapClientCallBack.end()) {
-        m_mapClientCallBack.erase(iter);
-        DHCP_LOGI("StopDhcpClient erase ClientCallBack ifName:%{public}s", ifname.c_str());
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+        auto iter = m_mapClientCallBack.find(ifname);
+        if (iter != m_mapClientCallBack.end()) {
+            m_mapClientCallBack.erase(iter);
+            DHCP_LOGI("StopDhcpClient erase ClientCallBack ifName:%{public}s", ifname.c_str());
+        }
     }
+    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
     auto iter2 = m_mapClientService.find(ifname);
     if (iter2 != m_mapClientService.end()) {
         if ((iter2->second).pStaStateMachine != nullptr) {
