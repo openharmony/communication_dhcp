@@ -1876,8 +1876,9 @@ bool DhcpClientStateMachine::IsArpReachable(uint32_t timeoutMillis, std::string 
     }
     std::string localMac = macAddr;
     uint64_t timeCost = 0;
-    m_dhcpArpChecker.Start(m_ifName, localMac, senderIp, ipAddress);
-    if (m_dhcpArpChecker.DoArpCheck(timeoutMillis, false, timeCost)) {
+    DhcpArpChecker dhcpArpChecker;
+    dhcpArpChecker.Start(m_ifName, localMac, senderIp, ipAddress);
+    if (dhcpArpChecker.DoArpCheck(timeoutMillis, false, timeCost)) {
         DHCP_LOGI("Arp detection get response");
         return true;
     }
