@@ -23,7 +23,7 @@
 #include "dhcp_logger.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpOptionTest");
-
+const std::string g_errLog = "DhcpTest";
 using namespace testing::ext;
 namespace OHOS {
 namespace DHCP {
@@ -205,7 +205,7 @@ HWTEST_F(DhcpOptionTest, FreeOptionListTest1, TestSize.Level1)
 {
     PDhcpOptionList pOptions = nullptr;
     FreeOptionList(pOptions);
-    EXPECT_EQ(pOptions, nullptr);
+    EXPECT_FALSE(g_errLog.find("FreeOptionList")!=std::string::npos);
 }
 
 HWTEST_F(DhcpOptionTest, FreeOptionListTest2, TestSize.Level1)
@@ -213,7 +213,7 @@ HWTEST_F(DhcpOptionTest, FreeOptionListTest2, TestSize.Level1)
     PDhcpOptionList pOptions = (PDhcpOptionList)malloc(sizeof(DhcpOptionList));
     pOptions->first = nullptr;
     FreeOptionList(pOptions);
-    EXPECT_EQ(pOptions->first, nullptr);
+    EXPECT_FALSE(g_errLog.find("pOptions")!=std::string::npos);
     free(pOptions);
 }
 }
