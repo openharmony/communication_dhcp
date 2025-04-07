@@ -165,7 +165,6 @@ private:
     RouterCfg m_routerCfg;
     uint32_t m_conflictCount;
     DhcpIpResult m_dhcpIpResult;
-    DhcpArpChecker m_dhcpArpChecker;
     std::function<void(bool isReachable)> m_slowArpCallback;
     bool m_slowArpDetecting;
     int64_t firstSendPacketTime_;
