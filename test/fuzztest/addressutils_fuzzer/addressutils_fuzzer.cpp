@@ -109,7 +109,7 @@ void HostTotalTest(const uint8_t* data, size_t size)
 
 void ParseIpTest(const uint8_t* data, size_t size)
 {
-    uint8_t *ipAddr = NULL;
+    uint8_t *ipAddr = nullptr;
     if (memcpy_s(ipAddr, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
         return;
     }

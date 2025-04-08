@@ -49,7 +49,7 @@ void IsExpireTest(const uint8_t* data, size_t size)
 void WriteAddressBindingTest(const uint8_t* data, size_t size)
 {
     AddressBinding binding;
-    uint32_t size_t = static_cast<uint64_t>(data[0]);
+    uint32_t sizeT = static_cast<uint64_t>(data[0]);
     binding.ipAddress = static_cast<uint32_t>(data[0]);
     binding.clientId = static_cast<uint32_t>(data[0]);
     binding.bindingTime = static_cast<uint64_t>(data[0]);
