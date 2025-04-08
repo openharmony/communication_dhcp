@@ -66,6 +66,7 @@ bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string
         m_isSocketCreated = false;
         return false;
     }
+    m_isSocketCreated = true;
     inet_aton(senderIp.c_str(), &m_localIpAddr);
     if (memcpy_s(m_localMacAddr, ETH_ALEN, mac, ETH_ALEN) != EOK) {
         DHCP_LOGE("DhcpArpChecker memcpy fail");
@@ -76,7 +77,6 @@ bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string
         return false;
     }
     inet_aton(targetIp.c_str(), &m_targetIpAddr);
-    m_isSocketCreated = true;
     return true;
 }
 
