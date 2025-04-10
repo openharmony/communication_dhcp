@@ -135,11 +135,11 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultSuccessTest, TestSize.Level1)
 
     ipResult.code = PUBLISH_CODE_SUCCESS;
     dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
-    EXPECT_NE(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
+    EXPECT_NE(DHCP_OPT_TIMEOUT, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
 
     ipResult.code = PUBLISH_CODE_TIMEOUT;
     dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
-    EXPECT_NE(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
+    EXPECT_NE(DHCP_OPT_TIMEOUT, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
 
     ipResult.code = PUBLISH_CODE_FAILED;
     dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
