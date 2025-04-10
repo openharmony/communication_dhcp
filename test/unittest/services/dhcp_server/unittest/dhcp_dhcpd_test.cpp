@@ -51,7 +51,7 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
     std::string netMask = "192.77.1.232";
     std::string ipRange;
     std::string localIp = "192.77.1.232";
-    EXPECT_NE(1, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
+    EXPECT_NE(RET_NO_SUPPORTED, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
 }
 
 HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level1)
