@@ -34,7 +34,7 @@ const uint8_t netmask26[] =  {255, 255, 255, 192};
 * @tc.type: FUNC
 * @tc.require: AR00000000 SR00000000
 */
-HWTEST(AddressUtilsTest, ParseIpAddrTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseIpAddrTest, TestSize.Level0)
 {
     DHCP_LOGE("enter ParseIpAddrTest");
     uint8_t ipData[] = {192, 168, 100, 1};
@@ -43,7 +43,7 @@ HWTEST(AddressUtilsTest, ParseIpAddrTest, TestSize.Level1)
     EXPECT_EQ(testIp, ParseIpAddr("192.168.100.1"));
 }
 
-HWTEST(AddressUtilsTest, ParseIpAddrFailedTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseIpAddrFailedTest, TestSize.Level0)
 {
     uint32_t expectVal = 0;
     EXPECT_EQ(expectVal, ParseIpAddr("192.168.100."));
@@ -51,7 +51,7 @@ HWTEST(AddressUtilsTest, ParseIpAddrFailedTest, TestSize.Level1)
     EXPECT_EQ(expectVal, ParseIpAddr("abc.abc.abc.abc"));
 }
 
-HWTEST(AddressUtilsTest, ParseStrIpAddrTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseStrIpAddrTest, TestSize.Level0)
 {
     uint8_t ipData[] = {192, 168, 100, 1};
     uint32_t testIp = ParseIp(ipData);
@@ -65,7 +65,7 @@ HWTEST(AddressUtilsTest, ParseStrIpAddrTest, TestSize.Level1)
 * @tc.type: FUNC
 * @tc.require: AR00000000 SR00000000
 */
-HWTEST(AddressUtilsTest, NetworkAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, NetworkAddressTest, TestSize.Level0)
 {
     uint8_t srcNetData[] = {192, 168, 100, 0};
     uint32_t srcNet = ParseIp(srcNetData);
@@ -77,7 +77,7 @@ HWTEST(AddressUtilsTest, NetworkAddressTest, TestSize.Level1)
     EXPECT_EQ(srcNet, NetworkAddress(testIp, testNetmask));
 }
 
-HWTEST(AddressUtilsTest, FirstIpAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, FirstIpAddressTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 1};
     uint32_t srcAddr = ParseIp(srcData);
@@ -89,7 +89,7 @@ HWTEST(AddressUtilsTest, FirstIpAddressTest, TestSize.Level1)
     EXPECT_EQ(srcAddr, FirstIpAddress(testIp, testNetmask));
 }
 
-HWTEST(AddressUtilsTest, LastIpAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, LastIpAddressTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 254};
     uint32_t srcAddr = ParseIp(srcData);
@@ -101,7 +101,7 @@ HWTEST(AddressUtilsTest, LastIpAddressTest, TestSize.Level1)
     EXPECT_EQ(srcAddr, LastIpAddress(testIp, testNetmask));
 }
 
-HWTEST(AddressUtilsTest, FirstNetIpAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, FirstNetIpAddressTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 1};
     uint32_t srcAddr = ParseIp(srcData);
@@ -115,7 +115,7 @@ HWTEST(AddressUtilsTest, FirstNetIpAddressTest, TestSize.Level1)
     EXPECT_EQ(srcAddr, FirstNetIpAddress(network));
 }
 
-HWTEST(AddressUtilsTest, NextIpAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, NextIpAddressTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 100};
     uint32_t srcAddr = ParseIp(srcData);
@@ -130,7 +130,7 @@ HWTEST(AddressUtilsTest, NextIpAddressTest, TestSize.Level1)
     EXPECT_EQ(testIp2, NextIpAddress(srcAddr, testNetmask, 1));
 }
 
-HWTEST(AddressUtilsTest, IpInNetworkTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, IpInNetworkTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 0};
     uint32_t srcAddr = ParseIp(srcData);
@@ -145,7 +145,7 @@ HWTEST(AddressUtilsTest, IpInNetworkTest, TestSize.Level1)
     EXPECT_FALSE(IpInNetwork(testIp2, srcAddr, testNetmask));
 }
 
-HWTEST(AddressUtilsTest, IpInRangeTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, IpInRangeTest, TestSize.Level0)
 {
     uint32_t testNetmask = ParseIp(netmask26);
     ASSERT_TRUE(testNetmask != 0);
@@ -166,7 +166,7 @@ HWTEST(AddressUtilsTest, IpInRangeTest, TestSize.Level1)
     EXPECT_TRUE(IpInRange(testIp3, beginIp, endIp, testNetmask));
 }
 
-HWTEST(AddressUtilsTest, BroadCastAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, BroadCastAddressTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 255};
     uint32_t srcAddr = ParseIp(srcData);
@@ -178,7 +178,7 @@ HWTEST(AddressUtilsTest, BroadCastAddressTest, TestSize.Level1)
     EXPECT_EQ(srcAddr, BroadCastAddress(testIp1, testNetmask));
 }
 
-HWTEST(AddressUtilsTest, IsEmptyHWAddrTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, IsEmptyHWAddrTest, TestSize.Level0)
 {
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0};
     uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0, 0, 0, 0, 0, 0, 0, 0x01};
@@ -189,7 +189,7 @@ HWTEST(AddressUtilsTest, IsEmptyHWAddrTest, TestSize.Level1)
     EXPECT_FALSE(IsEmptyHWAddr(testMac3));
 }
 
-HWTEST(AddressUtilsTest, ParseStrMacTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseStrMacTest, TestSize.Level0)
 {
     uint8_t testMac[DHCP_HWADDR_LENGTH] = {0, 0xae, 0xdc, 0xcc, 0x9f, 0x43, 0};
     EXPECT_STREQ("00:ae:dc:cc:9f:43", ParseStrMac(testMac, MAC_ADDR_LENGTH));
@@ -198,7 +198,7 @@ HWTEST(AddressUtilsTest, ParseStrMacTest, TestSize.Level1)
     ASSERT_TRUE(result == 0);
 }
 
-HWTEST(AddressUtilsTest, HostToNetworkTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, HostToNetworkTest, TestSize.Level0)
 {
     uint8_t srcData[] = {150, 100, 168, 192};
     uint32_t srcAddr = ParseIp(srcData);
@@ -208,7 +208,7 @@ HWTEST(AddressUtilsTest, HostToNetworkTest, TestSize.Level1)
     EXPECT_EQ(srcAddr, HostToNetwork(testIp));
 }
 
-HWTEST(AddressUtilsTest, NetworkToHostTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, NetworkToHostTest, TestSize.Level0)
 {
     uint8_t srcData[] = {192, 168, 100, 150};
     uint32_t srcAddr = ParseIp(srcData);
@@ -219,7 +219,7 @@ HWTEST(AddressUtilsTest, NetworkToHostTest, TestSize.Level1)
     EXPECT_EQ(srcAddr, NetworkToHost(testAddr));
 }
 
-HWTEST(AddressUtilsTest, ParseLogMacTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseLogMacTest, TestSize.Level0)
 {
     uint8_t testMac[DHCP_HWADDR_LENGTH] = {0, 0xae, 0xdc, 0xcc, 0x9f, 0x43, 0};
     EXPECT_STREQ("??:ae:??:??:9f:43", ParseLogMac(testMac));
@@ -228,7 +228,7 @@ HWTEST(AddressUtilsTest, ParseLogMacTest, TestSize.Level1)
     ASSERT_TRUE(result == 0);
 }
 
-HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level0)
 {
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0, 0xae, 0xdc, 0xcc, 0x9f, 0x43, 0};
     uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0, 0xae, 0xdc, 0xcc, 0x9f, 0x43, 0};
@@ -239,7 +239,7 @@ HWTEST(AddressUtilsTest, AddrEquelsTest, TestSize.Level1)
     EXPECT_EQ(0, AddrEquels(testMac2, testMac3, MAC_ADDR_LENGTH));
 }
 
-HWTEST(AddressUtilsTest, ParseMacAddressTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseMacAddressTest, TestSize.Level0)
 {
     uint8_t macAddr[DHCP_HWADDR_LENGTH] = {0};
     const char *strMac = "12:34:56:78:90:ab:cd";
@@ -253,7 +253,7 @@ HWTEST(AddressUtilsTest, ParseMacAddressTest, TestSize.Level1)
     EXPECT_EQ(result, DHCP_TRUE);
 }
 
-HWTEST(AddressUtilsTest, ParseHostNameTest, TestSize.Level1)
+HWTEST(AddressUtilsTest, ParseHostNameTest, TestSize.Level0)
 {
     char hostName[DHCP_BOOT_FILE_LENGTH];
     const char *strHostName = "test.com";

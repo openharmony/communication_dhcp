@@ -28,7 +28,7 @@ using namespace testing::ext;
 
 namespace OHOS {
 namespace DHCP {
-HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
+HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level0)
 {
     std::string ifname = "eth0";
     std::string netMask = "192.168.1.2";
@@ -38,12 +38,12 @@ HWTEST(DhcpArgumentTest, ParseArgumentsTest, TestSize.Level1)
     EXPECT_EQ(result, RET_SUCCESS);
 }
 
-HWTEST(DhcpArgumentTest, InitArgumentsTest, TestSize.Level1)
+HWTEST(DhcpArgumentTest, InitArgumentsTest, TestSize.Level0)
 {
     EXPECT_TRUE(InitArguments() == RET_SUCCESS);
 }
 
-HWTEST(DhcpArgumentTest, PutArgumentTest, TestSize.Level1)
+HWTEST(DhcpArgumentTest, PutArgumentTest, TestSize.Level0)
 {
     EXPECT_TRUE(PutArgument(NULL, NULL) == RET_FAILED);
     const char *argu = "lease";
@@ -62,7 +62,7 @@ HWTEST(DhcpArgumentTest, PutArgumentTest, TestSize.Level1)
     EXPECT_TRUE(PutArgument(argu, val) == RET_ERROR);
 }
 
-HWTEST(DhcpArgumentTest, GetArgumentTest, TestSize.Level1)
+HWTEST(DhcpArgumentTest, GetArgumentTest, TestSize.Level0)
 {
     DHCP_LOGE("enter GetArgumentTest");
     ArgumentInfo *arg = GetArgument("lease");
@@ -76,7 +76,7 @@ HWTEST(DhcpArgumentTest, GetArgumentTest, TestSize.Level1)
     EXPECT_EQ(0, strncmp(arg->value, "nothing", strlen("nothing")));
 }
 
-HWTEST(DhcpArgumentTest, HasArgumentTest, TestSize.Level1)
+HWTEST(DhcpArgumentTest, HasArgumentTest, TestSize.Level0)
 {
     const char *name = "xxx";
     EXPECT_TRUE(HasArgument(name) == 0);
