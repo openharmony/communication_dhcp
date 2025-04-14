@@ -157,6 +157,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     data.WriteBool(config.prohibitUseCacheIp);
     data.WriteBool(config.bIpv6);
     data.WriteBool(config.bSpecificNetwork);
+    data.WriteBool(config.isStaticIpv4);
     DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, prohibitUseCacheIp:%{public}d, bIpv6:%{public}d"\
         "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), config.ifname.c_str(), config.prohibitUseCacheIp,
         config.bIpv6, config.bSpecificNetwork);
