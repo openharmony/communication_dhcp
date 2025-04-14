@@ -97,9 +97,10 @@ typedef struct {
 typedef struct RouterConfig {
     char ifname[INTERFACE_MAX_LEN];
     char bssid[MAC_ADDR_MAX_LEN];
-    bool prohibitUseCacheIp;
-    bool bIpv6;
-    bool bSpecificNetwork;
+    bool prohibitUseCacheIp { false };
+    bool bIpv6 { true };
+    bool bSpecificNetwork { false };
+    bool isStaticIpv4 { false };
 }RouterConfig;
 
 typedef struct IpCacheInfo {
