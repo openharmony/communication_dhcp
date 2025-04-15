@@ -80,7 +80,7 @@ public:
     DhcpAddressPool testPool;
 };
 
-HWTEST_F(DhcpAddressPoolTest, AddBindingTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, AddBindingTest, TestSize.Level0)
 {
     DHCP_LOGE("enter AddBindingTest");
     AddressBinding bind = {0};
@@ -106,7 +106,7 @@ HWTEST_F(DhcpAddressPoolTest, AddBindingTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac2));
 }
 
-HWTEST_F(DhcpAddressPoolTest, AddNewBindingTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, AddNewBindingTest, TestSize.Level0)
 {
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     ASSERT_TRUE(testPool.newBinding != NULL);
@@ -114,7 +114,7 @@ HWTEST_F(DhcpAddressPoolTest, AddNewBindingTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac1));
 }
 
-HWTEST_F(DhcpAddressPoolTest, FindBindingByIpTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, FindBindingByIpTest, TestSize.Level0)
 {
     AddressBinding bind = {0};
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
@@ -142,7 +142,7 @@ HWTEST_F(DhcpAddressPoolTest, FindBindingByIpTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac2));
 }
 
-HWTEST_F(DhcpAddressPoolTest, AddressDistributeTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, AddressDistributeTest, TestSize.Level0)
 {
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
     uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
@@ -161,7 +161,7 @@ HWTEST_F(DhcpAddressPoolTest, AddressDistributeTest, TestSize.Level1)
     EXPECT_EQ(assertAddr, testPool.distribue(&testPool, testMac3));
 }
 
-HWTEST_F(DhcpAddressPoolTest, IsReservedTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, IsReservedTest, TestSize.Level0)
 {
     AddressBinding bind = {0};
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
@@ -194,7 +194,7 @@ HWTEST_F(DhcpAddressPoolTest, IsReservedTest, TestSize.Level1)
 }
 
 
-HWTEST_F(DhcpAddressPoolTest, IsReservedIpTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, IsReservedIpTest, TestSize.Level0)
 {
     AddressBinding bind = {0};
     bind.bindingMode = BIND_MODE_DYNAMIC;
@@ -225,7 +225,7 @@ HWTEST_F(DhcpAddressPoolTest, IsReservedIpTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveLease(&testPool, &bind));
 }
 
-HWTEST_F(DhcpAddressPoolTest, RemoveReservedBindingTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, RemoveReservedBindingTest, TestSize.Level0)
 {
     AddressBinding bind = {0}, bind2 = {0};
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x01, 0x3c, 0x65, 0x3a, 0x09, 0};
@@ -257,7 +257,7 @@ HWTEST_F(DhcpAddressPoolTest, RemoveReservedBindingTest, TestSize.Level1)
     EXPECT_EQ(RET_FAILED, RemoveReservedBinding(testMac4));
 }
 
-HWTEST_F(DhcpAddressPoolTest, ReleaseBindingTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, ReleaseBindingTest, TestSize.Level0)
 {
     AddressBinding bind = {0};
     bind.bindingMode = BIND_ASSOCIATED;
@@ -284,7 +284,7 @@ HWTEST_F(DhcpAddressPoolTest, ReleaseBindingTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac2));
 }
 
-HWTEST_F(DhcpAddressPoolTest, AddLeaseTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, AddLeaseTest, TestSize.Level0)
 {
     AddressBinding lease = {0};
     lease.bindingMode = BIND_MODE_DYNAMIC;
@@ -310,7 +310,7 @@ HWTEST_F(DhcpAddressPoolTest, AddLeaseTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveLease(&testPool, &lease));
 }
 
-HWTEST_F(DhcpAddressPoolTest, GetLeaseTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, GetLeaseTest, TestSize.Level0)
 {
     AddressBinding lease = {0};
     lease.bindingMode = BIND_MODE_DYNAMIC;
@@ -341,7 +341,7 @@ HWTEST_F(DhcpAddressPoolTest, GetLeaseTest, TestSize.Level1)
     EXPECT_EQ(RET_SUCCESS, RemoveLease(&testPool, &lease));
 }
 
-HWTEST_F(DhcpAddressPoolTest, UpdateLeaseTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, UpdateLeaseTest, TestSize.Level0)
 {
     AddressBinding lease = {0};
     lease.bindingMode = BIND_MODE_DYNAMIC;
@@ -379,7 +379,7 @@ HWTEST_F(DhcpAddressPoolTest, UpdateLeaseTest, TestSize.Level1)
 }
 
 
-HWTEST_F(DhcpAddressPoolTest, LoadBindingRecodersTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, LoadBindingRecodersTest, TestSize.Level0)
 {
     AddressBinding lease = {0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.101");
@@ -425,7 +425,7 @@ HWTEST_F(DhcpAddressPoolTest, LoadBindingRecodersTest, TestSize.Level1)
     testPool.leaseTable.clear();
 }
 
-HWTEST_F(DhcpAddressPoolTest, InitAddressPoolTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, InitAddressPoolTest, TestSize.Level0)
 {
     DhcpAddressPool tempPool;
     ASSERT_TRUE(memset_s(&tempPool, sizeof(DhcpAddressPool), 0, sizeof(DhcpAddressPool)) == EOK);
@@ -436,7 +436,7 @@ HWTEST_F(DhcpAddressPoolTest, InitAddressPoolTest, TestSize.Level1)
     FreeAddressPool(&tempPool);
 }
 
-HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level0)
 {
     AddressBinding lease = {0};
     uint32_t testIp1 = ParseIpAddr("192.168.100.110");
@@ -456,12 +456,12 @@ HWTEST_F(DhcpAddressPoolTest, RemoveLeaseFailedTest, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpAddressPoolTest, SaveBindingRecodersTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, SaveBindingRecodersTest, TestSize.Level0)
 {
     EXPECT_EQ(RET_FAILED, SaveBindingRecoders(NULL, 0));
 }
 
-HWTEST_F(DhcpAddressPoolTest, DeleteMacInLeaseTest, TestSize.Level1)
+HWTEST_F(DhcpAddressPoolTest, DeleteMacInLeaseTest, TestSize.Level0)
 {
     DhcpAddressPool pool;
     AddressBinding lease = {0};

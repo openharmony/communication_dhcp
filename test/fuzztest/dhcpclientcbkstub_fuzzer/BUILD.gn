@@ -46,6 +46,7 @@ ohos_fuzztest("DhcpClientCbkStubFuzzTest") {
     "c_utils:utils",
     "hilog:libhilog",
     "ipc:ipc_single",
+    "samgr:samgr_proxy",
   ]
 
   part_name = "dhcp"

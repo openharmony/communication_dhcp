@@ -26,7 +26,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpBindingTest");
 using namespace testing::ext;
 namespace OHOS {
 namespace DHCP {
-HWTEST(DhcpBindingTest, NextPendingIntervalTest, TestSize.Level1)
+HWTEST(DhcpBindingTest, NextPendingIntervalTest, TestSize.Level0)
 {
     DHCP_LOGE("enter NextPendingIntervalTest");
     uint64_t pendingInterval = 0;
@@ -51,7 +51,7 @@ HWTEST(DhcpBindingTest, NextPendingIntervalTest, TestSize.Level1)
     EXPECT_TRUE(NextPendingInterval(pendingInterval) == 1200);
 }
 
-HWTEST(DhcpBindingTest, IsExpireTest, TestSize.Level1)
+HWTEST(DhcpBindingTest, IsExpireTest, TestSize.Level0)
 {
     EXPECT_EQ(IsExpire(nullptr), DHCP_FALSE);
     AddressBinding binding;
@@ -73,7 +73,7 @@ HWTEST(DhcpBindingTest, IsExpireTest, TestSize.Level1)
     EXPECT_EQ(IsExpire(&binding), DHCP_TRUE);
 }
 
-HWTEST(DhcpBindingTest, WriteAddressBindingTest, TestSize.Level1)
+HWTEST(DhcpBindingTest, WriteAddressBindingTest, TestSize.Level0)
 {
     EXPECT_TRUE(WriteAddressBinding(nullptr, nullptr, 0) == RET_FAILED);
     AddressBinding binding;
@@ -91,7 +91,7 @@ HWTEST(DhcpBindingTest, WriteAddressBindingTest, TestSize.Level1)
     EXPECT_TRUE(WriteAddressBinding(&binding, outBinding, sizeof(outBinding)) == RET_SUCCESS);
 }
 
-HWTEST(DhcpBindingTest, ParseAddressBindingTest, TestSize.Level1)
+HWTEST(DhcpBindingTest, ParseAddressBindingTest, TestSize.Level0)
 {
     std::string msg;
     AddressBinding binding;

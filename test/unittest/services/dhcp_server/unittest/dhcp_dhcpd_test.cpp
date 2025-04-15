@@ -44,7 +44,7 @@ private:
     DhcpConfig m_serverConfg;
 };
 
-HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
+HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level0)
 {
     DHCP_LOGI("StartDhcpServerMainTest enter");
     std::string ifName = "wlan0";
@@ -54,7 +54,7 @@ HWTEST_F(DhcpDhcpdTest, StartDhcpServerMainTest, TestSize.Level1)
     EXPECT_NE(RET_NO_SUPPORTED, StartDhcpServerMain(ifName, netMask, ipRange, localIp));
 }
 
-HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level1)
+HWTEST_F(DhcpDhcpdTest, RegisterDeviceConnectCallBackTest, TestSize.Level0)
 {
     DHCP_LOGI("RegisterDeviceConnectCallBackTest enter");
     DeviceConnectFun func = nullptr;

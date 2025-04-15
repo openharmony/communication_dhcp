@@ -66,7 +66,7 @@ public:
     }
 };
 
-HWTEST_F(DhcpClientStateMachineTest, ExecDhcpRenew_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ExecDhcpRenew_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGE("enter ExecDhcpRenew_SUCCESS");
     MockSystemFunc::SetMockFlag(true);
@@ -86,7 +86,7 @@ HWTEST_F(DhcpClientStateMachineTest, ExecDhcpRenew_SUCCESS, TestSize.Level1)
     MockSystemFunc::SetMockFlag(false);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, TEST_FAILED, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, TEST_FAILED, TestSize.Level0)
 {
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->SetIpv4State(-1));
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->GetPacketHeaderInfo(NULL, 0));
@@ -98,7 +98,7 @@ HWTEST_F(DhcpClientStateMachineTest, TEST_FAILED, TestSize.Level1)
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail1, TestSize.Level0)
 {
     DhcpIpResult result;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->PublishDhcpResultEvent(nullptr, PUBLISH_CODE_SUCCESS, &result));
@@ -109,7 +109,7 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail1, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail2, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail2, TestSize.Level0)
 {
     DhcpIpResult result;
     char ifname[] = "testcode//";
@@ -121,7 +121,7 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail2, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail3, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail3, TestSize.Level0)
 {
     DhcpIpResult *result = NULL;
     char ifname[] = "testcode//";
@@ -133,7 +133,7 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail3, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail4, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail4, TestSize.Level0)
 {
     DhcpIpResult result;
     char ifname[] = "testcode//";
@@ -145,7 +145,7 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail4, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail5, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail5, TestSize.Level0)
 {
     DhcpIpResult result;
     char ifname[] = "testcode//";
@@ -157,7 +157,7 @@ HWTEST_F(DhcpClientStateMachineTest, PublishDhcpResultEvent_Fail5, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail1, TestSize.Level0)
 {
     struct DhcpPacket *packet = nullptr;
     DhcpIpResult result;
@@ -169,7 +169,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail1, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail2, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail2, TestSize.Level0)
 {
     struct DhcpPacket packet;
     DhcpIpResult *result = nullptr;
@@ -181,7 +181,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail2, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail3, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail3, TestSize.Level0)
 {
     struct DhcpPacket *packet = nullptr;
     DhcpIpResult *result = nullptr;
@@ -194,7 +194,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail3, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail4, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail4, TestSize.Level0)
 {
     struct DhcpPacket packet;
     struct DhcpIpResult result;
@@ -208,7 +208,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail4, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail5, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail5, TestSize.Level0)
 {
     char buf[VENDOR_MAX_LEN - DHCP_OPT_CODE_BYTES - DHCP_OPT_LEN_BYTES] = {0};
     ASSERT_TRUE(snprintf_s(buf,
@@ -242,7 +242,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkVendorInfo_Fail5, TestSize.Leve
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail1, TestSize.Level0)
 {
     struct DhcpPacket *packet = nullptr;
     DhcpIpResult result;
@@ -255,7 +255,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail1, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail2, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail2, TestSize.Level0)
 {
     struct DhcpPacket packet;
     DhcpIpResult *result = nullptr;
@@ -268,7 +268,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail2, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail3, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail3, TestSize.Level0)
 {
     struct DhcpPacket *packet = nullptr;
     DhcpIpResult *result = nullptr;
@@ -281,7 +281,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Fail3, TestSize.Level
  * @tc.type: FUNC
  * @tc.require: issue
 */
-HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Success, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Success, TestSize.Level0)
 {
     struct DhcpPacket packet;
     struct DhcpIpResult result;
@@ -289,70 +289,70 @@ HWTEST_F(DhcpClientStateMachineTest, GetDHCPServerHostName_Success, TestSize.Lev
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetDHCPServerHostName(&packet, &result));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SetSocketModeTest, TestSize.Level0)
 {
     DHCP_LOGE("SetSocketModeTest enter!");
     dhcpClient->SetSocketMode(1);
     EXPECT_FALSE(g_errLog.find("processWiTasDecisiveMessage")!=std::string::npos);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, SendRebootTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SendRebootTest, TestSize.Level0)
 {
     DHCP_LOGE("SendRebootTest enter!");
     dhcpClient->SendReboot(1, 1);
     EXPECT_EQ(1, dhcpClient->m_requestedIp4);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetPacketReadSockFdTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetPacketReadSockFdTest, TestSize.Level0)
 {
     DHCP_LOGE("GetPacketReadSockFdTest enter!");
     dhcpClient->GetPacketReadSockFd();
     EXPECT_EQ(-1, dhcpClient->m_sockFd);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetSigReadSockFdTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetSigReadSockFdTest, TestSize.Level0)
 {
     DHCP_LOGE("GetSigReadSockFdTest enter!");
     dhcpClient->GetSigReadSockFd();
     EXPECT_EQ(0, dhcpClient->m_sigSockFds[0]);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetDhcpTransIDTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetDhcpTransIDTest, TestSize.Level0)
 {
     DHCP_LOGE("GetDhcpTransIDTest enter!");
     dhcpClient->GetDhcpTransID();
     EXPECT_EQ(0, dhcpClient->m_transID);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level0)
 {
     struct DhcpPacket packet;
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_NAK));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_FORCERENEW));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ExitIpv4Test, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ExitIpv4Test, TestSize.Level0)
 {
     DHCP_LOGI("ExitIpv4Test enter!");
     dhcpClient->ExitIpv4();
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->ExitIpv4());
 }
 
-HWTEST_F(DhcpClientStateMachineTest, StopIpv4Test, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, StopIpv4Test, TestSize.Level0)
 {
     DHCP_LOGI("StopIpv4Test enter!");
     dhcpClient->StopIpv4();
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->StopIpv4());
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, DhcpInitTest, TestSize.Level0)
 {
     DHCP_LOGI("DhcpInitTest enter!");
     dhcpClient->DhcpInit();
     EXPECT_EQ(DHCP_STATE_INIT, dhcpClient->m_dhcp4State);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level0)
 {
     DHCP_LOGI("RenewingTest enter!");
     time_t curTimestamp = time(NULL);
@@ -366,7 +366,7 @@ HWTEST_F(DhcpClientStateMachineTest, RenewingTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level0)
 {
     DHCP_LOGI("RebindingTest enter!");
     time_t curTimestamp = time(NULL);
@@ -383,7 +383,7 @@ HWTEST_F(DhcpClientStateMachineTest, RebindingTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level0)
 {
     DHCP_LOGI("DhcpRequestHandleTest enter!");
     time_t curTimestamp = time(NULL);
@@ -417,7 +417,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpRequestHandleTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Level0)
 {
     DHCP_LOGI("DhcpAckOrNakPacketHandleTest enter!");
     struct DhcpPacket *packet = nullptr;
@@ -441,7 +441,7 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpAckOrNakPacketHandleTest, TestSize.Leve
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseDhcpAckPacketTest enter!");
     struct DhcpPacket *packet = nullptr;
@@ -453,7 +453,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseDhcpAckPacketTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseNetworkInfoTest enter!");
     struct DhcpPacket *packet = nullptr;
@@ -474,7 +474,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkInfoTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsInfoTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsInfoTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseNetworkDnsInfoTest enter!");
     struct DhcpPacket *packet = nullptr;
@@ -495,7 +495,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsInfoTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level0)
 {
     DHCP_LOGI("DhcpOfferPacketHandleTest enter!");
     struct DhcpPacket *packet = nullptr;
@@ -514,13 +514,13 @@ HWTEST_F(DhcpClientStateMachineTest, DhcpOfferPacketHandleTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, DhcpRebootTest, TestSize.Level0)
 {
     DHCP_LOGE("DhcpRebootTest enter!");
     EXPECT_NE(SOCKET_OPT_ERROR, dhcpClient->DhcpReboot(1, 1));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level0)
 {
     DHCP_LOGI("StartIpv4TypeTest enter!");
     std::string ifname;
@@ -529,7 +529,7 @@ HWTEST_F(DhcpClientStateMachineTest, StartIpv4TypeTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->StartIpv4Type(ifname, isIpv6, action));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level0)
 {
     DHCP_LOGI("FormatStringTest enter!");
     struct DhcpIpResult *result = nullptr;
@@ -593,7 +593,7 @@ HWTEST_F(DhcpClientStateMachineTest, FormatStringTest, TestSize.Level1)
     EXPECT_EQ(nullptr, result);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level0)
 {
     DHCP_LOGI("RequestingTest enter!");
     time_t curTimestamp = time(NULL);
@@ -603,7 +603,7 @@ HWTEST_F(DhcpClientStateMachineTest, RequestingTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RequestingTest1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RequestingTest1, TestSize.Level0)
 {
     DHCP_LOGI("RequestingTest1 enter!");
     time_t timestamp = 1;
@@ -619,7 +619,7 @@ HWTEST_F(DhcpClientStateMachineTest, RequestingTest1, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level0)
 {
     DHCP_LOGI("AddHostNameToOptsTest enter!");
     struct DhcpPacket packet;
@@ -629,7 +629,7 @@ HWTEST_F(DhcpClientStateMachineTest, AddHostNameToOptsTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddHostNameToOpts(&packet));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level0)
 {
     DHCP_LOGI("AddStrToOptsTest enter!");
     int option = 12;
@@ -641,19 +641,19 @@ HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddStrToOpts(&packet, option, value));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, InitSignalHandleTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, InitSignalHandleTest, TestSize.Level0)
 {
     DHCP_LOGI("InitSignalHandleTest enter!");
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->InitSignalHandle());
 }
 
-HWTEST_F(DhcpClientStateMachineTest, CloseSignalHandleTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, CloseSignalHandleTest, TestSize.Level0)
 {
     DHCP_LOGI("CloseSignalHandleTest enter!");
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->CloseSignalHandle());
 }
 
-HWTEST_F(DhcpClientStateMachineTest, AddClientIdToOptsTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, AddClientIdToOptsTest, TestSize.Level0)
 {
     DHCP_LOGI("AddClientIdToOpts enter!");
     struct DhcpPacket packet;
@@ -663,7 +663,7 @@ HWTEST_F(DhcpClientStateMachineTest, AddClientIdToOptsTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddClientIdToOpts(&packet));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseDhcpNakPacket enter!");
     struct DhcpPacket *packet = nullptr;
@@ -677,7 +677,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseNetworkServerIdInfo enter!");
     struct DhcpPacket *packet = nullptr;
@@ -698,7 +698,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Leve
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseNetworkDnsValue enter!");
     struct DhcpIpResult *result = nullptr;
@@ -718,7 +718,7 @@ HWTEST_F(DhcpClientStateMachineTest, ParseNetworkDnsValueTest, TestSize.Level1)
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, IpConflictDetectTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, IpConflictDetectTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("IpConflictDetectTest_SUCCESS enter!");
     dhcpClient->IpConflictDetect();
@@ -731,7 +731,7 @@ HWTEST_F(DhcpClientStateMachineTest, IpConflictDetectTest_SUCCESS, TestSize.Leve
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, FastArpDetectTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, FastArpDetectTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("FastArpDetectTest_SUCCESS enter!");
     dhcpClient->FastArpDetect();
@@ -744,14 +744,14 @@ HWTEST_F(DhcpClientStateMachineTest, FastArpDetectTest_SUCCESS, TestSize.Level1)
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("SlowArpDetectTest_SUCCESS enter!");
     dhcpClient->SlowArpDetect(1);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest1, TestSize.Level0)
 {
     DHCP_LOGI("SlowArpDetectTest1 enter!");
     time_t timestamp = 1;
@@ -772,7 +772,7 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectTest1, TestSize.Level1)
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectCallbackTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectCallbackTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("SlowArpDetectCallbackTest_SUCCESS enter!");
     dhcpClient->SlowArpDetectCallback(true);
@@ -790,7 +790,7 @@ HWTEST_F(DhcpClientStateMachineTest, SlowArpDetectCallbackTest_SUCCESS, TestSize
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, IsArpReachableTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, IsArpReachableTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("IsArpReachableTest_SUCCESS enter!");
     EXPECT_FALSE(dhcpClient->IsArpReachable(1, "0.0.0.0"));
@@ -802,7 +802,7 @@ HWTEST_F(DhcpClientStateMachineTest, IsArpReachableTest_SUCCESS, TestSize.Level1
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("SaveIpInfoInLocalFileTest_SUCCESS enter!");
     DhcpIpResult ipResult;
@@ -820,7 +820,7 @@ HWTEST_F(DhcpClientStateMachineTest, SaveIpInfoInLocalFileTest_SUCCESS, TestSize
 * @tc.type: FUNC
 * @tc.require: AR00000000
 */
-HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level0)
 {
     DHCP_LOGI("TryCachedIpTest_SUCCESS enter!");
     dhcpClient->TryCachedIp();
@@ -830,7 +830,7 @@ HWTEST_F(DhcpClientStateMachineTest, TryCachedIpTest_SUCCESS, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level0)
 {
     DHCP_LOGI("StartTimerTest enter!");
     int64_t dafaultInterval0 = 10000; //10 s
@@ -852,14 +852,14 @@ HWTEST_F(DhcpClientStateMachineTest, StartStopTimerTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level0)
 {
     DHCP_LOGI("GetIpTimerCallbackTest enter!");
     dhcpClient->GetIpTimerCallback();
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level0)
 {
     DHCP_LOGI("GetIpTimerCallbackTest1 enter!");
     dhcpClient->threadExit_ = 0;
@@ -877,28 +877,28 @@ HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RenewDelayCallbackTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RenewDelayCallbackTest, TestSize.Level0)
 {
     DHCP_LOGI("RenewDelayCallbackTest enter!");
     dhcpClient->RenewDelayCallback();
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RebindDelayCallbackTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RebindDelayCallbackTest, TestSize.Level0)
 {
     DHCP_LOGI("RebindDelayCallbackTest enter!");
     dhcpClient->RebindDelayCallback();
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest, TestSize.Level0)
 {
     DHCP_LOGI("RemainingDelayCallbackTest enter!");
     dhcpClient->RemainingDelayCallback();
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level0)
 {
     DHCP_LOGI("ScheduleLeaseTimersTest enter!");
     dhcpClient->ScheduleLeaseTimers(true);
@@ -906,14 +906,14 @@ HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, CloseAllRenewTimerTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, CloseAllRenewTimerTest, TestSize.Level0)
 {
     DHCP_LOGI("CloseAllRenewTimerTest enter!");
     dhcpClient->CloseAllRenewTimer();
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level0)
 {
     DHCP_LOGI("SetIpv4DefaultDnsTest enter!");
     struct DhcpIpResult result;
@@ -922,7 +922,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetIpv4DefaultDnsTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level0)
 {
     DHCP_LOGI("SetDefaultNetMaskTest enter!");
     struct DhcpIpResult result;
@@ -959,7 +959,7 @@ HWTEST_F(DhcpClientStateMachineTest, SetDefaultNetMaskTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level0)
 {
     DHCP_LOGI("RebootTest enter!");
     time_t timestamp = 1;
@@ -970,7 +970,7 @@ HWTEST_F(DhcpClientStateMachineTest, RebootTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level0)
 {
     DHCP_LOGI("ExecDhcpReleaseTest enter!");
     dhcpClient->m_dhcp4State = DHCP_STATE_BOUND;
@@ -987,7 +987,7 @@ HWTEST_F(DhcpClientStateMachineTest, ExecDhcpReleaseTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, InitSelectingTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, InitSelectingTest, TestSize.Level0)
 {
     DHCP_LOGI("InitSelectingTest enter!");
     time_t timestamp = 1;
@@ -996,7 +996,7 @@ HWTEST_F(DhcpClientStateMachineTest, InitSelectingTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, DecliningTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, DecliningTest, TestSize.Level0)
 {
     DHCP_LOGI("DecliningTest enter!");
     time_t timestamp = 1;
@@ -1007,7 +1007,7 @@ HWTEST_F(DhcpClientStateMachineTest, DecliningTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level0)
 {
     DHCP_LOGI("GetDhcpOfferTest enter!");
     DhcpPacket packet;
@@ -1018,7 +1018,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetDhcpOfferTest, TestSize.Level1)
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level1)
+HWTEST_F(DhcpClientStateMachineTest, SetSecondsElapsedTest, TestSize.Level0)
 {
     DHCP_LOGI("SetSecondsElapsedTest enter!");
     DhcpPacket packet;
