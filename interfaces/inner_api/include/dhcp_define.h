@@ -351,16 +351,10 @@ struct DhcpRange {
 struct RouterConfig {
     std::string ifname;
     std::string bssid;
-    bool prohibitUseCacheIp;
-    bool bIpv6;
-    bool bSpecificNetwork;
-
-    RouterConfig()
-    {
-        prohibitUseCacheIp = false;
-        bIpv6 = true;
-        bSpecificNetwork = false;
-    }
+    bool prohibitUseCacheIp { false };
+    bool bIpv6 { true };
+    bool bSpecificNetwork { false };
+    bool isStaticIpv4 { false };
 };
 
 struct IpCacheInfo {

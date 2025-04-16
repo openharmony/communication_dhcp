@@ -1941,7 +1941,7 @@ void DhcpClientStateMachine::TryCachedIp()
     ScheduleLeaseTimers(true);
 }
 
-void DhcpClientStateMachine::SetConfiguration(const RouterCfg routerCfg)
+void DhcpClientStateMachine::SetConfiguration(const RouterConfig &routerCfg)
 {
     m_routerCfg = routerCfg;
 }

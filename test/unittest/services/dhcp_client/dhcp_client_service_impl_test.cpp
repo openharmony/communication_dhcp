@@ -93,7 +93,7 @@ HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)
     DhcpClient client;
     client.ifName = ifname;
     client.isIpv6 = bIpv6;
-    RouterCfg config;
+    RouterConfig config;
     config.ifname = "wlan0";
     config.bIpv6 = true;
     config.prohibitUseCacheIp = false;
@@ -111,7 +111,7 @@ HWTEST_F(DhcpClientServiceImplTest, StartNewClientTest, TestSize.Level1)
     DHCP_LOGE("enter StartNewClientTest");
     ASSERT_TRUE(dhcpClientImpl != nullptr);
 
-    RouterCfg cfg;
+    RouterConfig cfg;
     cfg.ifname = "";
     cfg.bIpv6 = false;
     cfg.prohibitUseCacheIp = false;
