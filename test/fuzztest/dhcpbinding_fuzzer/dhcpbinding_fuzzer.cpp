@@ -49,7 +49,7 @@ void IsExpireTest(const uint8_t* data, size_t size)
 void WriteAddressBindingTest(const uint8_t* data, size_t size)
 {
     AddressBinding binding;
-    uint32_t size_t = static_cast<uint64_t>(data[0]);
+    uint32_t sizeT = static_cast<uint64_t>(data[0]);
     binding.ipAddress = static_cast<uint32_t>(data[0]);
     binding.clientId = static_cast<uint32_t>(data[0]);
     binding.bindingTime = static_cast<uint64_t>(data[0]);
@@ -61,7 +61,7 @@ void WriteAddressBindingTest(const uint8_t* data, size_t size)
     if (memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
         return;
     }
-    WriteAddressBinding(&binding, out, size_t);
+    WriteAddressBinding(&binding, out, sizeT);
 }
 
 void ParseAddressBindingTest(const uint8_t* data, size_t size)
