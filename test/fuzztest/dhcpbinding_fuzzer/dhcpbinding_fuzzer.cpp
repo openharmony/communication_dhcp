@@ -61,7 +61,7 @@ void WriteAddressBindingTest(const uint8_t* data, size_t size)
     if (memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
         return;
     }
-    WriteAddressBinding(&binding, out, size_t);
+    WriteAddressBinding(&binding, out, sizeT);
 }
 
 void ParseAddressBindingTest(const uint8_t* data, size_t size)
