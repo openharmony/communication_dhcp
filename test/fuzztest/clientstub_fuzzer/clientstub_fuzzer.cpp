@@ -159,6 +159,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OnDealWifiDhcpCacheTest(data, size);
     DhcpOfferResultSuccessTest(data, size);
     OnStopClientSaTest(data, size);
+    sleep(1);
     return 0;
 }
 }  // namespace DHCP
