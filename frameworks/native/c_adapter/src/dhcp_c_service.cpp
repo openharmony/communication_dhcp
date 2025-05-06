@@ -85,6 +85,7 @@ NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig &config)
     routerConfig.prohibitUseCacheIp = config.prohibitUseCacheIp;
     routerConfig.bIpv6 = config.bIpv6;
     routerConfig.bSpecificNetwork = config.bSpecificNetwork;
+    routerConfig.isStaticIpv4 = config.isStaticIpv4;
     return GetCErrorCode(dhcpClientPtr->StartDhcpClient(routerConfig));
 }
 

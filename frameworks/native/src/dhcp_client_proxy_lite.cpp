@@ -158,6 +158,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     (void)WriteBool(&req, config.prohibitUseCacheIp);
     (void)WriteBool(&req, config.bIpv6);
     (void)WriteBool(&req, config.bSpecificNetwork);
+    (void)WriteBool(&req, config.isStaticIpv4);
     owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT);
     int error = remote_->Invoke(remote_,
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), &req,

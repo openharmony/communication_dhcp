@@ -66,8 +66,8 @@ public:
     ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
     ErrCode StopClientSa(void) override;
     bool IsRemoteDied(void) override;
-    ErrCode StartOldClient(const RouterCfg &config, DhcpClient &dhcpClient);
-    ErrCode StartNewClient(const RouterCfg &config);
+    ErrCode StartOldClient(const RouterConfig &config, DhcpClient &dhcpClient);
+    ErrCode StartNewClient(const RouterConfig &config);
 
     int DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult);
 #ifndef OHOS_ARCH_LITE

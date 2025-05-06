@@ -279,19 +279,4 @@ enum TimerType {
     TIMER_REMAINING_DELAY,
     TIMER_SLOW_ARP,
 };
-
-struct RouterCfg {
-    std::string ifname;
-    std::string bssid;
-    bool prohibitUseCacheIp;
-    bool bIpv6;
-    bool bSpecificNetwork;
-
-    RouterCfg()
-    {
-        prohibitUseCacheIp = false;
-        bIpv6 = true;
-        bSpecificNetwork = false;
-    }
-};
 #endif
