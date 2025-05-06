@@ -24,6 +24,7 @@
 #include "common_util.h"
 #include "dhcp_define.h"
 #include "dhcp_logger.h"
+#include "dhcp_common_utils.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerConfig");
 
@@ -37,7 +38,7 @@ static int SetEnableConfigInfo(DhcpConfig *dhcpConfig, const char *pKey, const c
         return RET_FAILED;
     }
 
-    uint32_t uValue = (uint32_t)atoi(pValue);
+    uint32_t uValue = OHOS::DHCP::CheckDataToUint(pValue);
     if ((uValue != 0) && (uValue != 1)) {
         DHCP_LOGE("enable:%s error", pValue);
         return RET_FAILED;
@@ -59,8 +60,8 @@ static int SetTimeConfigInfo(DhcpConfig *dhcpConfig, const char *pKey, const cha
     }
 
     uint32_t uValue = 0;
-    if ((uValue = (uint32_t)atoi(pValue)) == 0) {
-        DHCP_LOGE("atoi failed, time:%s", pValue);
+    if ((uValue = OHOS::DHCP::CheckDataToUint(pValue)) == 0) {
+        DHCP_LOGE("CheckDataToUint failed, time:%{public}s", pValue);
         return RET_FAILED;
     }
 

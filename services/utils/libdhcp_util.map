@@ -1,7 +1,10 @@
 1.0 {
     global:
  extern "C++" {
-"OHOS::DHCP::CheckDataLegal(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&, int)";
+"OHOS::DHCP::CheckDataLegal(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
+"OHOS::DHCP::CheckDataToUint(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
+"OHOS::DHCP::CheckDataTolonglong(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
+"OHOS::DHCP::CheckDataToUint64(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, int)";
 "OHOS::DHCP::Ip4IntConvertToStr(unsigned int, bool)";
 "OHOS::DHCP::AddArpEntry(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
 "OHOS::DHCP::IntIpv4ToAnonymizeStr(unsigned int)";
