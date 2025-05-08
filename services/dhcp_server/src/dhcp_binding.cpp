@@ -23,6 +23,7 @@
 #include "common_util.h"
 #include "dhcp_s_define.h"
 #include "dhcp_logger.h"
+#include "dhcp_common_utils.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerBinding");
 
@@ -184,9 +185,9 @@ int ParseAddressBinding(AddressBinding *binding, const char *buf)
         }
         ParseMacAddress(strs[BINDING_MAC_ADDR_POS], binding->chaddr);
         binding->ipAddress = ParseIpAddr(strs[BINDING_IP_ADDR_POS]);
-        binding->leaseTime = atol(strs[BINDING_LEASE_TIME_POS]);
-        binding->bindingTime = atol(strs[BINDING_BINDING_TIME_POS]);
-        binding->pendingTime = atol(strs[BINDING_PENDING_TIME_POS]);
+        binding->leaseTime = OHOS::DHCP::CheckDataToUint64(strs[BINDING_LEASE_TIME_POS]);
+        binding->bindingTime = OHOS::DHCP::CheckDataToUint64(strs[BINDING_BINDING_TIME_POS]);
+        binding->pendingTime = OHOS::DHCP::CheckDataToUint64(strs[BINDING_PENDING_TIME_POS]);
         if (binding->bindingTime && binding->bindingTime < binding->pendingTime) {
             break;
         }
@@ -194,9 +195,9 @@ int ParseAddressBinding(AddressBinding *binding, const char *buf)
             binding->bindingTime = binding->bindingTime - binding->pendingTime + curr;
             binding->pendingTime = curr;
         }
-        binding->pendingInterval = atol(strs[BINDING_PENDING_INTERVAL_POS]);
-        binding->bindingMode = atoi(strs[BINDING_BINDING_MODE_POS]);
-        binding->bindingStatus = atoi(strs[BINDING_BINDING_STATUS_POS]);
+        binding->pendingInterval = OHOS::DHCP::CheckDataToUint64(strs[BINDING_PENDING_INTERVAL_POS]);
+        binding->bindingMode = OHOS::DHCP::CheckDataLegal(strs[BINDING_BINDING_MODE_POS]);
+        binding->bindingStatus = OHOS::DHCP::CheckDataLegal(strs[BINDING_BINDING_STATUS_POS]);
         if (binding->bindingStatus == BIND_ASSOCIATED) {
             binding->expireIn = binding->bindingTime + binding->leaseTime;
         }

@@ -146,7 +146,7 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len)
     return ret;
 }
 
-int CheckDataLegal(std::string &data, int base)
+int CheckDataLegal(const std::string &data, int base)
 {
     std::regex pattern("\\d+");
     if (!std::regex_search(data, pattern)) {
@@ -162,7 +162,7 @@ int CheckDataLegal(std::string &data, int base)
     return static_cast<int>(num);
 }
 
-unsigned int CheckDataToUint(std::string &data, int base)
+unsigned int CheckDataToUint(const std::string &data, int base)
 {
     std::regex pattern("\\d+");
     std::regex patternTmp("-\\d+");
@@ -180,7 +180,7 @@ unsigned int CheckDataToUint(std::string &data, int base)
     return static_cast<unsigned int>(num);
 }
 
-long long CheckDataTolonglong(std::string &data, int base)
+long long CheckDataTolonglong(const std::string &data, int base)
 {
     std::regex pattern("\\d+");
     if (!std::regex_search(data, pattern)) {
@@ -191,6 +191,23 @@ long long CheckDataTolonglong(std::string &data, int base)
     long long int num = std::strtoll(data.c_str(), &endptr, base);
     if (errno == ERANGE) {
         DHCP_LOGE("CheckDataTolonglong errno == ERANGE, data:%{private}s", data.c_str());
+        return 0;
+    }
+    return num;
+}
+
+uint64_t CheckDataToUint64(const std::string &data, int base)
+{
+    std::regex pattern("\\d+");
+    if (!std::regex_search(data, pattern)) {
+        DHCP_LOGE("CheckDataToUint64 regex unsigned int value fail, data:%{private}s", data.c_str());
+        return 0;
+    }
+    errno = 0;
+    char *endptr = nullptr;
+    uint64_t num = std::strtoull(data.c_str(), &endptr, base);
+    if (errno == ERANGE) {
+        DHCP_LOGE("CheckDataToUint64 errno == ERANGE, data:%{private}s", data.c_str());
         return 0;
     }
     return num;
