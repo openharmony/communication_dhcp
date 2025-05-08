@@ -1572,7 +1572,7 @@ int DhcpClientStateMachine::AddHostNameToOpts(struct DhcpPacket *packet)
     }
     std::string strProductModel;
 #ifdef INIT_LIB_ENABLE
-    strProductModel = GetProductModel();
+    strProductModel = GetProductModelAlias();
     DHCP_LOGD("AddHostNameOptions strProductModel:%{public}s", strProductModel.c_str());
 #endif
     std::string venderName = VENDOR_NAME_PREFIX;
