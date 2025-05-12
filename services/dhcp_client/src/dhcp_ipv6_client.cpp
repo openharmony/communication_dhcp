@@ -34,58 +34,14 @@
 #include "dhcp_thread.h"
 #include "dhcp_function.h"
 #include "dhcp_common_utils.h"
-#ifndef OHOS_EUPDATER
-#include "dhcp_system_timer.h"
-#endif
 
 namespace OHOS {
 namespace DHCP {
-DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6Client");
-
-const char *DEFAULUT_BAK_DNS = "240e:4c:4008::1";
 const char *DEFAULT_ROUTE = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff";
-const char *DEFAULT_IPV6_ANY_INIT_ADDR = "::";
-const int IPV6_ADDR_ANY = 0x0000U;
-const int IPV6_ADDR_UNICAST = 0x0001U;
-const int IPV6_ADDR_MULTICAST = 0x0002U;
-const int IPV6_ADDR_SCOPE_MASK = 0x00F0U;
-const int IPV6_ADDR_LOOPBACK = 0x0010U;
-const int IPV6_ADDR_LINKLOCAL = 0x0020U;
-const int IPV6_ADDR_SITELOCAL = 0x0040U;
-const int IPV6_ADDR_COMPATV4 = 0x0080U;
-const int IPV6_ADDR_MAPPED = 0x1000U;
-const unsigned int IPV6_ADDR_SCOPE_NODELOCAL = 0X01;
-const unsigned int  IPV6_ADDR_SCOPE_LINKLOCAL = 0X02;
-const unsigned int  IPV6_ADDR_SCOPE_SITELOCAL = 0X05;
-const int  IPV6_ADDR_SCOPE_GLOBAL = 0X0E;
-const int S6_ADDR_INDEX_ZERO = 0;
-const int S6_ADDR_INDEX_FIRST = 1;
-const int S6_ADDR_INDEX_SECOND = 2;
-const int S6_ADDR_INDEX_THIRD = 3;
-const int ADDRTYPE_FLAG_ZERO = 0x00000000;
-const int ADDRTYPE_FLAG_ONE = 0x00000001;
-const int ADDRTYPE_FLAG_LOWF = 0x0000ffff;
-const int ADDRTYPE_FLAG_HIGHE = 0xE0000000;
-const int ADDRTYPE_FLAG_HIGHFF = 0xFF000000;
-const int ADDRTYPE_FLAG_HIGHFFC = 0xFFC00000;
-const int ADDRTYPE_FLAG_HIGHFE8 = 0xFE800000;
-const int ADDRTYPE_FLAG_HIGHFEC = 0xFEC00000;
-const int ADDRTYPE_FLAG_HIGHFE = 0xFE000000;
-const int ADDRTYPE_FLAG_HIGHFC = 0xFC000000;
-const int MASK_FILTER = 0x7;
-const int KERNEL_BUFF_SIZE = (8 * 1024);
-const int ND_OPT_MIN_LEN = 3;
-const int ROUTE_BUFF_SIZE = 1024;
-const int POSITION_OFFSET_1 = 1;
-const int POSITION_OFFSET_2 = 2;
-const int POSITION_OFFSET_3 = 3;
-const int POSITION_OFFSET_4 = 4;
 const std::string IPV6_ACCEPT_RA_CONFIG_PATH = "/proc/sys/net/ipv6/conf/";
 const std::string ACCEPT_RA = "accept_ra";
 const std::string ACCEPT_OVERRULE_FORWORGING = "2";
 
-#define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
-#define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
 #ifndef ND_OPT_RDNSS
 #define ND_OPT_RDNSS 25
 struct nd_opt_rdnss {
@@ -95,21 +51,18 @@ struct nd_opt_rdnss {
     uint32_t nd_opt_rdnss_lifetime;
 } _packed;
 #endif
-
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6Client");
 DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname)
 {
-#ifndef OHOS_ARCH_LITE
-    ipv6TimerId_ = 0;
-#endif
-    ipv6Thread_ = std::make_unique<DhcpThread>("InnerIpv6Thread");
+    dhcpIpv6DnsRepository_ = std::make_unique<DnsServerRepository>();
     DHCP_LOGI("DhcpIpv6Client()");
 }
 
 DhcpIpv6Client::~DhcpIpv6Client()
 {
     DHCP_LOGI("~DhcpIpv6Client()");
-    if (ipv6Thread_ != nullptr) {
-        ipv6Thread_.reset();
+    if (dhcpIpv6DnsRepository_ != nullptr) {
+        dhcpIpv6DnsRepository_.reset();
     }
 }
 
@@ -127,6 +80,7 @@ void DhcpIpv6Client::SetCallback(std::function<void(const std::string ifname, Dh
 
 void DhcpIpv6Client::RunIpv6ThreadFunc()
 {
+    pthread_setname_np(pthread_self(), "ipv6NetlinkThread");
     DhcpIpv6Start();
 }
 
@@ -134,22 +88,13 @@ int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
 {
     DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6,
         runFlag_.load());
+
     if (!runFlag_.load()) {
         runFlag_ = true;
         interfaceName = ifname;
         if (ipv6Thread_ == nullptr) {
-            ipv6Thread_ = std::make_unique<DhcpThread>("InnerIpv6Thread");
+            ipv6Thread_ = std::make_unique<std::thread>(&DhcpIpv6Client::RunIpv6ThreadFunc, this);
         }
-#ifndef OHOS_ARCH_LITE
-        StartIpv6Timer();
-#endif
-        std::function<void()> func = [this]() { this->RunIpv6ThreadFunc(); };
-        int delayTime = 0;
-        bool result = ipv6Thread_->PostAsyncTask(func, delayTime);
-        if (!result) {
-            DHCP_LOGE("StartIpv6Thread PostAsyncTask failed!");
-        }
-        DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc ok!");
     } else {
         DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc!");
     }
@@ -181,10 +126,10 @@ unsigned int DhcpIpv6Client::ipv6AddrScope2Type(unsigned int scope)
     return IPV6_ADDR_SCOPE_TYPE(scope);
 }
 
-int DhcpIpv6Client::getAddrType(const struct in6_addr *addr)
+int DhcpIpv6Client::GetAddrType(const struct in6_addr *addr)
 {
     if (!addr) {
-        DHCP_LOGE("getAddrType failed, data invalid.");
+        DHCP_LOGE("GetAddrType failed, data invalid.");
         return IPV6_ADDR_LINKLOCAL;
     }
     unsigned int st = addr->s6_addr32[0];
@@ -231,13 +176,14 @@ int DhcpIpv6Client::getAddrType(const struct in6_addr *addr)
     return (IPV6_ADDR_UNICAST | IPV6_ADDR_SCOPE_TYPE(IPV6_ADDR_SCOPE_GLOBAL));
 }
 
-int DhcpIpv6Client::getAddrScope(const struct in6_addr *addr)
+int DhcpIpv6Client::GetAddrScope(void *addr)
 {
     if (!addr) {
-        DHCP_LOGE("getAddrType failed, data invalid.");
+        DHCP_LOGE("GetAddrType failed, data invalid.");
         return IPV6_ADDR_LINKLOCAL;
     }
-    return static_cast<unsigned int>(getAddrType(addr)) & IPV6_ADDR_SCOPE_MASK;
+    in6_addr *ipv6Addr = reinterpret_cast<in6_addr *>(addr);
+    return static_cast<unsigned int>(GetAddrType(ipv6Addr)) & IPV6_ADDR_SCOPE_MASK;
 }
 
 void DhcpIpv6Client::GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen)
@@ -275,6 +221,10 @@ void DhcpIpv6Client::GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, ui
 
 int DhcpIpv6Client::GetIpFromS6Address(void* addr, int family, char* buf, int buflen)
 {
+    if (family != AF_INET6) {
+        DHCP_LOGE("GetIpFromS6Address family failed");
+        return -1;
+    }
     if (!inet_ntop(family, (struct in6_addr*)addr, buf, buflen)) {
         DHCP_LOGE("GetIpFromS6Address failed");
         return -1;
@@ -282,93 +232,72 @@ int DhcpIpv6Client::GetIpFromS6Address(void* addr, int family, char* buf, int bu
     return 0;
 }
 
-void DhcpIpv6Client::onIpv6AddressAddEvent(void* data, int prefixLen, int ifaIndex)
+void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefixLen,
+                                              int ifaIndex, int scope, bool isUpdate)
 {
     int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
     if (currIndex != ifaIndex) {
         DHCP_LOGE("address ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
         return;
     }
-    if (!data) {
-        DHCP_LOGE("onIpv6AddressAddEvent failed, data invalid.");
+    if (!addr) {
+        DHCP_LOGE("OnIpv6AddressUpdateEvent failed, data invalid.");
         return;
     }
-    struct in6_addr *addr = (struct in6_addr*)data;
-    char addr_str[INET6_ADDRSTRLEN] = {0};
-    inet_ntop(AF_INET6, addr, addr_str, INET6_ADDRSTRLEN);
-    int scope = getAddrScope(addr);
+    AddrType type = AddrType::UNKNOW;
     if (scope == 0) {
         getIpv6RouteAddr();
         if (memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
             0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-            DHCP_LOGE("onIpv6AddressAddEvent memset_s failed");
+            DHCP_LOGE("OnIpv6AddressUpdateEvent memset_s failed");
             return;
         }
         dhcpIpv6Info.status |= 1;
         GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
-        DHCP_LOGD("onIpv6AddressAddEvent addr:%{private}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
-            addr_str, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
-        AddIpv6Address(addr_str, INET6_ADDRSTRLEN);
+        DHCP_LOGD("OnIpv6AddressUpdateEvent addr:%{private}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
+            addr, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
+        type = AddIpv6Address(addr, INET6_ADDRSTRLEN);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
-        if (memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
-            memcpy_s(dhcpIpv6Info.linkIpv6Addr, INET6_ADDRSTRLEN, addr_str, INET6_ADDRSTRLEN) != EOK) {
-            DHCP_LOGE("onIpv6AddressAddEvent memset_s or memcpy_s failed");
-            return;
-        }
-        DHCP_LOGD("onIpv6AddressAddEvent addr:%{public}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
-            addr_str, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
-        if (strlen(dhcpIpv6Info.linkIpv6Addr) != 0) {
-            PublishIpv6Result();
-        }
+        type = AddrType::DEFAULT;
     } else {
-        DHCP_LOGD("onIpv6AddressAddEvent other scope:%{public}d", scope);
+        DHCP_LOGD("OnIpv6AddressUpdateEvent other scope:%{public}d", scope);
+    }
+    if (type == AddrType::UNKNOW) {
+        return;
+    }
+
+    if (isUpdate ? DhcpIpv6InfoManager::UpdateAddr(dhcpIpv6Info, std::string(addr), type) :
+        DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) {
+        PublishIpv6Result();
     }
 }
 
-void DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
+AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
 {
+    AddrType type = AddrType::UNKNOW;
     if (!ipv6addr) {
         DHCP_LOGE("AddIpv6Address ipv6addr is nullptr!");
-        return;
+        return type;
     }
     int first = ipv6addr[0]-'0';
     if (first == NUMBER_TWO || first == NUMBER_THREE) { // begin '2' '3'
         if (IsEui64ModeIpv6Address(ipv6addr, len)) {
-            DHCP_LOGI("AddIpv6Address add globalIpv6Addr, first=%{public}d", first);
-            if (memcpy_s(dhcpIpv6Info.globalIpv6Addr, len, ipv6addr, len) != EOK) {
-                DHCP_LOGE("AddIpv6Address memcpy_s failed!");
-                return;
-            }
+            type = AddrType::GLOBAL;
         }  else {
             DHCP_LOGI("AddIpv6Address add randIpv6Addr, first=%{public}d", first);
-            if (memcpy_s(dhcpIpv6Info.randIpv6Addr, len, ipv6addr, len) != EOK) {
-                DHCP_LOGE("onIpv6AddressAddEvent memcpy_s failed!");
-                return;
-            }
-        }
-        if (strlen(dhcpIpv6Info.globalIpv6Addr) != 0 || strlen(dhcpIpv6Info.randIpv6Addr) != 0) {
-            PublishIpv6Result();
+             type = AddrType::RAND;
         }
     } else if (first == NUMBER_FIFTY_FOUR) {  // begin 'f'->54
         if (IsEui64ModeIpv6Address(ipv6addr, len)) {
-            if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr1, len, ipv6addr, len) != EOK) {
-                DHCP_LOGE("AddIpv6Address memcpy_s failed!");
-                return;
-            }
-            DHCP_LOGI("AddIpv6Address add uniqueLocalAddr1, first=%{public}d", first);
+            type = AddrType::UNIQUE;
         }  else {
-            if (memcpy_s(dhcpIpv6Info.uniqueLocalAddr2, len, ipv6addr, len) != EOK) {
-                DHCP_LOGE("AddIpv6Address uniqueLocalAddr2 memcpy_s failed!");
-                return;
-            }
+            type = AddrType::UNIQUE2;
             DHCP_LOGI("AddIpv6Address add uniqueLocalAddr2, first=%{public}d", first);
-        }
-        if (strlen(dhcpIpv6Info.uniqueLocalAddr1) != 0 || strlen(dhcpIpv6Info.uniqueLocalAddr2) != 0) {
-            PublishIpv6Result();
         }
     } else {
         DHCP_LOGI("AddIpv6Address other first=%{public}d", first);
     }
+    return type;
 }
 
 bool DhcpIpv6Client::IsEui64ModeIpv6Address(char *ipv6addr, int len)
@@ -429,51 +358,58 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
         return;
     }
     if (opthdr->nd_opt_type != ND_OPT_RDNSS) {
-        DHCP_LOGE("dns nd_opt_type invlid:%{public}d", opthdr->nd_opt_type);
+        DHCP_LOGE("dns nd_opt_type invalid:%{public}d", opthdr->nd_opt_type);
         return;
     }
     if ((optlen < ND_OPT_MIN_LEN) || !(optlen & 0x1)) {
-        DHCP_LOGE("dns optLen invlid:%{public}d", optlen);
+        DHCP_LOGE("dns optLen invalid:%{public}d", optlen);
         return;
     }
     int numaddrs = (optlen - 1) / 2;
     struct nd_opt_rdnss *rndsopt = (struct nd_opt_rdnss *)opthdr;
+    //RDNSS Lifetime
+    const uint32_t lifetime = ntohl(rndsopt->nd_opt_rdnss_lifetime);
+    DHCP_LOGI("dns opt lifetime %{public}u", lifetime);
     struct in6_addr *addrs = (struct in6_addr *)(rndsopt + 1);
-    if (numaddrs > 0) {
-        (void)memset_s(dhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
-        inet_ntop(AF_INET6, addrs, dhcpIpv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN);
-    }
+    std::vector<std::string> dnsAddrVector;
     for (int i = 0; i < numaddrs; i++) {
         char dnsAddr[DHCP_INET6_ADDRSTRLEN] = {0};
         inet_ntop(AF_INET6, addrs + i, dnsAddr, DHCP_INET6_ADDRSTRLEN);
-        auto iter = find(dhcpIpv6Info.vectorDnsAddr.begin(), dhcpIpv6Info.vectorDnsAddr.end(), dnsAddr);
-        if (iter == dhcpIpv6Info.vectorDnsAddr.end()) {
-            dhcpIpv6Info.vectorDnsAddr.push_back(dnsAddr);
-            DHCP_LOGI("onIpv6DnsAddEvent add dns:%{public}d", i);
-        }
+        dnsAddrVector.push_back(dnsAddr);
+
+    }
+    bool changed = dhcpIpv6DnsRepository_->AddServers(lifetime, dnsAddrVector);
+    if (changed) {
+        DHCP_LOGI("onIpv6DnsAddEvent dns servers changed");
+        dhcpIpv6DnsRepository_->SetCurrentServers(dhcpIpv6Info);
+        dhcpIpv6Info.lifetime = lifetime;
+        PublishIpv6Result();
     }
 }
 
-void DhcpIpv6Client::onIpv6RouteAddEvent(char* gateway, char* dst, int ifaIndex)
+void DhcpIpv6Client::OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaIndex, bool isAdd)
 {
     int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
     if (currIndex != ifaIndex) {
         DHCP_LOGE("route ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
         return;
     }
-    DHCP_LOGI("onIpv6RouteAddEvent gateway:%{private}s, dst:%{private}s, ifindex:%{public}d",
-        gateway, dst, ifaIndex);
+    DHCP_LOGI("OnIpv6RouteUpdateEvent gateway:%{private}s, dst:%{private}s, ifindex:%{public}d isAdd: %{public}d",
+        gateway, dst, ifaIndex, isAdd ? 1:0);
     if (!gateway || !dst) {
-        DHCP_LOGE("onIpv6RouteAddEvent input invalid.");
+        DHCP_LOGE("OnIpv6RouteUpdateEvent input invalid.");
         return;
     }
+    bool isChanged = false;
     if (strlen(dst) == 0 && strlen(gateway) != 0) {
-        (void)memset_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN,
-            0, DHCP_INET6_ADDRSTRLEN);
-        if (strncpy_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN, gateway, strlen(gateway)) != EOK) {
-            DHCP_LOGE("onIpv6RouteAddEvent strncpy_s gateway failed");
-            return;
+        if (isAdd) {
+            isChanged = DhcpIpv6InfoManager::AddRoute(dhcpIpv6Info, std::string(gateway));
+        } else {
+            isChanged = DhcpIpv6InfoManager::RemoveRoute(dhcpIpv6Info, std::string(gateway));
         }
+    }
+    if (isChanged) {
+        PublishIpv6Result();
     }
 }
 
@@ -518,7 +454,8 @@ int32_t DhcpIpv6Client::createKernelSocket(void)
 
 void DhcpIpv6Client::Reset()
 {
-    (void)memset_s(&dhcpIpv6Info, sizeof(dhcpIpv6Info), 0, sizeof(dhcpIpv6Info));
+    dhcpIpv6Info.Clear();
+    dhcpIpv6DnsRepository_->Clear();
 }
 
 void DhcpIpv6Client::getIpv6RouteAddr()
@@ -535,7 +472,7 @@ void DhcpIpv6Client::getIpv6RouteAddr()
 int DhcpIpv6Client::StartIpv6()
 {
     DHCP_LOGI("StartIpv6 enter. %{public}s", interfaceName.c_str());
-    (void)memset_s(&dhcpIpv6Info, sizeof(dhcpIpv6Info), 0, sizeof(dhcpIpv6Info));
+    Reset();
     ipv6SocketFd = createKernelSocket();
     if (ipv6SocketFd < 0) {
         runFlag_ = false;
@@ -575,11 +512,9 @@ int DhcpIpv6Client::StartIpv6()
         }
         int32_t len = recv(ipv6SocketFd, buff, 8 *1024, 0);
         if (len < 0) {
-            if (errno == EAGAIN || errno == EINTR || errno == EWOULDBLOCK) {
-                continue;
-            }
             DHCP_LOGE("StartIpv6 recv kernel socket failed %{public}d.", errno);
-            break;
+            sleep(1);
+            continue;
         } else if (len == 0) {
             continue;
         }
@@ -637,74 +572,12 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
         return;
     }
     runFlag_ = false;
-#ifndef OHOS_ARCH_LITE
-    StopIpv6Timer();
-#endif
+    if (ipv6Thread_ && ipv6Thread_->joinable()) {
+         ipv6Thread_->join();
+         ipv6Thread_ = nullptr;
+     }
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     onIpv6AddressChanged_ = nullptr;
 }
-
-#ifndef OHOS_ARCH_LITE
-using TimeOutCallback = std::function<void()>;
-void DhcpIpv6Client::Ipv6TimerCallback()
-{
-    DHCP_LOGI("enter Ipv6TimerCallback, ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
-    StopIpv6Timer();
-    DhcpIpv6TimerCallbackEvent(interfaceName.c_str());
-}
-
-void DhcpIpv6Client::StartIpv6Timer()
-{
-    std::unique_lock<std::mutex> lock(ipv6TimerMutex);
-    DHCP_LOGI("StartIpv6Timer ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
-    if (ipv6TimerId_ != 0) {
-        DHCP_LOGE("StartIpv6Timer ipv6TimerId !=0 id:%{public}" PRIu64, ipv6TimerId_);
-        return;
-    }
-
-#ifndef OHOS_EUPDATER
-    std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer =
-        std::make_shared<OHOS::DHCP::DhcpSysTimer>(false, 0, false, false);
-    if (dhcpSysTimer == nullptr) {
-        DHCP_LOGE("StartIpv6Timer dhcpSysTimer is nullptr");
-        return;
-    }
-#endif
-
-    std::function<void()> timeCallback = [this] { this->Ipv6TimerCallback(); };
-    if (timeCallback != nullptr) {
-#ifndef OHOS_EUPDATER
-        dhcpSysTimer->SetCallbackInfo(timeCallback);
-        ipv6TimerId_ = MiscServices::TimeServiceClient::GetInstance()->CreateTimer(dhcpSysTimer);
-        int64_t currentTime = MiscServices::TimeServiceClient::GetInstance()->GetBootTimeMs();
-        MiscServices::TimeServiceClient::GetInstance()->StartTimer(ipv6TimerId_,
-            currentTime + DhcpTimer::DEFAULT_TIMEROUT);
-#else
-        uint32_t tempTimerId = 0;
-        DhcpTimer::GetInstance()->Register(timeCallback, tempTimerId, DhcpTimer::DEFAULT_TIMEROUT);
-        ipv6TimerId_ = tempTimerId;
-#endif
-        DHCP_LOGI("StartIpv6Timer success! ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
-    }
-}
-
-void DhcpIpv6Client::StopIpv6Timer()
-{
-    std::unique_lock<std::mutex> lock(ipv6TimerMutex);
-    DHCP_LOGI("StopIpv6Timer ipv6TimerId:%{public}" PRIu64, ipv6TimerId_);
-    if (ipv6TimerId_ == 0) {
-        DHCP_LOGE("StopIpv6Timer ipv6TimerId is 0");
-        return;
-    }
-#ifndef OHOS_EUPDATER
-    MiscServices::TimeServiceClient::GetInstance()->StopTimer(ipv6TimerId_);
-    MiscServices::TimeServiceClient::GetInstance()->DestroyTimer(ipv6TimerId_);
-#else
-    DhcpTimer::GetInstance()->UnRegister(static_cast<uint32_t>(ipv6TimerId_));
-#endif
-    ipv6TimerId_ = 0;
-    return;
-}
-#endif
 }  // namespace DHCP
 }  // namespace OHOS

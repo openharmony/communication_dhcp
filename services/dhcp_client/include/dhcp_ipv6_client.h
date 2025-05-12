@@ -19,30 +19,10 @@
 #include <string>
 #include <sys/types.h>
 #include <stdint.h>
-#ifndef OHOS_ARCH_LITE
-#include "dhcp_client_def.h"
-#include "common_timer_errors.h"
-#include "timer.h"
-#endif
-#include "dhcp_thread.h"
-
+#include <thread>
+#include "dhcp_ipv6_dns_repository.h"
 namespace OHOS {
 namespace DHCP {
-const int DHCP_INET6_ADDRSTRLEN = 128;
-
-struct DhcpIpv6Info {
-    char linkIpv6Addr[DHCP_INET6_ADDRSTRLEN];
-    char globalIpv6Addr[DHCP_INET6_ADDRSTRLEN];
-    char ipv6SubnetAddr[DHCP_INET6_ADDRSTRLEN];
-    char randIpv6Addr[DHCP_INET6_ADDRSTRLEN];
-    char routeAddr[DHCP_INET6_ADDRSTRLEN];
-    char dnsAddr[DHCP_INET6_ADDRSTRLEN];
-    char dnsAddr2[DHCP_INET6_ADDRSTRLEN];
-    char uniqueLocalAddr1[DHCP_INET6_ADDRSTRLEN];
-    char uniqueLocalAddr2[DHCP_INET6_ADDRSTRLEN];
-    unsigned int status;   // 1 ipv4 getted, 2 dns getted, 3 ipv4 and dns getted
-    std::vector<std::string> vectorDnsAddr;
-};
 
 class DhcpIpv6Client {
 public:
@@ -55,25 +35,21 @@ public:
     void DhcpIPV6Stop(void);
     void Reset();
     void RunIpv6ThreadFunc();
-    void AddIpv6Address(char *ipv6addr, int len);
     int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
-#ifndef OHOS_ARCH_LITE
-    void Ipv6TimerCallback();
-    void StartIpv6Timer(void);
-    void StopIpv6Timer(void);
-#endif
 public:
 private:
     int32_t createKernelSocket(void);
     void GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen);
     int GetIpFromS6Address(void* addr, int family, char* buf, int buflen);
-    int getAddrScope(const struct in6_addr *addr);
-    int getAddrType(const struct in6_addr *addr);
+    int GetAddrScope(void *addr);
+    int GetAddrType(const struct in6_addr *addr);
+    AddrType AddIpv6Address(char *ipv6addr, int len);
     unsigned int ipv6AddrScope2Type(unsigned int scope);
     void onIpv6DnsAddEvent(void* data, int len, int ifaIndex);
-    void onIpv6RouteAddEvent(char* gateway, char* dst, int ifaIndex);
-    void onIpv6AddressAddEvent(void* data, int prefixLen, int ifaIndex);
+    void OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaIndex, bool isAdd = true);
+    void OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefixLen,
+                                int ifaIndex, int scope, bool isUpdate);
     void setSocketFilter(void* addr);
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
@@ -91,12 +67,9 @@ private:
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;
     int32_t ipv6SocketFd = 0;
-    std::unique_ptr<DhcpThread> ipv6Thread_ = nullptr;
+    std::unique_ptr<std::thread> ipv6Thread_ = nullptr;
     std::atomic<bool> runFlag_ { false };
-#ifndef OHOS_ARCH_LITE
-    uint64_t ipv6TimerId_ { 0 };
-    std::mutex ipv6TimerMutex;
-#endif
+    std::unique_ptr<DnsServerRepository> dhcpIpv6DnsRepository_ = nullptr;
 };
 }  // namespace DHCP
 }  // namespace OHOS

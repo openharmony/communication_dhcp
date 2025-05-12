@@ -264,79 +264,173 @@ ErrCode DhcpClientServiceImpl::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo 
 ErrCode DhcpClientServiceImpl::StartOldClient(const RouterConfig &config, DhcpClient &dhcpClient)
 {
     DHCP_LOGI("StartOldClient ifname:%{public}s bIpv6:%{public}d", config.ifname.c_str(), config.bIpv6);
-    if (dhcpClient.pStaStateMachine == nullptr) {
-        DHCP_LOGE("StartOldClient pStaStateMachine is null!");
-        return DHCP_E_FAILED;
-    }
+    ErrCode ret = DHCP_E_SUCCESS;
     const std::string ifname = config.ifname;
-    dhcpClient.pStaStateMachine->SetConfiguration(config);
-    if (!config.isStaticIpv4) {
-        dhcpClient.pStaStateMachine->StartIpv4Type(ifname, config.bIpv6, ACTION_START_OLD);
-    }
     if (config.bIpv6) {
         if (dhcpClient.pipv6Client == nullptr) {
-            DHCP_LOGE("StartOldClient pipv6Client is null!");
-            DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
-            if (pipv6Client == nullptr) {
-                DHCP_LOGE("StartOldClient new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
-                return DHCP_E_FAILED;
-            }
-            dhcpClient.pipv6Client = pipv6Client;
-            DHCP_LOGI("StartOldClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d",
-                ifname.c_str(), config.bIpv6);
-        }
+            ret = StartNewIpv6Client(config, dhcpClient);
+        } else {
 #ifndef OHOS_ARCH_LITE
-        NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
-        NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+            NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+            NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
 #endif
-        dhcpClient.pipv6Client->Reset();
-        dhcpClient.pipv6Client->SetCallback(
-            [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
-        dhcpClient.pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
+            dhcpClient.pipv6Client->Reset();
+            dhcpClient.pipv6Client->SetCallback(
+                [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
+            dhcpClient.pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
+        }
+    } else {
+        if (dhcpClient.pStaStateMachine == nullptr) {
+            ret = StartNewIpv4Client(config, dhcpClient);
+        } else {
+            dhcpClient.pStaStateMachine->SetConfiguration(config);
+            if (!config.isStaticIpv4) {
+                dhcpClient.pStaStateMachine->StartIpv4Type(ifname, config.bIpv6, ACTION_START_OLD);
+            }
+        }
+    }
+    if (ret != DHCP_E_SUCCESS) {
+        return ret;
     }
     return DHCP_E_SUCCESS;
 }
+
+ErrCode DhcpClientServiceImpl::StartNewIpv4Client(const RouterConfig &config, DhcpClient &client)
+{
+    DHCP_LOGI("StartNewIpv4Client ifname:%{public}s", config.ifname.c_str());
+    const std::string ifname = config.ifname;
+    DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
+    if (pStaState == nullptr) {
+    DHCP_LOGI("StartNewIpv4Client ifname:%{public}s", config.ifname.c_str());
+        DHCP_LOGE("StartNewIpv4Client new DhcpClientStateMachine failed!, ifname:%{public}s", ifname.c_str());
+        return DHCP_E_FAILED;
+    }
+    client.pStaStateMachine = pStaState;
+    pStaState->SetConfiguration(config);
+    if (!config.isStaticIpv4) {
+        pStaState->StartIpv4Type(ifname, config.bIpv6, ACTION_START_NEW);
+    }
+    return DHCP_E_SUCCESS;
+}
+
+ErrCode DhcpClientServiceImpl::StartNewIpv6Client(const RouterConfig &config, DhcpClient &client)
+{
+    DHCP_LOGI("StartNewIpv6Client ifname:%{public}s", config.ifname.c_str());
+    const std::string ifname = config.ifname;
+    DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
+    if (pipv6Client == nullptr) {
+        DHCP_LOGE("StartNewIpv6Client new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
+        return DHCP_E_FAILED;
+    }
+    client.pipv6Client = pipv6Client;
+    DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
+        config.bIpv6);
+#ifndef OHOS_ARCH_LITE
+    NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+    NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+#endif
+    pipv6Client->Reset();
+    pipv6Client->SetCallback(
+        [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
+    pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
+    return DHCP_E_SUCCESS;
+}
+
 
 ErrCode DhcpClientServiceImpl::StartNewClient(const RouterConfig &config)
 {
     DHCP_LOGI("StartNewClient ifname:%{public}s, bIpv6:%{public}d", config.ifname.c_str(), config.bIpv6);
     DhcpClient client;
+    ErrCode ret = DHCP_E_SUCCESS;
     const std::string ifname = config.ifname;
     if (config.bIpv6) {
-        DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
-        if (pipv6Client == nullptr) {
-            DHCP_LOGE("StartNewClient new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
-            return DHCP_E_FAILED;
-        }
-        client.pipv6Client = pipv6Client;
-        DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
-            config.bIpv6);
-#ifndef OHOS_ARCH_LITE
-        NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
-        NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
-#endif
-        pipv6Client->Reset();
-        pipv6Client->SetCallback(
-            [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
-        pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
+        client.isIpv6 = config.bIpv6;
+        ret = StartNewIpv6Client(config, client);
+    } else {
+        ret = StartNewIpv4Client(config, client);
     }
-    DhcpClientStateMachine *pStaState = new (std::nothrow)DhcpClientStateMachine(ifname);
-    if (pStaState == nullptr) {
-        DHCP_LOGE("StartNewClient new DhcpClientStateMachine failed!, ifname:%{public}s", ifname.c_str());
-        return DHCP_E_FAILED;
+    if (ret != DHCP_E_SUCCESS) {
+        return ret;
     }
     client.ifName = ifname;
-    client.isIpv6 = config.bIpv6;
-    client.pStaStateMachine = pStaState;
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
         m_mapClientService.emplace(std::make_pair(ifname, client));
     }
-    DHCP_LOGI("StartNewClient new DhcpClientStateMachine, ifname:%{public}s, bIpv6:%{public}d",
-        ifname.c_str(), config.bIpv6);
-    pStaState->SetConfiguration(config);
-    if (!config.isStaticIpv4) {
-        pStaState->StartIpv4Type(ifname, config.bIpv6, ACTION_START_NEW);
+    return DHCP_E_SUCCESS;
+}
+
+
+ErrCode DhcpClientServiceImpl::StopDhcpIpv4Client(const std::string& ifname)
+{
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iter2 = m_mapClientService.find(ifname);
+        if (iter2 != m_mapClientService.end()) {
+            if ((iter2->second).pStaStateMachine != nullptr) {
+                DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s", ifname.c_str());
+                (iter2->second).pStaStateMachine->StopIpv4();
+                (iter2->second).pStaStateMachine->CloseAllRenewTimer();
+            }
+        }
+    }
+    {
+        std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
+        auto iter = m_mapDhcpResult.find(ifname);
+        if (iter != m_mapDhcpResult.end()) {
+            DHCP_LOGI("m_mapDhcpResult erase ifName:%{public}s", ifname.c_str());
+            for (auto result = iter->second.begin(); result != iter->second.end();) {
+                if (result->iptype == 0) {
+                    result = iter->second.erase(result);
+                } else {
+                    result ++;
+                }
+            }
+            if (iter->second.empty()) {
+                m_mapDhcpResult.erase(iter);
+            }
+        }
+    }
+    return DHCP_E_SUCCESS;
+}
+
+ErrCode DhcpClientServiceImpl::StopDhcpIpv6Client(const std::string& ifname)
+{
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+        auto iter = m_mapClientCallBack.find(ifname);
+        if (iter != m_mapClientCallBack.end()) {
+            m_mapClientCallBack.erase(iter);
+            DHCP_LOGI("StopDhcpClient erase ClientCallBack ifName:%{public}s", ifname.c_str());
+        }
+    }
+    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+    auto iter2 = m_mapClientService.find(ifname);
+    if (iter2 != m_mapClientService.end()) {
+        if ((iter2->second).pipv6Client != nullptr) {
+            DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s", ifname.c_str());
+            (iter2->second).pipv6Client->DhcpIPV6Stop();
+#ifndef OHOS_ARCH_LITE
+            NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
+#endif
+        }
+    }
+    {
+        std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
+        auto iter = m_mapDhcpResult.find(ifname);
+        if (iter != m_mapDhcpResult.end()) {
+            DHCP_LOGI("m_mapDhcpResult erase ifName:%{public}s", ifname.c_str());
+            for (auto result = iter->second.begin(); result != iter->second.end();) {
+                if (result->iptype == 1) {
+                    result = iter->second.erase(result);
+                } else {
+                    result++;
+                }
+            }
+            if (iter->second.empty()) {
+                m_mapDhcpResult.erase(iter);
+            }
+        }
     }
     return DHCP_E_SUCCESS;
 }
@@ -356,40 +450,12 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
         DHCP_LOGE("StopDhcpClient ifname is empty!");
         return DHCP_E_FAILED;
     }
-    {
-        std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
-        auto iter = m_mapClientCallBack.find(ifname);
-        if (iter != m_mapClientCallBack.end()) {
-            m_mapClientCallBack.erase(iter);
-            DHCP_LOGI("StopDhcpClient erase ClientCallBack ifName:%{public}s", ifname.c_str());
-        }
+    if (bIpv6) {
+        StopDhcpIpv6Client(ifname);
+    } else {
+        StopDhcpIpv4Client(ifname);
     }
-    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pStaStateMachine != nullptr) {
-            DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
-                bIpv6);
-            (iter2->second).pStaStateMachine->StopIpv4();
-            (iter2->second).pStaStateMachine->CloseAllRenewTimer();
-        }
-        if ((iter2->second).pipv6Client != nullptr) {
-            DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
-                bIpv6);
-            (iter2->second).pipv6Client->DhcpIPV6Stop();
-#ifndef OHOS_ARCH_LITE
-            NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
-#endif
-        }
-        {
-            std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
-            auto iter = m_mapDhcpResult.find(ifname);
-            if (iter != m_mapDhcpResult.end()) {
-                DHCP_LOGI("m_mapDhcpResult erase ifName:%{public}s", ifname.c_str());
-                m_mapDhcpResult.erase(iter);
-            }
-        }
-    }
+
     return DHCP_E_SUCCESS;
 }
 
@@ -504,6 +570,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
     result.isOptSuc = false;
     result.uGetTime = (uint32_t)time(NULL);
     result.uAddTime = ipResult.uAddTime;
+
     PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv4ResultFail ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
     ActionMode action = ACTION_INVALID;
@@ -583,10 +650,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
 {
-    if (strlen(info.dnsAddr) == 0 || strlen(info.linkIpv6Addr) == 0) {
-        DHCP_LOGE("DhcpIpv6ResulCallback invalid, ifname:%{public}s, status:%{public}d", ifname.c_str(), info.status);
-        return;
-    }
     OHOS::DHCP::DhcpResult result;
     result.uAddTime = (uint32_t)time(NULL);
     result.iptype = 1;
