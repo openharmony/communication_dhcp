@@ -124,8 +124,8 @@ HWTEST_F(DhcpIpv6ClientTest, getAddrTypeTest, TestSize.Level1)
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("getAddrTypeTest enter!");
     struct in6_addr addr;
-    EXPECT_EQ(IPV6_RETURN_32, ipv6Client->getAddrType(nullptr));
-    EXPECT_EQ(IPV6_RETURN_ZERO, ipv6Client->getAddrType(&addr));
+    EXPECT_EQ(IPV6_RETURN_32, ipv6Client->GetAddrType(nullptr));
+    EXPECT_EQ(IPV6_RETURN_ZERO, ipv6Client->GetAddrType(&addr));
 }
 
 HWTEST_F(DhcpIpv6ClientTest, getAddrTypeTest1, TestSize.Level1)
@@ -133,31 +133,31 @@ HWTEST_F(DhcpIpv6ClientTest, getAddrTypeTest1, TestSize.Level1)
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("getAddrTypeTest1 enter!");
     struct in6_addr addr;
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "2001:0db8:85a3:0000:0000:8a2e:0370:7334", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "ff02:0000:0000:0000:0000:0000:0000:0001", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "fe80::", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "fec0::", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "::", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "::1", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "::ffff:192.0.2.128", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 
     inet_pton(AF_INET6, "::ffff:192.0.2.128", &addr);
-    ipv6Client->getAddrType(&addr);
+    ipv6Client->GetAddrType(&addr);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, getAddrScopeTest, TestSize.Level1)
@@ -165,8 +165,8 @@ HWTEST_F(DhcpIpv6ClientTest, getAddrScopeTest, TestSize.Level1)
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("getAddrScopeTest enter!");
     struct in6_addr addr;
-    EXPECT_EQ(IPV6_RETURN_32, ipv6Client->getAddrScope(nullptr));
-    EXPECT_EQ(IPV6_RETURN_ZERO, ipv6Client->getAddrScope(&addr));
+    EXPECT_EQ(IPV6_RETURN_32, ipv6Client->GetAddrScope(nullptr));
+    EXPECT_EQ(IPV6_RETURN_ZERO, ipv6Client->GetAddrScope(&addr));
 }
 
 HWTEST_F(DhcpIpv6ClientTest, createKernelSocketTest, TestSize.Level1)
@@ -198,16 +198,6 @@ HWTEST_F(DhcpIpv6ClientTest, GetIpFromS6AddressTest, TestSize.Level1)
     EXPECT_EQ(ipv6Client->GetIpFromS6Address(addr, 1, buf, BUF_LEN_2), IPV6_OPT_FAILED);
 }
 
-HWTEST_F(DhcpIpv6ClientTest, onIpv6AddressAddEventTest, TestSize.Level1)
-{
-    ASSERT_TRUE(ipv6Client != nullptr);
-    DHCP_LOGE("onIpv6AddressAddEventTest enter!");
-    char data[] = "192.168.1.12";
-    ipv6Client->onIpv6AddressAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 1);
-    ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 0);
-    ipv6Client->onIpv6AddressAddEvent(nullptr, PRE_FIX_LEN, 44);
-}
-
 HWTEST_F(DhcpIpv6ClientTest, onIpv6DnsAddEventTest, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
@@ -219,16 +209,16 @@ HWTEST_F(DhcpIpv6ClientTest, onIpv6DnsAddEventTest, TestSize.Level1)
     ipv6Client->onIpv6DnsAddEvent(static_cast<void *>(data), PRE_FIX_LEN, 44);
 }
 
-HWTEST_F(DhcpIpv6ClientTest, onIpv6RouteAddEventTest, TestSize.Level1)
+HWTEST_F(DhcpIpv6ClientTest, onIpv6RouteUpdateEventTest, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
-    DHCP_LOGE("onIpv6RouteAddEventTest enter!");
+    DHCP_LOGE("onIpv6RouteUpdateEventTest enter!");
     char gateway[] = "192.168.1.1";
     char dst[] = "192.168.1.2";
-    ipv6Client->onIpv6RouteAddEvent(gateway, dst, 1);
-    ipv6Client->onIpv6RouteAddEvent(nullptr, dst, 44);
-    ipv6Client->onIpv6RouteAddEvent(gateway, nullptr, 44);
-    ipv6Client->onIpv6RouteAddEvent(gateway, dst, 44);
+    ipv6Client->OnIpv6RouteUpdateEvent(gateway, dst, 1);
+    ipv6Client->OnIpv6RouteUpdateEvent(nullptr, dst, 44);
+    ipv6Client->OnIpv6RouteUpdateEvent(gateway, nullptr, 44);
+    ipv6Client->OnIpv6RouteUpdateEvent(gateway, dst, 44);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, getIpv6RouteAddrTest, TestSize.Level1)
