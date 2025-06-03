@@ -159,6 +159,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     (void)WriteBool(&req, config.bIpv6);
     (void)WriteBool(&req, config.bSpecificNetwork);
     (void)WriteBool(&req, config.isStaticIpv4);
+    (void)WriteBool(&req, config.bIpv4);
     owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT);
     int error = remote_->Invoke(remote_,
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT), &req,
@@ -215,7 +216,7 @@ ErrCode DhcpClientProxy::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCac
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6, bool bIpv4)
 {
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
@@ -235,6 +236,7 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
     (void)WriteInt32(&req, 0);
     (void)WriteString(&req, ifname.c_str());
     (void)WriteBool(&req, bIpv6);
+    (void)WriteBool(&req, bIpv4);
     owner.funcId = static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT);
     int error = remote_->Invoke(remote_,
         static_cast<int32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT), &req,

@@ -215,6 +215,7 @@ ErrCode DhcpClientServiceImpl::StartDhcpClient(const RouterConfig &config)
     innerCfg.bIpv6 = config.bIpv6;
     innerCfg.bSpecificNetwork = config.bSpecificNetwork;
     innerCfg.isStaticIpv4 = config.isStaticIpv4;
+    innerCfg.bIpv4 = config.bIpv4;
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
         auto iter = m_mapClientService.find(innerCfg.ifname);
@@ -279,7 +280,11 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const RouterConfig &config, DhcpCl
                 [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
             dhcpClient.pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
         }
-    } else {
+    }
+    if (ret != DHCP_E_SUCCESS) {
+        return ret;
+    }
+    if (config.bIpv4) {
         if (dhcpClient.pStaStateMachine == nullptr) {
             ret = StartNewIpv4Client(config, dhcpClient);
         } else {
@@ -346,7 +351,11 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const RouterConfig &config)
     if (config.bIpv6) {
         client.isIpv6 = config.bIpv6;
         ret = StartNewIpv6Client(config, client);
-    } else {
+    }
+    if (ret != DHCP_E_SUCCESS) {
+        return ret;
+    }
+    if (config.bIpv4) {
         ret = StartNewIpv4Client(config, client);
     }
     if (ret != DHCP_E_SUCCESS) {
@@ -435,9 +444,9 @@ ErrCode DhcpClientServiceImpl::StopDhcpIpv6Client(const std::string& ifname)
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bIpv6, bool bIpv4)
 {
-    DHCP_LOGI("StopDhcpClient ifName:%{public}s, bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    DHCP_LOGI("StopDhcpClient ifName:%{public}s, bIpv6:%{public}d, bIpv4:%{public}d", ifname.c_str(), bIpv6, bIpv4);
     if (!DhcpPermissionUtils::VerifyIsNativeProcess()) {
         DHCP_LOGE("StopDhcpClient:NOT NATIVE PROCESS, PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
@@ -452,7 +461,8 @@ ErrCode DhcpClientServiceImpl::StopDhcpClient(const std::string& ifname, bool bI
     }
     if (bIpv6) {
         StopDhcpIpv6Client(ifname);
-    } else {
+    }
+    if (bIpv4) {
         StopDhcpIpv4Client(ifname);
     }
 

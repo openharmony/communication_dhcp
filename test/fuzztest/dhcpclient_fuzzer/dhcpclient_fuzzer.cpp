@@ -36,7 +36,7 @@ namespace DHCP {
         config.bIpv6 = false;
         config.prohibitUseCacheIp = false;
         dhcpClient->StartDhcpClient(config);
-        dhcpClient->StopDhcpClient(config.ifname, true);
+        dhcpClient->StopDhcpClient(config.ifname, true, true);
         dhcpClient->RegisterDhcpClientCallBack(config.ifname, dhcpClientCallBack);
         IpCacheInfo ipCacheInfo;
         ipCacheInfo.ssid = std::string(reinterpret_cast<const char*>(data), size);

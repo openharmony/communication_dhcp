@@ -87,7 +87,7 @@ void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, co
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
 }
 
-void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
+void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, bool bIpv4)
 {
     uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_STOP_DHCP_CLIENT);
     MessageParcel datas;
@@ -95,6 +95,7 @@ void OnStopDhcpClientTest(const std::string& ifname, size_t size, bool ipv6)
     datas.WriteInt32(0);
     datas.WriteString(ifname);
     datas.WriteBool(ipv6);
+    datas.WriteBool(bIpv4);
     MessageParcel reply;
     MessageOption option;
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
@@ -155,7 +156,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     std::string ifname = "wlan0";
     OnRegisterCallBackTest(ifname, size);
     OnStartDhcpClientTest(ifname, size, false, data);
-    OnStopDhcpClientTest(ifname, size, false);
+    OnStopDhcpClientTest(ifname, size, false, true);
     OnDealWifiDhcpCacheTest(data, size);
     DhcpOfferResultSuccessTest(data, size);
     OnStopClientSaTest(data, size);

@@ -154,6 +154,8 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, MessageParcel &data, Messag
     config.prohibitUseCacheIp = data.ReadBool();
     config.bIpv6 = data.ReadBool();
     config.bSpecificNetwork = data.ReadBool();
+    config.isStaticIpv4 = data.ReadBool();
+    config.bIpv4 = data.ReadBool();
     ErrCode ret = StartDhcpClient(config);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
@@ -165,7 +167,8 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, MessageParcel &data, Message
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     std::string ifname = data.ReadString();
     bool bIpv6 = data.ReadBool();
-    ErrCode ret = StopDhcpClient(ifname, bIpv6);
+    bool bIpv4 = data.ReadBool();
+    ErrCode ret = StopDhcpClient(ifname, bIpv6, bIpv4);
     reply.WriteInt32(0);
     reply.WriteInt32(ret);
     return 0;

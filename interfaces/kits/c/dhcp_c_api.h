@@ -62,7 +62,7 @@ extern "C" {
      * @param bIpv6 - can or not get ipv6 [in]
      * @Return : success - DHCP_SUCCESS, failed - others.
      */
-    DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6);
+    DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6, bool bIpv4 = true);
 
     DhcpErrorCode RegisterDhcpServerCallBack(const char *ifname, const ServerCallBack *event);
     DhcpErrorCode StartDhcpServer(const char *ifname);

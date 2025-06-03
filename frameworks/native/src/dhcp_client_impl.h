@@ -38,7 +38,7 @@ public:
     
     ErrCode StartDhcpClient(const RouterConfig &config) override;
     ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) override;
-    ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
+    ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6, bool bIpv4 = true) override;
     ErrCode StopClientSa(void) override;
 private:
     bool GetDhcpClientProxy();

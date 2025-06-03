@@ -158,6 +158,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     data.WriteBool(config.bIpv6);
     data.WriteBool(config.bSpecificNetwork);
     data.WriteBool(config.isStaticIpv4);
+    data.WriteBool(config.bIpv4);
     DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, prohibitUseCacheIp:%{public}d, bIpv6:%{public}d"\
         "bSpecificNetwork:%{public}d", __func__, GetCallingUid(), config.ifname.c_str(), config.prohibitUseCacheIp,
         config.bIpv6, config.bSpecificNetwork);
@@ -212,7 +213,7 @@ ErrCode DhcpClientProxy::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCac
     return DHCP_E_SUCCESS;
 }
 
-ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6, bool bIpv4)
 {
     DHCP_LOGI("DhcpClientProxy enter StopDhcpClient mRemoteDied:%{public}d", mRemoteDied);
     if (mRemoteDied) {
@@ -228,6 +229,7 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6)
     data.WriteInt32(0);
     data.WriteString(ifname); 
     data.WriteBool(bIpv6);
+    data.WriteBool(bIpv4);
     DHCP_LOGI("%{public}s, calling uid:%{public}d, ifname:%{public}s, bIpv6:%{public}d", __func__, GetCallingUid(),
         ifname.c_str(), bIpv6);
     int error = Remote()->SendRequest(
