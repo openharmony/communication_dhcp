@@ -86,6 +86,7 @@ NO_SANITIZE("cfi") DhcpErrorCode StartDhcpClient(const RouterConfig &config)
     routerConfig.bIpv6 = config.bIpv6;
     routerConfig.bSpecificNetwork = config.bSpecificNetwork;
     routerConfig.isStaticIpv4 = config.isStaticIpv4;
+    routerConfig.bIpv4 = config.bIpv4;
     return GetCErrorCode(dhcpClientPtr->StartDhcpClient(routerConfig));
 }
 
@@ -100,13 +101,15 @@ DhcpErrorCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo)
     return GetCErrorCode(dhcpClientPtr->DealWifiDhcpCache(cmd, cacheInfo));
 }
 
-NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6)
+NO_SANITIZE("cfi") DhcpErrorCode StopDhcpClient(const char *ifname, bool bIpv6, bool bIpv4)
 {
     CHECK_PTR_RETURN(ifname, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpClientPtr, DHCP_INVALID_PARAM);
     CHECK_PTR_RETURN(dhcpClientCallBack, DHCP_INVALID_PARAM);
-    dhcpClientCallBack->UnRegisterCallBack(ifname);
-    return  GetCErrorCode(dhcpClientPtr->StopDhcpClient(ifname, bIpv6));
+    if (bIpv4) {
+        dhcpClientCallBack->UnRegisterCallBack(ifname);
+    }
+    return  GetCErrorCode(dhcpClientPtr->StopDhcpClient(ifname, bIpv6, bIpv4));
 }
 
 NO_SANITIZE("cfi") DhcpErrorCode RegisterDhcpServerCallBack(const char *ifname, const ServerCallBack *event)

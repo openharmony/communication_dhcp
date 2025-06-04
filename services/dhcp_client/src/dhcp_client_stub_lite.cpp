@@ -134,6 +134,8 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     (void)ReadBool(req, &config.prohibitUseCacheIp);
     (void)ReadBool(req, &config.bIpv6);
     (void)ReadBool(req, &config.bSpecificNetwork);
+    (void)ReadBool(req, &config.isStaticIpv4);
+    (void)ReadBool(req, &config.bIpv4);
     DHCP_LOGI("ifname:%{public}s prohibitUseCacheIp:%{public}d, bIpv6:%{public}d, bSpecificNetwork:%{public}d",
         ifname.c_str(), config.prohibitUseCacheIp, config.bIpv6, config.bSpecificNetwork);
 
@@ -160,9 +162,11 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     bool bIpv6;
     std::string ifname = (char *)ReadString(req, &readLen);
     (void)ReadBool(req, &bIpv6);
-    DHCP_LOGI("ifname:%{public}s bIpv6:%{public}d", ifname.c_str(), bIpv6);
+    bool bIpv4 = true;
+    (void)ReadBool(req, &bIpv4);
+    DHCP_LOGI("ifname:%{public}s bIpv6:%{public}d bIpv4:%{public}d", ifname.c_str(), bIpv6, bIpv4);
 
-    ret = StopDhcpClient(ifname, bIpv6);
+    ret = StopDhcpClient(ifname, bIpv6, bIpv4);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
     return 0;

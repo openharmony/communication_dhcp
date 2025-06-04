@@ -65,7 +65,7 @@ public:
     ErrCode DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCacheInfo) override;
     ErrCode StopDhcpIpv4Client(const std::string& ifname);
     ErrCode StopDhcpIpv6Client(const std::string& ifname);
-    ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6) override;
+    ErrCode StopDhcpClient(const std::string& ifname, bool bIpv6, bool bIpv4 = true) override;
     ErrCode StopClientSa(void) override;
     bool IsRemoteDied(void) override;
     ErrCode StartNewIpv4Client(const RouterConfig &config, DhcpClient &dhcpClient);

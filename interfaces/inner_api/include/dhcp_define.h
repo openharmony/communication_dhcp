@@ -355,6 +355,7 @@ struct RouterConfig {
     bool bIpv6 { true };
     bool bSpecificNetwork { false };
     bool isStaticIpv4 { false };
+    bool bIpv4 { true };
 };
 
 struct IpCacheInfo {

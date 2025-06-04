@@ -101,6 +101,7 @@ typedef struct RouterConfig {
     bool bIpv6 { true };
     bool bSpecificNetwork { false };
     bool isStaticIpv4 { false };
+    bool bIpv4 { true };
 }RouterConfig;
 
 typedef struct IpCacheInfo {

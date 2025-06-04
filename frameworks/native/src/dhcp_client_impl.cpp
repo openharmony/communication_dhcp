@@ -139,11 +139,11 @@ ErrCode DhcpClientImpl::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCach
     return client_->DealWifiDhcpCache(cmd, ipCacheInfo);
 }
 
-ErrCode DhcpClientImpl::StopDhcpClient(const std::string& ifname, bool bIpv6)
+ErrCode DhcpClientImpl::StopDhcpClient(const std::string& ifname, bool bIpv6, bool bIpv4)
 {
     std::lock_guard<std::mutex> lock(mutex_);
     RETURN_IF_FAIL(GetDhcpClientProxy());
-    return client_->StopDhcpClient(ifname, bIpv6);
+    return client_->StopDhcpClient(ifname, bIpv6, bIpv4);
 }
 
 ErrCode DhcpClientImpl::StopClientSa(void)
