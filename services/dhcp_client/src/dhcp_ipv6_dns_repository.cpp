@@ -24,7 +24,7 @@ DnsServerRepository::DnsServerRepository(int minLifeTime)
 {
     currentServers_ = std::unordered_set<std::string>();
     allServers_ = std::vector<DnsServerEntry>();
-    minLifetime_ = minLifeTime;
+    minLifetime_ = static_cast<uint32_t>(minLifeTime);
 }
 
 DnsServerRepository::~DnsServerRepository()
@@ -48,9 +48,9 @@ bool DnsServerRepository::AddServers(uint32_t lifetime, const std::vector<std::s
         return false;
     }
 
-    uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+    uint64_t now = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()
-    ).count();
+    ).count());
 
     uint64_t expiry = now + static_cast<uint64_t>(lifetime) * 1000; // to ms
 
@@ -117,9 +117,9 @@ bool DnsServerRepository::UpdateExistingEntry(const std::string& address, uint64
 
 bool DnsServerRepository::UpdateCurrentServers()
 {
-    uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
+    uint64_t now = static_cast<uint64_t>(std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()
-    ).count();
+    ).count());
 
     bool changed = false;
     if (allServers_.empty()) {
