@@ -279,7 +279,7 @@ ErrCode DhcpServerProxy::PutDhcpRange(const std::string& tagName, const DhcpRang
     data.WriteString(range.strEndip);
     data.WriteString(range.strSubnet);
     data.WriteString(tagName);
-     DHCP_LOGI("%{public}s, LINE :%{public}d tagName:%{public}s iptype %{public}d  leaseHours %{public}d"
+    DHCP_LOGI("%{public}s, LINE :%{public}d tagName:%{public}s iptype %{public}d  leaseHours %{public}d"
         "strTagName:%{public}s strStartip:%{private}s strEndip:%{private}s strSubnet:%{private}s",
         __func__, __LINE__, tagName.c_str(), range.iptype, range.leaseHours, range.strTagName.c_str(),
         range.strStartip.c_str(), range.strEndip.c_str(), range.strSubnet.c_str());
@@ -449,7 +449,7 @@ ErrCode DhcpServerProxy::RemoveDhcpRange(const std::string& tagName, const DhcpR
     data.WriteString(range.strEndip);
     data.WriteString(range.strSubnet);
     data.WriteString(tagName);
-     DHCP_LOGI("%{public}s, LINE :%{public}d ifname:%{public}s iptype %{public}d leaseHours %{public}d"
+    DHCP_LOGI("%{public}s, LINE :%{public}d ifname:%{public}s iptype %{public}d leaseHours %{public}d"
         "strTagName:%{public}s strStartip:%{private}s strEndip:%{private}s strSubnet:%{private}s",
         __func__, __LINE__, tagName.c_str(), range.iptype, range.leaseHours, range.strTagName.c_str(),
         range.strStartip.c_str(), range.strEndip.c_str(), range.strSubnet.c_str());
