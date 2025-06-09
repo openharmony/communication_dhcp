@@ -204,7 +204,7 @@ ErrCode DhcpServerProxy::SetDhcpRange(const std::string& ifname, const DhcpRange
     data.WriteString(range.strSubnet);
     data.WriteString(ifname);
     DHCP_LOGI("%{public}s, LINE :%{public}d ifname:%{public}s iptype %{public}d leaseHours %{public}d"
-        "TagName:%{public}s Startip:%{public}s strEndip:%{private}s strSubnet:%{public}s",
+        "TagName:%{public}s Startip:%{private}s strEndip:%{private}s strSubnet:%{private}s",
         __func__, __LINE__, ifname.c_str(), range.iptype, range.leaseHours, range.strTagName.c_str(),
         range.strStartip.c_str(), range.strEndip.c_str(), range.strSubnet.c_str());
     int error = Remote()->SendRequest(
@@ -280,7 +280,7 @@ ErrCode DhcpServerProxy::PutDhcpRange(const std::string& tagName, const DhcpRang
     data.WriteString(range.strSubnet);
     data.WriteString(tagName);
      DHCP_LOGI("%{public}s, LINE :%{public}d tagName:%{public}s iptype %{public}d  leaseHours %{public}d"
-        "strTagName:%{public}s strStartip:%{public}s strEndip:%{private}s strSubnet:%{public}s",
+        "strTagName:%{public}s strStartip:%{private}s strEndip:%{private}s strSubnet:%{private}s",
         __func__, __LINE__, tagName.c_str(), range.iptype, range.leaseHours, range.strTagName.c_str(),
         range.strStartip.c_str(), range.strEndip.c_str(), range.strSubnet.c_str());
     int error = Remote()->SendRequest(
@@ -450,7 +450,7 @@ ErrCode DhcpServerProxy::RemoveDhcpRange(const std::string& tagName, const DhcpR
     data.WriteString(range.strSubnet);
     data.WriteString(tagName);
      DHCP_LOGI("%{public}s, LINE :%{public}d ifname:%{public}s iptype %{public}d leaseHours %{public}d"
-        "strTagName:%{public}s strStartip:%{public}s strEndip:%{private}s strSubnet:%{public}s",
+        "strTagName:%{public}s strStartip:%{private}s strEndip:%{private}s strSubnet:%{private}s",
         __func__, __LINE__, tagName.c_str(), range.iptype, range.leaseHours, range.strTagName.c_str(),
         range.strStartip.c_str(), range.strEndip.c_str(), range.strSubnet.c_str());
     int error = Remote()->SendRequest(
