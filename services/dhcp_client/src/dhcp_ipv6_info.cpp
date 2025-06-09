@@ -51,7 +51,7 @@ bool DhcpIpv6InfoManager::RemoveRoute(DhcpIpv6Info &dhcpIpv6Info, std::string de
         return false;
     }
     bool isChanged = false;
-    for (int i = dhcpIpv6Info.defaultRouteAddr.size() - 1; i >=0 ; i--) {
+    for (int i = static_cast<int>(dhcpIpv6Info.defaultRouteAddr.size()) - 1; i >=0 ; i--) {
         if (dhcpIpv6Info.defaultRouteAddr[i] == defaultRoute) {
             dhcpIpv6Info.defaultRouteAddr.erase(dhcpIpv6Info.defaultRouteAddr.begin() + i);
             isChanged = true;
