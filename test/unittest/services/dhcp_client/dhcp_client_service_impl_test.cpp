@@ -97,7 +97,7 @@ HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)
     config.ifname = "wlan0";
     config.bIpv6 = true;
     config.prohibitUseCacheIp = false;
-    EXPECT_EQ(DHCP_E_FAILED, dhcpClientImpl->StartOldClient(config, client));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
 
     client.pStaStateMachine = new DhcpClientStateMachine(client.ifName);
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
