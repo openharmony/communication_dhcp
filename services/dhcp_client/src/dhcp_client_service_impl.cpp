@@ -64,7 +64,7 @@ sptr<DhcpClientServiceImpl> DhcpClientServiceImpl::GetInstance()
         std::lock_guard<std::mutex> autoLock(g_instanceLock);
         if (g_instance == nullptr) {
             DHCP_LOGI("new DhcpClientServiceImpl GetInstance()");
-            sptr<DhcpClientServiceImpl> service = new DhcpClientServiceImpl;
+            sptr<DhcpClientServiceImpl> service = sptr<DhcpClientServiceImpl>::MakeSptr();
             g_instance = service;
         }
     }
