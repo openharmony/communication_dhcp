@@ -66,7 +66,7 @@ sptr<DhcpServerServiceImpl> DhcpServerServiceImpl::GetInstance()
     if (g_instance == nullptr) {
         std::lock_guard<std::mutex> autoLock(g_instanceLock);
         if (g_instance == nullptr) {
-            sptr<DhcpServerServiceImpl> service = new (std::nothrow) DhcpServerServiceImpl;
+            sptr<DhcpServerServiceImpl> service = sptr<DhcpServerServiceImpl>::MakeSptr();
             g_instance = service;
         }
     }  

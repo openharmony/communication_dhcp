@@ -44,7 +44,7 @@ DhcpClientProxy *DhcpClientProxy::GetInstance(void)
         return g_instance;
     }
 
-    DhcpClientProxy *tempInstance = new(std::nothrow)DhcpClientProxy();
+    DhcpClientProxy *tempInstance = new DhcpClientProxy();
     g_instance = tempInstance;
     return g_instance;
 }
