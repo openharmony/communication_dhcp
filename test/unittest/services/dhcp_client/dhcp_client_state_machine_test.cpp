@@ -51,6 +51,7 @@ public:
     static void TearDownTestCase()
     {
         if (dhcpClient != nullptr) {
+            dhcpClient->StopIpv4();
             dhcpClient.reset(nullptr);
         }
         DhcpTimer::GetInstance()->timer_.reset();
