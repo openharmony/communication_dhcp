@@ -61,12 +61,14 @@ public:
 
 
 HWTEST_F(DnsServerRepositoryTest, TestAddServersWithValidLifetime, TestSize.Level1) {
+    DHCP_LOGI("TestAddServersWithValidLifetime enter!");
     std::vector<std::string> addresses = {"2001:db8::1", "2001:db8::2"};
     bool result = mRepository->AddServers(2000, addresses);
     EXPECT_TRUE(result);
 }
 
 HWTEST_F(DnsServerRepositoryTest, TestAddServersWithZeroLifetime, TestSize.Level1) {
+    DHCP_LOGI("TestAddServersWithZeroLifetime enter!");
     std::vector<std::string> addresses = {"2001:db8::1"};
     mRepository->AddServers(2000, addresses);
     bool result = mRepository->AddServers(0, addresses);
@@ -74,12 +76,14 @@ HWTEST_F(DnsServerRepositoryTest, TestAddServersWithZeroLifetime, TestSize.Level
 }
 
 HWTEST_F(DnsServerRepositoryTest, TestAddServersWithInvalidLifetime, TestSize.Level1) {
+    DHCP_LOGI("TestAddServersWithInvalidLifetime enter!");
     std::vector<std::string> addresses = {"2001:db8::1"};
     bool result = mRepository->AddServers(500, addresses);
     EXPECT_FALSE(result);
 }
 
 HWTEST_F(DnsServerRepositoryTest, TestSetCurrentServers, TestSize.Level1) {
+    DHCP_LOGI("TestSetCurrentServers enter!");
     DhcpIpv6Info ipv6Info;
     std::vector<std::string> addresses = {"2001:db8::1", "2001:db8::2"};
     mRepository->currentServers_ = std::unordered_set<std::string>(addresses.begin(), addresses.end());
@@ -88,6 +92,7 @@ HWTEST_F(DnsServerRepositoryTest, TestSetCurrentServers, TestSize.Level1) {
 }
 
 HWTEST_F(DnsServerRepositoryTest, TestUpdateExistingEntry, TestSize.Level1) {
+    DHCP_LOGI("TestUpdateExistingEntry enter!");
     std::string address = "2001:db8::1";
     uint64_t newExpiry = 1000000;
     mRepository->allServers_.push_back({address, 500000});
@@ -96,6 +101,7 @@ HWTEST_F(DnsServerRepositoryTest, TestUpdateExistingEntry, TestSize.Level1) {
 }
 
 HWTEST_F(DnsServerRepositoryTest, TestUpdateCurrentServers, TestSize.Level1) {
+    DHCP_LOGI("TestUpdateCurrentServers!");
     std::string address = "2001:db8::11";
     uint64_t now = std::chrono::duration_cast<std::chrono::milliseconds>(
         std::chrono::system_clock::now().time_since_epoch()
