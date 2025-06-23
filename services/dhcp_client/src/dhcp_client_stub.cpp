@@ -127,15 +127,15 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
     }
     sptr<IDhcpClientCallBack> callback_ = iface_cast<IDhcpClientCallBack>(remote);
     if (callback_ == nullptr) {
-        callback_ = sptr<IDhcpClientCallBack>::MakeSptr();
+        callback_ = new DhcpClientCallbackProxy(remote);;
         DHCP_LOGI("create new DhcpClientCallbackProxy!");
     }
     std::string ifName = data.ReadString();
     if (deathRecipient_ == nullptr) {
 #ifdef OHOS_ARCH_LITE
-        deathRecipient_ = sptr<IRemoteObject::DeathRecipient>::MakeSptr();
+         deathRecipient_ = new DhcpClientDeathRecipient();
 #else
-        deathRecipient_ = sptr<IRemoteObject::DeathRecipient>::MakeSptr();
+         deathRecipient_ = new ClientDeathRecipient(*this);
         remoteDeathMap.insert(std::make_pair(remote, deathRecipient_));
 #endif
     }
