@@ -62,7 +62,7 @@ constexpr uint32_t SLOW_ARP_DETECTION_TRY_CNT = 2;
 constexpr int DHCP_IP_TYPE_A = 128;
 constexpr int DHCP_IP_TYPE_B = 192;
 constexpr int DHCP_IP_TYPE_C = 224;
-
+constexpr uint32_t DEFAULT_TIMEROUT_ETH0 = 72 * 1000; // 72s
 DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     m_dhcp4State(DHCP_STATE_INIT),
     m_sockFd(-1),
@@ -90,6 +90,10 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     renewDelayTimerId = 0;
     rebindDelayTimerId = 0;
     remainingDelayTimerId = 0;
+    timeOut_ = DhcpTimer::DEFAULT_TIMEROUT;
+    if (ifname == "eth0") {
+        timeOut_ = DEFAULT_TIMEROUT_ETH0;
+    }
 #endif
     m_cltCnf.ifaceIndex = 0;
     threadExit_ = true;
@@ -162,7 +166,7 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
     m_action = action;
 #ifndef OHOS_ARCH_LITE
     StopTimer(getIpTimerId);
-    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    StartTimer(TIMER_GET_IP, getIpTimerId, timeOut_, true);
 #endif
     if (InitConfig(ifname, isIpv6) != DHCP_OPT_SUCCESS) {
         DHCP_LOGE("StartIpv4Type InitConfig failed!");
@@ -2105,7 +2109,7 @@ void DhcpClientStateMachine::RenewDelayCallback()
     StopIpv4();
     m_action = ACTION_RENEW_T1; // T1 begin renew
     InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    StartTimer(TIMER_GET_IP, getIpTimerId, timeOut_, true);
     m_dhcp4State = DHCP_STATE_RENEWING;
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
@@ -2119,7 +2123,7 @@ void DhcpClientStateMachine::RebindDelayCallback()
     StopIpv4();
     m_action = ACTION_RENEW_T2; // T2 begin rebind
     InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    StartTimer(TIMER_GET_IP, getIpTimerId, timeOut_, true);
     m_dhcp4State = DHCP_STATE_REBINDING;
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;
@@ -2134,7 +2138,7 @@ void DhcpClientStateMachine::RemainingDelayCallback()
     StopIpv4();
     m_action = ACTION_RENEW_T3;  // T3 expired,
     InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StartTimer(TIMER_GET_IP, getIpTimerId, DhcpTimer::DEFAULT_TIMEROUT, true);
+    StartTimer(TIMER_GET_IP, getIpTimerId, timeOut_, true);
     m_dhcp4State = DHCP_STATE_INIT;
     m_sentPacketNum = 0;
     m_timeoutTimestamp = 0;

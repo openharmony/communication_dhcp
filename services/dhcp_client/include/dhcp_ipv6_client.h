@@ -58,9 +58,11 @@ private:
     void parseNewneighMessage(void* msg);
     void getIpv6RouteAddr();
     void fillRouteData(char* buff, int &len);
-    bool IsEui64ModeIpv6Address(char *ipv6addr, int len);
+    bool IsEui64ModeIpv6Address(const char *ipv6addr, int len, const unsigned char *ifaceMac, int macLen);
     void SetAcceptRa(const std::string &content);
     void PublishIpv6Result();
+    bool IsGlobalIpv6Address(const char *ipv6addr, int len);
+    bool IsUniqueLocalIpv6Address(const char *ipv6addr, int len);
 
     std::mutex ipv6CallbackMutex_;
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged_ { nullptr };

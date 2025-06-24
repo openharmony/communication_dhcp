@@ -190,7 +190,7 @@ bool DhcpIpv6InfoManager::RemoveAddr(DhcpIpv6Info &dhcpIpv6Info, std::string add
         DHCP_LOGE("RemoveAddr invalid addr");
         return false;
     }
-    DHCP_LOGI("RemoveRoute addr %{private}s", addr.c_str());
+    DHCP_LOGI("RemoveAddr addr %{private}s", addr.c_str());
     if (dhcpIpv6Info.IpAddrMap.find(addr) == dhcpIpv6Info.IpAddrMap.end()) {
         DHCP_LOGI("RemoveAddr unexisting addr");
         return false;
