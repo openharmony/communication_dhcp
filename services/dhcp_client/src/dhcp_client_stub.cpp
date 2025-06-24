@@ -133,9 +133,9 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
     std::string ifName = data.ReadString();
     if (deathRecipient_ == nullptr) {
 #ifdef OHOS_ARCH_LITE
-         deathRecipient_ = new DhcpClientDeathRecipient();
+         deathRecipient_ =sptr<DhcpClientDeathRecipient>::MakeSptr();
 #else
-         deathRecipient_ = new ClientDeathRecipient(*this);
+         deathRecipient_ =sptr<ClientDeathRecipient>::MakeSptr(*this);
         remoteDeathMap.insert(std::make_pair(remote, deathRecipient_));
 #endif
     }
