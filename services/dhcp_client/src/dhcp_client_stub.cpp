@@ -127,7 +127,7 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
     }
     sptr<IDhcpClientCallBack> callback_ = iface_cast<IDhcpClientCallBack>(remote);
     if (callback_ == nullptr) {
-        callback_ = new DhcpClientCallbackProxy(remote);
+        callback_ = sptr<DhcpClientCallbackProxy>::MakeSptr(remote);
         DHCP_LOGI("create new DhcpClientCallbackProxy!");
     }
     std::string ifName = data.ReadString();
