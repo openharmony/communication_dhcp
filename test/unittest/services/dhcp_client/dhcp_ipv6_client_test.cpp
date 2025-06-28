@@ -371,12 +371,105 @@ HWTEST_F(DhcpIpv6ClientTest, AddIpv6AddressTest1, TestSize.Level1)
     EXPECT_EQ(127, len);
 }
 
-HWTEST_F(DhcpIpv6ClientTest, IsEui64ModeIpv6AddressTest, TestSize.Level1)
+const int MAC_ADDR_LEN = 6;
+// 00:11:22:33:44:55 -> EUI-64: 0211:22ff:fe33:4455
+const unsigned char TEST_MAC[MAC_ADDR_LEN] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55};
+const char* EUI64_ADDR = "2001:db8::211:22ff:fe33:4455";
+const char* RAND_ADDR = "2001:db8::1234:5678:9abc:def0";
+const char* NOT_EUI64_ADDR = "2001:db8::0211:22ff:fe33:4456";
+HWTEST_F(DhcpIpv6ClientTest, NullAndInvalidInput, TestSize.Level1)
 {
-    DHCP_LOGI("IsEui64ModeIpv6AddressTest enter!");
-    char data[] = "2408:8471:a02:8fc0:200:52ff:fe5d:003b";
-    EXPECT_EQ(ipv6Client->IsEui64ModeIpv6Address(nullptr, 0), false);
-    EXPECT_EQ(ipv6Client->IsEui64ModeIpv6Address(data, PRE_FIX_ADDRSTRLEN), false);
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(nullptr, 40, TEST_MAC, MAC_ADDR_LEN));
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address("", 0, TEST_MAC, MAC_ADDR_LEN));
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address("invalid", 40, TEST_MAC, MAC_ADDR_LEN));
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(EUI64_ADDR, 40, nullptr, MAC_ADDR_LEN));
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(EUI64_ADDR, 40, TEST_MAC, 5));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, NotEui64Format, TestSize.Level1)
+{
+    // 没有FF:FE的IID
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(RAND_ADDR, 40, TEST_MAC, MAC_ADDR_LEN));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, Eui64FormatButMacMismatch, TestSize.Level1)
+{
+    // EUI-64格式但MAC不匹配
+    unsigned char wrongMac[MAC_ADDR_LEN] = {0x00, 0x11, 0x22, 0x33, 0x44, 0x56};
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(EUI64_ADDR, 40, wrongMac, MAC_ADDR_LEN));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, Eui64FormatAndMacMatch, TestSize.Level1)
+{
+    // EUI-64格式且MAC匹配
+    EXPECT_TRUE(ipv6Client->IsEui64ModeIpv6Address(EUI64_ADDR, 40, TEST_MAC, MAC_ADDR_LEN));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, Eui64FormatButIIDNotMatch, TestSize.Level1)
+{
+    // EUI-64格式但IID最后一位不对
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(NOT_EUI64_ADDR, 40, TEST_MAC, MAC_ADDR_LEN));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, Eui64FormatAndMacMatch_0044, TestSize.Level1)
+{
+    // 00:11:22:33:00:44 -> EUI-64: 0211:22ff:fe33:0044
+    const char* addr2 = "2001:db8::211:22ff:fe33:44";
+    const unsigned char TEST_MAC_2[MAC_ADDR_LEN] = {0x00, 0x11, 0x22, 0x33, 0x00, 0x44};
+    EXPECT_TRUE(ipv6Client->IsEui64ModeIpv6Address(addr2, 40, TEST_MAC_2, MAC_ADDR_LEN));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, Eui64FormatButMacMismatch_0044, TestSize.Level1)
+{
+    // 00:11:22:33:00:44 -> EUI-64: 0211:22ff:fe33:0044
+    const char* addr2 = "2001:db8::211:22ff:fe33:44";
+    unsigned char wrongMac[MAC_ADDR_LEN] = {0x00, 0x11, 0x22, 0x33, 0x00, 0x45};
+    EXPECT_FALSE(ipv6Client->IsEui64ModeIpv6Address(addr2, 40, wrongMac, MAC_ADDR_LEN));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, IsGlobalIpv6Address_ValidGlobal, TestSize.Level1)
+{
+    // 2001:db8:: is documentation, not global
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address("2001:0db8::1", 40));
+    // 2400:cb00:: is global
+    EXPECT_TRUE(ipv6Client->IsGlobalIpv6Address("2400:cb00::1", 40));
+    // 3001:: is global
+    EXPECT_TRUE(ipv6Client->IsGlobalIpv6Address("3001::1", 40));
+    // fc00:: is not global
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address("fc00::1", 40));
+    // fe80:: is not global
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address("fe80::1", 40));
+    // ::1 is not global
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address("::1", 40));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, IsUniqueLocalIpv6Address_ValidUniqueLocal, TestSize.Level1)
+{
+    // fc00::/7
+    EXPECT_TRUE(ipv6Client->IsUniqueLocalIpv6Address("fc00::1", 40));
+    EXPECT_TRUE(ipv6Client->IsUniqueLocalIpv6Address("fd12:3456:789a::1", 40));
+    // 2001:db8:: is not unique local
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("2001:0db8::1", 40));
+    // fe80:: is not unique local
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("fe80::1", 40));
+    // ::1 is not unique local
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("::1", 40));
+    // 2400:cb00:: is not unique local
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("2400:cb00::1", 40));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, IsGlobalIpv6Address_InvalidInput, TestSize.Level1)
+{
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address(nullptr, 40));
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address("", 0));
+    EXPECT_FALSE(ipv6Client->IsGlobalIpv6Address("invalid", 40));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, IsUniqueLocalIpv6Address_InvalidInput, TestSize.Level1)
+{
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address(nullptr, 40));
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("", 0));
+    EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("invalid", 40));
 }
 }
 }

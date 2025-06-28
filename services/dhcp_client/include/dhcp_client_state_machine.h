@@ -160,6 +160,7 @@ private:
     uint64_t rebindDelayTimerId;
     uint64_t remainingDelayTimerId;
     uint32_t m_slowArpTaskId;
+    uint32_t timeOut_;
 #endif
     std::string m_arpDectionTargetIp;
     RouterConfig m_routerCfg;

@@ -41,7 +41,14 @@ const char *DEFAULT_ROUTE = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff";
 const std::string IPV6_ACCEPT_RA_CONFIG_PATH = "/proc/sys/net/ipv6/conf/";
 const std::string ACCEPT_RA = "accept_ra";
 const std::string ACCEPT_OVERRULE_FORWORGING = "2";
-
+const int INDEX0 = 0;
+const int INDEX1 = 1;
+const int INDEX2 = 2;
+const int INDEX3 = 3;
+const int INDEX4 = 4;
+const int INDEX5 = 5;
+const int INDEX6 = 6;
+const int INDEX7 = 7;
 #ifndef ND_OPT_RDNSS
 #define ND_OPT_RDNSS 25
 struct nd_opt_rdnss {
@@ -279,64 +286,87 @@ AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
         DHCP_LOGE("AddIpv6Address ipv6addr is nullptr!");
         return type;
     }
-    int first = ipv6addr[0]-'0';
-    if (first == NUMBER_TWO || first == NUMBER_THREE) { // begin '2' '3'
-        if (IsEui64ModeIpv6Address(ipv6addr, len)) {
+    // get the local interface index and MAC address
+    int ifaceIndex = 0;
+    unsigned char ifaceMac[MAC_ADDR_LEN];
+    if (GetLocalInterface(interfaceName.c_str(), &ifaceIndex, ifaceMac, nullptr) != DHCP_OPT_SUCCESS) {
+        DHCP_LOGE("GetLocalInterface failed for interface: %{public}s", interfaceName.c_str());
+        return type;
+    }
+    if (IsGlobalIpv6Address(ipv6addr, len)) {
+        if (IsEui64ModeIpv6Address(ipv6addr, len, ifaceMac, MAC_ADDR_LEN)) {
+            DHCP_LOGI("AddIpv6Address add globalAddr %{public}s", Ipv6Anonymize(ipv6addr).c_str());
             type = AddrType::GLOBAL;
         }  else {
-            DHCP_LOGI("AddIpv6Address add randIpv6Addr, first=%{public}d", first);
+            DHCP_LOGI("AddIpv6Address add randIpv6Addr %{public}s", Ipv6Anonymize(ipv6addr).c_str());
              type = AddrType::RAND;
         }
-    } else if (first == NUMBER_FIFTY_FOUR) {  // begin 'f'->54
-        if (IsEui64ModeIpv6Address(ipv6addr, len)) {
+    } else if (IsUniqueLocalIpv6Address(ipv6addr, len)) {
+        if (IsEui64ModeIpv6Address(ipv6addr, len, ifaceMac, MAC_ADDR_LEN)) {
+            DHCP_LOGI("AddIpv6Address add uniqueLocalAddr1 %{public}s", Ipv6Anonymize(ipv6addr).c_str());
             type = AddrType::UNIQUE;
         }  else {
+            DHCP_LOGI("AddIpv6Address add uniqueLocalAddr2 %{public}s", Ipv6Anonymize(ipv6addr).c_str());
             type = AddrType::UNIQUE2;
-            DHCP_LOGI("AddIpv6Address add uniqueLocalAddr2, first=%{public}d", first);
         }
     } else {
-        DHCP_LOGI("AddIpv6Address other first=%{public}d", first);
+        DHCP_LOGI("AddIpv6Address add unknow %{public}s", Ipv6Anonymize(ipv6addr).c_str());
     }
     return type;
 }
 
-bool DhcpIpv6Client::IsEui64ModeIpv6Address(char *ipv6addr, int len)
+bool DhcpIpv6Client::IsEui64ModeIpv6Address(const char *ipv6addr, int len, const unsigned char *ifaceMac, int macLen)
 {
-    if (ipv6addr == nullptr) {
-        DHCP_LOGE("IsEui64ModeIpv6Address ipv6addr is nullptr!");
+    if (ipv6addr == nullptr || len <= 0 || len > DHCP_INET6_ADDRSTRLEN) {
+        DHCP_LOGE("Invalid input: ipv6addr is null or len is non-positive");
         return false;
     }
-    int ifaceIndex = 0;
-    unsigned char ifaceMac[MAC_ADDR_LEN];
-    if (GetLocalInterface(interfaceName.c_str(), &ifaceIndex, ifaceMac, NULL) != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("IsEui64ModeIpv6Address GetLocalInterface failed, ifaceName:%{public}s.", interfaceName.c_str());
+
+    if (ifaceMac == nullptr || macLen != MAC_ADDR_LEN) {
+        DHCP_LOGE("Invalid input: ifaceMac is null or macLen is not equal to MAC_ADDR_LEN");
         return false;
     }
-    char macAddr[MAC_ADDR_LEN * MAC_ADDR_CHAR_NUM];
-    if (memset_s(macAddr, sizeof(macAddr), 0, sizeof(macAddr)) != EOK) {
-        DHCP_LOGE("IsEui64ModeIpv6Address memset_s failed!");
+
+    // normalize the IPv6 address
+    struct in6_addr addr;
+    if (inet_pton(AF_INET6, ipv6addr, &addr) != 1) {
+        DHCP_LOGE("inet_pton failed for IPv6 address: %{public}s", Ipv6Anonymize(ipv6addr).c_str());
         return false;
     }
-    if (!MacChConToMacStr(ifaceMac, MAC_ADDR_LEN, macAddr, sizeof(macAddr))) {
-        DHCP_LOGE("MacChConToMacStr() failed!");
+
+    // get last 64 bits of the IPv6 address
+    const int LEN = 8;
+    uint8_t ipv6Iid[LEN];
+    if (memcpy_s(ipv6Iid, LEN, &addr.s6_addr[LEN], LEN) != EOK) {
+        DHCP_LOGE("Failed to copy last 64 bits of IPv6 address: %{public}s", Ipv6Anonymize(ipv6addr).c_str());
         return false;
     }
-    std::string localMacString = macAddr;
-    std::string ipv6AddrString = ipv6addr;
-    size_t macPosition = localMacString.find_last_of(':');
-    size_t ipv6position = ipv6AddrString.find_last_of(':');
-    DHCP_LOGI("IsEui64ModeIpv6Address name:%{public}s index:%{public}d %{public}zu %{public}zu len:%{public}d",
-        interfaceName.c_str(), ifaceIndex, macPosition, ipv6position, len);
-    if ((macPosition != std::string::npos) && (ipv6position != std::string::npos)) {
-        if (macAddr[macPosition + POSITION_OFFSET_1] == ipv6addr[ipv6position + POSITION_OFFSET_3] &&
-            macAddr[macPosition + POSITION_OFFSET_2] == ipv6addr[ipv6position + POSITION_OFFSET_4] &&
-            macAddr[macPosition - POSITION_OFFSET_1] == ipv6addr[ipv6position + POSITION_OFFSET_2] &&
-            macAddr[macPosition - POSITION_OFFSET_2] == ipv6addr[ipv6position + POSITION_OFFSET_1]) {
-            DHCP_LOGI("IsEui64ModeIpv6Address is true!");
-            return true;
-        }
+
+    // check for EMU-64 format:
+    const uint8_t EUI64_BIT_3ST = 0xFF;
+    const uint8_t EUI64_BIT_4TH = 0XFE;
+    if (ipv6Iid[INDEX3] != EUI64_BIT_3ST || ipv6Iid[INDEX4] != EUI64_BIT_4TH) {
+        // EUI-64 format requires the IID to contain FF:FE at the 4th and 5th bytes
+        DHCP_LOGE("IPv6 address %{public}s is not in EUI-64 format", Ipv6Anonymize(ipv6addr).c_str());
+        return false;
     }
-    return false;
+
+    // reconstruct the MAC address from the IPv6 IID
+    uint8_t reconstructedMac[MAC_ADDR_LEN] = {0};
+    const uint8_t U_L_BIT = 0x02;
+    reconstructedMac[INDEX0] = ipv6Iid[INDEX0] ^ U_L_BIT; // 反转U/L位
+    reconstructedMac[INDEX1] = ipv6Iid[INDEX1];
+    reconstructedMac[INDEX2] = ipv6Iid[INDEX2];
+    reconstructedMac[INDEX3] = ipv6Iid[INDEX5];
+    reconstructedMac[INDEX4] = ipv6Iid[INDEX6];
+    reconstructedMac[INDEX5] = ipv6Iid[INDEX7];
+
+    // compare the reconstructed MAC address with the interface MAC address
+    bool isMatch = (memcmp(ifaceMac, reconstructedMac, MAC_ADDR_LEN) == 0);
+
+    DHCP_LOGI("IsEui64ModeIpv6Address EUI-64 check for %{public}s  %{public}s",
+              Ipv6Anonymize(ipv6addr).c_str(), isMatch ? "match" : "mismatch");
+    return isMatch;
 }
 
 void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
@@ -578,6 +608,58 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
      }
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     onIpv6AddressChanged_ = nullptr;
+}
+
+bool DhcpIpv6Client::IsGlobalIpv6Address(const char *ipv6addr, int len)
+{
+    if (ipv6addr == nullptr || len <= 0 || len > DHCP_INET6_ADDRSTRLEN) {
+        DHCP_LOGE("IsGlobalIpv6Address ipv6addr is nullptr or len invalid!");
+        return false;
+    }
+    struct in6_addr addr = IN6ADDR_ANY_INIT;
+    if (inet_pton(AF_INET6, ipv6addr, &addr) != 1) {
+        DHCP_LOGE("inet_pton failed for ipv6addr:%{public}s", Ipv6Anonymize(ipv6addr).c_str());
+        return false;
+    }
+
+    // 2001:db8::/32 is documentation address, not global
+    const uint8_t docAddrPrefix[4] = {0x20, 0x01, 0x0d, 0xb8};
+    // Check if the first 4 bytes match the documentation address prefix
+    if (memcmp(addr.s6_addr, docAddrPrefix, sizeof(docAddrPrefix)) == 0) {
+        DHCP_LOGI("IsGlobalIpv6Address addr is documentation address.");
+        return false;
+    }
+    const uint8_t globalUnicastPrefix = 0x20;
+    const uint8_t mask =  0xE0; // 0b11100000
+    // Check if the first byte matches the global unicast prefix
+    // Global Unicast Address: 2000::/3 (0x20 ~ 0x3F)
+    if ((addr.s6_addr[0] & mask) == globalUnicastPrefix) {
+        DHCP_LOGI("IsGlobalIpv6Address addr:%{public}s is global address.", Ipv6Anonymize(ipv6addr).c_str());
+        return true;
+    }
+    return false;
+}
+
+bool DhcpIpv6Client::IsUniqueLocalIpv6Address(const char *ipv6addr, int len)
+{
+    if (ipv6addr == nullptr || len <= 0 || len > DHCP_INET6_ADDRSTRLEN) {
+        DHCP_LOGE("IsUniqueLocalIpv6Address ipv6addr is nullptr or len invalid!");
+        return false;
+    }
+    struct in6_addr addr = IN6ADDR_ANY_INIT;
+    if (inet_pton(AF_INET6, ipv6addr, &addr) != 1) {
+        DHCP_LOGE("inet_pton failed for ipv6addr:%{public}s", Ipv6Anonymize(ipv6addr).c_str());
+        return false;
+    }
+    // Unique Local Address: fc00::/7 (0xfc or 0xfd)
+    const uint8_t uniqueLocalPrefix = 0xFC;
+    const uint8_t mask = 0xFE; // 0b11111110
+    if ((addr.s6_addr[0] & mask) == uniqueLocalPrefix) {
+        return true;
+    }
+    DHCP_LOGI("IsUniqueLocalIpv6Address addr:%{public}s is not unique local address.",
+        Ipv6Anonymize(ipv6addr).c_str());
+    return false;
 }
 }  // namespace DHCP
 }  // namespace OHOS
