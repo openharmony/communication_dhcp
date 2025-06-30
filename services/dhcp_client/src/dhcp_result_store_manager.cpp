@@ -63,37 +63,31 @@ static int32_t SetClassKeyValue(IpInfoCached &item, const std::string &key, cons
     } else if (key == "absoluteLeasetime") {
         item.absoluteLeasetime = static_cast<int64_t>(CheckDataLegal(valueTmp));
     } else if (key == "strYiaddr") {
-        if (strncpy_s(item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strYiaddr, sizeof(item.ipResult.strYiaddr), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptServerId") {
-        if (strncpy_s(
-            item.ipResult.strOptServerId, sizeof(item.ipResult.strOptServerId), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strOptServerId, sizeof(item.ipResult.strOptServerId), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptSubnet") {
-        if (strncpy_s(
-            item.ipResult.strOptSubnet, sizeof(item.ipResult.strOptSubnet), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strOptSubnet, sizeof(item.ipResult.strOptSubnet), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptDns1") {
-        if (strncpy_s(
-            item.ipResult.strOptDns1, sizeof(item.ipResult.strOptDns1), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strOptDns1, sizeof(item.ipResult.strOptDns1), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptDns2") {
-        if (strncpy_s(
-            item.ipResult.strOptDns2, sizeof(item.ipResult.strOptDns2), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strOptDns2, sizeof(item.ipResult.strOptDns2), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptRouter1") {
-        if (strncpy_s(
-            item.ipResult.strOptRouter1, sizeof(item.ipResult.strOptRouter1), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strOptRouter1, sizeof(item.ipResult.strOptRouter1), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "strOptRouter2") {
-        if (strncpy_s(
-            item.ipResult.strOptRouter2, sizeof(item.ipResult.strOptRouter2), value.c_str(), value.size()) != EOK) {
+        if (strcpy_s(item.ipResult.strOptRouter2, sizeof(item.ipResult.strOptRouter2), value.c_str()) != EOK) {
             errorKeyValue++;
         }
     } else if (key == "uOptLeasetime") {
