@@ -37,40 +37,53 @@ public:
 
     explicit DhcpThread(const std::string &threadName);
     ~DhcpThread();
-/**
- * @submit sync task to Handler
- *
- * @param Callback - Input task
- * @return bool - true: submit success, false: submit failed
- */
+ 
+    /**
+     * @submit sync task to Handler
+     *
+     * @param Callback - Input task
+     * @return bool - true: submit success, false: submit failed
+     */
     bool PostSyncTask(const Callback &callback);
-/**
- * @submit Async task to Handler
- *
- * @param Callback - Input task
- * @param delayTime - Wait delayTime ms excute task
- * @return bool - true: submit success, false: submit failed
- */
+ 
+    /**
+     * @submit Async task to Handler
+     *
+     * @param Callback - Input task
+     * @param delayTime - Wait delayTime ms excute task
+     * @return bool - true: submit success, false: submit failed
+     */
     bool PostAsyncTask(const Callback &callback, int64_t delayTime = 0);
-/**
- * @submit Async task to Handler
- *
- * @param Callback - Input task
- * @param name - Describer of task
- * @param delayTime - Wait delayTime ms excute task
- * @return bool - true: submit success, false: submit failed
- */
-    bool PostAsyncTask(const Callback &callback, const std::string &name, int64_t delayTime = 0);
-/**
- * @Remove Async task
- *
- * @param name - Describer of task
- */
+ 
+    /**
+     * @submit Async task to Handler
+     *
+     * @param Callback - Input task
+     * @param name - Describer of task
+     * @param delayTime - Wait delayTime ms excute task
+     * @return bool - true: submit success, false: submit failed
+     */
+    bool PostAsyncTask(const Callback &callback, const std::string &name,
+        int64_t delayTime = 0, bool isHighPriority = false);
+ 
+    /**
+     * @Remove Async task
+     *
+     * @param name - Describer of task
+     */
     void RemoveAsyncTask(const std::string &name);
-
+    /**
+    * @Check if Has Async Task
+    *
+    * @param name
+    * @param hasTask
+    * @return int - 0: supported, -1: unsupported
+    */
+    int HasAsyncTask(const std::string &name, bool &hasTask);
+ 
 private:
     class DhcpThreadImpl;
-    std::unique_ptr<DhcpThreadImpl> ptr_{nullptr};
+    std::unique_ptr<DhcpThreadImpl> ptr_;
 };
 
 #ifndef OHOS_ARCH_LITE
