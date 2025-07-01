@@ -37,7 +37,7 @@ public:
 
     explicit DhcpThread(const std::string &threadName);
     ~DhcpThread();
- 
+
     /**
      * @submit sync task to Handler
      *
@@ -45,7 +45,7 @@ public:
      * @return bool - true: submit success, false: submit failed
      */
     bool PostSyncTask(const Callback &callback);
- 
+
     /**
      * @submit Async task to Handler
      *
@@ -54,7 +54,7 @@ public:
      * @return bool - true: submit success, false: submit failed
      */
     bool PostAsyncTask(const Callback &callback, int64_t delayTime = 0);
- 
+
     /**
      * @submit Async task to Handler
      *
@@ -65,7 +65,7 @@ public:
      */
     bool PostAsyncTask(const Callback &callback, const std::string &name,
         int64_t delayTime = 0, bool isHighPriority = false);
- 
+
     /**
      * @Remove Async task
      *
@@ -80,7 +80,7 @@ public:
     * @return int - 0: supported, -1: unsupported
     */
     int HasAsyncTask(const std::string &name, bool &hasTask);
- 
+
 private:
     class DhcpThreadImpl;
     std::unique_ptr<DhcpThreadImpl> ptr_;
