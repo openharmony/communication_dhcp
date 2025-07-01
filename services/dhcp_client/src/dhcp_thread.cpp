@@ -381,5 +381,5 @@ void DhcpTimer::UnRegister(uint32_t timerId)
 }
 #endif
 #endif
-}// namespace DHCP
-}// namespace OHOS
+}
+}
