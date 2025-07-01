@@ -62,6 +62,7 @@ public:
     }
     virtual void TearDown()
     {
+        dhcpClient->StopIpv4();
         MockCustomFunc::GetInstance().SetMockFlag(false);
         MockSystemFunc::GetInstance().SetMockFlag(false);
     }

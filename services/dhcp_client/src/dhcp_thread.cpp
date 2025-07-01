@@ -15,7 +15,7 @@
 #include <map>
 #include "dhcp_thread.h"
 #include "dhcp_logger.h"
-#if DHCP_FFRT_ENABLE
+#ifdef DHCP_FFRT_ENABLE
 #include "ffrt_inner.h"
 #else
 #include <atomic>
@@ -33,7 +33,16 @@
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpThread");
-#if DHCP_FFRT_ENABLE
+#ifdef DHCP_FFRT_ENABLE
+constexpr int DHCP_THREAD_TIMEOUT_LIMIT = 30 * 1000 * 1000; // 30s
+constexpr int DHCP_THREAD_MAX_CONCURRENCY = 1;
+inline ffrt_queue_t* TransferQueuePtr(std::shared_ptr<ffrt::queue> queue)
+{
+    if (queue) {
+        return reinterpret_cast<ffrt_queue_t*>(queue.get());
+    }
+    return nullptr;
+}
 class DhcpThread::DhcpThreadImpl {
 public:
     DhcpThreadImpl(const std::string &threadName)
@@ -43,21 +52,25 @@ public:
             DHCP_LOGI("DhcpThreadImpl already init.");
             return;
         }
-        eventQueue = std::make_shared<ffrt::queue>(threadName.c_str());
+        eventQueue = std::make_shared<ffrt::queue>(ffrt::queue_concurrent, threadName.c_str(),
+            ffrt::queue_attr().max_concurrency(DHCP_THREAD_MAX_CONCURRENCY));
         DHCP_LOGI("DhcpThreadImpl: Create a new eventQueue, threadName:%{public}s", threadName.c_str());
     }
     ~DhcpThreadImpl()
     {
-        std::lock_guard<ffrt::mutex> lock(eventQurueMutex);
         DHCP_LOGI("DhcpThread: ~DhcpThread");
-        if (eventQueue) {
-            eventQueue = nullptr;
+        std::lock_guard<ffrt::mutex> lock(eventQurueMutex);
+        ffrt_queue_t* queue = TransferQueuePtr(eventQueue);
+        if (queue == nullptr) {
+            DHCP_LOGE("~DhcpThread is unavailable.");
+            return;
         }
-        for (auto iter = taskMap_.begin(); iter != taskMap_.end();) {
-            iter->second = nullptr;
-            iter = taskMap_.erase(iter);
+        ffrt_queue_cancel_all(*queue);
+        if (eventQueue != nullptr) {
+            eventQueue.reset();
         }
     }
+
     bool PostSyncTask(Callback &callback)
     {
         std::lock_guard<ffrt::mutex> lock(eventQurueMutex);
@@ -85,7 +98,7 @@ public:
         ffrt::task_handle handle = eventQueue->submit_h(callback, ffrt::task_attr().delay(delayTimeUs));
         return handle != nullptr;
     }
-    bool PostAsyncTask(Callback &callback, const std::string &name, int64_t delayTime = 0)
+    bool PostAsyncTask(Callback &callback, const std::string &name, int64_t delayTime = 0, bool isHighPriority = false)
     {
         std::lock_guard<ffrt::mutex> lock(eventQurueMutex);
         if (eventQueue == nullptr) {
@@ -94,30 +107,44 @@ public:
         }
         int64_t delayTimeUs = delayTime * 1000;
         DHCP_LOGD("PostAsyncTask Enter %{public}s", name.c_str());
-        ffrt::task_handle handle = eventQueue->submit_h(
-            callback, ffrt::task_attr().name(name.c_str()).delay(delayTimeUs));
+        ffrt::task_handle handle = nullptr;
+        if (isHighPriority) {
+            handle = eventQueue->submit_h(callback,
+                ffrt::task_attr().name(name.c_str()).delay(delayTimeUs).priority(ffrt_queue_priority_immediate));
+        } else {
+            handle = eventQueue->submit_h(callback, ffrt::task_attr().name(name.c_str()).delay(delayTimeUs));
+        }
         if (handle == nullptr) {
             return false;
         }
-        taskMap_[name] = std::move(handle);
         return true;
     }
     void RemoveAsyncTask(const std::string &name)
     {
         std::lock_guard<ffrt::mutex> lock(eventQurueMutex);
         DHCP_LOGD("RemoveAsyncTask Enter %{public}s", name.c_str());
-        auto item = taskMap_.find(name);
-        if (item == taskMap_.end()) {
-            DHCP_LOGD("task not found");
+        ffrt_queue_t* queue = TransferQueuePtr(eventQueue);
+        if (queue == nullptr) {
+            DHCP_LOGE("RemoveAsyncTask is unavailable.");
             return;
         }
-        if (item->second != nullptr && eventQueue != nullptr) {
-            int32_t ret = eventQueue->cancel(item->second);
-            if (ret != 0) {
-                DHCP_LOGE("RemoveAsyncTask failed, error code : %{public}d", ret);
-            }
+        int ret = ffrt_queue_cancel_by_name(*queue, name.c_str());
+        if (ret != 0) {
+            DHCP_LOGD("RemoveAsyncTask failed.");
         }
-        taskMap_.erase(name);
+    }
+    int HasAsyncTask(const std::string &name, bool &hasTask)
+    {
+        std::lock_guard<ffrt::mutex> lock(eventQurueMutex);
+        ffrt_queue_t* queue = TransferQueuePtr(eventQueue);
+        if (queue == nullptr) {
+            DHCP_LOGE("HasAsyncTask is unavailable.");
+            return -1;
+        }
+        bool result = ffrt_queue_has_task(*queue, name.c_str());
+        DHCP_LOGD("HasAsyncTask Enter %{public}s %{public}d", name.c_str(), static_cast<int>(result));
+        hasTask = result;
+        return 0;
     }
 private:
     std::shared_ptr<ffrt::queue> eventQueue = nullptr;
@@ -160,7 +187,7 @@ public:
         mCondition.notify_one();
         return true;
     }
-    bool PostAsyncTask(Callback &callback, const std::string &name, int64_t delayTime = 0)
+    bool PostAsyncTask(Callback &callback, const std::string &name, int64_t delayTime = 0, bool isHighPriority = false)
     {
         DHCP_LOGE("DhcpThreadImpl PostAsyncTask with name Unsupported in lite.");
         return false;
@@ -168,6 +195,11 @@ public:
     void RemoveAsyncTask(const std::string &name)
     {
         DHCP_LOGE("DhcpThreadImpl RemoveAsyncTask Unsupported in lite.");
+    }
+    int HasAsyncTask(const std::string &name, bool &hasTask)
+    {
+        DHCP_LOGE("DhcpThreadImpl HasAsyncTask Unsupported in lite.");
+        return -1;
     }
 private:
     static  void Run(DhcpThreadImpl &instance)
@@ -214,13 +246,14 @@ bool DhcpThread::PostSyncTask(const Callback &callback)
     return ptr_->PostSyncTask(const_cast<Callback &>(callback));
 }
 
-bool DhcpThread::PostAsyncTask(const Callback &callback, int64_t delayTime)
+bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name,
+    int64_t delayTime, bool isHighPriority)
 {
     if (ptr_ == nullptr) {
         DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
         return false;
     }
-    return ptr_->PostAsyncTask(const_cast<Callback &>(callback), delayTime);
+    return ptr_->PostAsyncTask(const_cast<Callback &>(callback), name, delayTime, isHighPriority);
 }
 
 bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name, int64_t delayTime)
@@ -238,6 +271,15 @@ void DhcpThread::RemoveAsyncTask(const std::string &name)
         return;
     }
     ptr_->RemoveAsyncTask(name);
+}
+
+int DhcpThread::HasAsyncTask(const std::string &name, bool &hasTask)
+{
+    if (ptr_ == nullptr) {
+        DHCP_LOGE("HasAsyncTask: ptr_ is nullptr!");
+        return -1;
+    }
+    return ptr_->HasAsyncTask(name, hasTask);
 }
 
 #ifndef OHOS_ARCH_LITE
@@ -339,5 +381,5 @@ void DhcpTimer::UnRegister(uint32_t timerId)
 }
 #endif
 #endif
-}
-}
+}// namespace DHCP
+}// namespace OHOS
