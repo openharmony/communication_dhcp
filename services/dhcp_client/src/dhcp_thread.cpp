@@ -149,7 +149,6 @@ public:
 private:
     std::shared_ptr<ffrt::queue> eventQueue = nullptr;
     mutable ffrt::mutex eventQurueMutex;
-    std::map<std::string, ffrt::task_handle> taskMap_;
 };
 #else
 class DhcpThread::DhcpThreadImpl {
