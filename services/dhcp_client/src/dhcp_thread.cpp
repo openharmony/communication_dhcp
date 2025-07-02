@@ -257,6 +257,7 @@ bool DhcpThread::PostAsyncTask(const Callback &callback, int64_t delayTime)
 
 bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name,
     int64_t delayTime, bool isHighPriority)
+{
     if (ptr_ == nullptr) {
         DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
         return false;
