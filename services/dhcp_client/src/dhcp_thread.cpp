@@ -246,23 +246,22 @@ bool DhcpThread::PostSyncTask(const Callback &callback)
     return ptr_->PostSyncTask(const_cast<Callback &>(callback));
 }
 
+bool DhcpThread::PostAsyncTask(const Callback &callback, int64_t delayTime)
+{
+    if (ptr_ == nullptr) {
+        DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
+        return false;
+    }
+    return ptr_->PostAsyncTask(const_cast<Callback &>(callback), delayTime);
+}
+
 bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name,
     int64_t delayTime, bool isHighPriority)
-{
     if (ptr_ == nullptr) {
         DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
         return false;
     }
     return ptr_->PostAsyncTask(const_cast<Callback &>(callback), name, delayTime, isHighPriority);
-}
-
-bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name, int64_t delayTime)
-{
-    if (ptr_ == nullptr) {
-        DHCP_LOGE("PostAsyncTask: ptr_ is nullptr!");
-        return false;
-    }
-    return ptr_->PostAsyncTask(const_cast<Callback &>(callback), name, delayTime);
 }
 void DhcpThread::RemoveAsyncTask(const std::string &name)
 {
