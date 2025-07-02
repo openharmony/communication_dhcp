@@ -540,7 +540,7 @@ int DhcpIpv6Client::StartIpv6()
         if (!FD_ISSET(ipv6SocketFd, &rSet)) {
             continue;
         }
-        int32_t len = recv(ipv6SocketFd, buff, 8 *1024, 0);
+        int32_t len = recv(ipv6SocketFd, buff, KERNEL_BUFF_SIZE, 0);
         if (len < 0) {
             DHCP_LOGE("StartIpv6 recv kernel socket failed %{public}d.", errno);
             sleep(1);
