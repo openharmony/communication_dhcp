@@ -89,17 +89,18 @@ bool DnsServerRepository::SetCurrentServers(DhcpIpv6Info &ipv6Info)
         DHCP_LOGI("SetCurrentServers() dnsServer: %{private}s", dnsServer.c_str());
         ipv6Info.vectorDnsAddr.push_back(dnsServer);
         if (index == FIRST_DNS_SERVER) {
-            ret = memcpy_s(ipv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, dnsServer.c_str(), DHCP_INET6_ADDRSTRLEN);
+            ret = strcpy_s(ipv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, dnsServer.c_str());
             if (ret != EOK) {
-                DHCP_LOGE("SetCurrentServers() memcpy_s failed!");
+                DHCP_LOGE("SetCurrentServers() strcpy_s failed!");
             }
         }
         if (index == SECOND_DNS_SERVER) {
-            ret = memcpy_s(ipv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN, dnsServer.c_str(), DHCP_INET6_ADDRSTRLEN);
+            ret = strcpy_s(ipv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN, dnsServer.c_str());
             if (ret != EOK) {
-                DHCP_LOGE("SetCurrentServers() memcpy_s failed!");
+                DHCP_LOGE("SetCurrentServers() strcpy_s failed!");
             }
         }
+        index++;
     }
     return true;
 }
