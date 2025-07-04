@@ -20,9 +20,30 @@
 
 namespace OHOS {
 namespace DHCP {
+constexpr int U32_BYTE0_SHIFT = 24;
+constexpr int U32_BYTE1_SHIFT = 16;
+constexpr int U32_BYTE2_SHIFT = 8;
+constexpr int U32_BYTE3_SHIFT = 0;
+constexpr int U16_BYTE0_SHIFT = 8;
+constexpr int U16_BYTE1_SHIFT = 0;
+constexpr int U32_BYTE0_INDEX = 0;
+constexpr int U32_BYTE1_INDEX = 1;
+constexpr int U32_BYTE2_INDEX = 2;
+constexpr int U32_BYTE3_INDEX = 3;
+constexpr int U16_BYTE0_INDEX = 0;
+constexpr int U16_BYTE1_INDEX = 1;
+
 inline uint32_t U32_AT(const uint8_t* data)
 {
-    return (data[0] << 24) | (data[1] << 16) | (data[2] << 8) | data[3];
+    return (static_cast<uint32_t>(data[U32_BYTE0_INDEX]) << U32_BYTE0_SHIFT) |
+           (static_cast<uint32_t>(data[U32_BYTE1_INDEX]) << U32_BYTE1_SHIFT) |
+           (static_cast<uint32_t>(data[U32_BYTE2_INDEX]) << U32_BYTE2_SHIFT) |
+           (static_cast<uint32_t>(data[U32_BYTE3_INDEX]) << U32_BYTE3_SHIFT);
+}
+inline uint16_t U16_AT(const uint8_t* data)
+{
+    return (static_cast<uint16_t>(data[U16_BYTE0_INDEX]) << U16_BYTE0_SHIFT) |
+           (static_cast<uint16_t>(data[U16_BYTE1_INDEX]) << U16_BYTE1_SHIFT);
 }
 }  // namespace DHCP
 }  // namespace OHOS
