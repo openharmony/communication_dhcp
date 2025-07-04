@@ -42,6 +42,8 @@
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpServer");
 
+constexpr int REPLY_PACKET_MAX_LEN = 1500;
+ 
 #ifndef DHCP_SEL_WAIT_TIMEOUTS
 #define DHCP_SEL_WAIT_TIMEOUTS 1000
 #endif
@@ -1632,8 +1634,14 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
                 DHCP_LOGE("AddArpEntry failed");
                 return RET_FAILED;
             }
-            ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)destAddrIn,
-                sizeof(*destAddrIn));
+            if (reply->length > 0 && reply->length <= REPLY_PACKET_MAX_LEN) {
+                ret = sendto(srvIns->serverFd,
+                    &reply->packet,
+                    reply->length,
+                    0,
+                    (struct sockaddr *)destAddrIn,
+                    sizeof(*destAddrIn));
+            }
         } else {
             ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)bcastAddrIn,
                 sizeof(*bcastAddrIn));

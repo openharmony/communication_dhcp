@@ -21,6 +21,9 @@
 #include "securec.h"
 #include "dhcp_logger.h"
 
+#define MAX_OPT_LEN 32
+#define MAX_OPTS_BUFFER_SIZE 256
+ 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpOptions");
 
 /* Check packet option OPTION_OVERLOAD_OPTION. */
@@ -338,6 +341,10 @@ int AddOptStrToOpts(uint8_t *pOpts, uint8_t *pOpt, int nOptLen)
     }
 
     DHCP_LOGD("AddOptStrToOpts() adding option code %{public}u.", pOpt[DHCP_OPT_CODE_INDEX]);
+    if (!(pOpts && pOpt && nOptLen > 0 && nOptLen < MAX_OPT_LEN && nEndIndex >= 0 &&
+            (nEndIndex + nOptLen) <= MAX_OPTS_BUFFER_SIZE)) {
+        return 0;
+    }
     if (memcpy_s(pOpts + nEndIndex, nOptLen + 1, pOpt, nOptLen) != EOK) {
         return 0;
     }
