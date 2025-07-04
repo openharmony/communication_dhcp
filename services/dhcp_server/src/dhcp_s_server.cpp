@@ -1620,7 +1620,7 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
         DHCP_LOGE("TransmitOfferOrAckPacket failed to get server instance");
         return RET_FAILED;
     }
-    int ret;
+    int ret = 0;
     sockaddr_in *bcastAddrIn = BroadcastAddrIn();
     sockaddr_in *destAddrIn = DestinationAddrIn();
     if (srvIns->broadCastFlagEnable == 1 && destAddrIn) {
@@ -1634,7 +1634,6 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
                 DHCP_LOGE("AddArpEntry failed");
                 return RET_FAILED;
             }
-            int ret = 0;
             if (reply->length > 0 && reply->length <= REPLY_PACKET_MAX_LEN) {
                 ret = sendto(srvIns->serverFd,
                     &reply->packet,
