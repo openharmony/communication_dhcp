@@ -35,7 +35,7 @@ PDhcpOptionNode CreateOptionNode(PDhcpOption opt)
     }
     pNode->option.code = opt->code;
     pNode->option.length = opt->length;
-    if (opt == nullptr || opt->length == 0 || static_cast<size_t>(opt->length) > sizeof(pNode->option.data)) {
+    if (opt == nullptr || opt->length == 0) {
         free(pNode);
         return nullptr;
     }
