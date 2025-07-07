@@ -31,5 +31,7 @@ group("fuzztest") {
     "dhcpservercbkstub_fuzzer:DhcpServerCbkStubFuzzTest",
     "dhcpserverimpl_fuzzer:DhcpServerImplFuzzTest",
     "serverstub_fuzzer:ServerStubFuzzTest",
+    "dhcparpchecker_fuzzer:DhcpArpCheckerFuzzTest",
+    "dhcpcommonutils_fuzzer:DhcpCommonUtilsFuzzTest",
   ]
 }
