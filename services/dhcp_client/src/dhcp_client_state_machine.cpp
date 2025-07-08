@@ -1258,6 +1258,15 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
     }
     FormatString(&m_dhcpIpResult);
     CloseAllRenewTimer();
+    if (m_dhcp4State == DHCP_STATE_INITREBOOT && m_dhcpIpResult.dnsAddr.empty()) {
+        IpInfoCached ipCached;
+        if (GetCachedDhcpResult(m_routerCfg.bssid, ipCached) != 0) {
+            DHCP_LOGE("DhcpAckOrNakPacketHandle() not find cache ip");
+            return;
+        }
+        DHCP_LOGI("DhcpAckOrNakPacketHandle() use cache DNS addr, size:%{public}zu", ipCached.ipResult.dnsAddr.size());
+        m_dhcpIpResult.dnsAddr = ipCached.ipResult.dnsAddr;
+    }
     if (m_dhcp4State == DHCP_STATE_REQUESTING || m_dhcp4State == DHCP_STATE_INITREBOOT) {
         IpConflictDetect();
     } else {
