@@ -669,14 +669,12 @@ HWTEST_F(DhcpClientStateMachineTest, ParseDhcpNakPacketTest, TestSize.Level0)
 {
     DHCP_LOGI("ParseDhcpNakPacket enter!");
     struct DhcpPacket *packet = nullptr;
-    time_t curTimestamp = time(NULL);
+    time_t curTimestamp = time(nullptr);
     dhcpClient->ParseDhcpNakPacket(packet, curTimestamp);
     DhcpPacket packet1;
+    dhcpClient->m_resendTimer = ZERO;
     dhcpClient->ParseDhcpNakPacket(&packet1, curTimestamp);
-
-    dhcpClient->m_resendTimer = INVALID;
-    dhcpClient->ParseDhcpNakPacket(&packet1, curTimestamp);
-    EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
+    EXPECT_EQ(dhcpClient->m_resendTimer, FIRST_TIMEOUT_SEC);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, ParseNetworkServerIdInfoTest, TestSize.Level0)
