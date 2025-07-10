@@ -35,6 +35,10 @@ PDhcpOptionNode CreateOptionNode(PDhcpOption opt)
     }
     pNode->option.code = opt->code;
     pNode->option.length = opt->length;
+    if (opt == nullptr || opt->length == 0) {
+        free(pNode);
+        return nullptr;
+    }
     if (memcpy_s(pNode->option.data, sizeof(pNode->option.data), opt->data, opt->length) != EOK) {
         DHCP_LOGE("create option node failed when memcpy opt data!");
         free(pNode);
