@@ -69,7 +69,6 @@ HWTEST_F(DhcpOptionTest, HasInitializedTest, TestSize.Level1)
 
 HWTEST_F(DhcpOptionTest, PushBackOptionTest, TestSize.Level1)
 {
-
     DhcpOption optMsgType = {DHCP_MESSAGE_TYPE_OPTION, 1, {DHCPOFFER, 0}};
     EXPECT_EQ(RET_ERROR, PushBackOption(NULL, &optMsgType));
     EXPECT_EQ(RET_ERROR, PushBackOption(&options, NULL));
@@ -81,7 +80,6 @@ HWTEST_F(DhcpOptionTest, PushBackOptionTest, TestSize.Level1)
 
 HWTEST_F(DhcpOptionTest, PushFrontOptionTest, TestSize.Level1)
 {
-
     DhcpOption optMsgType = {DHCP_MESSAGE_TYPE_OPTION, 1, {DHCPOFFER, 0}};
     EXPECT_EQ(RET_ERROR, PushFrontOption(NULL, &optMsgType));
     EXPECT_EQ(RET_ERROR, PushFrontOption(&options, NULL));
@@ -92,7 +90,6 @@ HWTEST_F(DhcpOptionTest, PushFrontOptionTest, TestSize.Level1)
 
 HWTEST_F(DhcpOptionTest, GetOptionNodeTest, TestSize.Level1)
 {
-    DhcpOption optRouter = {ROUTER_OPTION, 0, {0}};
     DhcpOption optMsgType = {DHCP_MESSAGE_TYPE_OPTION, 1, {DHCPOFFER, 0}};
     EXPECT_EQ(RET_SUCCESS, PushFrontOption(&options, &optMsgType));
 
