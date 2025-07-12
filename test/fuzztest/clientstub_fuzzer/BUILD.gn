@@ -57,7 +57,6 @@ ohos_fuzztest("ClientStubFuzzTest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
@@ -68,6 +67,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
   deps = [
     "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
     "$DHCP_ROOT_DIR/services/dhcp_client:dhcp_client",
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
   ]
 
   external_deps = [

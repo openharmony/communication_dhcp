@@ -19,6 +19,7 @@
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
 #include <string>
+#include "dhcp_thread.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -55,6 +56,7 @@ private:
     bool SetNonBlock(int32_t fd);
     void SaveGwMacAddr(std::string gwMacAddr, std::vector<std::string>& gwMacLists);
 private:
+    std::unique_ptr<DhcpThread> dhcpArpCheckerThread_ = nullptr;
     bool m_isSocketCreated;
     struct in_addr m_localIpAddr;
     struct in_addr m_targetIpAddr;
