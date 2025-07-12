@@ -23,6 +23,7 @@ ohos_fuzztest("DhcpCommonUtilsFuzzTest") {
 
   include_dirs = [
     "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
     "$DHCP_ROOT_DIR/frameworks/native/include",
     "$DHCP_ROOT_DIR/frameworks/native/src",
     "$DHCP_ROOT_DIR/frameworks/native/interfaces",

@@ -38,7 +38,6 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
     "dhcp_client_callback_proxy_test.cpp",
     "dhcp_client_death_recipient_test.cpp",
@@ -53,7 +52,6 @@ ohos_unittest("dhcp_client_unittest") {
     "dhcp_result_store_manager_test.cpp",
     "dhcp_result_test.cpp",
     "dhcp_socket_test.cpp",
-    "dhcp_thread_test.cpp",
     "mock_custom_func.cpp",
     "mock_system_func.cpp",
   ]
@@ -129,12 +127,6 @@ ohos_unittest("dhcp_client_unittest") {
     "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
     "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
   ]
-
-  if (defined(global_parts_info) &&
-      defined(global_parts_info.resourceschedule_ffrt)) {
-    external_deps += [ "ffrt:libffrt" ]
-    defines += [ "DHCP_FFRT_ENABLE" ]
-  }
 
   if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
     external_deps += [ "init:libbegetutil" ]

@@ -23,6 +23,7 @@ ohos_fuzztest("DhcpArpCheckerFuzzTest") {
 
   include_dirs = [
     "$DHCP_ROOT_DIR/interfaces/inner_api",
+    "$DHCP_ROOT_DIR/interfaces/inner_api/include",
     "$DHCP_ROOT_DIR/frameworks/native/include",
     "$DHCP_ROOT_DIR/frameworks/native/src",
     "$DHCP_ROOT_DIR/frameworks/native/interfaces",
@@ -44,6 +45,7 @@ ohos_fuzztest("DhcpArpCheckerFuzzTest") {
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_permission_utils.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_sa_manager.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_thread.cpp",
       "dhcp_arp_checker_fuzzer.cpp",
   ]
   defines = [
@@ -60,6 +62,13 @@ ohos_fuzztest("DhcpArpCheckerFuzzTest") {
     "time_service:time_client",
     "samgr:samgr_proxy",
   ]
+
+  if (defined(global_parts_info) &&
+    defined(global_parts_info.resourceschedule_ffrt)) {
+    external_deps += [ "ffrt:libffrt" ]
+    defines += [ "DHCP_FFRT_ENABLE" ]
+  }
+
   part_name = "dhcp"
   subsystem_name = "communication"
 }
