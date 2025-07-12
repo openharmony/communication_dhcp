@@ -120,7 +120,7 @@ public:
         return true;
     }
 
-    bool PostSyncTimeOutTask(const std::function<uint32_t>()> callback, int32_t waitTime)
+    bool PostSyncTimeOutTask(const std::function<uint32_t>()> callback, int64_t waitTime)
     {
         ffrt::future<int32_t> f = ffrt::async(callback);
         ffrt::future_status status = f.wait_for(std::chrono::milliseconds(waitTime));
