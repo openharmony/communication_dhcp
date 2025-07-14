@@ -70,15 +70,20 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_permission_utils.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_sa_manager.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_thread.cpp",
     ]
 
     include_dirs = [
+      "$DHCP_ROOT_DIR/interfaces/inner_api/include",
       "$DHCP_ROOT_DIR/services",
       "$DHCP_ROOT_DIR/services/utils/include",
       "$DHCP_ROOT_DIR/frameworks/native/include",
     ]
+
+    defines = []
+
     if (is_asan) {
-      defines = [ "DTFUZZ_TEST" ]
+      defines += [ "DTFUZZ_TEST" ]
     }
     deps = []
     external_deps = [
@@ -91,6 +96,12 @@ if (defined(ohos_lite)) {
       "samgr:samgr_proxy",
       "time_service:time_client",
     ]
+
+    if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_ffrt)) {
+      external_deps += [ "ffrt:libffrt" ]
+      defines += [ "DHCP_FFRT_ENABLE" ]
+    }
 
     cflags_cc = memory_optimization_cflags_cc
     cflags_cc += [

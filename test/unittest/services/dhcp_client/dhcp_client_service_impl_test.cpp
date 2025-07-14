@@ -143,7 +143,7 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpIpv4ResultSuccessTest, TestSize.Level1)
 
     ipResult.code = PUBLISH_CODE_FAILED;
     dhcpClientImpl->m_mapClientCallBack.emplace(std::make_pair("wlan0", nullptr));
-    DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult);
+    EXPECT_NE(DHCP_OPT_SUCCESS, dhcpClientImpl->DhcpIpv4ResultSuccess(ipResult));
     dhcpClientImpl->m_mapClientCallBack.clear();
 }
 

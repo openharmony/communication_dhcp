@@ -102,7 +102,6 @@ if (defined(ohos_lite)) {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
   ]
   config("dhcp_manager_service_header") {
     visibility = [ ":*" ]
@@ -192,7 +191,7 @@ if (defined(ohos_lite)) {
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
       "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
-      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_thread.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_thread.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
       "$DHCP_ROOT_DIR/services/utils/src/dhcp_permission_utils.cpp",
