@@ -120,12 +120,12 @@ public:
         return true;
     }
 
-    bool PostSyncTimeOutTask(const std::function<uint32_t>()> callback, int64_t waitTime)
+    bool PostSyncTimeOutTask(const std::function<int32_t>()> &callback, int64_t waitTime)
     {
         ffrt::future<int32_t> f = ffrt::async(callback);
         ffrt::future_status status = f.wait_for(std::chrono::milliseconds(waitTime));
         if (status == ffrt::future_status::timeout) {
-            DHCP_LOGE("PostSyncTimeoutTask: Task timeout");
+            DHCP_LOGE("PostSyncTimeOutTask: Task timeout");
             return false;
         }
         return f.get() == 0 ? true : false;
@@ -276,10 +276,10 @@ bool DhcpThread::PostAsyncTask(const Callback &callback, const std::string &name
     return ptr_->PostAsyncTask(const_cast<Callback &>(callback), name, delayTime, isHighPriority);
 }
 
-bool DhcpThread::PostSyncTimeOutTask(const std::function<int32_t>()> &callback, int32_t waitTime)
+bool DhcpThread::PostSyncTimeOutTask(const std::function<int32_t()> &callback, int32_t waitTime)
 {
     if (ptr_ == nullptr) {
-        DHCP_LOGE("PostSyncTimeoutTask: ptr_ is nullptr!");
+        DHCP_LOGE("PostSyncTimeOutTask: ptr_ is nullptr!");
         return false;
     }
     if (waitTime < 0) {

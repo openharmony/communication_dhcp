@@ -51,7 +51,6 @@ DhcpArpChecker::~DhcpArpChecker()
     if (dhcpArpCheckerThread_) {
         dhcpArpCheckerThread_.reset();
     }
-
 }
 
 bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string& senderIp, std::string& targetIp)
@@ -161,6 +160,7 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
             readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
             if (readLen < 0) {
                 DHCP_LOGE("readLen < 0, stop arp");
+                return OPT_FAIL;
             }
             if (readLen < static_cast<int32_t>(sizeof(struct ArpPacket))) {
                 std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
@@ -181,7 +181,8 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
                     std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
                 return OPT_SUCC;
             }
-            return OPT_FAIL;
+        }
+        return OPT_FAIL;
     };
     return dhcpArpCheckerThread_->PostSyncTimeOutTask(func, timeoutMillis);
 }

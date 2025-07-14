@@ -74,7 +74,7 @@ public:
      * @param delayTime - Wait delayTime ms excute task
      * @return bool - true: excute task success, false: excute task timeout
      */
-    bool PostSyncTimeOutTask(const std::functon<int32_t()> &callback, int32_t waitTime);
+    bool PostSyncTimeOutTask(const std::function<int32_t()> &callback, int32_t waitTime);
 
     /**
      * @Remove Async task
