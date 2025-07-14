@@ -33,6 +33,7 @@
 "OHOS::DHCP::DhcpThread::DhcpThread(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
 "OHOS::DHCP::DhcpTimer::UnRegister(unsigned int)";
 "OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, long)";
+"OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, long long)";
 "OHOS::DHCP::DhcpThread::PostSyncTask(std::__h::function<void ()> const&)";
 "OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
 "OHOS::DHCP::DhcpThread::RemoveAsyncTask(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
