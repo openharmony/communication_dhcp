@@ -119,7 +119,7 @@ HWTEST_F(DhcpThreadTest, Register_SUCCESS, TestSize.Level1)
         // Timer callback implementation
     }, timerId);
 
-    EXPECT_EQ(result, EnumErrCode::DHCP_OPT_FAILED);
+    EXPECT_EQ(result, EnumErrCode::DHCP_OPT_SUCCESS);
 }
 
 HWTEST_F(DhcpThreadTest, UnRegister_SUCCESS, TestSize.Level1)
@@ -130,7 +130,7 @@ HWTEST_F(DhcpThreadTest, UnRegister_SUCCESS, TestSize.Level1)
     EnumErrCode result = dhcpTimer->Register([]() {
         // Timer callback implementation
     }, timerId);
-    EXPECT_EQ(result, EnumErrCode::DHCP_OPT_FAILED);
+    EXPECT_EQ(result, EnumErrCode::DHCP_OPT_SUCCESS);
     dhcpTimer->UnRegister(timerId);
 }
 
@@ -147,6 +147,6 @@ HWTEST_F(DhcpThreadTest, RegisterWithInterval_SUCCESS, TestSize.Level1)
     EnumErrCode result = dhcpTimer->Register([]() {
     }, timerId, 5000);
 
-    EXPECT_EQ(result, EnumErrCode::DHCP_OPT_FAILED);
+    EXPECT_EQ(result, EnumErrCode::DHCP_OPT_SUCCESS);
 }
 }

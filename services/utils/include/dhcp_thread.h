@@ -72,7 +72,7 @@ public:
      * @param Callback - Input task
      * @param waitTime - Wait time(ms) excute task
      * @param delayTime - Wait delayTime ms excute task
-     * @return bool - true: excute task success, false: excute task timeout
+     * @return bool - true: excute task success, false: execute task timeout
      */
     bool PostSyncTimeOutTask(const std::function<int32_t()> &callback, int32_t waitTime);
 

@@ -128,6 +128,12 @@ ohos_unittest("dhcp_client_unittest") {
     "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
   ]
 
+  if (defined(global_parts_info) &&
+      defined(global_parts_info.resourceschedule_ffrt)) {
+    external_deps += [ "ffrt:libffrt" ]
+    defines += [ "DHCP_FFRT_ENABLE" ]
+  }
+
   if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
     external_deps += [ "init:libbegetutil" ]
     defines += [ "INIT_LIB_ENABLE" ]
