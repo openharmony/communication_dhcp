@@ -59,6 +59,11 @@ void FreeArgumentsTest(const uint8_t* data, size_t size)
     FreeArguments();
 }
 
+void InitArgumentsTest(const uint8_t* data, size_t size)
+{
+    InitArguments();
+}
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -71,6 +76,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::PutArgumentTest(data, size);
     OHOS::DHCP::ParseArgumentsTest(data, size);
     OHOS::DHCP::FreeArgumentsTest(data, size);
+    OHOS::DHCP::InitArgumentsTest(data, size);
     return 0;
 }
 }  // namespace DHCP

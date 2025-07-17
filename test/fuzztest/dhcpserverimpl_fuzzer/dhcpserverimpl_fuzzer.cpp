@@ -180,6 +180,41 @@ void RegisterDhcpServerCallBackTest(const uint8_t* data, size_t size)
     pDhcpServerServiceImpl->RegisterDhcpServerCallBack(ifname, serverCallback);
 }
 
+void DeviceInfoCallBackTest(const uint8_t* data, size_t size)
+{
+    std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
+    pDhcpServerServiceImpl->DeviceInfoCallBack(ifname);
+}
+
+void ConvertLeasesToStationInfosTest(const uint8_t* data, size_t size)
+{
+    std::vector<std::string> leases;
+    std::vector<DhcpStationInfo> stationInfos = {};
+    leases.push_back(std::string(reinterpret_cast<const char*>(data), size));
+    pDhcpServerServiceImpl->ConvertLeasesToStationInfos(leases, stationInfos);
+}
+
+void DeviceConnectCallBackTest(const uint8_t* data, size_t size)
+{
+    const char *ifname = reinterpret_cast<const char*>(data);
+    DeviceConnectCallBack(ifname);
+}
+
+void SetDhcpNameExtTest(const uint8_t* data, size_t size)
+{
+    std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
+    std::string tagName = std::string(reinterpret_cast<const char*>(data), size);
+    std::map<std::string, std::list<DhcpRange>> m_mapTagDhcpRange = {};
+    std::list<DhcpRange> dhcpRangelist;
+    DhcpRange dhcpRange;
+    dhcpRange.strTagName = "";
+    dhcpRange.iptype = 0;
+    dhcpRangelist.push_back(dhcpRange);
+    m_mapTagDhcpRange[""] = dhcpRangelist;
+    pDhcpServerServiceImpl->m_mapTagDhcpRange = m_mapTagDhcpRange;
+    pDhcpServerServiceImpl->SetDhcpNameExt(ifname, tagName);
+}
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -207,6 +242,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::CreateDefaultConfigFileTest(data, size);
     OHOS::DHCP::DelSpecifiedInterfaceTest(data, size);
     OHOS::DHCP::RegisterDhcpServerCallBackTest(data, size);
+    OHOS::DHCP::DeviceInfoCallBackTest(data, size);
+    OHOS::DHCP::ConvertLeasesToStationInfosTest(data, size);
+    OHOS::DHCP::DeviceConnectCallBackTest(data, size);
+    OHOS::DHCP::SetDhcpNameExtTest(data, size);
     return 0;
 }
 }  // namespace DHCP

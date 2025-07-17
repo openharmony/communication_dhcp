@@ -91,6 +91,38 @@ void CreateDirsTest(const uint8_t* data, size_t size)
     pDhcpFunction->CreateDirs(dirs, mode);
 }
 
+void Ip6CharConToStrTest(const uint8_t* data, size_t size)
+{
+    int index = 0;
+    uint8_t	chIp[sizeof(struct in6_addr)] = {0};
+    int chIpSize = static_cast<int>(data[index++]);
+    pDhcpFunction->Ip6CharConToStr(chIp, chIpSize);
+}
+
+void GetLocalMacTest(const uint8_t* data, size_t size)
+{
+    std::string ethInf = std::string(reinterpret_cast<const char*>(data), size);
+    std::string ethMac = std::string(reinterpret_cast<const char*>(data), size);
+    pDhcpFunction->GetLocalMac(ethInf, ethMac);
+}
+
+void CheckRangeNetworkTest(const uint8_t* data, size_t size)
+{
+    std::string strInf = std::string(reinterpret_cast<const char*>(data), size);
+    std::string strBegin = std::string(reinterpret_cast<const char*>(data), size);
+    std::string strEnd = std::string(reinterpret_cast<const char*>(data), size);
+    pDhcpFunction->CheckRangeNetwork(strInf, strBegin, strEnd);
+}
+
+void CheckSameNetworkTest(const uint8_t* data, size_t size)
+{
+    int index = 0;
+    uint32_t srcIp = static_cast<uint8_t>(data[index++]);
+    uint32_t dstIp = static_cast<uint8_t>(data[index++]);
+    uint32_t maskIp = static_cast<uint8_t>(data[index++]);
+    pDhcpFunction->CheckSameNetwork(srcIp, dstIp, maskIp);
+}
+
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -106,6 +138,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::RemoveFileTest(data, size);
     OHOS::DHCP::FormatStringTest(data, size);
     OHOS::DHCP::CreateDirsTest(data, size);
+    OHOS::DHCP::Ip6CharConToStrTest(data, size);
+    OHOS::DHCP::GetLocalMacTest(data, size);
+    OHOS::DHCP::CheckRangeNetworkTest(data, size);
+    OHOS::DHCP::CheckSameNetworkTest(data, size);
     return 0;
 }
 }  // namespace DHCP

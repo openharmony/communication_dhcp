@@ -78,6 +78,21 @@ void ParseAddressBindingTest(const uint8_t* data, size_t size)
     ParseAddressBinding(&binding, buf);
 }
 
+void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
+{
+    int index = 0;
+    AddressBinding binding;
+    binding.ipAddress = static_cast<uint32_t>(data[index++]);
+    binding.clientId = static_cast<uint32_t>(data[index++]);
+    binding.bindingTime = static_cast<uint64_t>(data[index++]);
+    binding.pendingTime = static_cast<uint64_t>(data[index++]);
+    binding.expireIn = static_cast<uint64_t>(data[index++]);
+    binding.leaseTime = static_cast<uint64_t>(data[index++]);
+    binding.pendingInterval = static_cast<uint64_t>(data[index++]);
+    char *out = const_cast<char*>(reinterpret_cast<const char*>(data));
+    uint32_t bindingSize = static_cast<uint32_t>(data[index++]);
+    WriteAddressBinding(&binding, out, bindingSize);
+}
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -89,6 +104,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::IsExpireTest(data, size);
     OHOS::DHCP::WriteAddressBindingTest(data, size);
     OHOS::DHCP::ParseAddressBindingTest(data, size);
+    OHOS::DHCP::WriteAddressBindingFuzzTest(data, size);
     return 0;
 }
 }  // namespace DHCP

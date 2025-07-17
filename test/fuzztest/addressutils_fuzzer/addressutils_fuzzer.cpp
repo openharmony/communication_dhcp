@@ -172,6 +172,18 @@ void AddrEquelsTest(const uint8_t* data, size_t size)
     AddrEquels(&firstAddr[0], &secondAddr[0], addrLength);
 }
 
+void ParseIpFuzzTest(const uint8_t* data, size_t size)
+{
+    const uint8_t *ipAddr = reinterpret_cast<const uint8_t *>(data);
+    ParseIp(ipAddr);
+}
+
+void ParseStrIpFuzzTest(const uint8_t* data, size_t size)
+{
+    int index = 0;
+    uint32_t ipAddr = static_cast<uint32_t>(data[index++]);
+    ParseStrIp(ipAddr);
+}
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -198,6 +210,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::NetworkToHostTest(data, size);
     OHOS::DHCP::ParseLogMacTest(data, size);
     OHOS::DHCP::AddrEquelsTest(data, size);
+    OHOS::DHCP::ParseIpFuzzTest(data, size);
+    OHOS::DHCP::ParseStrIpFuzzTest(data, size);
     return 0;
 }
 }  // namespace DHCP

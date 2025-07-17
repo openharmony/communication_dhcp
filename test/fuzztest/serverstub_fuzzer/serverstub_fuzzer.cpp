@@ -167,6 +167,13 @@ void OnPutDhcpRangeTest(const uint8_t* data, size_t size)
         (DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_PUT_DHCP_RANGE), datas, reply, option);
 }
 
+#define TWO 2
+void SingleCallbackTest(const uint8_t* data, size_t size)
+{
+    bool isSingleCallback = (static_cast<int>(data[0]) % TWO) ? true : false;
+    pDhcpServerStub->IsSingleCallback();
+    pDhcpServerStub->SetSingleCallback(isSingleCallback);
+}
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
@@ -184,6 +191,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::OnGetDhcpClientInfosTest(data, size);
     OHOS::DHCP::OnUpdateLeasesTimeTest(data, size);
     OHOS::DHCP::OnPutDhcpRangeTest(data, size);
+    OHOS::DHCP::SingleCallbackTest(data, size);
     return 0;
 }
 }  // namespace DHCP
