@@ -170,10 +170,8 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
                 continue;
             }
             struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
-            if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER &&
-                ntohs(respPacket->ar_pro) == ETH_P_IP &&
-                respPacket->ar_hln == ETH_ALEN &&
-                respPacket->ar_pln == IPV4_ALEN &&
+            if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER && ntohs(respPacket->ar_pro) == ETH_P_IP &&
+                respPacket->ar_hln == ETH_ALEN && respPacket->ar_pln == IPV4_ALEN &&
                 ntohs(respPacket->ar_op) == ARPOP_REPLY &&
                 memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
                 memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
