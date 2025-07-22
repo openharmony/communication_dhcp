@@ -34,7 +34,7 @@ namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpArpChecker");
 constexpr const char *DHCP_ARP_CHECKER_THREAD = "DHCP_ARP_CHECKER_THREAD";
 constexpr int32_t MIN_WAIT_TIME_MS_THREAD = 2000;
-constexpr int32_t Time_OUT_BUFFER = 1000;
+constexpr int32_t TIME_OUT_BUFFER = 1000;
 constexpr int32_t MAX_LENGTH = 1500;
 constexpr int32_t OPT_SUCC = 0;
 constexpr int32_t OPT_FAIL = -1;
@@ -186,7 +186,7 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
         return OPT_FAIL;
     };
     return dhcpArpCheckerThread_->PostSyncTimeOutTask(func, std::max(MIN_WAIT_TIME_MS_THREAD,
-        timeoutMillis + Time_OUT_BUFFER);
+        timeoutMillis + TIME_OUT_BUFFER);
 }
 
 void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists)
