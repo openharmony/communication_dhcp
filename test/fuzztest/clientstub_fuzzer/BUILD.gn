@@ -66,7 +66,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
 
   deps = [
     "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
-    "$DHCP_ROOT_DIR/services/dhcp_client:dhcp_client",
+    "$DHCP_ROOT_DIR/services/dhcp_client:dhcp_client_static",
     "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
   ]
 

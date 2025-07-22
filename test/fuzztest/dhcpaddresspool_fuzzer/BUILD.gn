@@ -63,7 +63,7 @@ ohos_fuzztest("DhcpAddressPoolFuzzTest") {
 
   deps = [
     "$DHCP_ROOT_DIR/frameworks/native:dhcp_sdk",
-    "$DHCP_ROOT_DIR/services/dhcp_server:dhcp_server",
+    "$DHCP_ROOT_DIR/services/dhcp_server:dhcp_server_static",
     "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
   ]
 

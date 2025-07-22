@@ -35,6 +35,9 @@ constexpr int U16_BYTE1_INDEX = 1;
 
 inline uint32_t U32_AT(const uint8_t* data)
 {
+    if (data == nullptr) {
+        return 0;
+    }
     return (static_cast<uint32_t>(data[U32_BYTE0_INDEX]) << U32_BYTE0_SHIFT) |
            (static_cast<uint32_t>(data[U32_BYTE1_INDEX]) << U32_BYTE1_SHIFT) |
            (static_cast<uint32_t>(data[U32_BYTE2_INDEX]) << U32_BYTE2_SHIFT) |
@@ -42,6 +45,9 @@ inline uint32_t U32_AT(const uint8_t* data)
 }
 inline uint16_t U16_AT(const uint8_t* data)
 {
+    if (data == nullptr) {
+        return 0;
+    }
     return (static_cast<uint16_t>(data[U16_BYTE0_INDEX]) << U16_BYTE0_SHIFT) |
            (static_cast<uint16_t>(data[U16_BYTE1_INDEX]) << U16_BYTE1_SHIFT);
 }
