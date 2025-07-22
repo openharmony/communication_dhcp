@@ -186,7 +186,7 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
         return OPT_FAIL;
     };
     return dhcpArpCheckerThread_->PostSyncTimeOutTask(func, std::max(MIN_WAIT_TIME_MS_THREAD,
-        timeoutMillis + TIME_OUT_BUFFER);
+        timeoutMillis + TIME_OUT_BUFFER));
 }
 
 void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists)
