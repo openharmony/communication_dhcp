@@ -167,6 +167,64 @@ if (defined(ohos_lite)) {
     subsystem_name = "communication"
   }
 
+  ohos_static_library("dhcp_client_static") {
+    branch_protector_ret = "pac_ret"
+    sanitize = {
+      cfi = true  # Enable/disable control flow integrity detection
+      boundary_sanitize = true  # Enable boundary san detection
+      cfi_cross_dso = true  # Cross-SO CFI Checks
+      integer_overflow = true  # Enable integer overflow detection
+      ubsan = true  # Enable some Ubsan options
+      debug = false
+    }
+    sources = local_base_sources
+    include_dirs = local_base_include_dirs
+    defines = [
+      "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",
+      "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
+      "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
+    ]
+    if (is_asan) {
+      defines += [ "DTFUZZ_TEST" ]
+    }
+
+    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
+
+    external_deps = [
+      "ability_runtime:wantagent_innerkits",
+      "c_utils:utils",
+      "hilog:libhilog",
+      "ipc:ipc_single",
+      "netmanager_base:net_native_manager_if",
+      "netmanager_base:netsys_controller",
+      "safwk:system_ability_fwk",
+      "time_service:time_client",
+    ]
+
+    if (defined(global_parts_info) &&
+        defined(global_parts_info.resourceschedule_ffrt)) {
+      external_deps += [ "ffrt:libffrt" ]
+      defines += [ "DHCP_FFRT_ENABLE" ]
+    }
+
+    if (defined(global_parts_info) && defined(global_parts_info.startup_init)) {
+      external_deps += [ "init:libbegetutil" ]
+      defines += [ "INIT_LIB_ENABLE" ]
+    }
+    cflags_cc = memory_optimization_cflags_cc
+    cflags_cc += [
+      "-std=c++17",
+      "-fno-rtti",
+    ]
+    ldflags = memory_optimization_ldflags
+    ldflags += [
+      "-fPIC",
+      "-Wl,-E",
+    ]
+    part_name = "dhcp"
+    subsystem_name = "communication"
+  }
+
   ohos_shared_library("dhcp_updater_client") {
     branch_protector_ret = "pac_ret"
     sanitize = {

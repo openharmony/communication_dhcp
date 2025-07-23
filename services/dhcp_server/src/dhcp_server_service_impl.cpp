@@ -42,6 +42,7 @@ namespace OHOS {
 namespace DHCP {
 namespace {
 constexpr uint32_t MAX_REGISTER_SERVER_NUM = 1000;
+constexpr int IFNAME_MAX_LEN = 16;
 }
 std::mutex DhcpServerServiceImpl::g_instanceLock;
 #ifdef OHOS_ARCH_LITE
@@ -269,7 +270,7 @@ void DhcpServerServiceImpl::ConvertLeasesToStationInfos(std::vector<std::string>
 void DeviceConnectCallBack(const char* ifname)
 {
     DHCP_LOGI("DeviceConnectCallBack ifname:%{public}s.", ifname);
-    if (ifname == nullptr) {
+    if (ifname == nullptr || strlen(ifname) == 0 || strlen(ifname) > IFNAME_MAX_LEN) {
         DHCP_LOGE("DeviceConnectCallBack ifname is nullptr!");
         return;
     }

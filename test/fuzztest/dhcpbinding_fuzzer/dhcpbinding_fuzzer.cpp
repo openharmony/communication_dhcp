@@ -26,15 +26,22 @@ namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr int CFG_DATA_MAX_BYTES = 20;
+constexpr int ADDRESS_MAX_BYTES = 8;
 
 void NextPendingIntervalTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size < 1) {
+        return;
+    }
     uint64_t pendingInterval = static_cast<uint64_t>(data[0]);
     NextPendingInterval(pendingInterval);
 }
 
 void IsExpireTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size < 1) {
+        return;
+    }
     AddressBinding binding;
     binding.ipAddress = static_cast<uint32_t>(data[0]);
     binding.clientId = static_cast<uint32_t>(data[0]);
@@ -48,6 +55,9 @@ void IsExpireTest(const uint8_t* data, size_t size)
 
 void WriteAddressBindingTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size < CFG_DATA_MAX_BYTES) {
+        return;
+    }
     AddressBinding binding;
     uint32_t size_t = static_cast<uint64_t>(data[0]);
     binding.ipAddress = static_cast<uint32_t>(data[0]);
@@ -57,7 +67,7 @@ void WriteAddressBindingTest(const uint8_t* data, size_t size)
     binding.expireIn = static_cast<uint64_t>(data[0]);
     binding.leaseTime = static_cast<uint64_t>(data[0]);
     binding.pendingInterval = static_cast<uint64_t>(data[0]);
-    char *out = nullptr;
+    char out[CFG_DATA_MAX_BYTES] = {0};
     if (memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
         return;
     }
@@ -66,6 +76,9 @@ void WriteAddressBindingTest(const uint8_t* data, size_t size)
 
 void ParseAddressBindingTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size < 1) {
+        return;
+    }
     AddressBinding binding;
     binding.ipAddress = static_cast<uint32_t>(data[0]);
     binding.clientId = static_cast<uint32_t>(data[0]);
@@ -80,6 +93,9 @@ void ParseAddressBindingTest(const uint8_t* data, size_t size)
 
 void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size < ADDRESS_MAX_BYTES) {
+        return;
+    }
     int index = 0;
     AddressBinding binding;
     binding.ipAddress = static_cast<uint32_t>(data[index++]);
@@ -89,9 +105,14 @@ void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
     binding.expireIn = static_cast<uint64_t>(data[index++]);
     binding.leaseTime = static_cast<uint64_t>(data[index++]);
     binding.pendingInterval = static_cast<uint64_t>(data[index++]);
-    char *out = const_cast<char*>(reinterpret_cast<const char*>(data));
-    uint32_t bindingSize = static_cast<uint32_t>(data[index++]);
-    WriteAddressBinding(&binding, out, bindingSize);
+    char out[CFG_DATA_MAX_BYTES] = {0};
+    if (index < static_cast<int>(size)) {
+        uint32_t bindingSize = static_cast<uint32_t>(data[index]);
+        if (bindingSize > CFG_DATA_MAX_BYTES) {
+            bindingSize = CFG_DATA_MAX_BYTES;
+        }
+        WriteAddressBinding(&binding, out, bindingSize);
+    }
 }
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)

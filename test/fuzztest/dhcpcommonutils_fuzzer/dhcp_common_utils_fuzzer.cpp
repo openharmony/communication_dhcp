@@ -44,7 +44,7 @@ constexpr size_t INDEX = 4;
 constexpr size_t SIZEOFHOST = 5;
 void TestIpv6Anonymize(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     size_t pos = 0;
@@ -60,7 +60,7 @@ void TestIpv6Anonymize(const uint8_t* data, size_t size)
 
 void TestIpv4Anonymize(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     size_t pos = 0;
@@ -76,7 +76,7 @@ void TestIpv4Anonymize(const uint8_t* data, size_t size)
 
 void TestUintIp4ToStr(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     uint32_t uIp = U32_AT(data);
@@ -89,7 +89,7 @@ void TestUintIp4ToStr(const uint8_t* data, size_t size)
 
 void TestIntIpv4ToAnonymizeStr(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     uint32_t ip = U32_AT(data);
@@ -99,7 +99,7 @@ void TestIntIpv4ToAnonymizeStr(const uint8_t* data, size_t size)
 
 void TestMacArray2Str(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     size_t pos = 0;
@@ -197,7 +197,7 @@ void TestGetElapsedSecondsSinceBoot(const uint8_t* data, size_t size)
 
 void TestIp4IntConvertToStr(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     uint32_t uIp = U32_AT(data);
@@ -208,33 +208,51 @@ void TestIp4IntConvertToStr(const uint8_t* data, size_t size)
 
 void TestAddArpEntry(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO) {
+    if (data == nullptr || size < U32_AT_SIZE_ZERO) {
         return;
     }
     size_t pos = 0;
-    uint32_t ifaceLen = U32_AT(data);
+
+    // Check if we have enough data for the first U32_AT call
+    if (pos + sizeof(uint32_t) > size) {
+        return;
+    }
+    uint32_t ifaceLen = U32_AT(data + pos);
     pos += sizeof(uint32_t);
-    if (pos + ifaceLen > size) {
+    // Validate ifaceLen to prevent integer overflow and excessive memory allocation
+    if (ifaceLen > size || pos + ifaceLen > size) {
         return;
     }
     string iface(reinterpret_cast<const char*>(data + pos), ifaceLen);
     pos += ifaceLen;
-    
+
+    // Check if we have enough data for the second U32_AT call
+    if (pos + sizeof(uint32_t) > size) {
+        return;
+    }
     uint32_t ipAddrLen = U32_AT(data + pos);
     pos += sizeof(uint32_t);
-    if (pos + ipAddrLen > size) {
+
+    // Validate ipAddrLen to prevent integer overflow and excessive memory allocation
+    if (ipAddrLen > size || pos + ipAddrLen > size) {
         return;
     }
     string ipAddr(reinterpret_cast<const char*>(data + pos), ipAddrLen);
     pos += ipAddrLen;
-    
+
+    // Check if we have enough data for the third U32_AT call
+    if (pos + sizeof(uint32_t) > size) {
+        return;
+    }
     uint32_t macAddrLen = U32_AT(data + pos);
     pos += sizeof(uint32_t);
-    if (pos + macAddrLen > size) {
+
+    // Validate macAddrLen to prevent integer overflow and excessive memory allocation
+    if (macAddrLen > size || pos + macAddrLen > size) {
         return;
     }
     string macAddr(reinterpret_cast<const char*>(data + pos), macAddrLen);
-    
+
     AddArpEntry(iface, ipAddr, macAddr);
 }
 

@@ -45,8 +45,6 @@ public:
     static bool RemoveFile(const std::string& filename);
     static int FormatString(struct DhcpPacketResult &result);
     static int CreateDirs(const std::string dirs, int mode = DIR_DEFAULT_MODE);
-    static bool SplitString(
-        const std::string src, const std::string delim, const int count, std::vector<std::string> &splits);
 #ifdef OHOS_ARCH_LITE
     static int GetDhcpPacketResult(const std::string& filename, struct DhcpPacketResult &result);
 #else
