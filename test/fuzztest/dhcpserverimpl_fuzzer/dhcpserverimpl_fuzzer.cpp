@@ -26,6 +26,7 @@ namespace OHOS {
 namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t DHCP_SLEEP_1 = 2;
+constexpr size_t MAX_STRING_SIZE = 1024;
 sptr<DhcpServerServiceImpl> pDhcpServerServiceImpl = DhcpServerServiceImpl::GetInstance();
 
 void OnStartTest(const uint8_t* data, size_t size)
@@ -98,17 +99,25 @@ void SetDhcpNameTest(const uint8_t* data, size_t size)
 
 void GetDhcpClientInfosTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     std::string ifname1 = "";
     std::string ifname2 = "wlan0";
     std::vector<std::string> leases;
-    leases.push_back(std::string(reinterpret_cast<const char*>(data), size));
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    leases.push_back(std::string(reinterpret_cast<const char*>(data), safeSize));
     pDhcpServerServiceImpl->GetDhcpClientInfos(ifname1, leases);
     pDhcpServerServiceImpl->GetDhcpClientInfos(ifname2, leases);
 }
 
 void UpdateLeasesTimeTest(const uint8_t* data, size_t size)
 {
-    std::string leaseTime = std::string(reinterpret_cast<const char*>(data), size);
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string leaseTime = std::string(reinterpret_cast<const char*>(data), safeSize);
     pDhcpServerServiceImpl->UpdateLeasesTime(leaseTime);
 }
 
@@ -133,12 +142,16 @@ void CheckAndUpdateConfTest(const uint8_t* data, size_t size)
 
 void CheckIpAddrRangeTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     DhcpRange range;
     int call = 2;
-    range.strTagName = std::string(reinterpret_cast<const char*>(data), size);
-    range.strStartip = std::string(reinterpret_cast<const char*>(data), size);
-    range.strEndip = std::string(reinterpret_cast<const char*>(data), size);
-    range.strSubnet = std::string(reinterpret_cast<const   char*>(data), size);
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    range.strTagName = std::string(reinterpret_cast<const char*>(data), safeSize);
+    range.strStartip = std::string(reinterpret_cast<const char*>(data), safeSize);
+    range.strEndip = std::string(reinterpret_cast<const char*>(data), safeSize);
+    range.strSubnet = std::string(reinterpret_cast<const char*>(data), safeSize);
     range.iptype = static_cast<int>(data[0]) % call;
     range.leaseHours = static_cast<int>(data[0]);
     pDhcpServerServiceImpl->CheckIpAddrRange(range);
@@ -152,10 +165,14 @@ void AddSpecifiedInterfaceTest(const uint8_t* data, size_t size)
 
 void GetUsingIpRangeTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     std::string ifname1 = "";
     std::string ifname2 = "ww";
     std::string ifname3 = "wlan0";
-    std::string ipRange = std::string(reinterpret_cast<const char*>(data), size);
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string ipRange = std::string(reinterpret_cast<const char*>(data), safeSize);
     pDhcpServerServiceImpl->GetUsingIpRange(ifname1, ipRange);
     pDhcpServerServiceImpl->GetUsingIpRange(ifname2, ipRange);
     pDhcpServerServiceImpl->GetUsingIpRange(ifname3, ipRange);
@@ -163,41 +180,64 @@ void GetUsingIpRangeTest(const uint8_t* data, size_t size)
 
 void CreateDefaultConfigFileTest(const uint8_t* data, size_t size)
 {
-    std::string strFile = std::string(reinterpret_cast<const char*>(data), size);
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string strFile = std::string(reinterpret_cast<const char*>(data), safeSize);
     pDhcpServerServiceImpl->CreateDefaultConfigFile(strFile);
 }
 
 void DelSpecifiedInterfaceTest(const uint8_t* data, size_t size)
 {
-    std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string ifname = std::string(reinterpret_cast<const char*>(data), safeSize);
     pDhcpServerServiceImpl->DelSpecifiedInterface(ifname);
 }
 
 void RegisterDhcpServerCallBackTest(const uint8_t* data, size_t size)
 {
-    std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string ifname = std::string(reinterpret_cast<const char*>(data), safeSize);
     sptr<IDhcpServerCallBack> serverCallback;
     pDhcpServerServiceImpl->RegisterDhcpServerCallBack(ifname, serverCallback);
 }
 
 void DeviceInfoCallBackTest(const uint8_t* data, size_t size)
 {
-    std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string ifname = std::string(reinterpret_cast<const char*>(data), safeSize);
     pDhcpServerServiceImpl->DeviceInfoCallBack(ifname);
 }
 
 void ConvertLeasesToStationInfosTest(const uint8_t* data, size_t size)
 {
+    if (data == nullptr || size == 0) {
+        return;
+    }
     std::vector<std::string> leases;
     std::vector<DhcpStationInfo> stationInfos = {};
-    leases.push_back(std::string(reinterpret_cast<const char*>(data), size));
+    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    leases.push_back(std::string(reinterpret_cast<const char*>(data), safeSize));
     pDhcpServerServiceImpl->ConvertLeasesToStationInfos(leases, stationInfos);
 }
 
 void DeviceConnectCallBackTest(const uint8_t* data, size_t size)
 {
-    const char *ifname = reinterpret_cast<const char*>(data);
-    DeviceConnectCallBack(ifname);
+    if (data == nullptr || size == 0) {
+        return;
+    }
+    std::string safeIfname(reinterpret_cast<const char*>(data), size);
+    DeviceConnectCallBack(safeIfname.c_str());
 }
 
 void SetDhcpNameExtTest(const uint8_t* data, size_t size)
