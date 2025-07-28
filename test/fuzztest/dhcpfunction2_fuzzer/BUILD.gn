@@ -17,8 +17,8 @@ import("//build/test.gni")
 import("//foundation/communication/dhcp/dhcp.gni")
 
 ##############################fuzztest##########################################
-ohos_fuzztest("DhcpFunction2Fuzzer") {
-  module_out_path = "dhcp/dhcp_client"
+ohos_fuzztest("DhcpFunction2FuzzTest") {
+  module_out_path = dhcp_fuzz_output_path
   fuzz_config_file =
       "//foundation/communication/dhcp/test/fuzztest/dhcpfunction2_fuzzer"
   cflags = [

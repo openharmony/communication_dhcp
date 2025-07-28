@@ -25,7 +25,7 @@ namespace OHOS {
 namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
-constexpr int CFG_DATA_MAX_BYTES = 20;
+constexpr int CFG_DATA_MAX_BYTES = 512;
 constexpr int ADDRESS_MAX_BYTES = 8;
 
 void NextPendingIntervalTest(const uint8_t* data, size_t size)
@@ -53,27 +53,6 @@ void IsExpireTest(const uint8_t* data, size_t size)
     IsExpire(&binding);
 }
 
-void WriteAddressBindingTest(const uint8_t* data, size_t size)
-{
-    if (data == nullptr || size < CFG_DATA_MAX_BYTES) {
-        return;
-    }
-    AddressBinding binding;
-    uint32_t size_t = static_cast<uint64_t>(data[0]);
-    binding.ipAddress = static_cast<uint32_t>(data[0]);
-    binding.clientId = static_cast<uint32_t>(data[0]);
-    binding.bindingTime = static_cast<uint64_t>(data[0]);
-    binding.pendingTime = static_cast<uint64_t>(data[0]);
-    binding.expireIn = static_cast<uint64_t>(data[0]);
-    binding.leaseTime = static_cast<uint64_t>(data[0]);
-    binding.pendingInterval = static_cast<uint64_t>(data[0]);
-    char out[CFG_DATA_MAX_BYTES] = {0};
-    if (memcpy_s(out, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
-        return;
-    }
-    WriteAddressBinding(&binding, out, size_t);
-}
-
 void ParseAddressBindingTest(const uint8_t* data, size_t size)
 {
     if (data == nullptr || size < 1) {
@@ -98,6 +77,10 @@ void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
     }
     int index = 0;
     AddressBinding binding;
+    int ret = memset_s(&binding, sizeof(binding), 0, sizeof(binding));
+    if (ret != EOK) {
+        return;
+    }
     binding.ipAddress = static_cast<uint32_t>(data[index++]);
     binding.clientId = static_cast<uint32_t>(data[index++]);
     binding.bindingTime = static_cast<uint64_t>(data[index++]);
@@ -109,6 +92,9 @@ void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
     if (index < static_cast<int>(size)) {
         uint32_t bindingSize = static_cast<uint32_t>(data[index]);
         if (bindingSize > CFG_DATA_MAX_BYTES) {
+            bindingSize = CFG_DATA_MAX_BYTES;
+        }
+        if (bindingSize < 1) {
             bindingSize = CFG_DATA_MAX_BYTES;
         }
         WriteAddressBinding(&binding, out, bindingSize);
@@ -123,7 +109,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::NextPendingIntervalTest(data, size);
     OHOS::DHCP::IsExpireTest(data, size);
-    OHOS::DHCP::WriteAddressBindingTest(data, size);
     OHOS::DHCP::ParseAddressBindingTest(data, size);
     OHOS::DHCP::WriteAddressBindingFuzzTest(data, size);
     return 0;
