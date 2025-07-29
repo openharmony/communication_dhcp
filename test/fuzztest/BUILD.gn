@@ -34,6 +34,6 @@ group("fuzztest") {
     "dhcparpchecker_fuzzer:DhcpArpCheckerFuzzTest",
     "dhcpcommonutils_fuzzer:DhcpCommonUtilsFuzzTest",
     "dhcp_event_fuzzer:DhcpEventFuzzTest",
-    "dhcpfunction2_fuzzer:DhcpFunction2Fuzzer",
+    "dhcpfunction2_fuzzer:DhcpFunction2FuzzTest",
   ]
 }

@@ -85,7 +85,7 @@ int IsExpire(AddressBinding *binding)
 #define BINDING_DEVICE_NAME_POS 8
 #define BINDING_STRING_SIZE 8
 #define BINDING_STRING_MAX_SIZE 9
-
+#define BINDING_MIN_LENGTH 20
 int WriteAddressBinding(const AddressBinding *binding, char *out, uint32_t size)
 {
     if (!binding || !out) {
@@ -94,6 +94,10 @@ int WriteAddressBinding(const AddressBinding *binding, char *out, uint32_t size)
     const char *mac = ParseStrMac(binding->chaddr, sizeof(binding->chaddr));
     const char *ip = ParseStrIp(binding->ipAddress);
     if (mac == nullptr || ip == nullptr) {
+        return RET_FAILED;
+    }
+    if (size < BINDING_MIN_LENGTH) {
+        DHCP_LOGE("WriteAddressBinding out buffer size is too small.");
         return RET_FAILED;
     }
     if (snprintf_s(out, size, size - 1, "%s %s %llu %llu %llu %llu %d %d %s", mac, ip, binding->leaseTime,
