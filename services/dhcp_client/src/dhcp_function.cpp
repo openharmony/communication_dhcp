@@ -106,6 +106,11 @@ bool MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, 
         return false;
     }
 
+    if (chLen > MAC_ADDR_LEN) {
+        DHCP_LOGE("MacChConToMacStr failed, chLen:%{public}zu error!", chLen);
+        return false;
+    }
+
     const unsigned char *pSrc = pChMac;
     const unsigned char *pSrcEnd = pSrc + chLen;
     char *pDest = pStrMac;
