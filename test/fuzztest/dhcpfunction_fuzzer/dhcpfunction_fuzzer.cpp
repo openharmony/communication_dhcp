@@ -25,47 +25,73 @@ namespace OHOS {
 namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr int TWO = 2;
-
+constexpr size_t MAX_STRING_SIZE = 1024;  // Maximum safe string size for fuzz testing
+constexpr size_t MIN_DATA_SIZE = 1;       // Minimum data size required
+constexpr size_t MIN_SIZE_FOR_THREE_BYTES = 3;
 std::shared_ptr<DhcpFunction> pDhcpFunction = std::make_shared<DhcpFunction>();
 
 void Ip4StrConToIntTest(const uint8_t* data, size_t size)
 {
+    if (size < MIN_DATA_SIZE) {
+        return;
+    }
     uint32_t index = 0;
     uint32_t uIp = static_cast<uint32_t>(data[index++]);
-    std::string strIp = std::string(reinterpret_cast<const char*>(data), size);
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string strIp = std::string(reinterpret_cast<const char*>(data), strSize);
     bool bHost = (static_cast<int>(data[0]) % TWO) ? true : false;
     pDhcpFunction->Ip4StrConToInt(strIp, uIp, bHost);
 }
 
 void Ip6StrConToCharTest(const uint8_t* data, size_t size)
 {
-    std::string strIp = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string strIp = std::string(reinterpret_cast<const char*>(data), strSize);
     uint8_t	chIp[sizeof(struct in6_addr)] = {0};
     pDhcpFunction->Ip6StrConToChar(strIp, chIp, sizeof(struct in6_addr));
 }
 
 void CheckIpStrTest(const uint8_t* data, size_t size)
 {
-    std::string strIp = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string strIp = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->CheckIpStr(strIp);
 }
 
 void IsExistFileTest(const uint8_t* data, size_t size)
 {
-    std::string filename = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string filename = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->IsExistFile(filename);
 }
 
 void CreateFileTest(const uint8_t* data, size_t size)
 {
-    std::string filename = std::string(reinterpret_cast<const char*>(data), size);
-    std::string filedata = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string filename = std::string(reinterpret_cast<const char*>(data), strSize);
+    std::string filedata = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->CreateFile(filename, filedata);
 }
 
 void RemoveFileTest(const uint8_t* data, size_t size)
 {
-    std::string filename = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string filename = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->RemoveFile(filename);
 }
 
@@ -86,13 +112,20 @@ void FormatStringTest(const uint8_t* data, size_t size)
 
 void CreateDirsTest(const uint8_t* data, size_t size)
 {
+    if (size == 0) {
+        return;
+    }
     int mode = DIR_DEFAULT_MODE;
-    std::string dirs = std::string(reinterpret_cast<const char*>(data), size);
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string dirs = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->CreateDirs(dirs, mode);
 }
 
 void Ip6CharConToStrTest(const uint8_t* data, size_t size)
 {
+    if (size < MIN_DATA_SIZE) {
+        return;
+    }
     int index = 0;
     uint8_t	chIp[sizeof(struct in6_addr)] = {0};
     int chIpSize = static_cast<int>(data[index++]);
@@ -101,21 +134,32 @@ void Ip6CharConToStrTest(const uint8_t* data, size_t size)
 
 void GetLocalMacTest(const uint8_t* data, size_t size)
 {
-    std::string ethInf = std::string(reinterpret_cast<const char*>(data), size);
-    std::string ethMac = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string ethInf = std::string(reinterpret_cast<const char*>(data), strSize);
+    std::string ethMac = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->GetLocalMac(ethInf, ethMac);
 }
 
 void CheckRangeNetworkTest(const uint8_t* data, size_t size)
 {
-    std::string strInf = std::string(reinterpret_cast<const char*>(data), size);
-    std::string strBegin = std::string(reinterpret_cast<const char*>(data), size);
-    std::string strEnd = std::string(reinterpret_cast<const char*>(data), size);
+    if (size == 0) {
+        return;
+    }
+    size_t strSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
+    std::string strInf = std::string(reinterpret_cast<const char*>(data), strSize);
+    std::string strBegin = std::string(reinterpret_cast<const char*>(data), strSize);
+    std::string strEnd = std::string(reinterpret_cast<const char*>(data), strSize);
     pDhcpFunction->CheckRangeNetwork(strInf, strBegin, strEnd);
 }
 
 void CheckSameNetworkTest(const uint8_t* data, size_t size)
 {
+    if (size < MIN_SIZE_FOR_THREE_BYTES) {
+        return;
+    }
     int index = 0;
     uint32_t srcIp = static_cast<uint8_t>(data[index++]);
     uint32_t dstIp = static_cast<uint8_t>(data[index++]);
@@ -126,9 +170,10 @@ void CheckSameNetworkTest(const uint8_t* data, size_t size)
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    if (data == nullptr) {
+    if (data == nullptr || size == 0) {
         return 0;
     }
+    
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::Ip4StrConToIntTest(data, size);
     OHOS::DHCP::Ip6StrConToCharTest(data, size);
