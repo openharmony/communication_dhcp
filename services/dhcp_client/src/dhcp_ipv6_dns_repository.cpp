@@ -131,7 +131,7 @@ bool DnsServerRepository::UpdateCurrentServers()
         if (i >= NUM_SERVERS || allServers_[i].expiry <= now) {
             DHCP_LOGI("DhcpIpv6 UpdateCurrentServers() remove server %{private}s", allServers_[i].address.c_str());
             // remove expired or too many servers
-            const std::string& address = allServers_[i].address;
+            const std::string address = allServers_[i].address;  // Copy, not reference
             allServers_.erase(allServers_.begin() + i);
             if (currentServers_.erase(address)) {
                 changed = true;
