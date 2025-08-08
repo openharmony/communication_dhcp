@@ -156,8 +156,8 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
         int64_t elapsed = 0;
         int32_t leftMillis = timeoutMillis;
         uint8_t recvBuff[MAX_LENGTH];
-        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
         while (leftMillis > 0) {
+            std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
             readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
             if (readLen < 0) {
                 DHCP_LOGE("readLen < 0, stop arp");
@@ -207,8 +207,8 @@ void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp
     int32_t readLen = 0;
     int32_t leftMillis = timeoutMillis;
     uint8_t recvBuff[MAX_LENGTH];
-    std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
     while (leftMillis > 0) {
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
         readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
         if (readLen >= static_cast<int32_t>(sizeof(struct ArpPacket))) {
             struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
