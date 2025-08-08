@@ -38,6 +38,9 @@
 "OHOS::DHCP::DhcpThread::RemoveAsyncTask(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&)";
 "OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long long, bool)";
 "OHOS::DHCP::DhcpThread::PostSyncTimeOutTask(std::__h::function<int ()> const&, int)";
+"OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, long)";
+"OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long, bool)";
+"OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
  };
     local:
         *;
