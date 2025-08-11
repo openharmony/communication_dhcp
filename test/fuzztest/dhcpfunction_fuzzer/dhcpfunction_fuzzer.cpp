@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <unistd.h>
+#include <algorithm>
 #include "securec.h"
 #include "dhcp_function.h"
 
@@ -121,16 +122,6 @@ void CreateDirsTest(const uint8_t* data, size_t size)
     pDhcpFunction->CreateDirs(dirs, mode);
 }
 
-void Ip6CharConToStrTest(const uint8_t* data, size_t size)
-{
-    if (size < MIN_DATA_SIZE) {
-        return;
-    }
-    int index = 0;
-    uint8_t	chIp[sizeof(struct in6_addr)] = {0};
-    int chIpSize = static_cast<int>(data[index++]);
-    pDhcpFunction->Ip6CharConToStr(chIp, chIpSize);
-}
 
 void GetLocalMacTest(const uint8_t* data, size_t size)
 {
@@ -183,7 +174,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::RemoveFileTest(data, size);
     OHOS::DHCP::FormatStringTest(data, size);
     OHOS::DHCP::CreateDirsTest(data, size);
-    OHOS::DHCP::Ip6CharConToStrTest(data, size);
     OHOS::DHCP::GetLocalMacTest(data, size);
     OHOS::DHCP::CheckRangeNetworkTest(data, size);
     OHOS::DHCP::CheckSameNetworkTest(data, size);

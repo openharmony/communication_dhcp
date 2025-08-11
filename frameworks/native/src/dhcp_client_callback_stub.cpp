@@ -180,7 +180,7 @@ int DhcpClientCallBackStub::RemoteOnDhcpOfferReport(uint32_t code, MessageParcel
     result.strLocalAddr2 = data.ReadString();
     int size = reply.ReadInt32();
     if (state == DHCP_E_SUCCESS) {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
             std::string str = reply.ReadString();
             result.vectorDnsAddr.push_back(str);
         }

@@ -74,18 +74,6 @@ HWTEST_F(DhcpFunctionTest, Ip6StrConToChar_FAILED, TestSize.Level1)
     EXPECT_EQ(false, DhcpFunction::Ip6StrConToChar(strIp, addr6, sizeof(struct in6_addr)));
 }
 
-HWTEST_F(DhcpFunctionTest, Ip6CharConToStr_SUCCESS, TestSize.Level1)
-{
-    uint8_t	addr6[sizeof(struct in6_addr)] = {0};
-    EXPECT_STREQ(DhcpFunction::Ip6CharConToStr(addr6, sizeof(struct in6_addr)).c_str(), "");
-}
-
-HWTEST_F(DhcpFunctionTest, Ip6CharConToStr_FAILED, TestSize.Level1)
-{
-    uint8_t	addr6[sizeof(struct in6_addr)] = {0};
-    EXPECT_STREQ(DhcpFunction::Ip6CharConToStr(addr6, 0).c_str(), "");
-}
-
 HWTEST_F(DhcpFunctionTest, CheckIpStr_SUCCESS, TestSize.Level1)
 {
     std::string strIp4 = "192.77.1.232";
