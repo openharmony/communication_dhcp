@@ -88,29 +88,6 @@ bool DhcpFunction::Ip6StrConToChar(const std::string& strIp, uint8_t chIp[], siz
     return true;
 }
 
-std::string DhcpFunction::Ip6CharConToStr(uint8_t chIp[], int size)
-{
-    if (size <= 0) {
-        DHCP_LOGE("Ip6CharConToStr param error, size:%{public}d!", size);
-        return "";
-    }
-
-    std::string strIp = "";
-    char bufIp6[INET6_ADDRSTRLEN] = {0};
-    struct in6_addr addr6;
-    if (memcpy_s(addr6.s6_addr, sizeof(addr6.s6_addr), &chIp, size) != EOK) {
-        return "";
-    }
-    if (inet_ntop(AF_INET6, &addr6, bufIp6, INET6_ADDRSTRLEN) == nullptr) {
-        DHCP_LOGE("Ip6CharConToStr chIp failed, inet_ntop nullptr!");
-    } else {
-        strIp = bufIp6;
-        DHCP_LOGI("Ip6CharConToStr chIp -> strIp:%{private}s.", strIp.c_str());
-    }
-
-    return strIp;
-}
-
 bool DhcpFunction::CheckIpStr(const std::string& strIp)
 {
     if (strIp.empty()) {

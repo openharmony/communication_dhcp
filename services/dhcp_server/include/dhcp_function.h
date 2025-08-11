@@ -33,7 +33,6 @@ public:
 
     static bool Ip4StrConToInt(const std::string& strIp, uint32_t& uIp, bool bHost = true);
     static bool Ip6StrConToChar(const std::string& strIp, uint8_t chIp[], size_t uSize);
-    static std::string Ip6CharConToStr(uint8_t chIp[], int size);
     static bool CheckIpStr(const std::string& strIp);
     static int GetLocalIp(const std::string strInf, std::string& strIp, std::string& strMask);
     static int GetLocalMac(const std::string ethInf, std::string& ethMac);
