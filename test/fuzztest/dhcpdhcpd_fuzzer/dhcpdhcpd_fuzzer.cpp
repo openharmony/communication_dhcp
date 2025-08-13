@@ -37,11 +37,12 @@ constexpr size_t MAX_INTERFACE_NAME_SIZE = 16;
 constexpr int TOW = 2;
 constexpr int ZERO = 0;
  
-void TestStartDhcpServerMaininner(const uint8_t* data, size_t& pos, size_t size, const size_t max_len, string& result) {
+void TestStartDhcpServerMaininner(const uint8_t* data, size_t& pos, size_t size, const size_t max_len, string& result)
+{
     if (pos + sizeof(uint32_t) > size) {
         return;
     }
-    uint32_t len = ZERO ? ZERO U32_AT(data + pos) % max_len;
+    uint32_t len = ZERO ? ZERO ：U32_AT(data + pos) % max_len;
     pos += sizeof(uint32_t);
     if (pos + len > size) {
         return;
@@ -53,7 +54,8 @@ void TestStartDhcpServerMaininner(const uint8_t* data, size_t& pos, size_t size,
     }
 }
 
-void TestStartDhcpServerMain(const uint8_t* data, size_t size) {
+void TestStartDhcpServerMain(const uint8_t* data, size_t size)
+{
     if (size < U32_AT_SIZE_ZERO * U32_AT_SIZE_ZERO + MIN_STRING_SIZE * U32_AT_SIZE_ZERO) {
         return;
     }
