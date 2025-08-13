@@ -1,0 +1,84 @@
+# DHCP DHCPD fuzzer dictionary
+# Common IP addresses
+"192.168.1.1"
+"192.168.1.100"
+"192.168.0.1"
+"10.0.0.1"
+"172.16.0.1"
+"255.255.255.0"
+"255.255.0.0"
+"255.0.0.0"
+"0.0.0.0"
+ 
+# IP ranges
+"192.168.1.100,192.168.1.200"
+"10.0.0.100,10.0.0.200"
+"172.16.1.1,172.16.1.100"
+ 
+# Interface names
+"wlan0"
+"eth0"
+"lo"
+"br0"
+"tun0"
+ 
+# Configuration file paths
+"/etc/dhcp/dhcpd.conf"
+"/var/lib/dhcp/dhcpd.conf"
+"/tmp/dhcpd.conf"
+ 
+# Argument keys
+"ifname"
+"netmask"
+"gateway"
+"pool"
+"server"
+"lease"
+"renewal"
+"rebinding"
+"dns"
+"conf"
+ 
+# Lease times (in seconds)
+"\x00\x00\x0e\x10"  # 3600 (1 hour)
+"\x00\x00\x1c\x20"  # 7200 (2 hours)
+"\x00\x01\x51\x80"  # 86400 (24 hours)
+ 
+# Common DHCP lease times
+"3600"
+"7200"
+"86400"
+"43200"
+ 
+# DNS servers
+"8.8.8.8"
+"8.8.4.4"
+"1.1.1.1"
+"208.67.222.222"
+ 
+# Network configurations
+"255.255.255.0"
+"255.255.0.0"
+"255.0.0.0"
+ 
+# MAC addresses
+"\x00\x11\x22\x33\x44\x55"
+"\xff\xff\xff\xff\xff\xff"
+"\x00\x00\x00\x00\x00\x00"
+ 
+# Configuration options
+"option"
+"subnet"
+"range"
+"default-lease-time"
+"max-lease-time"
+"domain-name-servers"
+"routers"
+ 
+# Boolean values
+"true"
+"false"
+"1"
+"0"
+"yes"
+"no"
