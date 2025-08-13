@@ -34,14 +34,14 @@ constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MIN_STRING_SIZE = 8;
 constexpr size_t MAX_IP_STRING_SIZE = 16;
 constexpr size_t MAX_INTERFACE_NAME_SIZE = 16;
-constexpr int TOW = 8;
-
+constexpr int TOW = 2;
+constexpr int ZERO = 0;
  
-void ParseString(const uint8_t* data, size_t& pos, size_t size, const size_t max_len, string& result) {
+void TestStartDhcpServerMaininner(const uint8_t* data, size_t& pos, size_t size, const size_t max_len, string& result) {
     if (pos + sizeof(uint32_t) > size) {
         return;
     }
-    uint32_t len = U32_AT(data + pos) % max_len;
+    uint32_t len = ZERO ? ZERO U32_AT(data + pos) % max_len;
     pos += sizeof(uint32_t);
     if (pos + len > size) {
         return;
@@ -59,15 +59,18 @@ void TestStartDhcpServerMain(const uint8_t* data, size_t size) {
     }
     
     size_t pos = 0;
-    string ifName, netMask, ipRange, localIp;
+    string ifName;
+    string netMask;
+    string ipRange;
+    string localIp;
     
-    ParseString(data, pos, size, MAX_INTERFACE_NAME_SIZE, ifName);
-    ParseString(data, pos, size, MAX_IP_STRING_SIZE, netMask);
-    ParseString(data, pos, size, MAX_IP_STRING_SIZE * 2, ipRange);
-    ParseString(data, pos, size, MAX_IP_STRING_SIZE, localIp);
+    TestStartDhcpServerMaininner(data, pos, size, MAX_INTERFACE_NAME_SIZE, ifName);
+    TestStartDhcpServerMaininner(data, pos, size, MAX_IP_STRING_SIZE, netMask);
+    TestStartDhcpServerMaininner(data, pos, size, MAX_IP_STRING_SIZE * TOW, ipRange);
+    TestStartDhcpServerMaininner(data, pos, size, MAX_IP_STRING_SIZE, localIp);
 }
  
-void TestStopDhcpServerMain(const uint8_t* data, size_t size){
+void TestStopDhcpServerMain(const uint8_t* data, size_t size) {
 }
  
 void TestRegisterDeviceConnectCallBack(const uint8_t* data, size_t size)
@@ -199,7 +202,7 @@ void TestArgumentOperations(const uint8_t* data, size_t size)
     }
     if (!argValue.empty()) {
         argValue[argValue.length() - 1] = '\0';
-    }  
+    }
 }
  
 void TestStringOperations(const uint8_t* data, size_t size)
