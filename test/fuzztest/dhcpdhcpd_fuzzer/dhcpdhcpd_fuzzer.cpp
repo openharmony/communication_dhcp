@@ -34,80 +34,46 @@ constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t MIN_STRING_SIZE = 8;
 constexpr size_t MAX_IP_STRING_SIZE = 16;
 constexpr size_t MAX_INTERFACE_NAME_SIZE = 16;
+constexpr int TOW = 8;
+
  
-void TestStartDhcpServerMain(const uint8_t* data, size_t size)
-{
-    if (size < U32_AT_SIZE_ZERO * 4 + MIN_STRING_SIZE * 4) {
+void ParseString(const uint8_t* data, size_t& pos, size_t size, const size_t max_len, string& result) {
+    if (pos + sizeof(uint32_t) > size) {
+        return;
+    }
+    uint32_t len = U32_AT(data + pos) % max_len;
+    pos += sizeof(uint32_t);
+    if (pos + len > size) {
+        return;
+    }
+    result = string(reinterpret_cast<const char*>(data + pos), len);
+    pos += len;
+    if (!result.empty()) {
+        result[result.length() - 1] = '\0';
+    }
+}
+
+void TestStartDhcpServerMain(const uint8_t* data, size_t size) {
+    if (size < U32_AT_SIZE_ZERO * U32_AT_SIZE_ZERO + MIN_STRING_SIZE * U32_AT_SIZE_ZERO) {
         return;
     }
     
     size_t pos = 0;
+    string ifName, netMask, ipRange, localIp;
     
-    uint32_t ifNameLen = U32_AT(data + pos) % MAX_INTERFACE_NAME_SIZE;
-    pos += sizeof(uint32_t);
-    if (pos + ifNameLen > size) {
-        return;
-    }
-    string ifName(reinterpret_cast<const char*>(data + pos), ifNameLen);
-    pos += ifNameLen;
-    
-    if (pos + sizeof(uint32_t) > size) {
-        return;
-    }
-    uint32_t netMaskLen = U32_AT(data + pos) % MAX_IP_STRING_SIZE;
-    pos += sizeof(uint32_t);
-    if (pos + netMaskLen > size) {
-        return;
-    }
-    string netMask(reinterpret_cast<const char*>(data + pos), netMaskLen);
-    pos += netMaskLen;
-    
-    if (pos + sizeof(uint32_t) > size) {
-        return;
-    }
-    uint32_t ipRangeLen = U32_AT(data + pos) % (MAX_IP_STRING_SIZE * 2);
-    pos += sizeof(uint32_t);
-    if (pos + ipRangeLen > size) {
-        return;
-    }
-    string ipRange(reinterpret_cast<const char*>(data + pos), ipRangeLen);
-    pos += ipRangeLen;
-    
-    if (pos + sizeof(uint32_t) > size) {
-        return;
-    }
-    uint32_t localIpLen = U32_AT(data + pos) % MAX_IP_STRING_SIZE;
-    pos += sizeof(uint32_t);
-    if (pos + localIpLen > size) {
-        return;
-    }
-    string localIp(reinterpret_cast<const char*>(data + pos), localIpLen);
-    
-    if (!ifName.empty()) {
-        ifName[ifName.length() - 1] = '\0';
-    }
-    if (!netMask.empty()) {
-        netMask[netMask.length() - 1] = '\0';
-    }
-    if (!ipRange.empty()) {
-        ipRange[ipRange.length() - 1] = '\0';
-    }
-    if (!localIp.empty()) {
-        localIp[localIp.length() - 1] = '\0';
-    }
-    
+    ParseString(data, pos, size, MAX_INTERFACE_NAME_SIZE, ifName);
+    ParseString(data, pos, size, MAX_IP_STRING_SIZE, netMask);
+    ParseString(data, pos, size, MAX_IP_STRING_SIZE * 2, ipRange);
+    ParseString(data, pos, size, MAX_IP_STRING_SIZE, localIp);
 }
  
-void TestStopDhcpServerMain(const uint8_t* data, size_t size)
-{
-
+void TestStopDhcpServerMain(const uint8_t* data, size_t size){
 }
  
 void TestRegisterDeviceConnectCallBack(const uint8_t* data, size_t size)
 {
     DeviceConnectFun testCallback = [](const char* ifname) {
         if (ifname) {
-
         }
     };
     
@@ -196,12 +162,11 @@ void TestDhcpConfigOperations(const uint8_t* data, size_t size)
         }
         config.ifname[IFACE_NAME_SIZE - 1] = '\0';
     }
-    
 }
  
 void TestArgumentOperations(const uint8_t* data, size_t size)
 {
-    if (size < U32_AT_SIZE_ZERO + MIN_STRING_SIZE * 2) {
+    if (size < U32_AT_SIZE_ZERO + MIN_STRING_SIZE * TOW) {
         return;
     }
     
@@ -234,8 +199,7 @@ void TestArgumentOperations(const uint8_t* data, size_t size)
     }
     if (!argValue.empty()) {
         argValue[argValue.length() - 1] = '\0';
-    }
-    
+    }  
 }
  
 void TestStringOperations(const uint8_t* data, size_t size)
