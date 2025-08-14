@@ -34,7 +34,6 @@ namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpArpChecker");
 constexpr const char *DHCP_ARP_CHECKER_THREAD = "DHCP_ARP_CHECKER_THREAD";
 constexpr int32_t MIN_WAIT_TIME_MS_THREAD = 2000;
-constexpr int32_t TIME_OUT_BUFFER = 1000;
 constexpr int32_t MAX_LENGTH = 1500;
 constexpr int32_t OPT_SUCC = 0;
 constexpr int32_t OPT_FAIL = -1;
@@ -73,10 +72,8 @@ bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string
     auto ret = dhcpArpCheckerThread_->PostSyncTimeOutTask(func, MIN_WAIT_TIME_MS_THREAD);
     if (ret == false) {
         DHCP_LOGE("DhcpArpChecker CreateSocket failed");
-        m_isSocketCreated = false;
         return false;
     }
-    m_isSocketCreated = true;
     inet_aton(senderIp.c_str(), &m_localIpAddr);
     if (memcpy_s(m_localMacAddr, ETH_ALEN, mac, ETH_ALEN) != EOK) {
         DHCP_LOGE("DhcpArpChecker memcpy fail");
@@ -141,50 +138,62 @@ bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint
         DHCP_LOGE("DoArpCheck failed, socket not created");
         return false;
     }
-    auto func = [this, timeoutMillis, isFillSenderIp, &timeCost]() {
-        struct ArpPacket arpPacket;
-        if (!SetArpPacket(arpPacket, isFillSenderIp)) {
-            DHCP_LOGE("SetArpPacket failed");
-            return OPT_FAIL;
+
+    struct ArpPacket arpPacket;
+    if (!SetArpPacket(arpPacket, isFillSenderIp)) {
+        return false;
+    }
+
+    if (SendData(reinterpret_cast<uint8_t *>(&arpPacket), sizeof(arpPacket), m_l2Broadcast) != 0) {
+        return false;
+    }
+
+    timeCost = 0;
+    int32_t leftMillis = timeoutMillis;
+    uint8_t recvBuff[MAX_LENGTH];
+
+    // Add overall timeout tracking to prevent infinite loop
+    std::chrono::steady_clock::time_point overallStartTime = std::chrono::steady_clock::now();
+
+    while (leftMillis > 0) {
+        std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
+        int32_t readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
+
+        // Always calculate elapsed time after each operation
+        std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
+        int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+        if (elapsed <= 0) {
+            elapsed = 1;  // Force at least 1ms progress
+        }
+        leftMillis -= static_cast<int32_t>(elapsed);
+
+        // Double check overall timeout to prevent any edge cases
+        int64_t overallElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            current - overallStartTime).count();
+        if (overallElapsed >= timeoutMillis) {
+            DHCP_LOGW("DoArpCheck overall timeout reached");
+            break;
         }
 
-        if (SendData(reinterpret_cast<uint8_t *>(&arpPacket), sizeof(arpPacket), m_l2Broadcast) != 0) {
-            return OPT_FAIL;
+        if (readLen < 0) {
+            DHCP_LOGE("readLen < 0, stop arp");
+            return false;
         }
-        timeCost = 0;
-        int32_t readLen = 0;
-        int64_t elapsed = 0;
-        int32_t leftMillis = timeoutMillis;
-        uint8_t recvBuff[MAX_LENGTH];
-        while (leftMillis > 0) {
-            std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
-            readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
-            if (readLen < 0) {
-                DHCP_LOGE("readLen < 0, stop arp");
-                return OPT_FAIL;
-            }
-            if (readLen < static_cast<int32_t>(sizeof(struct ArpPacket))) {
-                std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-                elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
-                leftMillis -= static_cast<int32_t>(elapsed);
-                continue;
-            }
-            struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
-            if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER && ntohs(respPacket->ar_pro) == ETH_P_IP &&
-                respPacket->ar_hln == ETH_ALEN && respPacket->ar_pln == IPV4_ALEN &&
-                ntohs(respPacket->ar_op) == ARPOP_REPLY &&
-                memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
-                memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
-                std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
-                timeCost = static_cast<uint64_t>(
-                    std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count());
-                return OPT_SUCC;
-            }
+        if (readLen < static_cast<int32_t>(sizeof(struct ArpPacket))) {
+            continue;
         }
-        return OPT_FAIL;
-    };
-    return dhcpArpCheckerThread_->PostSyncTimeOutTask(func, std::max(MIN_WAIT_TIME_MS_THREAD,
-        timeoutMillis + TIME_OUT_BUFFER));
+
+        struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
+        if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER && ntohs(respPacket->ar_pro) == ETH_P_IP &&
+            respPacket->ar_hln == ETH_ALEN && respPacket->ar_pln == IPV4_ALEN &&
+            ntohs(respPacket->ar_op) == ARPOP_REPLY &&
+            memcmp(respPacket->ar_sha, m_localMacAddr, ETH_ALEN) != 0 &&
+            memcmp(respPacket->ar_spa, &m_targetIpAddr, IPV4_ALEN) == 0) {
+            timeCost = static_cast<uint64_t>(overallElapsed);
+            return true;
+        }
+    }
+    return false;
 }
 
 void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists)
@@ -207,6 +216,10 @@ void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp
     int32_t readLen = 0;
     int32_t leftMillis = timeoutMillis;
     uint8_t recvBuff[MAX_LENGTH];
+
+    // Add overall timeout tracking to prevent infinite loop
+    std::chrono::steady_clock::time_point overallStartTime = std::chrono::steady_clock::now();
+
     while (leftMillis > 0) {
         std::chrono::steady_clock::time_point startTime = std::chrono::steady_clock::now();
         readLen = RecvData(recvBuff, sizeof(recvBuff), leftMillis);
@@ -223,9 +236,24 @@ void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp
                 SaveGwMacAddr(gwMacAddr, gwMacLists);
             }
         }
+
         std::chrono::steady_clock::time_point current = std::chrono::steady_clock::now();
         int64_t elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(current - startTime).count();
+
+        // Ensure minimum progress to prevent infinite loop
+        if (elapsed <= 0) {
+            elapsed = 1;  // Force at least 1ms progress
+        }
+
         leftMillis -= static_cast<int32_t>(elapsed);
+
+        // Double check overall timeout as safety net
+        int64_t overallElapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
+            current - overallStartTime).count();
+        if (overallElapsed >= timeoutMillis) {
+            DHCP_LOGW("GetGwMacAddrList overall timeout reached");
+            break;
+        }
     }
 }
 
@@ -276,9 +304,11 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
         (void)close(socketFd);
         return OPT_FAIL;
     }
+
     m_socketFd = socketFd;
     m_ifaceIndex = ifaceIndex;
     m_protocol = protocol;
+    m_isSocketCreated = true;
     return OPT_SUCC;
 }
 
@@ -319,7 +349,7 @@ int32_t DhcpArpChecker::SendData(uint8_t *buff, int32_t count, uint8_t *destHwad
 
 int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMillis)
 {
-    DHCP_LOGI("RecvData poll start");
+    DHCP_LOGI("RecvData timeoutMillis:%{public}d", timeoutMillis);
     if (m_socketFd < 0) {
         DHCP_LOGE("invalid socket fd");
         return -1;
@@ -329,10 +359,10 @@ int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMi
     fds[0].fd = m_socketFd;
     fds[0].events = POLLIN;
     if (poll(fds, 1, timeoutMillis) <= 0) {
-        DHCP_LOGW("RecvData poll timeout");
+        DHCP_LOGW("RecvData poll timeout or error");
         return 0;
     }
-    DHCP_LOGI("RecvData poll end");
+    DHCP_LOGI("RecvData poll finished");
     int32_t nBytes;
     do {
         nBytes = read(m_socketFd, buff, count);
@@ -342,14 +372,12 @@ int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMi
             }
         }
     } while (nBytes == -1);
-
     return nBytes < 0 ? 0 : nBytes;
 }
 
 int32_t DhcpArpChecker::CloseSocket(void)
 {
     int32_t ret = OPT_FAIL;
-
     if (m_socketFd >= 0) {
         ret = close(m_socketFd);
         if (ret != OPT_SUCC) {
@@ -359,6 +387,7 @@ int32_t DhcpArpChecker::CloseSocket(void)
     m_socketFd = -1;
     m_ifaceIndex = 0;
     m_protocol = 0;
+    m_isSocketCreated = false;
     return ret;
 }
 
