@@ -42,8 +42,15 @@ void TestStartDhcpMainInner(const uint8_t* data, size_t& pos, size_t size, const
     if (pos + sizeof(uint32_t) > size) {
         return;
     }
-    uint32_t len = (maxLen != ZERO) ? U32_AT(data + pos) % maxLen : ZERO;
+
+    if (maxLen == ZERO) {
+        return;
+    }
+
+    uint32_t rawLen = U32_AT(data + pos);
+    uint32_t len = rawLen % maxLen;
     pos += sizeof(uint32_t);
+    
     if (pos + len > size) {
         return;
     }
