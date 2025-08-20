@@ -377,7 +377,7 @@ void DhcpClientStateMachine::DhcpInit(void)
     SetSocketMode(SOCKET_MODE_RAW);
 
     std::string arpIgnore = "/proc/sys/net/ipv4/conf/" + m_ifName + "/arp_ignore";
-    ModifyKernelFile(arpIgnore, "2");
+    ModifyKernelFile(arpIgnore, "1");
     std::string arpAnnounce = "/proc/sys/net/ipv4/conf/" + m_ifName + "/arp_announce";
     ModifyKernelFile(arpAnnounce, "2");
 
