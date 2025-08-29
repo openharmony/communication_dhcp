@@ -15,8 +15,6 @@
 
 #ifndef OHOS_DHCP_IPV6_DEFINE_H
 #define OHOS_DHCP_IPV6_DEFINE_H
-#include <netinet/in.h>
-#include <cstdint>
 namespace OHOS {
 namespace DHCP {
 inline const int IPV6_ADDR_ANY = 0x0000U;
