@@ -64,56 +64,30 @@ bool DhcpIpv6InfoManager::RemoveRoute(DhcpIpv6Info &dhcpIpv6Info, std::string de
     }
     return isChanged;
 }
+
+static bool UpdateAddress(char *dest, const std::string &addr, AddrType type)
+{
+    if (memset_s(dest, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
+        DHCP_LOGE("UpdateAddr memset_s failed for type %{public}d", static_cast<int>(type));
+        return false;
+    }
+    if (memcpy_s(dest, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
+        DHCP_LOGE("UpdateAddr memcpy_s failed for type %{public}d", static_cast<int>(type));
+        return false;
+    }
+    return true;
+}
+
 inline bool UpdateAddrInline(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrType type)
 {
     switch (type) {
-        case AddrType::DEFAULT: {
-            if (memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
-                memcpy_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("UpdateAddr memset_s or memcpy_s failed");
-                return false;
-            }
-            break;
-        }
-        case AddrType::GLOBAL: {
-            if (memset_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
-                memcpy_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("AddIpv6Address memcpy_s failed!");
-                return false;
-            }
-            break;
-        }
-        case AddrType::RAND: {
-            if (memset_s(dhcpIpv6Info.randIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
-                memcpy_s(dhcpIpv6Info.randIpv6Addr, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("UpdateAddr memcpy_s failed!");
-                return false;
-            }
-            break;
-        }
-        case AddrType::UNIQUE: {
-            if (memset_s(dhcpIpv6Info.uniqueLocalAddr1, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
-                memcpy_s(dhcpIpv6Info.uniqueLocalAddr1, DHCP_INET6_ADDRSTRLEN,
-                    addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("AddIpv6Address memcpy_s failed!");
-                return false;
-            }
-            break;
-        }
-        case AddrType::UNIQUE2: {
-            if (memset_s(dhcpIpv6Info.uniqueLocalAddr2, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
-                memcpy_s(dhcpIpv6Info.uniqueLocalAddr2, DHCP_INET6_ADDRSTRLEN,
-                    addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("AddIpv6Address uniqueLocalAddr2 memcpy_s failed!");
-                return false;
-            }
-            break;
-        }
-        default : {
-            return false;
-        }
+        case AddrType::DEFAULT: return UpdateAddress(dhcpIpv6Info.linkIpv6Addr, addr, type);
+        case AddrType::GLOBAL: return UpdateAddress(dhcpIpv6Info.globalIpv6Addr, addr, type);
+        case AddrType::RAND: return UpdateAddress(dhcpIpv6Info.randIpv6Addr, addr, type);
+        case AddrType::UNIQUE: return UpdateAddress(dhcpIpv6Info.uniqueLocalAddr1, addr, type);
+        case AddrType::UNIQUE2: return UpdateAddress(dhcpIpv6Info.uniqueLocalAddr2, addr, type);
+        default: return false;
     }
-    return true;
 }
 
 bool DhcpIpv6InfoManager::UpdateAddr(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrType type)
@@ -139,49 +113,25 @@ bool DhcpIpv6InfoManager::UpdateAddr(DhcpIpv6Info &dhcpIpv6Info, std::string add
     return true;
 }
 
+static bool ClearAddress(char *addr, AddrType type)
+{
+    if (memset_s(addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
+        DHCP_LOGE("RemoveAddr memset_s failed %{public}d", static_cast<int>(type));
+        return false;
+    }
+    return true;
+}
+
 inline bool RemoveAddrInline(DhcpIpv6Info &dhcpIpv6Info, AddrType type)
 {
     switch (type) {
-        case AddrType::DEFAULT: {
-            if (memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-                DHCP_LOGE("RemoveAddr memset_s failed %{public}d", static_cast<int>(type));
-                return false;
-            }
-            break;
-        }
-        case AddrType::GLOBAL: {
-            if (memset_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-                DHCP_LOGE("RemoveAddr memset_s failed %{public}d", static_cast<int>(type));
-                return false;
-            }
-            break;
-        }
-        case AddrType::RAND: {
-            if (memset_s(dhcpIpv6Info.randIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-                DHCP_LOGE("RemoveAddr memset_s failed %{public}d", static_cast<int>(type));
-                return false;
-            }
-            break;
-        }
-        case AddrType::UNIQUE: {
-            if (memset_s(dhcpIpv6Info.uniqueLocalAddr1, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-                DHCP_LOGE("RemoveAddr memset_s failed %{public}d", static_cast<int>(type));
-                return false;
-            }
-            break;
-        }
-        case AddrType::UNIQUE2: {
-            if (memset_s(dhcpIpv6Info.uniqueLocalAddr2, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-                DHCP_LOGE("RemoveAddr memset_s failed %{public}d", static_cast<int>(type));
-                return false;
-            }
-            break;
-        }
-        default: {
-            return false;
-        }
+        case AddrType::DEFAULT: return ClearAddress(dhcpIpv6Info.linkIpv6Addr, type);
+        case AddrType::GLOBAL: return ClearAddress(dhcpIpv6Info.globalIpv6Addr, type);
+        case AddrType::RAND: return ClearAddress(dhcpIpv6Info.randIpv6Addr, type);
+        case AddrType::UNIQUE: return ClearAddress(dhcpIpv6Info.uniqueLocalAddr1, type);
+        case AddrType::UNIQUE2: return ClearAddress(dhcpIpv6Info.uniqueLocalAddr2, type);
+        default: return false;
     }
-    return true;
 }
 
 bool DhcpIpv6InfoManager::RemoveAddr(DhcpIpv6Info &dhcpIpv6Info, std::string addr)
