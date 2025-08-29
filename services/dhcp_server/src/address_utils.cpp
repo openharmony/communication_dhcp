@@ -173,7 +173,7 @@ uint32_t ParseIp(const uint8_t *ipAddr)
 
 const char *ParseStrIp(uint32_t ipAddr)
 {
-    static char strIpAddr[IP_ADDRESS_STRING_LENGTH] = {0};
+    thread_local static char strIpAddr[IP_ADDRESS_STRING_LENGTH] = {0};
     struct in_addr inAddr;
     if (memcpy_s(&inAddr, sizeof(inAddr), &ipAddr, sizeof(ipAddr)) != EOK ||
         memset_s(strIpAddr, sizeof(strIpAddr), 0, sizeof(strIpAddr)) != EOK) {
@@ -187,7 +187,7 @@ const char *ParseStrIp(uint32_t ipAddr)
 
 char *ParseStrMac(const uint8_t *macAddr, size_t addrSize)
 {
-    static char strMacAddr[MAD_ADDR_BUF_SIZE] = {0};
+    thread_local static char strMacAddr[MAD_ADDR_BUF_SIZE] = {0};
     if (!macAddr || addrSize < MAC_ADDR_LENGTH) {
         return 0;
     }
@@ -256,7 +256,7 @@ uint32_t NetworkToHost(uint32_t network)
 
 char *ParseLogMac(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
-    static char strLogMacAddr[MAD_ADDR_BUF_SIZE] = {0};
+    thread_local static char strLogMacAddr[MAD_ADDR_BUF_SIZE] = {0};
     if (!macAddr) {
         return 0;
     }
