@@ -299,7 +299,7 @@ AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             type = AddrType::GLOBAL;
         }  else {
             DHCP_LOGI("AddIpv6Address add randIpv6Addr %{public}s", Ipv6Anonymize(ipv6addr).c_str());
-             type = AddrType::RAND;
+            type = AddrType::RAND;
         }
     } else if (IsUniqueLocalIpv6Address(ipv6addr, len)) {
         if (IsEui64ModeIpv6Address(ipv6addr, len, ifaceMac, MAC_ADDR_LEN)) {
@@ -406,7 +406,6 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
         char dnsAddr[DHCP_INET6_ADDRSTRLEN] = {0};
         inet_ntop(AF_INET6, addrs + i, dnsAddr, DHCP_INET6_ADDRSTRLEN);
         dnsAddrVector.push_back(dnsAddr);
-
     }
     bool changed = dhcpIpv6DnsRepository_->AddServers(lifetime, dnsAddrVector);
     if (changed) {
@@ -603,9 +602,9 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
     }
     runFlag_ = false;
     if (ipv6Thread_ && ipv6Thread_->joinable()) {
-         ipv6Thread_->join();
-         ipv6Thread_ = nullptr;
-     }
+        ipv6Thread_->join();
+        ipv6Thread_ = nullptr;
+    }
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     onIpv6AddressChanged_ = nullptr;
 }
