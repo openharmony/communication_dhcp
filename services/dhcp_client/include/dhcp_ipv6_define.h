@@ -58,7 +58,7 @@ inline const int SIXTEEN = 16;
 inline int IPV6_ADDR_SCOPE_TYPE(int scope) { return (scope) << SIXTEEN; }
 static inline uint8_t IPV6_ADDR_MC_SCOPE(const struct in6_addr* a)
 {
-    return addr->s6_addr[1] & 0x0f;
+    return a->s6_addr[1] & 0x0f;
 }
 }  // namespace DHCP
 }  // namespace OHOS
