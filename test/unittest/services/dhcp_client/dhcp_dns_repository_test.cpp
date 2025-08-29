@@ -54,6 +54,7 @@ public:
     virtual void TearDown()
     {
         delete mRepository;
+        mRepository = nullptr;
     }
     DnsServerRepository* mRepository;
     const int minLifetime_ = 1000;
