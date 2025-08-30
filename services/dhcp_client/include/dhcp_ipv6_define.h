@@ -52,8 +52,8 @@ inline const int POSITION_OFFSET_1 = 1;
 inline const int POSITION_OFFSET_2 = 2;
 inline const int POSITION_OFFSET_3 = 3;
 inline const int POSITION_OFFSET_4 = 4;
-#define IPV6_ADDR_SCOPE_TYPE(scope) ((scope) << 16)
-#define IPV6_ADDR_MC_SCOPE(a) ((a)->s6_addr[1] & 0x0f)
+inline const int SIXTEEN = 16;
+inline int IPV6_ADDR_SCOPE_TYPE(int scope) { return (scope) << SIXTEEN; }
 }  // namespace DHCP
 }  // namespace OHOS
 #endif /* OHOS_DHCP_IPV6_DEFINE_H */
