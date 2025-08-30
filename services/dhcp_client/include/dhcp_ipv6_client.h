@@ -20,6 +20,7 @@
 #include <sys/types.h>
 #include <stdint.h>
 #include <thread>
+#include <netinet/in.h>
 #include "dhcp_ipv6_dns_repository.h"
 
 inline int IPV6_ADDR_MC_SCOPE(const struct in6_addr* a)
