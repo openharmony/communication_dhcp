@@ -21,6 +21,11 @@
 #include <stdint.h>
 #include <thread>
 #include "dhcp_ipv6_dns_repository.h"
+
+inline int IPV6_ADDR_MC_SCOPE(const struct in6_addr* a)
+{
+    return (a)->s6_addr[1] & 0x0f;
+}
 namespace OHOS {
 namespace DHCP {
 
