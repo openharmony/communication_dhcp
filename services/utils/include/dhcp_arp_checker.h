@@ -17,6 +17,7 @@
 #define OHOS_DHCP_ARP_CHECKER_H
 
 #include <arpa/inet.h>
+#include <chrono>
 #include <netinet/if_ether.h>
 #include <string>
 #include "dhcp_thread.h"
@@ -46,6 +47,9 @@ public:
     void Stop();
     bool DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint64_t &timeCost);
     void GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists);
+    
+    // Static method for testing to clear global state
+    static void ClearGlobalState();
 
 private:
     bool SetArpPacket(ArpPacket& arpPacket, bool isFillSenderIp);
@@ -54,7 +58,30 @@ private:
     int32_t RecvData(uint8_t *buff, int32_t count, int32_t timeoutMillis);
     int32_t CloseSocket(void);
     bool SetNonBlock(int32_t fd);
+    bool IsInterfaceSafe(const char *iface);
+    void RecordInterfaceAttempt(const char *iface);
     void SaveGwMacAddr(std::string gwMacAddr, std::vector<std::string>& gwMacLists);
+    
+    // Helper functions for Start()
+    bool ParseAndValidateMacAddress(const std::string& hwAddr);
+    bool CreateSocketWithTimeout(const std::string& ifname);
+    bool ValidateAndSetIpAddresses(const std::string& senderIp, const std::string& targetIp);
+    
+    // Helper functions for DoArpCheck()
+    bool WaitForArpReply(int32_t timeoutMillis, uint64_t &timeCost);
+    bool UpdateTimeoutCounters(const std::chrono::steady_clock::time_point& startTime,
+                              const std::chrono::steady_clock::time_point& overallStartTime,
+                              int32_t timeoutMillis, int32_t& leftMillis, const char* context = nullptr);
+    bool IsValidArpReply(uint8_t* recvBuff, int32_t readLen);
+    
+    // Helper functions for GetGwMacAddrList()
+    void CollectGwMacAddresses(int32_t timeoutMillis, std::vector<std::string>& gwMacLists);
+    void ProcessReceivedPacket(uint8_t* recvBuff, int32_t readLen, std::vector<std::string>& gwMacLists);
+    
+    // Helper functions for CreateSocket()
+    int32_t GetInterfaceIndex(const char *iface);
+    int32_t CreateRawSocket(uint16_t protocol);
+    int32_t BindSocketToInterface(int32_t socketFd, int32_t ifaceIndex, uint16_t protocol, const char *iface);
 private:
     std::unique_ptr<DhcpThread> dhcpArpCheckerThread_ = nullptr;
     bool m_isSocketCreated;
