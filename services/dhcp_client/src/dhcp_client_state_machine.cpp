@@ -1168,7 +1168,16 @@ int DhcpClientStateMachine::GetDHCPServerHostName(const struct DhcpPacket *packe
     if (p == NULL || *p == '\0') {
         DHCP_LOGW("GetDHCPServerHostName() recv DHCP_ACK sname, pSname is NULL!");
     } else {
-        pSname = (char*)p;
+        // safe copy sname to avoid buffer overflow
+        char safeSname[DHCP_HOST_NAME_LENGTH + 1] = {0}; // +1 for null terminator
+        // use strnlen to find the actual length of the string in sname
+        size_t actualLen = strnlen((const char*)p, DHCP_HOST_NAME_LENGTH);
+        if (memcpy_s(safeSname, sizeof(safeSname) - 1, p, actualLen) != EOK) {
+            DHCP_LOGE("GetDHCPServerHostName() error, memcpy_s failed!");
+            return DHCP_OPT_FAILED;
+        }
+        safeSname[actualLen] = '\0'; // make sure it's null-terminated
+        pSname = safeSname;
         DHCP_LOGI("GetDHCPServerHostName() recv DHCP_ACK sname, original pSname is %{public}s.", pSname);
         const char *pHostName = "hostname:";
         if (strncpy_s(result->strOptVendor, DHCP_FILE_MAX_BYTES, pHostName, DHCP_FILE_MAX_BYTES - 1) != EOK) {
@@ -1178,8 +1187,10 @@ int DhcpClientStateMachine::GetDHCPServerHostName(const struct DhcpPacket *packe
         } else {
             DHCP_LOGI("GetDHCPServerHostName() recv DHCP_ACK sname, save ""hostname:"" only, \
                 result->strOptVendor is %{public}s.", result->strOptVendor);
+            size_t hostNameLen = strlen(pHostName);
+            size_t remainingSpace = DHCP_FILE_MAX_BYTES - hostNameLen - 1; // -1 for null terminator
             if (strncat_s(result->strOptVendor, DHCP_FILE_MAX_BYTES,
-                          pSname, DHCP_FILE_MAX_BYTES - strlen(pHostName) - 1) != EOK) {
+                          pSname, remainingSpace) != EOK) {
                 DHCP_LOGE("GetDHCPServerHostName() error, strncat_s pSname failed!");
                 pHostName = NULL;
                 return DHCP_OPT_FAILED;

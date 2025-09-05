@@ -59,11 +59,15 @@ static std::string DataAnonymize(const std::string &str, char delim, char hidden
     std::string::size_type begin = s.find_first_of(delim);
     std::string::size_type end = s.find_last_of(delim);
     int idx = 0;
-    while (idx++ < startIdx && begin < end) {
+    while (idx++ < startIdx && begin < end && begin != std::string::npos) {
         begin = s.find_first_of(delim, begin + 1);
     }
-    while (begin++ != end) {
-        if (s[begin] != delim) {
+    if (begin == std::string::npos || end == std::string::npos || begin >= end) {
+        return s;
+    }
+    while (begin < end) {
+        begin++;
+        if (begin < s.length() && s[begin] != delim) {
             s[begin] = hiddenCh;
         }
     }
@@ -79,6 +83,10 @@ std::string Ipv4Anonymize(const std::string str)
 {
     std::string strTemp = str;
     std::string::size_type begin = strTemp.find_last_of('.');
+    if (begin == std::string::npos) {
+        return strTemp;
+    }
+    begin++;
     while (begin < strTemp.length()) {
         if (strTemp[begin] != '.') {
             strTemp[begin] = '*';
@@ -143,6 +151,10 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len)
         return "";
     }
     std::string ret = gwMacAddr;
+    // clear sensitive data from stack
+    if (memset_s(gwMacAddr, sizeof(gwMacAddr), 0, sizeof(gwMacAddr)) != EOK) {
+        DHCP_LOGE("MacArray2Str memset_s err");
+    }
     return ret;
 }
 
@@ -256,7 +268,11 @@ static int32_t GetMacAddr(char *buff, const char *macAddr)
     }
 
     for (int32_t i = 0; i < MAC_LENTH; i++) {
-        buff[i] = addr[i];
+        if (addr[i] > 0xFF) {
+            DHCP_LOGE("GetMacAddr invalid MAC address value at index %d: 0x%x", i, addr[i]);
+            return -1;
+        }
+        buff[i] = static_cast<char>(addr[i]);
     }
     return 0;
 }

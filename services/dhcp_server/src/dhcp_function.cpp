@@ -418,15 +418,18 @@ int DhcpFunction::CreateDirs(const std::string dirs, int mode)
         return DHCP_OPT_FAILED;
     }
 
-    int nSrcLen = (int)dirs.size();
+    size_t nSrcLen = dirs.size();
     char strDir[DIR_MAX_LEN] = {0};
     if (strncpy_s(strDir, sizeof(strDir), dirs.c_str(), dirs.size()) != EOK) {
         DHCP_LOGE("CreateDirs() strncpy_s dirs:%{public}s failed!", dirs.c_str());
         return DHCP_OPT_FAILED;
     }
-    if (strDir[nSrcLen - 1] != '/') {
-        if (nSrcLen == (DIR_MAX_LEN - 1)) {
-            DHCP_LOGE("CreateDirs() dirs:%{public}s len:%{public}d error!", dirs.c_str(), nSrcLen);
+
+    // Check if we need to add trailing slash and have space for it
+    if (nSrcLen > 0 && strDir[nSrcLen - 1] != '/') {
+        if (nSrcLen >= static_cast<size_t>(DIR_MAX_LEN - 1)) {
+            DHCP_LOGE("CreateDirs() dirs:%{public}s len:%{public}zu too long for adding slash!",
+                      dirs.c_str(), nSrcLen);
             return DHCP_OPT_FAILED;
         }
         if (strcat_s(strDir, sizeof(strDir), "/") != EOK) {
@@ -436,8 +439,8 @@ int DhcpFunction::CreateDirs(const std::string dirs, int mode)
         nSrcLen++;
     }
 
-    int i = (strDir[0] == '/') ? 1 : 0;
-    for (; i <= nSrcLen - 1; i++) {
+    size_t i = (strDir[0] == '/') ? 1 : 0;
+    for (; i < nSrcLen; i++) {
         if (strDir[i] == '/') {
             strDir[i] = 0;
             if ((access(strDir, F_OK) != 0) && (mkdir(strDir, mode) != 0)) {

@@ -60,7 +60,6 @@ std::shared_ptr<DhcpServerServiceImpl> DhcpServerServiceImpl::GetInstance()
 }
 #else
 sptr<DhcpServerServiceImpl> DhcpServerServiceImpl::g_instance;
-std::map<std::string, DhcpServerInfo> DhcpServerServiceImpl::m_mapDhcpServer;
 const bool REGISTER_RESULT = SystemAbility::MakeAndRegisterAbility(DhcpServerServiceImpl::GetInstance().GetRefPtr());
 sptr<DhcpServerServiceImpl> DhcpServerServiceImpl::GetInstance()
 {
@@ -88,13 +87,14 @@ DhcpServerServiceImpl::~DhcpServerServiceImpl()
 void DhcpServerServiceImpl::OnStart()
 {
     DHCP_LOGI("enter Server OnStart");
+    std::lock_guard<std::mutex> lock(statemutex_);
     if (mState == ServerServiceRunningState::STATE_RUNNING) {
         DHCP_LOGW("Service has already started.");
         return;
     }
-    if (!Init()) {
+    if (!InitInternal()) {
         DHCP_LOGE("Failed to init dhcp server service");
-        OnStop();
+        OnStopInternal();
         return;
     }
     mState = ServerServiceRunningState::STATE_RUNNING;
@@ -103,11 +103,23 @@ void DhcpServerServiceImpl::OnStart()
 
 void DhcpServerServiceImpl::OnStop()
 {
+    std::lock_guard<std::mutex> lock(statemutex_);
+    OnStopInternal();
+}
+
+void DhcpServerServiceImpl::OnStopInternal()
+{
     mPublishFlag = false;
     DHCP_LOGI("OnStop dhcp server service!");
 }
 
 bool DhcpServerServiceImpl::Init()
+{
+    std::lock_guard<std::mutex> lock(statemutex_);
+    return InitInternal();
+}
+
+bool DhcpServerServiceImpl::InitInternal()
 {
     DHCP_LOGI("enter server Init");
     if (!mPublishFlag) {
@@ -224,6 +236,7 @@ void DhcpServerServiceImpl::DeviceInfoCallBack(const std::string& ifname)
     std::vector<DhcpStationInfo> stationInfos;
     GetDhcpClientInfos(ifname, leases);
     ConvertLeasesToStationInfos(leases, stationInfos);
+    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -297,9 +310,13 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
         return DHCP_E_FAILED;
     }
 
-    auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
-    if (iterRangeMap != m_mapInfDhcpRange.end()) {
-        m_mapInfDhcpRange.erase(iterRangeMap);
+    /* protect m_mapInfDhcpRange access with mutex */
+    {
+        std::lock_guard<std::mutex> lock(dhcprangemutex_);
+        auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
+        if (iterRangeMap != m_mapInfDhcpRange.end()) {
+            m_mapInfDhcpRange.erase(iterRangeMap);
+        }
     }
     if (RemoveAllDhcpRange(ifname) != DHCP_E_SUCCESS) {
         return DHCP_E_FAILED;
@@ -357,7 +374,8 @@ ErrCode DhcpServerServiceImpl::PutDhcpRange(const std::string& tagName, const Dh
 
     DHCP_LOGI("PutDhcpRange tag:%{public}s.", tagName.c_str());
 
-    /* add dhcp range */
+    /* add dhcp range - protect with mutex */
+    std::lock_guard<std::mutex> lock(dhcprangemutex_);
     auto iterRangeMap = m_mapTagDhcpRange.find(tagName);
     if (iterRangeMap != m_mapTagDhcpRange.end()) {
         int nSize = (int)iterRangeMap->second.size();
@@ -405,7 +423,8 @@ ErrCode DhcpServerServiceImpl::RemoveDhcpRange(const std::string& tagName, const
         return DHCP_E_FAILED;
     }
 
-    /* remove dhcp range */
+    /* remove dhcp range - protect with mutex */
+    std::lock_guard<std::mutex> lock(dhcprangemutex_);
     auto iterRangeMap = m_mapTagDhcpRange.find(tagName);
     if (iterRangeMap != m_mapTagDhcpRange.end()) {
         auto iterRange = m_mapTagDhcpRange[tagName].begin();
@@ -446,7 +465,8 @@ ErrCode DhcpServerServiceImpl::RemoveAllDhcpRange(const std::string& tagName)
         return DHCP_E_FAILED;
     }
 
-    /* remove all dhcp range */
+    /* remove all dhcp range - protect with mutex */
+    std::lock_guard<std::mutex> lock(dhcprangemutex_);
     auto iterRangeMap = m_mapTagDhcpRange.find(tagName);
     if (iterRangeMap != m_mapTagDhcpRange.end()) {
         m_mapTagDhcpRange.erase(iterRangeMap);
@@ -481,26 +501,29 @@ ErrCode DhcpServerServiceImpl::SetDhcpRange(const std::string& ifname, const Dhc
         return DHCP_E_FAILED;
     }
 
-    /* add dhcp range */
-    auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
-    if (iterRangeMap != m_mapInfDhcpRange.end()) {
-        int nSize = (int)iterRangeMap->second.size();
-        if (nSize > 1) {
-            DHCP_LOGE("SetDhcpRange failed, %{public}s range size:%{public}d error!", ifname.c_str(), nSize);
-            RemoveDhcpRange(ifname, range);
-            return DHCP_E_FAILED;
+    /* add dhcp range - protect with mutex */
+    {
+        std::lock_guard<std::mutex> lock(dhcprangemutex_);
+        auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
+        if (iterRangeMap != m_mapInfDhcpRange.end()) {
+            int nSize = (int)iterRangeMap->second.size();
+            if (nSize > 1) {
+                DHCP_LOGE("SetDhcpRange failed, %{public}s range size:%{public}d error!", ifname.c_str(), nSize);
+                RemoveDhcpRange(ifname, range);
+                return DHCP_E_FAILED;
+            }
+            if (nSize == 1) {
+                DHCP_LOGW("SetDhcpRange %{public}s range size:%{public}d already exist.", ifname.c_str(), nSize);
+                iterRangeMap->second.clear();
+            }
+            DHCP_LOGI("SetDhcpRange m_mapInfDhcpRange find ifname:%{public}s, need push_back.", ifname.c_str());
+            iterRangeMap->second.push_back(range);
+        } else {
+            std::list<DhcpRange> listDhcpRange;
+            listDhcpRange.push_back(range);
+            m_mapInfDhcpRange.emplace(std::make_pair(ifname, listDhcpRange));
+            DHCP_LOGI("SetDhcpRange m_mapInfDhcpRange no find ifname:%{public}s, need emplace.", ifname.c_str());
         }
-        if (nSize == 1) {
-            DHCP_LOGW("SetDhcpRange %{public}s range size:%{public}d already exist.", ifname.c_str(), nSize);
-            iterRangeMap->second.clear();
-        }
-        DHCP_LOGI("SetDhcpRange m_mapInfDhcpRange find ifname:%{public}s, need push_back.", ifname.c_str());
-        iterRangeMap->second.push_back(range);
-    } else {
-        std::list<DhcpRange> listDhcpRange;
-        listDhcpRange.push_back(range);
-        m_mapInfDhcpRange.emplace(std::make_pair(ifname, listDhcpRange));
-        DHCP_LOGI("SetDhcpRange m_mapInfDhcpRange no find ifname:%{public}s, need emplace.", ifname.c_str());
     }
 
     if (CheckAndUpdateConf(ifname) != DHCP_E_SUCCESS) {
@@ -531,6 +554,7 @@ ErrCode DhcpServerServiceImpl::SetDhcpName(const std::string& ifname, const std:
 
 ErrCode DhcpServerServiceImpl::SetDhcpNameExt(const std::string& ifname, const std::string& tagName)
 {
+    std::lock_guard<std::mutex> lock(dhcprangemutex_);
     auto iterTag = m_mapTagDhcpRange.find(tagName);
     if (iterTag == m_mapTagDhcpRange.end()) {
         DHCP_LOGE("SetDhcpName tag m_mapTagDhcpRange no find tagName:%{public}s.", tagName.c_str());
@@ -666,6 +690,7 @@ int DhcpServerServiceImpl::CheckAndUpdateConf(const std::string &ifname)
         return DHCP_OPT_ERROR;
     }
 
+    std::lock_guard<std::mutex> lock(dhcprangemutex_);
     auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
     if ((iterRangeMap == m_mapInfDhcpRange.end()) || (iterRangeMap->second).empty()) {
         return DHCP_OPT_SUCCESS;
@@ -737,6 +762,7 @@ int DhcpServerServiceImpl::AddSpecifiedInterface(const std::string& ifname)
         return DHCP_OPT_ERROR;
     }
 
+    std::lock_guard<std::mutex> lock(interfacesmutex_);
     if (m_setInterfaces.find(ifname) == m_setInterfaces.end()) {
         m_setInterfaces.insert(ifname);
         DHCP_LOGI("AddSpecifiedInterface started interfaces add %{public}s success.", ifname.c_str());
@@ -751,6 +777,7 @@ int DhcpServerServiceImpl::GetUsingIpRange(const std::string ifname, std::string
         return DHCP_OPT_ERROR;
     }
 
+    std::lock_guard<std::mutex> lock(dhcprangemutex_);
     auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
     if (iterRangeMap == m_mapInfDhcpRange.end()) {
         DHCP_LOGE("GetUsingIpRange failed, inf range map no find %{public}s!", ifname.c_str());
@@ -801,6 +828,7 @@ int DhcpServerServiceImpl::DelSpecifiedInterface(const std::string& ifname)
         return DHCP_OPT_ERROR;
     }
 
+    std::lock_guard<std::mutex> lock(interfacesmutex_);
     auto iterInterfaces = m_setInterfaces.find(ifname);
     if (iterInterfaces != m_setInterfaces.end()) {
         m_setInterfaces.erase(iterInterfaces);

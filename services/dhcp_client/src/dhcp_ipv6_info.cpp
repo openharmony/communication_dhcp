@@ -58,7 +58,13 @@ bool DhcpIpv6InfoManager::RemoveRoute(DhcpIpv6Info &dhcpIpv6Info, std::string de
         }
     }
     for (auto route : dhcpIpv6Info.defaultRouteAddr) {
-        if (memcpy_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN, route.c_str(), route.length() + 1) == EOK) {
+        // Check if route length is safe for the buffer
+        size_t routeLen = route.length();
+        if (routeLen >= DHCP_INET6_ADDRSTRLEN) {
+            DHCP_LOGE("Route address too long: %zu, max allowed: %d", routeLen, DHCP_INET6_ADDRSTRLEN - 1);
+            continue;
+        }
+        if (memcpy_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN, route.c_str(), routeLen + 1) == EOK) {
             return true;
         }
     }
@@ -66,11 +72,14 @@ bool DhcpIpv6InfoManager::RemoveRoute(DhcpIpv6Info &dhcpIpv6Info, std::string de
 }
 inline bool UpdateAddrInline(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrType type)
 {
+    if (addr.length() == 0 || addr.length() >= DHCP_INET6_ADDRSTRLEN) {
+        DHCP_LOGE("UpdateAddr invalid addr");
+        return false;
+    }
     switch (type) {
         case AddrType::DEFAULT: {
             if (memset_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
                 memcpy_s(dhcpIpv6Info.linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("UpdateAddr memset_s or memcpy_s failed");
                 return false;
             }
             break;
@@ -78,7 +87,6 @@ inline bool UpdateAddrInline(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrT
         case AddrType::GLOBAL: {
             if (memset_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
                 memcpy_s(dhcpIpv6Info.globalIpv6Addr, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("AddIpv6Address memcpy_s failed!");
                 return false;
             }
             break;
@@ -86,7 +94,6 @@ inline bool UpdateAddrInline(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrT
         case AddrType::RAND: {
             if (memset_s(dhcpIpv6Info.randIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
                 memcpy_s(dhcpIpv6Info.randIpv6Addr, DHCP_INET6_ADDRSTRLEN, addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("UpdateAddr memcpy_s failed!");
                 return false;
             }
             break;
@@ -95,7 +102,6 @@ inline bool UpdateAddrInline(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrT
             if (memset_s(dhcpIpv6Info.uniqueLocalAddr1, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
                 memcpy_s(dhcpIpv6Info.uniqueLocalAddr1, DHCP_INET6_ADDRSTRLEN,
                     addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("AddIpv6Address memcpy_s failed!");
                 return false;
             }
             break;
@@ -104,7 +110,6 @@ inline bool UpdateAddrInline(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrT
             if (memset_s(dhcpIpv6Info.uniqueLocalAddr2, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN) != EOK ||
                 memcpy_s(dhcpIpv6Info.uniqueLocalAddr2, DHCP_INET6_ADDRSTRLEN,
                     addr.c_str(), addr.length() + 1) != EOK) {
-                DHCP_LOGE("AddIpv6Address uniqueLocalAddr2 memcpy_s failed!");
                 return false;
             }
             break;
