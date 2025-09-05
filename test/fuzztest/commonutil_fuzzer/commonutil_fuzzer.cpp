@@ -57,8 +57,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::CommonUtilFuzzTest(data, size);
-    OHOS::DHCP::GetFilePathTest(data, size);
-    OHOS::DHCP::CreatePathTest(data, size);
+    OHOS::DHCP::GetFilePathTest();
+    OHOS::DHCP::CreatePathTest();
     return 0;
 }
 }  // namespace DHCP
