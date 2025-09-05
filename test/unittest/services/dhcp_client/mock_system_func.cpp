@@ -15,6 +15,8 @@
 
 #include "mock_system_func.h"
 #include "dhcp_client_state_machine.h"
+#include <cstdarg>
+#include <fcntl.h>
 
 using namespace OHOS::DHCP;
 
@@ -73,13 +75,12 @@ ssize_t __wrap_write(int fd, const void *buf, size_t count)
     }
 }
 
-ssize_t __real_read(int fd, void *buf, size_t count);
 ssize_t __wrap_read(int fd, void *buf, size_t count)
 {
     if (g_mockTag) {
         return MockSystemFunc::GetInstance().read(fd, buf, count);
     } else {
-        return __real_read(fd, buf, count);
+        return -1; // __real_read(fd, buf, count);
     }
 }
 
@@ -163,13 +164,13 @@ int __wrap_select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds
     }
 }
 
-ssize_t __real_sendto(int fd, const void *buf, size_t count, int flags, const struct sockaddr *addr, socklen_t len);
-ssize_t __wrap_sendto(int fd, const void *buf, size_t count, int flags, const struct sockaddr *addr, socklen_t len)
+ssize_t __wrap_sendto(int __fd, const void *__buf, size_t __n, int __flags,
+                      const struct sockaddr *__addr, socklen_t __addr_len)
 {
     if (g_mockTag) {
-        return MockSystemFunc::GetInstance().sendto(fd, buf, count, flags, addr, len);
+        return MockSystemFunc::GetInstance().sendto(__fd, __buf, __n, __flags, __addr, __addr_len);
     } else {
-        return __real_sendto(fd, buf, count, flags, addr, len);
+        return -1; // __real_sendto(__fd, __buf, __n, __flags, __addr, __addr_len);
     }
 }
 
@@ -180,6 +181,48 @@ int __wrap_socketpair(int address, int type, int protocol, int *socket)
         return MockSystemFunc::GetInstance().socketpair(address, type, protocol, socket);
     } else {
         return __real_socketpair(address, type, protocol, socket);
+    }
+}
+
+int __real_fcntl(int fd, int cmd, ...);
+int __wrap_fcntl(int fd, int cmd, ...)
+{
+    if (g_mockTag) {
+        if (cmd == F_GETFL) {
+            return MockSystemFunc::GetInstance().fcntl2(fd, cmd);
+        } else {
+            va_list args;
+            va_start(args, cmd);
+            int arg = va_arg(args, int);
+            va_end(args);
+            return MockSystemFunc::GetInstance().fcntl3(fd, cmd, arg);
+        }
+    } else {
+        va_list args;
+        va_start(args, cmd);
+        int arg = va_arg(args, int);
+        va_end(args);
+        return __real_fcntl(fd, cmd, arg);
+    }
+}
+
+unsigned int __real_if_nametoindex(const char *ifname);
+unsigned int __wrap_if_nametoindex(const char *ifname)
+{
+    if (g_mockTag) {
+        return MockSystemFunc::GetInstance().if_nametoindex(ifname);
+    } else {
+        return __real_if_nametoindex(ifname);
+    }
+}
+
+int __real_poll(struct pollfd *fds, nfds_t nfds, int timeout);
+int __wrap_poll(struct pollfd *fds, nfds_t nfds, int timeout)
+{
+    if (g_mockTag) {
+        return MockSystemFunc::GetInstance().poll(fds, nfds, timeout);
+    } else {
+        return __real_poll(fds, nfds, timeout);
     }
 }
 }

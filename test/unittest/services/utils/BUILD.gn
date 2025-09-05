@@ -20,6 +20,8 @@ ohos_unittest("dhcp_util_unittest") {
   module_out_path = module_output_path
 
   sources = [
+    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_system_func.cpp",
+    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_custom_func.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_callback_proxy.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_death_recipient.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_client_service_impl.cpp",
@@ -37,9 +39,8 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
-    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_custom_func.cpp",
-    "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client/mock_system_func.cpp",
     "dhcp_arp_checker_test.cpp",
+    "dhcp_arp_checker_async_test.cpp",
     "dhcp_common_utils_test.cpp",
     "dhcp_permission_utils_test.cpp",
     "dhcp_system_timer_test.cpp",
@@ -71,6 +72,7 @@ ohos_unittest("dhcp_util_unittest") {
     "-Wl,-E",
     "--coverage",
     "-Wl,-rpath=/vendor/lib64/hw",
+    "-Wl,--wrap=sendto",
     "-Wl,--wrap=open",
     "-Wl,--wrap=close",
     "-Wl,--wrap=write",
@@ -82,14 +84,18 @@ ohos_unittest("dhcp_util_unittest") {
     "-Wl,--wrap=listen",
     "-Wl,--wrap=connect",
     "-Wl,--wrap=select",
-    "-Wl,--wrap=sendto",
     "-Wl,--wrap=socketpair",
+    "-Wl,--wrap=fcntl",
+    "-Wl,--wrap=if_nametoindex",
+    "-Wl,--wrap=poll",
     "-Wl,--wrap=GetDhcpRawPacket",
     "-Wl,--wrap=GetDhcpKernelPacket",
     "-Wl,--wrap=GetSelectRet",
   ]
 
-  cflags_cc = [ "-Wno-unused-variable" ]
+  cflags_cc = [ 
+    "-Wno-unused-variable",
+  ]
 
   external_deps = [
     "ability_runtime:wantagent_innerkits",
@@ -109,6 +115,7 @@ ohos_unittest("dhcp_util_unittest") {
   ]
 
   defines = [
+    "DHCP_MOCK_TEST",
     "OHOS_EUPDATER",
     "private = public",
     "protected = public",
