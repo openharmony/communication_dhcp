@@ -37,13 +37,13 @@ void CommonUtilFuzzTest(const uint8_t* data, size_t size)
     RemoveSpaceCharacters(buf, bufSize);
 }
 
-void GetFilePathTest(const uint8_t* data, size_t size)
+void GetFilePathTest()
 {
     const char *fileName = "wlan0";
     (void)GetFilePath(fileName);
 }
 
-void CreatePathTest(const uint8_t* data, size_t size)
+void CreatePathTest()
 {
     const char *fileName = "wlan0";
     (void)CreatePath(fileName);
