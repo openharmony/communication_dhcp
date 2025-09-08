@@ -124,8 +124,27 @@ static void ReleaseStrings(char **strs)
     return;
 }
 
+static bool CheckValidSplitString(const char *buf, const char *split)
+{
+    if (buf == nullptr || split == nullptr || *buf == '\0' || *split == '\0') {
+        return false;
+    }
+
+    if (strlen(buf) < strlen(split) || strlen(split) == 0) {
+        return false;
+    }
+    const int maxLen = 4096;
+    if (strlen(buf) > maxLen) { // avoid too long string
+        return false;
+    }
+    return true;
+}
+
 static char **SplitString(const char *buf, const char *split)
 {
+    if (!CheckValidSplitString(buf, split)) {
+        return nullptr;
+    }
     const char *pos = buf;
     const char *p = nullptr;
     size_t len = strlen(split);

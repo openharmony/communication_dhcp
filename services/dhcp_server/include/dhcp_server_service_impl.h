@@ -88,6 +88,8 @@ public:
     void DeviceInfoCallBack(const std::string& ifname);
 private:
     bool Init();
+    bool InitInternal(); /* internal function called with statemutex_ held */
+    void OnStopInternal(); /* internal function called with statemutex_ held */
     int CheckAndUpdateConf(const std::string& ifname);
     bool CheckIpAddrRange(const DhcpRange& range);
     int AddSpecifiedInterface(const std::string& ifname);
@@ -103,6 +105,9 @@ private:
     std::set<std::string> m_setInterfaces;                          /* the started specified interfaces */
 
     std::mutex m_serverCallBackMutex;
+    std::mutex dhcprangemutex_;  /* protect m_mapTagDhcpRange and m_mapInfDhcpRange */
+    std::mutex interfacesmutex_; /* protect m_setInterfaces */
+    std::mutex statemutex_;      /* protect mPublishFlag and mState */
 #ifdef OHOS_ARCH_LITE
     std::map<std::string, std::shared_ptr<IDhcpServerCallBack>> m_mapServerCallBack;
 #else
@@ -115,7 +120,6 @@ private:
 #else
     static sptr<DhcpServerServiceImpl> g_instance;
 #endif
-    static std::map<std::string, DhcpServerInfo> m_mapDhcpServer;
 
 };
 }  // namespace DHCP
