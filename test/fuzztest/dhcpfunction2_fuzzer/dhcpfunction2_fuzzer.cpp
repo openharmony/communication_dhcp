@@ -322,6 +322,9 @@ void SetLocalInterfaceTest(const uint8_t* data, size_t size)
     if (ret != EOK) {
         return; // Memory copy failed, exit the test
     }
+    if (size / DATA_PARTITION_COUNT + IPV4_ADDR_SIZE + sizeof(netMask) > size) {
+        return;
+    }
     ret = memcpy_s(&netMask, sizeof(netMask), data + size / DATA_PARTITION_COUNT + IPV4_ADDR_SIZE, sizeof(netMask));
     if (ret != EOK) {
         return; // Memory copy failed, exit the test
