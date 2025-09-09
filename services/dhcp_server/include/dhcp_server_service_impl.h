@@ -91,6 +91,7 @@ private:
     bool InitInternal(); /* internal function called with statemutex_ held */
     void OnStopInternal(); /* internal function called with statemutex_ held */
     int CheckAndUpdateConf(const std::string& ifname);
+    int CheckAndUpdateConfInternal(const std::string& ifname); /* internal function called with dhcprangemutex_ held */
     bool CheckIpAddrRange(const DhcpRange& range);
     int AddSpecifiedInterface(const std::string& ifname);
     int GetUsingIpRange(const std::string ifname, std::string& ipRange);
@@ -104,7 +105,6 @@ private:
     std::map<std::string, std::list<DhcpRange>> m_mapTagDhcpRange;  /* dhcp server can be used ip range */
     std::set<std::string> m_setInterfaces;                          /* the started specified interfaces */
 
-    std::mutex m_serverCallBackMutex;
     std::mutex dhcprangemutex_;  /* protect m_mapTagDhcpRange and m_mapInfDhcpRange */
     std::mutex interfacesmutex_; /* protect m_setInterfaces */
     std::mutex statemutex_;      /* protect mPublishFlag and mState */
