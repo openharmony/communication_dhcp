@@ -155,7 +155,6 @@ ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifn
         DHCP_LOGE("RegisterDhcpServerCallBack:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
-    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         (iter->second) = serverCallback;
@@ -215,7 +214,6 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
 
     int ret = RegisterDeviceConnectCallBack(DeviceConnectCallBack);
     ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
-    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -236,7 +234,6 @@ void DhcpServerServiceImpl::DeviceInfoCallBack(const std::string& ifname)
     std::vector<DhcpStationInfo> stationInfos;
     GetDhcpClientInfos(ifname, leases);
     ConvertLeasesToStationInfos(leases, stationInfos);
-    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -326,7 +323,6 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
     if (DelSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
         return DHCP_E_FAILED;
     }
-    std::lock_guard<std::mutex> autoLock(m_serverCallBackMutex);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         if ((iter->second) != nullptr) {
@@ -509,7 +505,8 @@ ErrCode DhcpServerServiceImpl::SetDhcpRange(const std::string& ifname, const Dhc
             int nSize = (int)iterRangeMap->second.size();
             if (nSize > 1) {
                 DHCP_LOGE("SetDhcpRange failed, %{public}s range size:%{public}d error!", ifname.c_str(), nSize);
-                RemoveDhcpRange(ifname, range);
+                // Don't call RemoveDhcpRange here as it would cause deadlock
+                // The cleanup will be handled outside the lock
                 return DHCP_E_FAILED;
             }
             if (nSize == 1) {
@@ -597,7 +594,7 @@ ErrCode DhcpServerServiceImpl::SetDhcpNameExt(const std::string& ifname, const s
     }
 
     /* update or reload interface config file */
-    if (CheckAndUpdateConf(ifname) != DHCP_E_SUCCESS) {
+    if (CheckAndUpdateConfInternal(ifname) != DHCP_E_SUCCESS) {
         DHCP_LOGE("SetDhcpName tag CheckAndUpdateConf failed, ifname:%{public}s.", ifname.c_str());
         return DHCP_E_FAILED;
     }
@@ -691,20 +688,30 @@ int DhcpServerServiceImpl::CheckAndUpdateConf(const std::string &ifname)
     }
 
     std::lock_guard<std::mutex> lock(dhcprangemutex_);
+    return CheckAndUpdateConfInternal(ifname);
+}
+
+int DhcpServerServiceImpl::CheckAndUpdateConfInternal(const std::string &ifname)
+{
+    if (ifname.empty()) {
+        DHCP_LOGE("CheckAndUpdateConfInternal error, ifname is empty!");
+        return DHCP_OPT_ERROR;
+    }
+
     auto iterRangeMap = m_mapInfDhcpRange.find(ifname);
     if ((iterRangeMap == m_mapInfDhcpRange.end()) || (iterRangeMap->second).empty()) {
         return DHCP_OPT_SUCCESS;
     }
     int nSize = (int)iterRangeMap->second.size();
     if (nSize > 1) {
-        DHCP_LOGE("CheckAndUpdateConf failed, %{public}s range size:%{public}d error!", ifname.c_str(), nSize);
+        DHCP_LOGE("CheckAndUpdateConfInternal failed, %{public}s range size:%{public}d error!", ifname.c_str(), nSize);
         return DHCP_OPT_FAILED;
     }
 
     for (auto iterRange : iterRangeMap->second) {
         if (((iterRange.iptype != 0) && (iterRange.iptype != 1)) || (iterRange.leaseHours <= 0) ||
             (iterRange.strStartip.size() == 0) || (iterRange.strEndip.size() == 0)) {
-            DHCP_LOGE("CheckAndUpdateConf failed, "
+            DHCP_LOGE("CheckAndUpdateConfInternal failed, "
                       "iptype:%{public}d,leaseHours:%{public}d,strStartip:%{private}s,strEndip:%{private}s error!",
                 iterRange.iptype, iterRange.leaseHours, iterRange.strStartip.c_str(), iterRange.strEndip.c_str());
             return DHCP_OPT_FAILED;
