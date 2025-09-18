@@ -1061,7 +1061,7 @@ HWTEST_F(DhcpArpCheckerTest, CreateSocketTest_Success_SUCCESS, TestSize.Level1)
     // Mock bind to succeed
     EXPECT_CALL(MockSystemFunc::GetInstance(), bind(VALID_SOCKET_FD, ::testing::_, ::testing::_))
         .WillOnce(Return(0));
-
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillOnce(Return(0));
     EXPECT_EQ(checker_->CreateSocket(validIfName_.c_str(), ETH_P_ARP), 0);
     EXPECT_TRUE(checker_->m_isSocketCreated);
     EXPECT_EQ(checker_->m_socketFd, VALID_SOCKET_FD);
@@ -1525,6 +1525,7 @@ HWTEST_F(DhcpArpCheckerTest, BindSocketToInterfaceTest_BindFail_FAIL, TestSize.L
     MockSystemFunc::SetMockFlag(true);
     EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _))
         .WillOnce(SetErrnoAndReturn(EACCES, -1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillOnce(Return(0));
 
     int32_t result = checker_->BindSocketToInterface(VALID_SOCKET_FD, 1, ETH_P_ARP, validIfName_.c_str());
     EXPECT_EQ(result, -1);
@@ -1581,7 +1582,7 @@ HWTEST_F(DhcpArpCheckerTest, BindSocketToInterfaceTest_FailureClearsRecord_SUCCE
     MockSystemFunc::SetMockFlag(true);
     EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _))
         .WillOnce(SetErrnoAndReturn(EACCES, -1));
-
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillOnce(Return(0));
     // Bind should fail but still clear the record
     int32_t result = checker_->BindSocketToInterface(VALID_SOCKET_FD, 1, ETH_P_ARP, testInterface);
     EXPECT_EQ(result, -1);

@@ -31,6 +31,8 @@
 #endif // OHOS_EUPDATER
 namespace OHOS {
 namespace DHCP {
+static constexpr int32_t ERROR_FAILED = -1;
+static constexpr int32_t ERROR_TIMEOUT = -2;
 class DhcpThread {
 public:
     using Callback = std::function<void()>;
@@ -72,9 +74,9 @@ public:
      * @param Callback - Input task
      * @param waitTime - Wait time(ms) excute task
      * @param delayTime - Wait delayTime ms excute task
-     * @return bool - true: excute task success, false: execute task timeout
+     * @return int - 0: success, -1: failed, -2: timeout
      */
-    bool PostSyncTimeOutTask(const std::function<int32_t()> &callback, int32_t waitTime);
+    int PostSyncTimeOutTask(const std::function<int32_t()> &callback, int32_t waitTime);
 
     /**
      * @Remove Async task

@@ -78,12 +78,12 @@ HWTEST_F(DhcpThreadTest, PostSyncTimeOutTask_001, TestSize.Level1)
     DHCP_LOGE("enter PostSyncTimeOutTask_001");
     DhcpThread dhcpThread("TestThread");
     int timeOut = 500;
-    bool result = dhcpThread.PostSyncTimeOutTask([]() -> int32_t {
+    int result = dhcpThread.PostSyncTimeOutTask([]() -> int32_t {
         std::this_thread::sleep_for(std::chrono::milliseconds(300));
         return 0;
     }, timeOut);
- 
-    EXPECT_TRUE(result);
+
+    EXPECT_EQ(result, 0);
 }
  
 HWTEST_F(DhcpThreadTest, PostSyncTimeOutTask_002, TestSize.Level1)
@@ -91,12 +91,12 @@ HWTEST_F(DhcpThreadTest, PostSyncTimeOutTask_002, TestSize.Level1)
     DHCP_LOGE("enter PostSyncTimeOutTask_002");
     DhcpThread dhcpThread("TestThread");
     int timeOut = 500;
-    bool result = dhcpThread.PostSyncTimeOutTask([]() -> int32_t {
+    int result = dhcpThread.PostSyncTimeOutTask([]() -> int32_t {
         std::this_thread::sleep_for(std::chrono::milliseconds(600));
         return 0;
     }, timeOut);
- 
-    EXPECT_FALSE(result);
+
+    EXPECT_EQ(result, ERROR_TIMEOUT);
 }
 
 HWTEST_F(DhcpThreadTest, RemoveAsyncTask_SUCCESS, TestSize.Level1)

@@ -59,6 +59,7 @@ constexpr int32_t MAC_ADDR_BYTE_5 = 5;
 // Global state tracking: record ongoing bind attempts to prevent concurrent access
 static std::mutex g_interfaceAttemptMutex;
 static std::unordered_set<std::string> g_ongoingAttempts;
+static std::unordered_map<std::string, int> g_unwantedFds;
 
 // Timeout and progress constants
 constexpr int64_t MIN_PROGRESS_MS = 1; // Minimum progress to prevent infinite loops
@@ -158,16 +159,9 @@ bool DhcpArpChecker::CreateSocketWithTimeout(const std::string& ifname)
         return false;
     }
 
-    auto func = [this, ifname]() {
-        return this->CreateSocket(ifname.c_str(), ETH_P_ARP);
-    };
-
-    // Use shorter timeout to detect bind stuck
-    constexpr int32_t BIND_DETECTION_TIMEOUT_MS = 3000;  // 3 seconds detection timeout
-    auto ret = dhcpArpCheckerThread_->PostSyncTimeOutTask(func, BIND_DETECTION_TIMEOUT_MS);
-    if (ret == false) {
-        DHCP_LOGE("DhcpArpChecker CreateSocket timeout in %{public}dms, bind blocked", BIND_DETECTION_TIMEOUT_MS);
-        // Timeout occurred, bind is blocked, the attempt record will remain to prevent new attempts
+    int ret = CreateSocket(ifname.c_str(), ETH_P_ARP);
+    if (ret != OPT_SUCC) {
+        DHCP_LOGE("CreateSocket failed for interface: %{public}s", ifname.c_str());
         return false;
     }
     return true;
@@ -417,8 +411,30 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
         return OPT_FAIL;
     }
 
-    if (BindSocketToInterface(socketFd, ifaceIndex, protocol, iface) != OPT_SUCC) {
-        (void)close(socketFd);
+    std::string ifaceCopy(iface);  // create a copy for lambda capture
+    auto func = [this, socketFd, ifaceIndex, protocol, ifaceCopy]() {
+        return this->BindSocketToInterface(socketFd, ifaceIndex, protocol, ifaceCopy.c_str());
+    };
+
+    // Use shorter timeout to detect bind stuck
+    constexpr int32_t BIND_DETECTION_TIMEOUT_MS = 3000;  // 3 seconds detection timeout
+    auto ret = dhcpArpCheckerThread_->PostSyncTimeOutTask(func, BIND_DETECTION_TIMEOUT_MS);
+    if (ret == ERROR_TIMEOUT) {
+        DHCP_LOGE("DhcpArpChecker BindSocketToInterface timeout in %{public}dms", BIND_DETECTION_TIMEOUT_MS);
+        // Timeout occurred, bind is blocked, the attempt record will remain to prevent new attempts
+        std::lock_guard<std::mutex> lock(g_interfaceAttemptMutex);
+        std::string ifname(iface);
+        auto item = g_unwantedFds.find(ifname);
+        if (item != g_unwantedFds.end()) {
+            int unwantedFd = item->second;
+            (void)close(unwantedFd);
+            g_unwantedFds.erase(item);
+            DHCP_LOGI("Closed previous unwanted fd for interface %{public}s", iface);
+        }
+        g_unwantedFds[std::string(iface)] = socketFd; // Store unwanted fd for later cleanup
+        return OPT_FAIL;
+    } else if (ret == ERROR_FAILED) {
+        DHCP_LOGE("DhcpArpChecker BindSocketToInterface failed");
         return OPT_FAIL;
     }
 
@@ -482,6 +498,7 @@ int32_t DhcpArpChecker::BindSocketToInterface(int32_t socketFd, int32_t ifaceInd
             std::string ifname(iface);
             g_ongoingAttempts.erase(ifname);
         }
+        (void)close(socketFd);
         return OPT_FAIL;
     }
 
@@ -492,6 +509,14 @@ int32_t DhcpArpChecker::BindSocketToInterface(int32_t socketFd, int32_t ifaceInd
         std::lock_guard<std::mutex> lock(g_interfaceAttemptMutex);
         std::string ifname(iface);
         g_ongoingAttempts.erase(ifname);
+        // Also clean up any unwanted fds for this interface
+        auto it = g_unwantedFds.find(ifname);
+        if (it != g_unwantedFds.end()) {
+            int unwantedFd = it->second;
+            (void)close(unwantedFd);
+            g_unwantedFds.erase(it);
+            DHCP_LOGI("Closed unwanted fd for interface %{public}s", iface);
+        }
     }
     return OPT_SUCC;
 }
