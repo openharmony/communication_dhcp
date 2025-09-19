@@ -377,9 +377,8 @@ ErrCode DhcpClientServiceImpl::StopDhcpIpv4Client(const std::string& ifname)
         auto iter2 = m_mapClientService.find(ifname);
         if (iter2 != m_mapClientService.end()) {
             if ((iter2->second).pStaStateMachine != nullptr) {
-                DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4, ifname:%{public}s", ifname.c_str());
-                (iter2->second).pStaStateMachine->StopIpv4();
-                (iter2->second).pStaStateMachine->CloseAllRenewTimer();
+                DHCP_LOGI("StopDhcpClient pStaStateMachine StopIpv4Type, ifname:%{public}s", ifname.c_str());
+                (iter2->second).pStaStateMachine->StopIpv4Type();
             }
         }
     }

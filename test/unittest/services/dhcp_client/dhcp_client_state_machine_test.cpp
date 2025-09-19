@@ -333,13 +333,6 @@ HWTEST_F(DhcpClientStateMachineTest, GetPacketHeaderInfoTest, TestSize.Level0)
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->GetPacketHeaderInfo(&packet, DHCP_FORCERENEW));
 }
 
-HWTEST_F(DhcpClientStateMachineTest, ExitIpv4Test, TestSize.Level0)
-{
-    DHCP_LOGI("ExitIpv4Test enter!");
-    dhcpClient->ExitIpv4();
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->ExitIpv4());
-}
-
 HWTEST_F(DhcpClientStateMachineTest, StopIpv4Test, TestSize.Level0)
 {
     DHCP_LOGI("StopIpv4Test enter!");
@@ -641,18 +634,6 @@ HWTEST_F(DhcpClientStateMachineTest, AddStrToOptsTest, TestSize.Level0)
     packet.options[0] = END_OPTION;
     EXPECT_EQ(DHCP_OPT_FAILED, dhcpClient->AddStrToOpts(nullptr, option, value));
     EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->AddStrToOpts(&packet, option, value));
-}
-
-HWTEST_F(DhcpClientStateMachineTest, InitSignalHandleTest, TestSize.Level0)
-{
-    DHCP_LOGI("InitSignalHandleTest enter!");
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->InitSignalHandle());
-}
-
-HWTEST_F(DhcpClientStateMachineTest, CloseSignalHandleTest, TestSize.Level0)
-{
-    DHCP_LOGI("CloseSignalHandleTest enter!");
-    EXPECT_EQ(DHCP_OPT_SUCCESS, dhcpClient->CloseSignalHandle());
 }
 
 HWTEST_F(DhcpClientStateMachineTest, AddClientIdToOptsTest, TestSize.Level0)

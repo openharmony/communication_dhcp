@@ -102,36 +102,32 @@ private:
 #ifndef OHOS_ARCH_LITE
     void GetDhcpOffer(DhcpPacket *getPacket, int64_t timestamp);
     void SetTimerCallback(TimerType type, std::function<void()> &timeCallback);
+    void StartTimer(TimerType type, uint64_t &timerId, int64_t interval, bool once);
+    void StopTimer(uint64_t &timerId);
 #ifndef OHOS_EUPDATER
     void SetTimerName(TimerType type, std::shared_ptr<OHOS::DHCP::DhcpSysTimer> dhcpSysTimer);
 #endif
 #endif
-
+    int InitStartIpv4Thread(const std::string &ifname, bool isIpv6);
+    void StartIpv4(void);
+    int StopIpv4(void);
+    int ExecDhcpRelease(void);
+    int ExecDhcpRenew(void);
+    void ScheduleLeaseTimers(bool isCachedIp);
+    void SetSecondsElapsed(struct DhcpPacket *packet);
+    bool IsPcDevice();
+    void CloseAllRenewTimer();
 public:
 #ifndef OHOS_ARCH_LITE
-    void StartTimer(TimerType type, uint64_t &timerId, int64_t interval, bool once);
-    void StopTimer(uint64_t &timerId);
     void GetIpTimerCallback();
     void RenewDelayCallback();
     void RebindDelayCallback();
     void RemainingDelayCallback();
 #endif
     int StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action);
-    int InitStartIpv4Thread(const std::string &ifname, bool isIpv6);
-    void StartIpv4(void);
-    int ExecDhcpRelease(void);
-    int ExecDhcpRenew(void);
-    int ExitIpv4(void);
-    int StopIpv4(void);
-    int InitSignalHandle();
-    int CloseSignalHandle();
+    int StopIpv4Type(void);
     ActionMode GetAction(void);
     void SetConfiguration(const RouterConfig &routerCfg);
-    void ScheduleLeaseTimers(bool isCachedIp);
-    void CloseAllRenewTimer();
-    int SendStopSignal();
-    void SetSecondsElapsed(struct DhcpPacket *packet);
-    bool IsPcDevice();
 private:
     int m_dhcp4State;
     int m_sockFd;
@@ -170,6 +166,7 @@ private:
     bool m_slowArpDetecting;
     int64_t firstSendPacketTime_;
     uint64_t slowArpTimeoutTimerId_;
+    std::mutex dhcpClientMutex_;
 };
 
 typedef struct{
