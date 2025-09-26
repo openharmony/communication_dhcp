@@ -163,6 +163,11 @@ int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, u
         close(fd);
         return DHCP_OPT_FAILED;
     }
+    if (ifindex == nullptr) {
+        DHCP_LOGE("GetLocalInterface() ifindex is nullptr");
+        close(fd);
+        return DHCP_OPT_FAILED;
+    }
     *ifindex = iface.ifr_ifindex;
 
     if (ioctl(fd, SIOCGIFHWADDR, &iface) != 0) {
