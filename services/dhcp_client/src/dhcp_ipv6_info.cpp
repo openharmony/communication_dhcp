@@ -127,14 +127,27 @@ bool DhcpIpv6InfoManager::UpdateAddr(DhcpIpv6Info &dhcpIpv6Info, std::string add
         DHCP_LOGE("UpdateAddr invalid addr");
         return false;
     }
+    //first check if the addr already exists with the same type
     bool existingKey = (dhcpIpv6Info.IpAddrMap.find(addr) != dhcpIpv6Info.IpAddrMap.end());
     if (existingKey && dhcpIpv6Info.IpAddrMap[addr] == static_cast<int>(type)) {
         DHCP_LOGI("UpdateAddr existing addr");
         return false;
     }
+    // if the addr exists but with a different type, remove it first
     if (existingKey) {
         DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, addr);
     }
+    // remove any existing addr with the same type
+    for (auto it = dhcpIpv6Info.IpAddrMap.begin(); it != dhcpIpv6Info.IpAddrMap.end();) {
+        if (it->second == static_cast<int>(type)) {
+            DHCP_LOGI("UpdateAddr existing type");
+            dhcpIpv6Info.IpAddrMap.erase(it++);
+            break;
+        } else {
+            ++it;
+        }
+    }
+    // add the new addr and type
     dhcpIpv6Info.IpAddrMap.insert({addr, static_cast<int>(type)});
     if (!UpdateAddrInline(dhcpIpv6Info, addr, type)) {
         DHCP_LOGE("UpdateAddr failed %{public}d", static_cast<int>(type));
