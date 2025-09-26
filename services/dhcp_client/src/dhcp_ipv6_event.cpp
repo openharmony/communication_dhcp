@@ -191,7 +191,7 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
         return;
     }
     struct nlmsghdr *nlh = (struct nlmsghdr*)data;
-    while (nlh && NLMSG_OK(nlh, len) && nlh->nlmsg_type != NLMSG_DONE) {
+    while (nlh && NLMSG_OK(nlh, len) && nlh->nlmsg_type != static_cast<__u32>(NLMSG_DONE)) {
         DHCP_LOGD("handleKernelEvent nlmsg_type:%{public}d.", nlh->nlmsg_type);
         if (nlh->nlmsg_type == RTM_NEWADDR) {
             DHCP_LOGI("handleKernelEvent nlmsg_type: RTM_NEWADDR.");
