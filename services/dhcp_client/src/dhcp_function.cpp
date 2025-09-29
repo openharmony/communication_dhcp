@@ -133,13 +133,13 @@ bool MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, 
 
 int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, uint32_t *ifaddr4)
 {
-    if ((ifname == NULL) || (strlen(ifname) == 0) || hwaddr == NULL || ifindex == NULL) {
-        DHCP_LOGE("GetLocalInterface() failed, ifname == NULL or hwaddr is NULL or ifindex is NULL");
+    if ((ifname == nullptr) || (strlen(ifname) == 0) || hwaddr == nullptr || ifindex == nullptr) {
+        DHCP_LOGE("GetLocalInterface() failed, ifname == nullptr or hwaddr is nullptr or ifindex is nullptr");
         return DHCP_OPT_FAILED;
     }
     int fd;
     struct ifreq iface;
-    struct sockaddr_in *pSockIn = NULL;
+    struct sockaddr_in *pSockIn = nullptr;
 
     if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
         DHCP_LOGE("GetLocalInterface() ifname:%{public}s failed, socket err:%{public}d!", ifname, errno);
@@ -175,7 +175,7 @@ int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, u
         return DHCP_OPT_FAILED;
     }
 
-    if (ifaddr4 != NULL) {
+    if (ifaddr4 != nullptr) {
         if (ioctl(fd, SIOCGIFADDR, &iface) < 0) {
             DHCP_LOGE("GetLocalInterface() %{public}s failed, SIOCGIFADDR err:%{public}d!", ifname, errno);
             close(fd);
