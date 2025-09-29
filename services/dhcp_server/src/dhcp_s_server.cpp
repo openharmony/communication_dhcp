@@ -1834,7 +1834,7 @@ static int ParseReplyOptions(PDhcpMsgInfo reply)
     remainingSize -= olen;
     current += olen;
     ret = RET_SUCCESS;
-    while (pNode && (uint32_t)pNode->option.length < DHCP_OPTION_SIZE) {
+    while (pNode) {
         if ((uint32_t)pNode->option.code == END_OPTION) {
             olen = OPT_HEADER_LENGTH + 1;
         } else {
