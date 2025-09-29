@@ -133,11 +133,10 @@ bool MacChConToMacStr(const unsigned char *pChMac, size_t chLen, char *pStrMac, 
 
 int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, uint32_t *ifaddr4)
 {
-    if ((ifname == NULL) || (strlen(ifname) == 0) || hwaddr == NULL) {
-        DHCP_LOGE("GetLocalInterface() failed, ifname == NULL or hwaddr is NULL");
+    if ((ifname == NULL) || (strlen(ifname) == 0) || hwaddr == NULL || ifindex == NULL) {
+        DHCP_LOGE("GetLocalInterface() failed, ifname == NULL or hwaddr is NULL or ifindex is NULL");
         return DHCP_OPT_FAILED;
     }
-
     int fd;
     struct ifreq iface;
     struct sockaddr_in *pSockIn = NULL;
@@ -160,11 +159,6 @@ int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, u
 
     if (ioctl(fd, SIOCGIFINDEX, &iface) != 0) {
         DHCP_LOGE("GetLocalInterface() %{public}s failed, SIOCGIFINDEX err:%{public}d!", ifname, errno);
-        close(fd);
-        return DHCP_OPT_FAILED;
-    }
-    if (ifindex == nullptr) {
-        DHCP_LOGE("GetLocalInterface() ifindex is nullptr");
         close(fd);
         return DHCP_OPT_FAILED;
     }
