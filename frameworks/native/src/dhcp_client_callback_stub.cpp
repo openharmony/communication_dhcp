@@ -132,11 +132,26 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, MessageParce
     result.strRandIpv6Addr = data.ReadString();
     result.strLocalAddr1 = data.ReadString();
     result.strLocalAddr2 = data.ReadString();
-    int size = reply.ReadInt32();
-    if ((state == DHCP_E_SUCCESS) && (size < DHCP_MAX_DNS_SIZE)) {
-        for (int i = 0; i < size; i++) {
-            std::string str = reply.ReadString();
+    int size = data.ReadInt32();
+    if (size < 0 || size >= DHCP_MAX_DNS_SIZE) {
+        size = 0;
+    }
+    for (int i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
+        std::string str = data.ReadString();
+        if (!str.empty()) {
             result.vectorDnsAddr.push_back(str);
+        }
+    }
+    // Deserialize IPv6 addresses and types
+    int addrCnt = data.ReadInt32();
+    if (addrCnt <= 0 || addrCnt > DHCP_MAX_ADDR_SIZE) {
+        addrCnt = 0;
+    }
+    for (int i = 0; i < addrCnt; i++) {
+        std::string addr = data.ReadString();
+        int type = data.ReadInt32();
+        if (!addr.empty()) {
+            result.IpAddrMap[addr] = type;
         }
     }
     OnIpSuccessChanged(state, ifname, result);
@@ -178,11 +193,26 @@ int DhcpClientCallBackStub::RemoteOnDhcpOfferReport(uint32_t code, MessageParcel
     result.strRandIpv6Addr = data.ReadString();
     result.strLocalAddr1 = data.ReadString();
     result.strLocalAddr2 = data.ReadString();
-    int size = reply.ReadInt32();
-    if (state == DHCP_E_SUCCESS) {
-        for (int i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
-            std::string str = reply.ReadString();
+    int size = data.ReadInt32();
+    if (size < 0 || size >= DHCP_MAX_DNS_SIZE) {
+        size = 0;
+    }
+    for (int i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
+        std::string str = data.ReadString();
+        if (!str.empty()) {
             result.vectorDnsAddr.push_back(str);
+        }
+    }
+    // Deserialize IPv6 addresses and types
+    int addrCnt = data.ReadInt32();
+    if (addrCnt <= 0 || addrCnt > DHCP_MAX_ADDR_SIZE) {
+        addrCnt = 0;
+    }
+    for (int i = 0; i < addrCnt; i++) {
+        std::string addr = data.ReadString();
+        int type = data.ReadInt32();
+        if (!addr.empty()) {
+            result.IpAddrMap[addr] = type;
         }
     }
     OnDhcpOfferReport(state, ifname, result);

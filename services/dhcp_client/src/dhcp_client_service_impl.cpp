@@ -674,6 +674,10 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     result.strRandIpv6Addr = info.randIpv6Addr;
     result.strLocalAddr1 = info.uniqueLocalAddr1;
     result.strLocalAddr2 = info.uniqueLocalAddr2;
+    // fill all ipv6 addresses and types
+    for (const auto &kv : info.IpAddrMap) {
+        result.IpAddrMap[kv.first] = kv.second;
+    }
     for (auto dnsAddr : info.vectorDnsAddr) {
         result.vectorDnsAddr.push_back(dnsAddr);
     }

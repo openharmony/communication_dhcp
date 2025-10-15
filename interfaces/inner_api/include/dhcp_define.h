@@ -17,6 +17,7 @@
 #define OHOS_DHCP_DEFINE_H
 
 #include <string>
+#include <map>
 #include <cstdint>
 #include <netinet/ip.h>
 #include <sys/stat.h>
@@ -264,7 +265,7 @@ struct DhcpResult {
     uint32_t uAddTime;      /* dhcp result add time */
     uint32_t uGetTime;      /* dhcp result get time */
     std::vector<std::string> vectorDnsAddr; /* your (client) multi dns server */
-
+    std::map<std::string, int> IpAddrMap; // key: addr, value: type
     DhcpResult()
     {
         iptype      = -1;
@@ -285,6 +286,7 @@ struct DhcpResult {
         uAddTime    = 0;
         uGetTime    = 0;
         vectorDnsAddr.clear();
+        IpAddrMap.clear();
     }
 };
 

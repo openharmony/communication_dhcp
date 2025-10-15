@@ -65,6 +65,11 @@ void DhcpClientCallBack::ResultInfoCopy(DhcpResult &dhcpResult, OHOS::DHCP::Dhcp
     if (strcpy_s(dhcpResult.strOptLocalAddr2, DHCP_MAX_FILE_BYTES, result.strLocalAddr2.c_str()) != EOK) {
         DHCP_LOGE("ResultInfoCopy strOptLocalAddr2 strcpy_s failed!");
     }
+    ResultInfoCopyExt(dhcpResult, result);
+}
+
+void DhcpClientCallBack::ResultInfoCopyExt(DhcpResult &dhcpResult, OHOS::DHCP::DhcpResult& result)
+{
     for (size_t i = 0; i < result.vectorDnsAddr.size(); i++) {
         if (i >= DHCP_DNS_MAX_NUMBER) {
             DHCP_LOGE("ResultInfoCopy break, i:%{public}zu, dns max number:%{public}d", i, DHCP_DNS_MAX_NUMBER);
@@ -77,8 +82,21 @@ void DhcpClientCallBack::ResultInfoCopy(DhcpResult &dhcpResult, OHOS::DHCP::Dhcp
             dhcpResult.dnsList.dnsNumber++;
         }
     }
+    for (const auto &addrItem : result.IpAddrMap) {
+        if (dhcpResult.addrList.addrNumber >= DHCP_ADDR_MAX_NUMBER) {
+            DHCP_LOGE("ResultInfoCopy break, addr max number:%{public}d", DHCP_ADDR_MAX_NUMBER);
+            break;
+        }
+        const std::string &addr = addrItem.first;
+        if (strncpy_s(dhcpResult.addrList.addr[dhcpResult.addrList.addrNumber], DHCP_ADDR_DATA_MAX_LEN, addr.c_str(),
+            addr.length()) != EOK) {
+            DHCP_LOGE("ResultInfoCopy, strncpy_s failed, addrSize:%{public}u", dhcpResult.addrList.addrNumber);
+        } else {
+            dhcpResult.addrList.addrType[dhcpResult.addrList.addrNumber] = addrItem.second;
+            dhcpResult.addrList.addrNumber++;
+        }
+    }
 }
-
 void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifname, OHOS::DHCP::DhcpResult& result)
     __attribute__((no_sanitize("cfi")))
 {
