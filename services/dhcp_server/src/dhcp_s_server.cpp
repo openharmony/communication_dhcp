@@ -1630,6 +1630,10 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
             destAddrIn->sin_addr.s_addr = reply->packet.yiaddr;
             std::string ipAddr = Ip4IntConvertToStr(reply->packet.yiaddr, false);
             std::string macAddr = ParseStrMac(reply->packet.chaddr, sizeof(reply->packet.chaddr));
+            if (macAddr.empty()) {
+                DHCP_LOGE("Failed to parse MAC address.");
+                return RET_FAILED;
+            }
             if (AddArpEntry(ctx->ifname, ipAddr, macAddr) < 0) {
                 DHCP_LOGE("AddArpEntry failed");
                 return RET_FAILED;
