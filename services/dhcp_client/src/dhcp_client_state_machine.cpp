@@ -1972,16 +1972,20 @@ void DhcpClientStateMachine::GetIpTimerCallback()
     DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}" PRIu64",%{public}" PRIu64","
         "%{public}" PRIu64",%{public}" PRIu64"",
         threadExit_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
-    std::lock_guard<std::mutex> lock(dhcpClientMutex_);
-    if (threadExit_.load()) {
-        DHCP_LOGE("GetIpTimerCallback return!");
-        return;
+    ActionMode currentMode;
+    {
+        std::lock_guard<std::mutex> lock(dhcpClientMutex_);
+        if (threadExit_.load()) {
+            DHCP_LOGE("GetIpTimerCallback return!");
+            return;
+        }
+        StopTimer(getIpTimerId);
+        StopIpv4();
+        currentMode = m_action;
     }
-    StopTimer(getIpTimerId);
-    StopIpv4();
-    if (m_action == ACTION_RENEW_T1 || m_action == ACTION_RENEW_T2) {
+    if (currentMode == ACTION_RENEW_T1 || currentMode == ACTION_RENEW_T2) {
         DHCP_LOGI("GetIpTimerCallback T1 or T2 Timeout!");
-    } else if (m_action == ACTION_RENEW_T3) {
+    } else if (currentMode == ACTION_RENEW_T3) {
         DHCP_LOGI("GetIpTimerCallback T3 Expired!");
         struct DhcpIpResult ipResult;
         ipResult.code = PUBLISH_CODE_EXPIRED;
