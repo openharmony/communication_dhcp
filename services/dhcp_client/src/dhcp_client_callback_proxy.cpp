@@ -45,9 +45,15 @@ void DhcpClientCallbackProxy::WriteDhcpResult(const DhcpResult& result, MessageP
     data.WriteString(result.strRandIpv6Addr);
     data.WriteString(result.strLocalAddr1);
     data.WriteString(result.strLocalAddr2);
-    data.WriteInt32(result.vectorDnsAddr.size());
+    data.WriteInt32(static_cast<int32_t>(result.vectorDnsAddr.size()));
     for (auto &dns : result.vectorDnsAddr) {
         data.WriteString(dns);
+    }
+    // Serialize all IPv6 addresses and types
+    data.WriteInt32(static_cast<int32_t>(result.IpAddrMap.size()));
+    for (const auto &kv : result.IpAddrMap) {
+        data.WriteString(kv.first);
+        data.WriteInt32(kv.second);
     }
 }
 

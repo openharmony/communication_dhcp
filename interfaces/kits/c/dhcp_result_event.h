@@ -32,6 +32,8 @@ extern "C" {
 #define DHCP_LEASE_DATA_MAX_LEN 128
 #define DHCP_DNS_MAX_NUMBER 10
 #define DHCP_DNS_DATA_MAX_LEN 128
+#define DHCP_ADDR_MAX_NUMBER 16
+#define DHCP_ADDR_DATA_MAX_LEN 128
 #define INTERFACE_MAX_LEN 32
 #define SSID_MAX_LEN 32
 #define WIFI_DHCP_CACHE_ADD 1
@@ -41,6 +43,12 @@ typedef struct{
     uint32_t dnsNumber;
     char dnsAddr[DHCP_DNS_MAX_NUMBER][DHCP_DNS_DATA_MAX_LEN];
 }DnsList;
+
+typedef struct{
+    uint32_t addrNumber;
+    char addr[DHCP_ADDR_MAX_NUMBER][DHCP_ADDR_DATA_MAX_LEN];
+    int addrType[DHCP_ADDR_MAX_NUMBER];
+}AddrList;
 
 typedef struct{
     int iptype;                                /* 0-ipv4,1-ipv6 */
@@ -61,6 +69,7 @@ typedef struct{
     uint32_t uAddTime;                          /* dhcp result add time */
     uint32_t uGetTime;                          /* dhcp result get time */
     DnsList dnsList;                            /* dhcp dns list */
+    AddrList addrList;                          /* dhcp addr list */
 }DhcpResult;
 
 typedef struct DhcpRange{

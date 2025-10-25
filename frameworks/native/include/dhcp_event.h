@@ -44,6 +44,7 @@ public:
     void UnRegisterCallBack(const std::string& ifname);
     void RegisterDhcpClientReportCallBack(const std::string& ifname, const DhcpClientReport *event);
     void ResultInfoCopy(DhcpResult &dhcpResult, OHOS::DHCP::DhcpResult& result);
+    void ResultInfoCopyExt(DhcpResult &dhcpResult, OHOS::DHCP::DhcpResult& result);
     std::mutex callBackMutex;
     std::map<std::string, const ClientCallBack *> mapClientCallBack;
     std::mutex mapReportMutex_;

@@ -24,6 +24,7 @@
 namespace OHOS {
 namespace DHCP {
 #define DHCP_MAX_DNS_SIZE 64
+#define DHCP_MAX_ADDR_SIZE 16
 class DhcpClientCallBackStub : public IRemoteStub<IDhcpClientCallBack> {
 public:
     DhcpClientCallBackStub();
