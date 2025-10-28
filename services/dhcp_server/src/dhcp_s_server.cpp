@@ -1629,7 +1629,12 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
         if (!broadCastFlag) {
             destAddrIn->sin_addr.s_addr = reply->packet.yiaddr;
             std::string ipAddr = Ip4IntConvertToStr(reply->packet.yiaddr, false);
-            std::string macAddr = ParseStrMac(reply->packet.chaddr, sizeof(reply->packet.chaddr));
+            const char *mac = ParseStrMac(reply->packet.chaddr, sizeof(reply->packet.chaddr));
+            if (mac == nullptr) {
+                DHCP_LOGE("ParseStrMac returned NULL.");
+                return RET_FAILED;
+            }
+            std::string macAddr(mac);
             if (macAddr.empty()) {
                 DHCP_LOGE("Failed to parse MAC address.");
                 return RET_FAILED;
@@ -1639,10 +1644,8 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
                 return RET_FAILED;
             }
             if (reply->length > 0 && reply->length <= REPLY_PACKET_MAX_LEN) {
-                ret = sendto(srvIns->serverFd,
-                    &reply->packet,
-                    reply->length,
-                    0,
+                ret = sendto(srvIns->serverFd, &reply->packet,
+                    reply->length, 0,
                     (struct sockaddr *)destAddrIn,
                     sizeof(*destAddrIn));
             }
