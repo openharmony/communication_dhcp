@@ -318,6 +318,7 @@ int DhcpClientStateMachine::StopIpv4Type(void)
 {
     DHCP_LOGI("StopIpv4Type threadExit:%{public}d", threadExit_.load());
     std::lock_guard<std::mutex> lock(dhcpClientMutex_);
+    CloseAllRenewTimer();
     return StopIpv4();
 }
 
@@ -336,7 +337,6 @@ int DhcpClientStateMachine::StopIpv4(void)
         m_slowArpTaskId = 0;
 #endif
     }
-    CloseAllRenewTimer();
     return DHCP_OPT_SUCCESS;
 }
 
