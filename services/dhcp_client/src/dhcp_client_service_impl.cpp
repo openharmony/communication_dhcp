@@ -580,7 +580,6 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
     result.uGetTime = (uint32_t)time(NULL);
     result.uAddTime = ipResult.uAddTime;
 
-    PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv4ResultFail ifname:%{public}s result.isOptSuc:false!", ifname.c_str());
     ActionMode action = ACTION_INVALID;
     {
@@ -600,6 +599,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultFail(struct DhcpIpResult &ipResult)
         DHCP_LOGE("DhcpIpv4ResultFail mclientCallback == nullptr!");
         return DHCP_OPT_FAILED;
     }
+    PushDhcpResult(ifname, result);
     if ((action == ACTION_RENEW_T1) || (action == ACTION_RENEW_T2) || (action == ACTION_RENEW_T3)) {
         (iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_FAILED, ifname.c_str(), "get dhcp renew result failed!");
     } else {
@@ -682,7 +682,6 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
         result.vectorDnsAddr.push_back(dnsAddr);
     }
 
-    PushDhcpResult(ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{public}s, server:%{public}s, "
         "Subnet:%{public}s, Dns1:%{public}s, Dns2:%{public}s, Router1:%{public}s, Router2:%{public}s, "
         "strVendor:%{public}s, strLinkIpv6Addr:%{public}s, strRandIpv6Addr:%{public}s, uLeaseTime:%{public}u, "
@@ -703,6 +702,7 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
         DHCP_LOGE("DhcpIpv6ResulCallback mclientCallback == nullptr!");
         return;
     }
+    PushDhcpResult(ifname, result);
     (iter->second)->OnIpSuccessChanged(PUBLISH_CODE_SUCCESS, ifname, result);
     DHCP_LOGI("DhcpIpv6ResulCallback OnIpSuccessChanged");
 }
