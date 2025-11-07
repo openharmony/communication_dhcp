@@ -26,19 +26,19 @@ namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 
-void HasArgumentTest(const uint8_t* data, size_t size)
+void HasArgumentTest()
 {
     const char *argument = "TEXT";
     HasArgument(argument);
 }
 
-void GetArgumentTest(const uint8_t* data, size_t size)
+void GetArgumentTest()
 {
     const char *name = "TEXT";
     GetArgument(name);
 }
 
-void PutArgumentTest(const uint8_t* data, size_t size)
+void PutArgumentTest()
 {
     const char *argument = "TEXT";
     const char *val = "TEXT";
@@ -54,12 +54,12 @@ void ParseArgumentsTest(const uint8_t* data, size_t size)
     ParseArguments(ifName, netMask, ipRange, localIp);
 }
 
-void FreeArgumentsTest(const uint8_t* data, size_t size)
+void FreeArgumentsTest()
 {
     FreeArguments();
 }
 
-void InitArgumentsTest(const uint8_t* data, size_t size)
+void InitArgumentsTest()
 {
     InitArguments();
 }
@@ -71,12 +71,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
         return 0;
     }
     sleep(DHCP_SLEEP_1);
-    OHOS::DHCP::HasArgumentTest(data, size);
-    OHOS::DHCP::GetArgumentTest(data, size);
-    OHOS::DHCP::PutArgumentTest(data, size);
+    OHOS::DHCP::HasArgumentTest();
+    OHOS::DHCP::GetArgumentTest();
+    OHOS::DHCP::PutArgumentTest();
     OHOS::DHCP::ParseArgumentsTest(data, size);
-    OHOS::DHCP::FreeArgumentsTest(data, size);
-    OHOS::DHCP::InitArgumentsTest(data, size);
+    OHOS::DHCP::FreeArgumentsTest();
+    OHOS::DHCP::InitArgumentsTest();
     return 0;
 }
 }  // namespace DHCP

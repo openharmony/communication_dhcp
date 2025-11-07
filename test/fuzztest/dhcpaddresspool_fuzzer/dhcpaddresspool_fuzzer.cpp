@@ -22,6 +22,7 @@
 #include "address_utils.h"
 #include "dhcp_address_pool.h"
 #include "dhcp_s_define.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace DHCP {
@@ -30,29 +31,30 @@ constexpr size_t U32_AT_SIZE_ZERO = 4;
 
 void DhcpAddressPoolFuzzTest(const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider fdp(data, size);
     AddressBinding binding;
     memcpy_s(binding.chaddr, PID_MAX_LEN, "*", PID_MAX_LEN);
-    binding.ipAddress = static_cast<uint32_t>(data[0]);
-    binding.clientId = static_cast<uint32_t>(data[0]);
-    binding.bindingTime = static_cast<uint64_t>(data[0]);
-    binding.pendingTime = static_cast<uint64_t>(data[0]);
-    binding.expireIn = static_cast<uint64_t>(data[0]);
-    binding.leaseTime = static_cast<uint64_t>(data[0]);
-    binding.pendingInterval = static_cast<uint64_t>(data[0]);
+    binding.ipAddress = fdp.ConsumeIntegral<uint32_t>();
+    binding.clientId = fdp.ConsumeIntegral<uint32_t>();
+    binding.bindingTime = fdp.ConsumeIntegral<uint64_t>();
+    binding.pendingTime = fdp.ConsumeIntegral<uint64_t>();
+    binding.expireIn = fdp.ConsumeIntegral<uint64_t>();
+    binding.leaseTime = fdp.ConsumeIntegral<uint64_t>();
+    binding.pendingInterval = fdp.ConsumeIntegral<uint64_t>();
     DhcpAddressPool pool;
     strncpy_s(pool.ifname, IFACE_NAME_SIZE, "*", IFACE_NAME_SIZE - 1);
-    pool.netmask = static_cast<uint32_t>(data[0]);
-    pool.serverId = static_cast<uint32_t>(data[0]);
-    pool.gateway = static_cast<uint32_t>(data[0]);
-    pool.leaseTime = static_cast<uint32_t>(data[0]);
-    pool.renewalTime = static_cast<uint32_t>(data[0]);
+    pool.netmask = fdp.ConsumeIntegral<uint32_t>();
+    pool.serverId = fdp.ConsumeIntegral<uint32_t>();
+    pool.gateway = fdp.ConsumeIntegral<uint32_t>();
+    pool.leaseTime = fdp.ConsumeIntegral<uint32_t>();
+    pool.renewalTime = fdp.ConsumeIntegral<uint32_t>();
     DhcpOptionList options;
-    options.size = static_cast<uint32_t>(data[0]);
+    options.size = fdp.ConsumeIntegral<uint32_t>();
     const char *ifname = "wlan0";
     uint32_t ipAdd = 0;
     memcpy_s(&ipAdd, sizeof(uint32_t), "192.168.100.1", sizeof(uint32_t));
-    int force = static_cast<int>(data[0]);
-    int mode = static_cast<int>(data[0]);
+    int force =  fdp.ConsumeIntegral<int>();
+    int mode = fdp.ConsumeIntegral<int>();
     uint8_t macAddr[DHCP_HWADDR_LENGTH];
     InitAddressPool(&pool, ifname, &options);
     FreeAddressPool(&pool);
@@ -81,6 +83,9 @@ void FindBindingByIpFuzzTest(const uint8_t* data, size_t size)
     uint32_t ipAddress2 = ParseIpAddr("192.168.100.2");
     FindBindingByIp(ipAddress1);
     FindBindingByIp(ipAddress2);
+    FuzzedDataProvider fdp(data, size);
+    ipAddress1 = fdp.ConsumeIntegral<uint32_t>();
+    FindBindingByIp(ipAddress1);
 }
 
 void DhcpMacAddrFuzzTest(const uint8_t* data, size_t size)
@@ -92,6 +97,13 @@ void DhcpMacAddrFuzzTest(const uint8_t* data, size_t size)
     ReleaseBinding((testMac2));
     IsReserved((testMac1));
     IsReserved((testMac3));
+    FuzzedDataProvider fdp(data, size);
+    uint8_t testMac4[DHCP_HWADDR_LENGTH];
+    for (size_t i = 0; i < DHCP_HWADDR_LENGTH; ++i) {
+        testMac4[i] = fdp.ConsumeIntegral<uint8_t>();
+    }
+    ReleaseBinding((testMac4));
+    IsReserved((testMac4));
 }
 
 /* Fuzzer entry point */
