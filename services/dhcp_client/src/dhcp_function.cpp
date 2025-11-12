@@ -190,13 +190,13 @@ int GetLocalInterface(const char *ifname, int *ifindex, unsigned char *hwaddr, u
 
 int GetLocalIp(const char *ifname, uint32_t *ifaddr4)
 {
-    if ((ifname == NULL) || (strlen(ifname) == 0)) {
-        DHCP_LOGE("GetLocalIp() failed, ifname == NULL or \"\"!");
+    if ((ifname == nullptr) || (strlen(ifname) == 0) || ifaddr4 == nullptr) {
+        DHCP_LOGE("GetLocalIp() failed, ifname == nullptr or ifaddr4 == nullptr\"\"!");
         return DHCP_OPT_FAILED;
     }
 
-    struct ifaddrs *ifaddr = NULL;
-    struct ifaddrs *ifa = NULL;
+    struct ifaddrs *ifaddr = nullptr;
+    struct ifaddrs *ifa = nullptr;
     int family, s;
     char strIp[NI_MAXHOST];
 
@@ -205,13 +205,13 @@ int GetLocalIp(const char *ifname, uint32_t *ifaddr4)
         return DHCP_OPT_FAILED;
     }
 
-    for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (strcmp(ifa->ifa_name, ifname) != 0) {
             continue;
         }
 
-        if (ifa->ifa_addr == NULL) {
-            DHCP_LOGE("GetLocalIp() ifname:%{public}s failed, ifa->ifa_addr == NULL!", ifname);
+        if (ifa->ifa_addr == nullptr) {
+            DHCP_LOGE("GetLocalIp() ifname:%{public}s failed, ifa->ifa_addr == nullptr!", ifname);
             continue;
         }
 
