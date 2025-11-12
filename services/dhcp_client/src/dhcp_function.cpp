@@ -194,32 +194,32 @@ int GetLocalIp(const char *ifname, uint32_t *ifaddr4)
         DHCP_LOGE("GetLocalIp() failed, ifname == nullptr or ifaddr4 == nullptr\"\"!");
         return DHCP_OPT_FAILED;
     }
- 
+
     struct ifaddrs *ifaddr = nullptr;
     struct ifaddrs *ifa = nullptr;
     int family, s;
     char strIp[NI_MAXHOST];
- 
+
     if (getifaddrs(&ifaddr) == -1) {
         DHCP_LOGE("GetLocalIp() ifname:%{public}s failed, getifaddrs error:%{public}d!", ifname, errno);
         return DHCP_OPT_FAILED;
     }
- 
+
     for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
         if (strcmp(ifa->ifa_name, ifname) != 0) {
             continue;
         }
- 
+
         if (ifa->ifa_addr == nullptr) {
             DHCP_LOGE("GetLocalIp() ifname:%{public}s failed, ifa->ifa_addr == nullptr!", ifname);
             continue;
         }
- 
+
         family = ifa->ifa_addr->sa_family;
         if ((family != AF_INET) && (family != AF_INET6)) {
             continue;
         }
- 
+
         if (memset_s(strIp, sizeof(strIp), 0, sizeof(strIp)) != EOK) {
             return DHCP_OPT_FAILED;
         }
@@ -229,7 +229,7 @@ int GetLocalIp(const char *ifname, uint32_t *ifaddr4)
             DHCP_LOGE("GetLocalIp() %{public}s failed, getnameinfo error:%{public}s!", ifname, gai_strerror(s));
             return DHCP_OPT_FAILED;
         }
- 
+
         /* Output all ip with ifa_name is ifname and family is AF_INET or AF_INET6. */
         if (family == AF_INET) {
             uint32_t hostIp = 0;
@@ -243,7 +243,7 @@ int GetLocalIp(const char *ifname, uint32_t *ifaddr4)
             DHCP_LOGI("GetLocalIp() %{public}s, AF_INET6 strIp:%{private}s.", ifname, strIp);
         }
     }
- 
+
     freeifaddrs(ifaddr);
     return DHCP_OPT_SUCCESS;
 }
