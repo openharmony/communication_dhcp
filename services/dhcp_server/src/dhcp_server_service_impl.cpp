@@ -155,6 +155,7 @@ ErrCode DhcpServerServiceImpl::RegisterDhcpServerCallBack(const std::string& ifn
         DHCP_LOGE("RegisterDhcpServerCallBack:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
+    std::lock_guard<std::mutex> lock(callbackmutex_);
     auto iter = m_mapServerCallBack.find(ifname);
     if (iter != m_mapServerCallBack.end()) {
         (iter->second) = serverCallback;
@@ -187,15 +188,10 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
         DHCP_LOGE("StartDhcpServer:VerifyDhcpNetworkPermission PERMISSION_DENIED!");
         return DHCP_E_PERMISSION_DENIED;
     }
-    if (ifname.empty()) {
+    if (ifname.empty() || AddSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
         DHCP_LOGE("StartDhcpServer error, ifname is empty!");
         return DHCP_E_FAILED;
     }
-    /* Add the specified interface. */
-    if (AddSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
-        return DHCP_E_FAILED;
-    }
-
     if (CreateDefaultConfigFile(DHCP_SERVER_CONFIG_FILE) != DHCP_OPT_SUCCESS) {
         return DHCP_E_FAILED;
     }
@@ -209,18 +205,24 @@ ErrCode DhcpServerServiceImpl::StartDhcpServer(const std::string& ifname)
         DHCP_LOGE("ifname:%{public}s get ip range failed.", ifname.c_str());
         return DHCP_E_FAILED;
     }
-    DHCP_LOGD("localIp:%{public}s netmask:%{public}s  ipRange:%{public}s.", localIp.c_str(), netmask.c_str(),
-        ipRange.c_str());
-
     int ret = RegisterDeviceConnectCallBack(DeviceConnectCallBack);
     ret = StartDhcpServerMain(ifname, netmask, ipRange, localIp);
-    auto iter = m_mapServerCallBack.find(ifname);
-    if (iter != m_mapServerCallBack.end()) {
-        if ((iter->second) != nullptr) {
+#ifdef OHOS_ARCH_LITE
+    std::map<std::string, std::shared_ptr<IDhcpServerCallBack>> tempCallback;
+#else
+    std::map<std::string, sptr<IDhcpServerCallBack>> tempCallback;
+#endif
+    {
+        std::lock_guard<std::mutex> lock(callbackmutex_);
+        tempCallback= m_mapServerCallBack;
+    }
+    auto callback = tempCallback.find(ifname);
+    if (callback != tempCallback.end()) {
+        if ((callback->second) != nullptr) {
             if (ret == static_cast<int>(DHCP_E_SUCCESS)) {
-                (iter->second)->OnServerStatusChanged(static_cast<int>(DHCP_SERVER_ON));
+                (callback->second)->OnServerStatusChanged(static_cast<int>(DHCP_SERVER_ON));
             } else {
-                (iter->second)->OnServerStatusChanged(static_cast<int>(DHCP_SERVER_OFF));
+                (callback->second)->OnServerStatusChanged(static_cast<int>(DHCP_SERVER_OFF));
             }
         }
     }

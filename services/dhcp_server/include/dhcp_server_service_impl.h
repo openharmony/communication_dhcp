@@ -108,6 +108,7 @@ private:
     std::mutex dhcprangemutex_;  /* protect m_mapTagDhcpRange and m_mapInfDhcpRange */
     std::mutex interfacesmutex_; /* protect m_setInterfaces */
     std::mutex statemutex_;      /* protect mPublishFlag and mState */
+    std::mutex callbackmutex_;    /* protect m_mapServerCallBack */
 #ifdef OHOS_ARCH_LITE
     std::map<std::string, std::shared_ptr<IDhcpServerCallBack>> m_mapServerCallBack;
 #else
