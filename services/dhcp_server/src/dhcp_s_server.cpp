@@ -1678,6 +1678,10 @@ static int SendDhcpAck(PDhcpServerContext ctx, PDhcpMsgInfo reply)
         return RET_FAILED;
     }
     ServerContext *srvIns = GetServerInstance(ctx);
+    if (!srvIns) {
+        DHCP_LOGE("dhcp server ServerContext pointer is null.");
+        return RET_FAILED;
+    }
 
     if (AppendReplyTimeOptions(ctx, &reply->options) != RET_SUCCESS) {
         DHCP_LOGE("failed to append reply time options");

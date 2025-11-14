@@ -630,7 +630,7 @@ int DhcpClientServiceImpl::DhcpIpv4ResultTimeOut(const std::string &ifname)
         DHCP_LOGE("DhcpIpv4ResultTimeOut mclientCallback == nullptr!");
         return DHCP_OPT_FAILED;
     }
-    if ((action == ACTION_RENEW_T1) || (action == ACTION_RENEW_T2) || (action == ACTION_RENEW_T2)) {
+    if ((action == ACTION_RENEW_T1) || (action == ACTION_RENEW_T2) || (action == ACTION_RENEW_T3)) {
         (iter->second)->OnIpFailChanged(DHCP_OPT_RENEW_TIMEOUT, ifname.c_str(), "get dhcp renew result timeout!");
     } else {
         (iter->second)->OnIpFailChanged(DHCP_OPT_TIMEOUT, ifname.c_str(), "get dhcp result timeout!");
