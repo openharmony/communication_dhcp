@@ -94,7 +94,12 @@ bool DhcpArpChecker::Start(std::string& ifname, std::string& hwAddr, std::string
         return false;
     }
 
-    if (m_isSocketCreated) {
+    bool wasCreated = false;
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        wasCreated = m_isSocketCreated;
+    }
+    if (wasCreated) {
         Stop();
     }
 
@@ -184,14 +189,12 @@ bool DhcpArpChecker::ValidateAndSetIpAddresses(const std::string& senderIp, cons
 
 void DhcpArpChecker::Stop()
 {
-    if (!m_isSocketCreated) {
-        return;
-    }
     CloseSocket();
 }
 
 bool DhcpArpChecker::SetArpPacket(ArpPacket& arpPacket, bool isFillSenderIp)
 {
+    std::lock_guard<std::mutex> lock(arpMutex_);
     arpPacket.ar_hrd = htons(ARPHRD_ETHER);
     arpPacket.ar_pro = htons(ETH_P_IP);
     arpPacket.ar_hln = ETH_ALEN;
@@ -225,9 +228,12 @@ bool DhcpArpChecker::SetArpPacket(ArpPacket& arpPacket, bool isFillSenderIp)
 
 bool DhcpArpChecker::DoArpCheck(int32_t timeoutMillis, bool isFillSenderIp, uint64_t &timeCost)
 {
-    if (!m_isSocketCreated) {
-        DHCP_LOGE("DoArpCheck failed, socket not created");
-        return false;
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        if (!m_isSocketCreated) {
+            DHCP_LOGE("DoArpCheck failed, socket not created");
+            return false;
+        }
     }
 
     struct ArpPacket arpPacket;
@@ -304,6 +310,7 @@ bool DhcpArpChecker::UpdateTimeoutCounters(const std::chrono::steady_clock::time
 
 bool DhcpArpChecker::IsValidArpReply(uint8_t* recvBuff, int32_t readLen)
 {
+    std::lock_guard<std::mutex> lock(arpMutex_);
     if (readLen < static_cast<int32_t>(sizeof(struct ArpPacket))) {
         return false;
     }
@@ -328,9 +335,12 @@ bool DhcpArpChecker::IsValidArpReply(uint8_t* recvBuff, int32_t readLen)
 void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists)
 {
     gwMacLists.clear();
-    if (!m_isSocketCreated) {
-        DHCP_LOGE("GetGwMacAddrList failed, socket not created");
-        return;
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        if (!m_isSocketCreated) {
+            DHCP_LOGE("GetGwMacAddrList failed, socket not created");
+            return;
+        }
     }
 
     struct ArpPacket arpPacket;
@@ -369,6 +379,7 @@ void DhcpArpChecker::CollectGwMacAddresses(int32_t timeoutMillis, std::vector<st
 
 void DhcpArpChecker::ProcessReceivedPacket(uint8_t* recvBuff, int32_t readLen, std::vector<std::string>& gwMacLists)
 {
+    std::lock_guard<std::mutex> lock(arpMutex_);
     if (readLen >= static_cast<int32_t>(sizeof(struct ArpPacket)) && readLen <= MAX_LENGTH) {
         struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
         if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER &&
@@ -439,10 +450,13 @@ int32_t DhcpArpChecker::CreateSocket(const char *iface, uint16_t protocol)
     }
 
     // Success, update socket state
-    m_socketFd = socketFd;
-    m_ifaceIndex = ifaceIndex;
-    m_protocol = protocol;
-    m_isSocketCreated = true;
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        m_socketFd = socketFd;
+        m_ifaceIndex = ifaceIndex;
+        m_protocol = protocol;
+        m_isSocketCreated = true;
+    }
     return OPT_SUCC;
 }
 
@@ -528,15 +542,24 @@ int32_t DhcpArpChecker::SendData(uint8_t *buff, int32_t count, uint8_t *destHwad
         return OPT_FAIL;
     }
 
-    if (m_socketFd <= INVALID_SOCKET_FD || m_ifaceIndex == INVALID_INTERFACE_INDEX) {
-        DHCP_LOGE("invalid socket fd");
-        return OPT_FAIL;
+    int32_t socketFd = -1;
+    int32_t ifaceIndex = -1;
+    uint16_t protocol = 0;
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        if (m_socketFd <= INVALID_SOCKET_FD || m_ifaceIndex == INVALID_INTERFACE_INDEX) {
+            DHCP_LOGE("invalid socket fd");
+            return OPT_FAIL;
+        }
+        socketFd = m_socketFd;
+        ifaceIndex = m_ifaceIndex;
+        protocol = m_protocol;
     }
 
     struct sockaddr_ll rawAddr;
     (void)memset_s(&rawAddr, sizeof(rawAddr), 0, sizeof(rawAddr));
-    rawAddr.sll_ifindex = m_ifaceIndex;
-    rawAddr.sll_protocol = htons(m_protocol);
+    rawAddr.sll_ifindex = ifaceIndex;
+    rawAddr.sll_protocol = htons(protocol);
     rawAddr.sll_family = AF_PACKET;
     if (memcpy_s(rawAddr.sll_addr, sizeof(rawAddr.sll_addr), destHwaddr, ETH_ALEN) != EOK) {
         DHCP_LOGE("Send: memcpy fail");
@@ -545,7 +568,7 @@ int32_t DhcpArpChecker::SendData(uint8_t *buff, int32_t count, uint8_t *destHwad
 
     int32_t ret;
     do {
-        ret = sendto(m_socketFd, buff, count, 0, reinterpret_cast<struct sockaddr *>(&rawAddr), sizeof(rawAddr));
+        ret = sendto(socketFd, buff, count, 0, reinterpret_cast<struct sockaddr *>(&rawAddr), sizeof(rawAddr));
         if (ret == -1) {
             DHCP_LOGE("Send: sendto fail");
             if (errno != EINTR) {
@@ -566,19 +589,24 @@ int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMi
         return -1;
     }
 
-    if (m_socketFd <= INVALID_SOCKET_FD) {
-        DHCP_LOGE("invalid socket fd");
-        return -1;
-    }
+    int32_t socketFd;
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        if (m_socketFd <= INVALID_SOCKET_FD) {
+            DHCP_LOGE("invalid socket fd");
+            return -1;
+        }
 
-    // Check if socket is still valid
-    if (!m_isSocketCreated) {
-        DHCP_LOGE("socket not in created state");
-        return -1;
+        // Check if socket is still valid
+        if (!m_isSocketCreated) {
+            DHCP_LOGE("socket not in created state");
+            return -1;
+        }
+        socketFd = m_socketFd;
     }
 
     pollfd fds[1];
-    fds[0].fd = m_socketFd;
+    fds[0].fd = socketFd;
     fds[0].events = POLLIN;
     if (poll(fds, 1, timeoutMillis) <= 0) {
         DHCP_LOGW("RecvData poll timeout or error");
@@ -587,7 +615,7 @@ int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMi
     DHCP_LOGI("RecvData poll finished");
     int32_t nBytes;
     do {
-        nBytes = read(m_socketFd, buff, count);
+        nBytes = read(socketFd, buff, count);
         if (nBytes == -1) {
             if (errno != EINTR) {
                 break;
@@ -600,16 +628,19 @@ int32_t DhcpArpChecker::RecvData(uint8_t *buff, int32_t count, int32_t timeoutMi
 int32_t DhcpArpChecker::CloseSocket(void)
 {
     int32_t ret = OPT_FAIL;
-    if (m_socketFd >= 0) {
-        ret = close(m_socketFd);
-        if (ret != OPT_SUCC) {
-            DHCP_LOGE("close fail.");
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        if (m_socketFd >= 0) {
+            ret = close(m_socketFd);
+            if (ret != OPT_SUCC) {
+                DHCP_LOGE("close fail.");
+            }
         }
+        m_socketFd = -1;
+        m_ifaceIndex = 0;
+        m_protocol = 0;
+        m_isSocketCreated = false;
     }
-    m_socketFd = -1;
-    m_ifaceIndex = 0;
-    m_protocol = 0;
-    m_isSocketCreated = false;
     DHCP_LOGI("close success.");
     return ret;
 }

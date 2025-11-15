@@ -63,14 +63,18 @@ private:
     void PublishIpv6Result();
     bool IsGlobalIpv6Address(const char *ipv6addr, int len);
     bool IsUniqueLocalIpv6Address(const char *ipv6addr, int len);
-
+    // Callback function mutex
     std::mutex ipv6CallbackMutex_;
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged_ { nullptr };
+    // global variables
+    std::mutex mutex_;
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;
     int32_t ipv6SocketFd = 0;
-    std::unique_ptr<std::thread> ipv6Thread_ = nullptr;
     std::atomic<bool> runFlag_ { false };
+    // IPv6 thread
+    std::unique_ptr<std::thread> ipv6Thread_ = nullptr;
+    // DNS repository
     std::unique_ptr<DnsServerRepository> dhcpIpv6DnsRepository_ = nullptr;
 };
 }  // namespace DHCP

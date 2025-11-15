@@ -20,6 +20,7 @@
 #include <chrono>
 #include <netinet/if_ether.h>
 #include <string>
+#include <mutex>
 #include "dhcp_thread.h"
 
 namespace OHOS {
@@ -84,6 +85,7 @@ private:
     int32_t BindSocketToInterface(int32_t socketFd, int32_t ifaceIndex, uint16_t protocol, const char *iface);
 private:
     std::unique_ptr<DhcpThread> dhcpArpCheckerThread_ = nullptr;
+    std::mutex arpMutex_;
     bool m_isSocketCreated;
     struct in_addr m_localIpAddr;
     struct in_addr m_targetIpAddr;

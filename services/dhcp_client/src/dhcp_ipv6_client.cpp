@@ -96,14 +96,17 @@ int DhcpIpv6Client::StartIpv6Thread(const std::string &ifname, bool isIpv6)
     DHCP_LOGI("StartIpv6Thread ifname:%{public}s bIpv6:%{public}d,runFlag:%{public}d", ifname.c_str(), isIpv6,
         runFlag_.load());
 
-    if (!runFlag_.load()) {
-        runFlag_ = true;
-        interfaceName = ifname;
-        if (ipv6Thread_ == nullptr) {
-            ipv6Thread_ = std::make_unique<std::thread>(&DhcpIpv6Client::RunIpv6ThreadFunc, this);
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (!runFlag_.load()) {
+            runFlag_ = true;
+            interfaceName = ifname;
+            if (ipv6Thread_ == nullptr) {
+                ipv6Thread_ = std::make_unique<std::thread>(&DhcpIpv6Client::RunIpv6ThreadFunc, this);
+            }
+        } else {
+            DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc!");
         }
-    } else {
-        DHCP_LOGI("StartIpv6Thread RunIpv6ThreadFunc!");
     }
     return 0;
 }
@@ -242,10 +245,13 @@ int DhcpIpv6Client::GetIpFromS6Address(void* addr, int family, char* buf, int bu
 void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefixLen,
                                               int ifaIndex, int scope, bool isUpdate)
 {
-    int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
-    if (currIndex != ifaIndex) {
-        DHCP_LOGE("address ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
+        if (currIndex != ifaIndex) {
+            DHCP_LOGE("address ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
+            return;
+        }
     }
     if (!addr) {
         DHCP_LOGE("OnIpv6AddressUpdateEvent failed, data invalid.");
@@ -254,15 +260,16 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
     AddrType type = AddrType::UNKNOW;
     if (scope == 0) {
         getIpv6RouteAddr();
-        if (memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
-            0, DHCP_INET6_ADDRSTRLEN) != EOK) {
-            DHCP_LOGE("OnIpv6AddressUpdateEvent memset_s failed");
-            return;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (memset_s(dhcpIpv6Info.ipv6SubnetAddr, DHCP_INET6_ADDRSTRLEN,
+                0, DHCP_INET6_ADDRSTRLEN) != EOK) {
+                DHCP_LOGE("OnIpv6AddressUpdateEvent memset_s failed");
+                return;
+            }
+            dhcpIpv6Info.status |= 1;
+            GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
         }
-        dhcpIpv6Info.status |= 1;
-        GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
-        DHCP_LOGD("OnIpv6AddressUpdateEvent addr:%{private}s, subaddr:%{public}s, route:%{public}s, scope:%{public}d",
-            addr, dhcpIpv6Info.ipv6SubnetAddr, dhcpIpv6Info.routeAddr, scope);
         type = AddIpv6Address(addr, INET6_ADDRSTRLEN);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
         type = AddrType::DEFAULT;
@@ -289,9 +296,12 @@ AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
     // get the local interface index and MAC address
     int ifaceIndex = 0;
     unsigned char ifaceMac[MAC_ADDR_LEN];
-    if (GetLocalInterface(interfaceName.c_str(), &ifaceIndex, ifaceMac, nullptr) != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("GetLocalInterface failed for interface: %{public}s", interfaceName.c_str());
-        return type;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (GetLocalInterface(interfaceName.c_str(), &ifaceIndex, ifaceMac, nullptr) != DHCP_OPT_SUCCESS) {
+            DHCP_LOGE("GetLocalInterface failed for interface: %{public}s", interfaceName.c_str());
+            return type;
+        }
     }
     if (IsGlobalIpv6Address(ipv6addr, len)) {
         if (IsEui64ModeIpv6Address(ipv6addr, len, ifaceMac, MAC_ADDR_LEN)) {
@@ -371,12 +381,15 @@ bool DhcpIpv6Client::IsEui64ModeIpv6Address(const char *ipv6addr, int len, const
 
 void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
 {
-    int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
-    if (currIndex != ifaIndex) {
-        DHCP_LOGE("dnsevent ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
+        if (currIndex != ifaIndex) {
+            DHCP_LOGE("dnsevent ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
+            return;
+        }
+        dhcpIpv6Info.status |= (1 << 1);
     }
-    dhcpIpv6Info.status |= (1 << 1);
     if (!data) {
         DHCP_LOGE("onIpv6DnsAddEvent failed, data invalid.");
         return;
@@ -412,17 +425,23 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
     if (changed) {
         DHCP_LOGI("onIpv6DnsAddEvent dns servers changed");
         dhcpIpv6DnsRepository_->SetCurrentServers(dhcpIpv6Info);
-        dhcpIpv6Info.lifetime = lifetime;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            dhcpIpv6Info.lifetime = lifetime;
+        }
         PublishIpv6Result();
     }
 }
 
 void DhcpIpv6Client::OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaIndex, bool isAdd)
 {
-    int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
-    if (currIndex != ifaIndex) {
-        DHCP_LOGE("route ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
-        return;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        int currIndex = static_cast<int>(if_nametoindex(interfaceName.c_str()));
+        if (currIndex != ifaIndex) {
+            DHCP_LOGE("route ifaindex invalid, %{public}d != %{public}d", currIndex, ifaIndex);
+            return;
+        }
     }
     DHCP_LOGI("OnIpv6RouteUpdateEvent gateway:%{private}s, dst:%{private}s, ifindex:%{public}d isAdd: %{public}d",
         gateway, dst, ifaIndex, isAdd ? 1:0);
@@ -484,8 +503,9 @@ int32_t DhcpIpv6Client::createKernelSocket(void)
 
 void DhcpIpv6Client::Reset()
 {
-    dhcpIpv6Info.Clear();
     dhcpIpv6DnsRepository_->Clear();
+    std::lock_guard<std::mutex> lock(mutex_);
+    dhcpIpv6Info.Clear();
 }
 
 void DhcpIpv6Client::getIpv6RouteAddr()
@@ -493,24 +513,36 @@ void DhcpIpv6Client::getIpv6RouteAddr()
     int len = ROUTE_BUFF_SIZE;
     char buffer[ROUTE_BUFF_SIZE] = {0};
     fillRouteData(buffer, len);
-    if (send(ipv6SocketFd, buffer, len, 0) < 0) {
-        DHCP_LOGE("getIpv6RouteAddr send route info failed.");
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (send(ipv6SocketFd, buffer, len, 0) < 0) {
+            DHCP_LOGE("getIpv6RouteAddr send route info failed.");
+        }
     }
     DHCP_LOGE("getIpv6RouteAddr send info ok");
 }
 
 int DhcpIpv6Client::StartIpv6()
 {
-    DHCP_LOGI("StartIpv6 enter. %{public}s", interfaceName.c_str());
+    std::string ifname;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ifname = interfaceName;
+    }
+    DHCP_LOGI("StartIpv6 enter. %{public}s", ifname.c_str());
     Reset();
-    ipv6SocketFd = createKernelSocket();
-    if (ipv6SocketFd < 0) {
-        runFlag_ = false;
-        DHCP_LOGE("StartIpv6 ipv6SocketFd < 0 failed!");
-        return -1;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ipv6SocketFd = createKernelSocket();
+        if (ipv6SocketFd < 0) {
+            runFlag_ = false;
+            DHCP_LOGE("StartIpv6 ipv6SocketFd < 0 failed!");
+            return -1;
+        }
     }
     uint8_t *buff = (uint8_t*)malloc(KERNEL_BUFF_SIZE * sizeof(uint8_t));
     if (buff == NULL) {
+        std::lock_guard<std::mutex> lock(mutex_);
         DHCP_LOGE("StartIpv6 ipv6 malloc buff failed.");
         close(ipv6SocketFd);
         runFlag_ = false;
@@ -523,35 +555,42 @@ int DhcpIpv6Client::StartIpv6()
     while (runFlag_.load()) {
         (void)memset_s(buff, KERNEL_BUFF_SIZE * sizeof(uint8_t), 0, KERNEL_BUFF_SIZE * sizeof(uint8_t));
         FD_ZERO(&rSet);
-        if (ipv6SocketFd < 0) {
-            DHCP_LOGE("error: ipv6SocketFd < 0");
-            break;
-        }
-        FD_SET(ipv6SocketFd, &rSet);
-        int iRet = select(ipv6SocketFd + 1, &rSet, NULL, NULL, &timeout);
-        if (iRet < 0) {
-            if ((iRet == -1) && (errno == EINTR)) {
-                DHCP_LOGD("StartIpv6 select errno:%{public}d, a signal was caught!", errno);
-            } else {
-                DHCP_LOGD("StartIpv6 failed, iRet:%{public}d error:%{public}d", iRet, errno);
+        int32_t len = 0;
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            if (ipv6SocketFd < 0) {
+                DHCP_LOGE("error: ipv6SocketFd < 0");
+                break;
             }
-            continue;
-        }
-        if (!FD_ISSET(ipv6SocketFd, &rSet)) {
-            continue;
-        }
-        int32_t len = recv(ipv6SocketFd, buff, KERNEL_BUFF_SIZE, 0);
-        if (len < 0) {
-            DHCP_LOGE("StartIpv6 recv kernel socket failed %{public}d.", errno);
-            sleep(1);
-            continue;
-        } else if (len == 0) {
-            continue;
+            FD_SET(ipv6SocketFd, &rSet);
+            int iRet = select(ipv6SocketFd + 1, &rSet, NULL, NULL, &timeout);
+            if (iRet < 0) {
+                if ((iRet == -1) && (errno == EINTR)) {
+                    DHCP_LOGD("StartIpv6 select errno:%{public}d, a signal was caught!", errno);
+                } else {
+                    DHCP_LOGD("StartIpv6 failed, iRet:%{public}d error:%{public}d", iRet, errno);
+                }
+                continue;
+            }
+            if (!FD_ISSET(ipv6SocketFd, &rSet)) {
+                continue;
+            }
+            len = recv(ipv6SocketFd, buff, KERNEL_BUFF_SIZE, 0);
+            if (len < 0) {
+                DHCP_LOGE("StartIpv6 recv kernel socket failed %{public}d.", errno);
+                sleep(1);
+                continue;
+            } else if (len == 0) {
+                continue;
+            }
         }
         handleKernelEvent(buff, len);
     }
-    close(ipv6SocketFd);
-    ipv6SocketFd = 0;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        close(ipv6SocketFd);
+        ipv6SocketFd = 0;
+    }
     free(buff);
     buff = NULL;
     DHCP_LOGI("DhcpIpv6Client thread exit.");
@@ -570,7 +609,11 @@ void *DhcpIpv6Client::DhcpIpv6Start()
 
 void DhcpIpv6Client::SetAcceptRa(const std::string &content)
 {
-    std::string fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ACCEPT_RA;
+    std::string fileName;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ACCEPT_RA;
+    }
     if (!IsValidPath(fileName)) {
         DHCP_LOGE("invalid path:%{public}s", fileName.c_str());
         return;
@@ -589,9 +632,16 @@ void DhcpIpv6Client::SetAcceptRa(const std::string &content)
 
 void DhcpIpv6Client::PublishIpv6Result()
 {
+    std::string ifname;
+    DhcpIpv6Info info;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ifname = interfaceName;
+        info = dhcpIpv6Info;
+    }
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     if (onIpv6AddressChanged_ != nullptr) {
-        onIpv6AddressChanged_(interfaceName, dhcpIpv6Info);
+        onIpv6AddressChanged_(ifname, info);
     }
 }
 
