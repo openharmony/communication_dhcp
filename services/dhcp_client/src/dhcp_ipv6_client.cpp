@@ -277,6 +277,10 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
         DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) {
         PublishIpv6Result();
     }
+    // If a global address is removed, send RS to reconfigure
+    if (!isUpdate && (type == AddrType::GLOBAL || type == AddrType::RAND || type == AddrType::UNIQUE || type == AddrType::UNIQUE2)) {
+        SendRouterSolicitation();
+    }
 }
 
 AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
@@ -436,6 +440,8 @@ void DhcpIpv6Client::OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaInd
             isChanged = DhcpIpv6InfoManager::AddRoute(dhcpIpv6Info, std::string(gateway));
         } else {
             isChanged = DhcpIpv6InfoManager::RemoveRoute(dhcpIpv6Info, std::string(gateway));
+            // Trigger RS when default route is removed (possible roaming)
+            SendRouterSolicitation();
         }
     }
     if (isChanged) {
@@ -488,6 +494,50 @@ void DhcpIpv6Client::Reset()
     dhcpIpv6DnsRepository_->Clear();
 }
 
+int DhcpIpv6Client::SendRouterSolicitation()
+{
+    int sock = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
+    if (sock < 0) {
+        DHCP_LOGE("SendRouterSolicitation socket failed");
+        return -1;
+    }
+
+    struct ifreq ifr;
+    memset_s(&ifr, sizeof(ifr), 0, sizeof(ifr));
+    if (strncpy_s(ifr.ifr_name, IFNAMSIZ, interfaceName.c_str(), IFNAMSIZ - 1) != EOK) {
+        close(sock);
+        return -1;
+    }
+
+    if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr)) < 0) {
+        DHCP_LOGE("SendRouterSolicitation setsockopt SO_BINDTODEVICE failed");
+        close(sock);
+        return -1;
+    }
+
+    struct nd_router_solicit rs;
+    memset_s(&rs, sizeof(rs), 0, sizeof(rs));
+    rs.nd_rs_type = ND_ROUTER_SOLICIT;
+    rs.nd_rs_code = 0;
+    rs.nd_rs_cksum = 0; // kernel will fill checksum
+
+    struct sockaddr_in6 dest;
+    memset_s(&dest, sizeof(dest), 0, sizeof(dest));
+    dest.sin6_family = AF_INET6;
+    inet_pton(AF_INET6, "ff02::2", &dest.sin6_addr);
+    dest.sin6_scope_id = if_nametoindex(interfaceName.c_str());
+
+    if (sendto(sock, &rs, sizeof(rs), 0, (struct sockaddr*)&dest, sizeof(dest)) < 0) {
+        DHCP_LOGE("SendRouterSolicitation sendto failed");
+        close(sock);
+        return -1;
+    }
+
+    close(sock);
+    DHCP_LOGI("SendRouterSolicitation success");
+    return 0;
+}
+
 void DhcpIpv6Client::getIpv6RouteAddr()
 {
     int len = ROUTE_BUFF_SIZE;
@@ -509,6 +559,8 @@ int DhcpIpv6Client::StartIpv6()
         DHCP_LOGE("StartIpv6 ipv6SocketFd < 0 failed!");
         return -1;
     }
+    // Send initial RS when starting IPv6 client
+    SendRouterSolicitation();
     uint8_t *buff = (uint8_t*)malloc(KERNEL_BUFF_SIZE * sizeof(uint8_t));
     if (buff == NULL) {
         DHCP_LOGE("StartIpv6 ipv6 malloc buff failed.");
