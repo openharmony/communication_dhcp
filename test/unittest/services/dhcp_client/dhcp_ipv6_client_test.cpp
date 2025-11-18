@@ -27,6 +27,7 @@
 #include "dhcp_logger.h"
 #include "dhcp_function.h"
 #include "dhcp_ipv6_client.h"
+#include "mock_system_func.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6ClientTest");
 
@@ -40,20 +41,6 @@ using ::testing::SetArgReferee;
 using ::testing::StrEq;
 using ::testing::TypedEq;
 using ::testing::ext::TestSize;
-
-// Mock class for system calls to enable unit testing of SendRouterSolicitation
-class MockSystemFunc {
-public:
-    MOCK_METHOD(int, socket, (int domain, int type, int protocol));
-    MOCK_METHOD(int, setsockopt, (int sockfd, int level, int optname, const void *optval, socklen_t optlen));
-    MOCK_METHOD(ssize_t, sendto, (int sockfd, const void *buf, size_t len, int flags, const struct sockaddr *dest_addr, socklen_t addrlen));
-    MOCK_METHOD(int, close, (int fd));
-    static MockSystemFunc& GetInstance() {
-        static MockSystemFunc instance;
-        return instance;
-    }
-};
-
 namespace OHOS {
 namespace DHCP {
 const int KERNEL_SOCKET_IFA_FAMILY = 10;
@@ -485,6 +472,7 @@ HWTEST_F(DhcpIpv6ClientTest, IsUniqueLocalIpv6Address_InvalidInput, TestSize.Lev
     EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("invalid", 40));
 }
 
+
 HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitationTest, TestSize.Level1)
 {
     ASSERT_TRUE(ipv6Client != nullptr);
@@ -498,6 +486,7 @@ HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitationTest, TestSize.Level1)
 
 HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_SocketFail, TestSize.Level1)
 {
+    MockSystemFunc::SetMockFlag(true);
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("SendRouterSolicitation_SocketFail enter!");
     // Mock socket to return -1 to test socket creation failure
@@ -505,10 +494,12 @@ HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_SocketFail, TestSize.Level1)
     // Note: Actual function uses ::socket, mock requires dependency injection for full coverage
     int result = ipv6Client->SendRouterSolicitation();
     EXPECT_EQ(result, -1);
+    MockSystemFunc::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_SetsockoptFail, TestSize.Level1)
 {
+    MockSystemFunc::SetMockFlag(true);
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("SendRouterSolicitation_SetsockoptFail enter!");
     // Mock socket to succeed, setsockopt to fail
@@ -518,34 +509,39 @@ HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_SetsockoptFail, TestSize.Lev
     // Note: Actual function uses ::setsockopt, mock requires dependency injection
     int result = ipv6Client->SendRouterSolicitation();
     EXPECT_EQ(result, -1);
+    MockSystemFunc::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_SendtoFail, TestSize.Level1)
 {
+    MockSystemFunc::SetMockFlag(true);
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("SendRouterSolicitation_SendtoFail enter!");
     // Mock socket and setsockopt to succeed, sendto to fail
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6)).WillOnce(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(1, SOL_SOCKET, SO_BINDTODEVICE, _, _)).WillOnce(Return(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), sendto(1, _, sizeof(struct nd_router_solicit), 0, _, _)).WillOnce(Return(-1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), sendto(1, _, _, 0, _, _)).WillOnce(Return(-1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(1)).Times(1);
     // Note: Actual function uses ::sendto, mock requires dependency injection
     int result = ipv6Client->SendRouterSolicitation();
     EXPECT_EQ(result, -1);
+    MockSystemFunc::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_Success, TestSize.Level1)
 {
+    MockSystemFunc::SetMockFlag(true);
     ASSERT_TRUE(ipv6Client != nullptr);
     DHCP_LOGE("SendRouterSolicitation_Success enter!");
     // Mock all calls to succeed
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6)).WillOnce(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(1, SOL_SOCKET, SO_BINDTODEVICE, _, _)).WillOnce(Return(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), sendto(1, _, sizeof(struct nd_router_solicit), 0, _, _)).WillOnce(Return(sizeof(struct nd_router_solicit)));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), sendto(1, _, _, 0, _, _)).WillOnce(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(1)).Times(1);
     // Note: Actual function uses system calls, mock requires dependency injection
     int result = ipv6Client->SendRouterSolicitation();
     EXPECT_EQ(result, 0);
+    MockSystemFunc::SetMockFlag(false);
 }
 }
 }
