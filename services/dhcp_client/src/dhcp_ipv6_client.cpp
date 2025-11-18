@@ -277,8 +277,13 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
         DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) {
         PublishIpv6Result();
     }
+    // If a default address is added, send RS to configure other addresses
+    if (isUpdate && type == AddrType::DEFAULT) {
+        SendRouterSolicitation();
+        return;
+    }
     // If a global address is removed, send RS to reconfigure
-    if (!isUpdate && (type == AddrType::GLOBAL || type == AddrType::RAND || type == AddrType::UNIQUE || type == AddrType::UNIQUE2)) {
+    if (!isUpdate && (type == AddrType::GLOBAL || type == AddrType::RAND)) {
         SendRouterSolicitation();
     }
 }
@@ -498,7 +503,7 @@ int DhcpIpv6Client::SendRouterSolicitation()
 {
     int sock = socket(AF_INET6, SOCK_RAW, IPPROTO_ICMPV6);
     if (sock < 0) {
-        DHCP_LOGE("SendRouterSolicitation socket failed");
+        DHCP_LOGE("SendRouterSolicitation socket failed %{public}d", errno);
         return -1;
     }
 
@@ -510,7 +515,7 @@ int DhcpIpv6Client::SendRouterSolicitation()
     }
 
     if (setsockopt(sock, SOL_SOCKET, SO_BINDTODEVICE, &ifr, sizeof(ifr)) < 0) {
-        DHCP_LOGE("SendRouterSolicitation setsockopt SO_BINDTODEVICE failed");
+        DHCP_LOGE("SendRouterSolicitation setsockopt SO_BINDTODEVICE failed %{public}d", errno);
         close(sock);
         return -1;
     }
@@ -528,7 +533,7 @@ int DhcpIpv6Client::SendRouterSolicitation()
     dest.sin6_scope_id = if_nametoindex(interfaceName.c_str());
 
     if (sendto(sock, &rs, sizeof(rs), 0, (struct sockaddr*)&dest, sizeof(dest)) < 0) {
-        DHCP_LOGE("SendRouterSolicitation sendto failed");
+        DHCP_LOGE("SendRouterSolicitation sendto failed %{public}d", errno);
         close(sock);
         return -1;
     }
@@ -559,8 +564,6 @@ int DhcpIpv6Client::StartIpv6()
         DHCP_LOGE("StartIpv6 ipv6SocketFd < 0 failed!");
         return -1;
     }
-    // Send initial RS when starting IPv6 client
-    SendRouterSolicitation();
     uint8_t *buff = (uint8_t*)malloc(KERNEL_BUFF_SIZE * sizeof(uint8_t));
     if (buff == NULL) {
         DHCP_LOGE("StartIpv6 ipv6 malloc buff failed.");
