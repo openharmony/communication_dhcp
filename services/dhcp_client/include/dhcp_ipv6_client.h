@@ -50,6 +50,7 @@ private:
     void OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaIndex, bool isAdd = true);
     void OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefixLen,
                                 int ifaIndex, int scope, bool isUpdate);
+    int SendRouterSolicitation();
     void setSocketFilter(void* addr);
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
