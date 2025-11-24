@@ -272,21 +272,6 @@ void FreeAddressPool(DhcpAddressPool *pool)
     }
 }
 
-AddressBinding *FindBindingByIp(uint32_t ipAddress)
-{
-    std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
-    if (g_bindingRecoders.empty()) {
-        return nullptr;
-    }
-    for (auto current: g_bindingRecoders) {
-        AddressBinding *binding = &current.second;
-        if (binding && ipAddress == binding->ipAddress) {
-            return binding;
-        }
-    }
-    return nullptr;
-}
-
 int IsReserved(uint8_t macAddr[DHCP_HWADDR_LENGTH])
 {
     std::lock_guard<std::mutex> autoLock(g_bindingMapMutex);
