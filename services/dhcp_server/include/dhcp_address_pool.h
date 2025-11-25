@@ -55,7 +55,6 @@ struct DhcpAddressPool {
 
 int InitAddressPool(DhcpAddressPool *pool, const char *ifname, PDhcpOptionList options);
 void FreeAddressPool(DhcpAddressPool *pool);
-AddressBinding *FindBindingByIp(uint32_t bingdingIp);
 int IsReserved(uint8_t macAddr[DHCP_HWADDR_LENGTH]);
 int IsReservedIp(DhcpAddressPool *pool, uint32_t ipAddress);
 int AddBinding(AddressBinding *binding);

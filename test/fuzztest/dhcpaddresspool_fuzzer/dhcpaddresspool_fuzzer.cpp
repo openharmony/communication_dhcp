@@ -77,17 +77,6 @@ void DhcpAddressPoolFuzzTest(const uint8_t* data, size_t size)
     DeleteMacInLease(&pool, nullptr);
 }
 
-void FindBindingByIpFuzzTest(const uint8_t* data, size_t size)
-{
-    uint32_t ipAddress1 = ParseIpAddr("192.168.100.1");
-    uint32_t ipAddress2 = ParseIpAddr("192.168.100.2");
-    FindBindingByIp(ipAddress1);
-    FindBindingByIp(ipAddress2);
-    FuzzedDataProvider fdp(data, size);
-    ipAddress1 = fdp.ConsumeIntegral<uint32_t>();
-    FindBindingByIp(ipAddress1);
-}
-
 void DhcpMacAddrFuzzTest(const uint8_t* data, size_t size)
 {
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
@@ -114,7 +103,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     }
     sleep(DHCP_SLEEP_1);
     OHOS::DHCP::DhcpAddressPoolFuzzTest(data, size);
-    OHOS::DHCP::FindBindingByIpFuzzTest(data, size);
     OHOS::DHCP::DhcpMacAddrFuzzTest(data, size);
     return 0;
 }

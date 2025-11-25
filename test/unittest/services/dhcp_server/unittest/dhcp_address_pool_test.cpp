@@ -114,34 +114,6 @@ HWTEST_F(DhcpAddressPoolTest, AddNewBindingTest, TestSize.Level0)
     EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac1));
 }
 
-HWTEST_F(DhcpAddressPoolTest, FindBindingByIpTest, TestSize.Level0)
-{
-    AddressBinding bind = {0};
-    uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
-    uint8_t testMac2[DHCP_HWADDR_LENGTH] = {0x00, 0x0e, 0x3c, 0x65, 0x3a, 0x0a, 0};
-    uint32_t testIp1 = ParseIpAddr("192.168.100.1");
-    uint32_t testIp2 = ParseIpAddr("192.168.100.2");
-    bind.ipAddress = testIp1;
-    for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
-        bind.chaddr[i] = testMac1[i];
-    }
-    EXPECT_EQ(RET_SUCCESS, AddBinding(&bind));
-    bind.ipAddress = testIp2;
-    for (int i = 0; i < MAC_ADDR_LENGTH; ++i) {
-        bind.chaddr[i] = testMac2[i];
-    }
-    EXPECT_EQ(RET_SUCCESS, AddBinding(&bind));
-    EXPECT_EQ(RET_FAILED, AddBinding(&bind));
-
-    AddressBinding *pBind1 = FindBindingByIp(testIp1);
-    AddressBinding *pBind2 = FindBindingByIp(testIp2);
-    EXPECT_TRUE(pBind1 != NULL);
-    EXPECT_TRUE(pBind2 != NULL);
-
-    EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac1));
-    EXPECT_EQ(RET_SUCCESS, RemoveBinding(testMac2));
-}
-
 HWTEST_F(DhcpAddressPoolTest, AddressDistributeTest, TestSize.Level0)
 {
     uint8_t testMac1[DHCP_HWADDR_LENGTH] = {0x01, 0x0e, 0x3c, 0x65, 0x3a, 0x09, 0};
