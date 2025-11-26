@@ -75,6 +75,7 @@ HWTEST_F(DhcpSocketTest, BindRawSocket_SUCCESS, TestSize.Level1)
     MockSystemFunc::SetMockFlag(true);
 
     fd = 1;
+    EXPECT_CALL(MockSystemFunc::GetInstance(), setsockopt(_, _, _, _, _)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(0));
     EXPECT_EQ(BindRawSocket(fd, ifaceIndex, (uint8_t *)MAC_BCAST_ADDR), SOCKET_OPT_FAILED);
     EXPECT_EQ(BindRawSocket(fd, ifaceIndex, (uint8_t *)MAC_BCAST_ADDR), SOCKET_OPT_SUCCESS);
