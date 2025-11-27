@@ -183,6 +183,11 @@ bool DhcpIpv6InfoManager::UpdateAddr(DhcpIpv6Info &dhcpIpv6Info, std::string add
     }
     // If addr exists with different type, remove old mapping first, then proceed.
     bool existingKey = (dhcpIpv6Info.IpAddrMap.find(addr) != dhcpIpv6Info.IpAddrMap.end());
+    if (existingKey && dhcpIpv6Info.IpAddrMap[addr] == static_cast<int>(type)) {
+        DHCP_LOGI("UpdateAddr addr %{private}s already exists with same type %{public}d",
+            addr.c_str(), static_cast<int>(type));
+        return false;
+    }
     if (existingKey && dhcpIpv6Info.IpAddrMap[addr] != static_cast<int>(type)) {
         DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, addr);
     }
