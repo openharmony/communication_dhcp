@@ -51,6 +51,12 @@ typedef struct{
 }AddrList;
 
 typedef struct{
+    uint32_t validLifeTime;
+    uint32_t prefLifeTime;
+    uint32_t routerLifeTime;
+}Ipv6LifeTime;
+
+typedef struct{
     int iptype;                                /* 0-ipv4,1-ipv6 */
     bool isOptSuc;                              /* get result */
     char strOptClientId[DHCP_MAX_FILE_BYTES];   /* your (client) IP */
@@ -70,6 +76,7 @@ typedef struct{
     uint32_t uGetTime;                          /* dhcp result get time */
     DnsList dnsList;                            /* dhcp dns list */
     AddrList addrList;                          /* dhcp addr list */
+    Ipv6LifeTime ipv6LifeTime;                  /* dhcp ipv6 life time */
 }DhcpResult;
 
 typedef struct DhcpRange{

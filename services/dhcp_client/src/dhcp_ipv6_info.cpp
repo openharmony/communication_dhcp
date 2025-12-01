@@ -250,5 +250,30 @@ bool DhcpIpv6InfoManager::RemoveAddr(DhcpIpv6Info &dhcpIpv6Info, std::string add
     // Removed address was not the latest mirrored; keep arrays unchanged
     return true;
 }
+
+bool DhcpIpv6InfoManager::AddLifetime(DhcpIpv6Info &dhcpIpv6Info, uint32_t lifetime, LifeType type)
+{
+    switch (type) {
+        case LifeType::VALID_LIFE: {
+            dhcpIpv6Info.validLifetime = lifetime;
+            break;
+        }
+        case LifeType::PREF_LIFE: {
+            dhcpIpv6Info.preferredLifetime =lifetime;
+            break;
+        }
+        case LifeType::ROUTE_LIFE: {
+            dhcpIpv6Info.routeLifetime = lifetime;
+            break;
+        }
+        default: {
+            DHCP_LOGE("AddLifetime invalid type %{public}d", static_cast<int>(type));
+            return false;
+        }
+    }
+    dhcpIpv6Info.lifetime = std::min(dhcpIpv6Info.validLifetime, dhcpIpv6Info.preferredLifetime);
+    DHCP_LOGI("AddLifetime type %{public}d lifetime %{public}u", static_cast<int>(type), lifetime);
+    return true;
+}
 }
 }

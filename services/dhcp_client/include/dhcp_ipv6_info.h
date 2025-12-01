@@ -24,6 +24,7 @@ namespace OHOS {
 namespace DHCP {
 inline const int DHCP_INET6_ADDRSTRLEN = 128;
 inline const int DNS_DEFAULT_LIFETIME = 3600; // default lifetime for DNS server
+inline const uint32_t IPV6_LIFETIME_INFINITY = 0xFFFFFFFF; // infinite lifetime
 enum AddrType {
     UNKNOW = -1,
     DEFAULT = 0,
@@ -32,6 +33,12 @@ enum AddrType {
     RAND,
     UNIQUE,
     UNIQUE2
+};
+
+enum LifeType {
+    VALID_LIFE = 0,
+    PREF_LIFE,
+    ROUTE_LIFE,
 };
 struct DhcpIpv6Info {
     char linkIpv6Addr[DHCP_INET6_ADDRSTRLEN];
@@ -45,9 +52,12 @@ struct DhcpIpv6Info {
     char uniqueLocalAddr2[DHCP_INET6_ADDRSTRLEN];
     unsigned int status;   // 1 ipv4 getted, 2 dns getted, 3 ipv4 and dns getted
     std::vector<std::string> vectorDnsAddr;
-    uint64_t lifetime {DNS_DEFAULT_LIFETIME}; // min life time of valid lifetime & preferred lifetime
+    uint32_t lifetime {IPV6_LIFETIME_INFINITY}; // min life time of valid lifetime & preferred lifetime
     std::vector<std::string> defaultRouteAddr {};
     std::map<std::string, int> IpAddrMap {};
+    uint32_t validLifetime {IPV6_LIFETIME_INFINITY};
+    uint32_t preferredLifetime {IPV6_LIFETIME_INFINITY};
+    uint32_t routeLifetime {IPV6_LIFETIME_INFINITY};
     void Clear()
     {
         memset_s(linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
@@ -61,7 +71,10 @@ struct DhcpIpv6Info {
         memset_s(uniqueLocalAddr2, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
         status = 0;
         vectorDnsAddr.clear();
-        lifetime = DNS_DEFAULT_LIFETIME;
+        lifetime = IPV6_LIFETIME_INFINITY;
+        validLifetime = IPV6_LIFETIME_INFINITY;
+        preferredLifetime = IPV6_LIFETIME_INFINITY;
+        routeLifetime = IPV6_LIFETIME_INFINITY;
         defaultRouteAddr.clear();
         IpAddrMap.clear();
     }
@@ -77,6 +90,7 @@ public:
     static bool RemoveRoute(DhcpIpv6Info &dhcpIpv6Info, std::string defaultRoute);
     static bool UpdateAddr(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrType type);
     static bool RemoveAddr(DhcpIpv6Info &dhcpIpv6Info, std::string addr);
+    static bool AddLifetime(DhcpIpv6Info &dhcpIpv6Info, uint32_t lifetime, LifeType type);
 };
 }  // namespace DHCP
 }  // namespace OHOS

@@ -69,6 +69,58 @@ void DhcpIpv6Client::parseNdUserOptMessage(void* data, int len)
     onIpv6DnsAddEvent((void*)(msg + 1), optlen, msg->nduseropt_ifindex);
 }
 
+void DhcpIpv6Client::parseRouteAttributes(void* rtMsgPtr, size_t size, char* dst, char* gateway, int& ifindex)
+{
+    if (!rtMsgPtr || !dst || !gateway) {
+        return;
+    }
+    struct rtmsg* rtMsg = reinterpret_cast<struct rtmsg*>(rtMsgPtr);
+    int32_t rtmFamily = rtMsg->rtm_family;
+    uint32_t expires = 0;
+    rtattr *rtaInfo = NULL;
+    for (rtaInfo = RTM_RTA(rtMsg); RTA_OK(rtaInfo, (int)size); rtaInfo = RTA_NEXT(rtaInfo, size)) {
+        switch (rtaInfo->rta_type) {
+            case RTA_GATEWAY:
+                if (rtaInfo->rta_len < (RTA_LENGTH(IPV6_LENGTH_BYTES))) {
+                    return;
+                }
+                if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, gateway, DHCP_INET6_ADDRSTRLEN) != 0) {
+                    DHCP_LOGE("inet_ntop RTA_GATEWAY failed.");
+                    return;
+                }
+                break;
+            case RTA_DST:
+                if (rtaInfo->rta_len < (RTA_LENGTH(IPV6_LENGTH_BYTES))) {
+                    return;
+                }
+                if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, dst, DHCP_INET6_ADDRSTRLEN) != 0) {
+                    DHCP_LOGE("inet_ntop RTA_DST failed.");
+                    return;
+                }
+                break;
+            case RTA_OIF:
+                if (rtaInfo->rta_len < (RTA_LENGTH(sizeof(int32_t)))) {
+                    return;
+                }
+                ifindex = *(reinterpret_cast<int32_t*>(RTA_DATA(rtaInfo)));
+                break;
+            case RTA_EXPIRES:
+                if (rtaInfo->rta_len < (RTA_LENGTH(sizeof(uint32_t)))) {
+                    return;
+                }
+                expires = *(reinterpret_cast<uint32_t*>(RTA_DATA(rtaInfo)));
+                DHCP_LOGI("Route expires in %{public}u seconds", expires);
+                {
+                    std::lock_guard<std::mutex> lock(mutex_);
+                    DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, expires, LifeType::ROUTE_LIFE);
+                }
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 void DhcpIpv6Client::parseNDRouteMessage(void* msg)
 {
     if (msg == NULL) {
@@ -95,40 +147,9 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
     }
     char dst[DHCP_INET6_ADDRSTRLEN] = {0};
     char gateway[DHCP_INET6_ADDRSTRLEN] = {0};
-    int32_t rtmFamily = rtMsg->rtm_family;
-    size_t size = RTM_PAYLOAD(hdrMsg);
     int ifindex = -1;
-    rtattr *rtaInfo = NULL;
-    for (rtaInfo = RTM_RTA(rtMsg); RTA_OK(rtaInfo, (int)size); rtaInfo = RTA_NEXT(rtaInfo, size)) {
-        switch (rtaInfo->rta_type) {
-            case RTA_GATEWAY:
-                if (rtaInfo->rta_len < (RTA_LENGTH(IPV6_LENGTH_BYTES))) {
-                    return;
-                }
-                if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, gateway, sizeof(gateway)) != 0) {
-                    DHCP_LOGE("inet_ntop RTA_GATEWAY failed.");
-                    return;
-                }
-                break;
-            case RTA_DST:
-                if (rtaInfo->rta_len < (RTA_LENGTH(IPV6_LENGTH_BYTES))) {
-                    return;
-                }
-                if (GetIpFromS6Address(RTA_DATA(rtaInfo), rtmFamily, dst, sizeof(dst)) != 0) {
-                    DHCP_LOGE("inet_ntop RTA_DST failed.");
-                    return;
-                }
-                break;
-            case RTA_OIF:
-                if (rtaInfo->rta_len < (RTA_LENGTH(sizeof(int32_t)))) {
-                    return;
-                }
-                ifindex = *(reinterpret_cast<int32_t*>(RTA_DATA(rtaInfo)));
-                break;
-            default:
-                break;
-        }
-    }
+    size_t size = RTM_PAYLOAD(hdrMsg);
+    parseRouteAttributes(rtMsg, size, dst, gateway, ifindex);
     OnIpv6RouteUpdateEvent(gateway, dst, ifindex, hdrMsg->nlmsg_type == RTM_NEWROUTE);
 }
 
@@ -220,6 +241,50 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
         nlh = NLMSG_NEXT(nlh, len);
     }
 }
+void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope)
+{
+    if (addrMsgptr == nullptr || addresses == nullptr) {
+        DHCP_LOGE("ParseAddrAttributes addrMsg or addresses is nullptr.");
+        return;
+    }
+    struct ifaddrmsg *addrMsg = reinterpret_cast<ifaddrmsg *>(addrMsgptr);
+    uint32_t preferredLifetime = 0;
+    uint32_t validLifetime = 0;
+    for (rtattr *rtAttr = IFA_RTA(addrMsg); RTA_OK(rtAttr, len); rtAttr = RTA_NEXT(rtAttr, len)) {
+        if (rtAttr == nullptr) {
+            DHCP_LOGE("Invalid ifaddrmsg\n");
+            return;
+        }
+        if (rtAttr->rta_type == IFA_ADDRESS) {
+            if (rtAttr->rta_len < RTA_LENGTH(IPV6_LENGTH_BYTES)) {
+                DHCP_LOGI("handleKernelEvent rta_len:%{public}u is invalid.", rtAttr->rta_len);
+                continue;
+            }
+            if (GetIpFromS6Address(RTA_DATA(rtAttr), addrMsg->ifa_family, addresses, DHCP_INET6_ADDRSTRLEN) != 0) {
+                DHCP_LOGE("inet_ntop addresses failed.");
+                return;
+            }
+            scope = GetAddrScope(RTA_DATA(rtAttr));
+            DHCP_LOGI("ParseAddrMessage %{private}s\n", addresses);
+        } else if (rtAttr->rta_type == IFA_CACHEINFO) {
+            if (rtAttr->rta_len < RTA_LENGTH(sizeof(struct ifa_cacheinfo))) {
+                DHCP_LOGI("handleKernelEvent ifa_cacheinfo rta_len:%{public}u is invalid.", rtAttr->rta_len);
+                continue;
+            }
+            struct ifa_cacheinfo *cacheInfo = (struct ifa_cacheinfo *)RTA_DATA(rtAttr);
+            preferredLifetime = ConvertNetworkToHostLong(cacheInfo->ifa_prefered);
+            validLifetime = ConvertNetworkToHostLong(cacheInfo->ifa_valid);
+            DHCP_LOGI("ParseAddrMessage preferredLifetime:%{public}u, validLifetime:%{public}u\n",
+                preferredLifetime, validLifetime);
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, preferredLifetime, LifeType::PREF_LIFE);
+                DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, validLifetime, LifeType::VALID_LIFE);
+            }
+        }
+    }
+}
+
 void DhcpIpv6Client::ParseAddrMessage(void *msg)
 {
     if (msg == nullptr) {
@@ -242,25 +307,8 @@ void DhcpIpv6Client::ParseAddrMessage(void *msg)
     char addresses[DHCP_INET6_ADDRSTRLEN];
     memset_s(addresses, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
     int scope = IPV6_ADDR_LINKLOCAL;
-    int32_t len = IFA_PAYLOAD(hdrMsg);
-    for (rtattr *rtAttr = IFA_RTA(addrMsg); RTA_OK(rtAttr, len); rtAttr = RTA_NEXT(rtAttr, len)) {
-        if (rtAttr == nullptr) {
-            DHCP_LOGE("Invalid ifaddrmsg\n");
-            return;
-        }
-        if (rtAttr->rta_type == IFA_ADDRESS) {
-            if (rtAttr->rta_len < RTA_LENGTH(IPV6_LENGTH_BYTES)) {
-                DHCP_LOGI("handleKernelEvent rta_len:%{public}u is invalid.", rtAttr->rta_len);
-                continue;
-            }
-            if (GetIpFromS6Address(RTA_DATA(rtAttr), addrMsg->ifa_family, addresses, DHCP_INET6_ADDRSTRLEN) != 0) {
-                DHCP_LOGE("inet_ntop addresses failed.");
-                return;
-            }
-            scope = GetAddrScope(RTA_DATA(rtAttr));
-            DHCP_LOGI("ParseAddrMessage %{private}s\n", addresses);
-        }
-    }
+    int32_t len = static_cast<int32_t>(IFA_PAYLOAD(hdrMsg));
+    ParseAddrAttributes(addrMsg, len, addresses, scope);
     if (addresses[0] == '\0') {
         return;
     }
