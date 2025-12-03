@@ -51,6 +51,7 @@
             "components": [
                 "ability_runtime",
                 "bounds_checking_function",
+                "bundle_framework",
                 "c_utils",
                 "hilog",
                 "init",
