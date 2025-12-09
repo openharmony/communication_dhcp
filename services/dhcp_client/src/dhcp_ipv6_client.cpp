@@ -434,10 +434,6 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
     if (changed) {
         DHCP_LOGI("onIpv6DnsAddEvent dns servers changed");
         dhcpIpv6DnsRepository_->SetCurrentServers(dhcpIpv6Info);
-        {
-            std::lock_guard<std::mutex> lock(mutex_);
-            dhcpIpv6Info.lifetime = lifetime;
-        }
         PublishIpv6Result();
     }
 }
@@ -765,6 +761,11 @@ bool DhcpIpv6Client::IsUniqueLocalIpv6Address(const char *ipv6addr, int len)
     DHCP_LOGI("IsUniqueLocalIpv6Address addr:%{public}s is not unique local address.",
         Ipv6Anonymize(ipv6addr).c_str());
     return false;
+}
+
+uint32_t DhcpIpv6Client::ConvertNetworkToHostLong(uint32_t value)
+{
+    return ntohl(value);
 }
 }  // namespace DHCP
 }  // namespace OHOS

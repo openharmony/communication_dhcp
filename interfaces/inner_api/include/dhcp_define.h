@@ -246,6 +246,7 @@ namespace OHOS {
 namespace DHCP {
 inline const std::string IP_V4_MASK("255.255.255.0");
 inline const std::string IP_V4_DEFAULT("192.168.62.1");
+inline const uint32_t LIFETIME_INFINITY = 0xFFFFFFFF; // infinite lifetime
 struct DhcpResult {
     bool isOptSuc;          /* get result */
     int iptype;             /* 0-ipv4,1-ipv6 */
@@ -266,6 +267,9 @@ struct DhcpResult {
     uint32_t uGetTime;      /* dhcp result get time */
     std::vector<std::string> vectorDnsAddr; /* your (client) multi dns server */
     std::map<std::string, int> IpAddrMap; // key: addr, value: type
+    uint32_t validLifetime {LIFETIME_INFINITY};
+    uint32_t preferredLifetime {LIFETIME_INFINITY};
+    uint32_t routeLifetime {LIFETIME_INFINITY};
     DhcpResult()
     {
         iptype      = -1;
@@ -287,6 +291,9 @@ struct DhcpResult {
         uGetTime    = 0;
         vectorDnsAddr.clear();
         IpAddrMap.clear();
+        validLifetime = LIFETIME_INFINITY;
+        preferredLifetime = LIFETIME_INFINITY;
+        routeLifetime = LIFETIME_INFINITY;
     }
 };
 

@@ -55,6 +55,8 @@ private:
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
     void ParseAddrMessage(void *msg);
+    void ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope);
+    void parseRouteAttributes(void* rtMsgPtr, size_t size, char* dst, char* gateway, int& ifindex);
     void parseNDRouteMessage(void* msg);
     void parseNewneighMessage(void* msg);
     void getIpv6RouteAddr();
@@ -64,6 +66,7 @@ private:
     void PublishIpv6Result();
     bool IsGlobalIpv6Address(const char *ipv6addr, int len);
     bool IsUniqueLocalIpv6Address(const char *ipv6addr, int len);
+    uint32_t ConvertNetworkToHostLong(uint32_t value);
     // Callback function mutex
     std::mutex ipv6CallbackMutex_;
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged_ { nullptr };
