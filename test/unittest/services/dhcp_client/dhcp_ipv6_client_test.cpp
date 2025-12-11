@@ -543,5 +543,27 @@ HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitation_Success, TestSize.Level1)
     EXPECT_EQ(result, 0);
     MockSystemFunc::SetMockFlag(false);
 }
+
+HWTEST_F(DhcpIpv6ClientTest, SetRouterSolicitationsTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetRouterSolicitationsTest enter!");
+    // Test with valid content
+    std::string content = "6";
+    ipv6Client->SetRouterSolicitations(content);
+    // Since it's writing to sysfs, we can't easily verify without mocking file operations
+    // This test ensures no crash occurs
+}
+
+HWTEST_F(DhcpIpv6ClientTest, SetRouterSolicitationIntervalTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetRouterSolicitationIntervalTest enter!");
+    // Test with valid content
+    std::string content = "1";
+    ipv6Client->SetRouterSolicitationInterval(content);
+    // Since it's writing to sysfs, we can't easily verify without mocking file operations
+    // This test ensures no crash occurs
+}
 }
 }

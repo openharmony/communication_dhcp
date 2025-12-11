@@ -41,6 +41,10 @@ const char *DEFAULT_ROUTE = "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff";
 const std::string IPV6_ACCEPT_RA_CONFIG_PATH = "/proc/sys/net/ipv6/conf/";
 const std::string ACCEPT_RA = "accept_ra";
 const std::string ACCEPT_OVERRULE_FORWORGING = "2";
+const std::string ROUTER_SOLICITATIONS = "router_solicitations";
+const std::string ROUTER_SOLICITATION_INTERVAL = "router_solicitation_interval";
+const std::string ROUTER_SOLICITATIONS_COUNT = "6";
+const std::string ROUTER_SOLICITATION_INTERVAL_VALUE = "1";
 const int INDEX0 = 0;
 const int INDEX1 = 1;
 const int INDEX2 = 2;
@@ -651,6 +655,8 @@ int DhcpIpv6Client::StartIpv6()
 void *DhcpIpv6Client::DhcpIpv6Start()
 {
     SetAcceptRa(ACCEPT_OVERRULE_FORWORGING);
+    SetRouterSolicitations(ROUTER_SOLICITATIONS_COUNT);
+    SetRouterSolicitationInterval(ROUTER_SOLICITATION_INTERVAL_VALUE);
     int result = StartIpv6();
     if (result < 0) {
         DHCP_LOGE("dhcp6 run failed.");
@@ -678,6 +684,52 @@ void DhcpIpv6Client::SetAcceptRa(const std::string &content)
     outf.write(content.c_str(), content.length());
     outf.close();
     DHCP_LOGI("SetAcceptRa, write content [%{public}s] to file [%{public}s] success.",
+        content.c_str(), fileName.c_str());
+}
+
+void DhcpIpv6Client::SetRouterSolicitations(const std::string &content)
+{
+    std::string fileName;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ROUTER_SOLICITATIONS;
+    }
+    if (!IsValidPath(fileName)) {
+        DHCP_LOGE("invalid path:%{public}s", fileName.c_str());
+        return;
+    }
+    std::ofstream outf(fileName, std::ios::out);
+    if (!outf) {
+        DHCP_LOGE("SetRouterSolicitations, write content [%{public}s] to file [%{public}s] failed. error: %{public}d.",
+            content.c_str(), fileName.c_str(), errno);
+        return;
+    }
+    outf.write(content.c_str(), content.length());
+    outf.close();
+    DHCP_LOGI("SetRouterSolicitations, write content [%{public}s] to file [%{public}s] success.",
+        content.c_str(), fileName.c_str());
+}
+
+void DhcpIpv6Client::SetRouterSolicitationInterval(const std::string &content)
+{
+    std::string fileName;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        fileName = IPV6_ACCEPT_RA_CONFIG_PATH + interfaceName + '/' + ROUTER_SOLICITATION_INTERVAL;
+    }
+    if (!IsValidPath(fileName)) {
+        DHCP_LOGE("invalid path:%{public}s", fileName.c_str());
+        return;
+    }
+    std::ofstream outf(fileName, std::ios::out);
+    if (!outf) {
+        DHCP_LOGE("SetRouterSolicitationInterval, write content [%{public}s] to file [%{public}s] failed. "
+                  "error: %{public}d.", content.c_str(), fileName.c_str(), errno);
+        return;
+    }
+    outf.write(content.c_str(), content.length());
+    outf.close();
+    DHCP_LOGI("SetRouterSolicitationInterval, write content [%{public}s] to file [%{public}s] success.",
         content.c_str(), fileName.c_str());
 }
 
