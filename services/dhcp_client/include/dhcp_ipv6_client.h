@@ -63,6 +63,8 @@ private:
     void fillRouteData(char* buff, int &len);
     bool IsEui64ModeIpv6Address(const char *ipv6addr, int len, const unsigned char *ifaceMac, int macLen);
     void SetAcceptRa(const std::string &content);
+    void SetRouterSolicitations(const std::string &content);
+    void SetRouterSolicitationInterval(const std::string &content);
     void PublishIpv6Result();
     bool IsGlobalIpv6Address(const char *ipv6addr, int len);
     bool IsUniqueLocalIpv6Address(const char *ipv6addr, int len);

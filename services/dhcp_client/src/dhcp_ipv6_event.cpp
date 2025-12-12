@@ -15,9 +15,8 @@
 #include "dhcp_ipv6_client.h"
 #include "securec.h"
 #include <unistd.h>
-#include <linux/rtnetlink.h>
 #include "dhcp_logger.h"
-
+#include <linux/rtnetlink.h>
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("WifiDhcpIpv6Event");
@@ -27,7 +26,9 @@ const int KERNEL_SOCKET_IFA_FAMILY = 10;
 const int KERNEL_ICMP_TYPE = 134;
 const int IPV6_LENGTH_BYTES = 16;
 constexpr int ND_OPT_HDR_LENGTH_BYTES = 2;
-
+#ifndef USER_HZ
+#define USER_HZ 100
+#endif
 void DhcpIpv6Client::setSocketFilter(void* addr)
 {
     if (!addr) {
@@ -76,7 +77,6 @@ void DhcpIpv6Client::parseRouteAttributes(void* rtMsgPtr, size_t size, char* dst
     }
     struct rtmsg* rtMsg = reinterpret_cast<struct rtmsg*>(rtMsgPtr);
     int32_t rtmFamily = rtMsg->rtm_family;
-    uint32_t expires = 0;
     rtattr *rtaInfo = NULL;
     for (rtaInfo = RTM_RTA(rtMsg); RTA_OK(rtaInfo, (int)size); rtaInfo = RTA_NEXT(rtaInfo, size)) {
         switch (rtaInfo->rta_type) {
@@ -104,15 +104,16 @@ void DhcpIpv6Client::parseRouteAttributes(void* rtMsgPtr, size_t size, char* dst
                 }
                 ifindex = *(reinterpret_cast<int32_t*>(RTA_DATA(rtaInfo)));
                 break;
-            case RTA_EXPIRES:
-                if (rtaInfo->rta_len < (RTA_LENGTH(sizeof(uint32_t)))) {
+            case RTA_CACHEINFO:
+                if (rtaInfo->rta_len < RTA_LENGTH(sizeof(struct rta_cacheinfo))) {
                     return;
-                }
-                expires = *(reinterpret_cast<uint32_t*>(RTA_DATA(rtaInfo)));
-                DHCP_LOGI("Route expires in %{public}u seconds", expires);
-                {
-                    std::lock_guard<std::mutex> lock(mutex_);
-                    DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, expires, LifeType::ROUTE_LIFE);
+                } else {
+                    struct rta_cacheinfo *cacheInfo = (struct rta_cacheinfo *)RTA_DATA(rtaInfo);
+                    if (cacheInfo->rta_expires > 0) { //if expires < 0, it means invalid
+                        uint32_t sec = static_cast<uint32_t>(cacheInfo->rta_expires / USER_HZ);
+                        std::lock_guard<std::mutex> lock(mutex_);
+                        DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, sec, LifeType::ROUTE_LIFE);
+                    }
                 }
                 break;
             default:
@@ -135,6 +136,9 @@ void DhcpIpv6Client::parseNDRouteMessage(void* msg)
         DHCP_LOGE("invalid msglen:%{public}d", hdrMsg->nlmsg_len);
         return;
     }
+    DHCP_LOGI("parseNDRouteMessage rtm_protocol: %{public}d, rtm_scope: %{public}d, rtm_type: %{public}d, "
+              "rtm_src_len: %{public}d, rtm_flags: %{public}d",
+              rtMsg->rtm_protocol, rtMsg->rtm_scope, rtMsg->rtm_type, rtMsg->rtm_src_len, rtMsg->rtm_flags);
     // Ignore static routes we've set up ourselves.
     if ((rtMsg->rtm_protocol != RTPROT_KERNEL && rtMsg->rtm_protocol != RTPROT_RA) ||
      // We're only interested in global unicast routes.
@@ -272,8 +276,8 @@ void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *ad
                 continue;
             }
             struct ifa_cacheinfo *cacheInfo = (struct ifa_cacheinfo *)RTA_DATA(rtAttr);
-            preferredLifetime = ConvertNetworkToHostLong(cacheInfo->ifa_prefered);
-            validLifetime = ConvertNetworkToHostLong(cacheInfo->ifa_valid);
+            preferredLifetime = cacheInfo->ifa_prefered;
+            validLifetime = cacheInfo->ifa_valid;
             DHCP_LOGI("ParseAddrMessage preferredLifetime:%{public}u, validLifetime:%{public}u\n",
                 preferredLifetime, validLifetime);
             {
