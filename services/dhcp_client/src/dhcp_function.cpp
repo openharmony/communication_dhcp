@@ -206,7 +206,7 @@ int GetLocalIp(const char *ifname, uint32_t *ifaddr4)
     }
 
     for (ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
-        if (strcmp(ifa->ifa_name, ifname) != 0) {
+        if (ifa->ifa_name == nullptr || strcmp(ifa->ifa_name, ifname) != 0) {
             continue;
         }
 
