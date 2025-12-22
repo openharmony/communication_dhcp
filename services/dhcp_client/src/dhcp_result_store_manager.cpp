@@ -194,12 +194,12 @@ int32_t DhcpResultStoreManager::SaveIpInfoInLocalFile(const IpInfoCached ipResul
 int32_t DhcpResultStoreManager::RemoveCachedIp(const IpInfoCached &cacheInfo)
 {
     LoadAllIpCached(DHCP_CACHE_FILE);
-    DHCP_LOGE("RemoveCachedIp, m_allIpCached size is %{public}d", static_cast<int32_t>(m_allIpCached.size()));
     if (cacheInfo.ssid.empty()) {
         DHCP_LOGE("RemoveCachedIp, ssid is empty");
         return DHCP_E_FAILED;
     }
     std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    DHCP_LOGE("RemoveCachedIp, m_allIpCached size is %{public}d", static_cast<int32_t>(m_allIpCached.size()));
     if (m_allIpCached.empty()) {
         DHCP_LOGE("m_allIpCached is empty");
         return DHCP_E_FAILED;
@@ -212,8 +212,8 @@ int32_t DhcpResultStoreManager::RemoveCachedIp(const IpInfoCached &cacheInfo)
 int32_t DhcpResultStoreManager::AddCachedIp(const IpInfoCached &cacheInfo)
 {
     LoadAllIpCached(DHCP_CACHE_FILE);
-    DHCP_LOGE("AddCachedIp, m_allIpCached size is %{public}d", static_cast<int32_t>(m_allIpCached.size()));
     std::unique_lock<std::mutex> lock(m_ipResultMutex);
+    DHCP_LOGE("AddCachedIp, m_allIpCached size is %{public}d", static_cast<int32_t>(m_allIpCached.size()));
     if (m_allIpCached.empty()) {
         DHCP_LOGE("m_allIpCached is empty");
         return DHCP_E_FAILED;

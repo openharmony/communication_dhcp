@@ -236,8 +236,17 @@ void DhcpServerServiceImpl::DeviceInfoCallBack(const std::string& ifname)
     std::vector<DhcpStationInfo> stationInfos;
     GetDhcpClientInfos(ifname, leases);
     ConvertLeasesToStationInfos(leases, stationInfos);
-    auto iter = m_mapServerCallBack.find(ifname);
-    if (iter != m_mapServerCallBack.end()) {
+#ifdef OHOS_ARCH_LITE
+    std::map<std::string, std::shared_ptr<IDhcpServerCallBack>> tempCallback;
+#else
+    std::map<std::string, sptr<IDhcpServerCallBack>> tempCallback;
+#endif
+    {
+        std::lock_guard<std::mutex> lock(callbackmutex_);
+        tempCallback= m_mapServerCallBack;
+    }
+    auto iter = tempCallback.find(ifname);
+    if (iter != tempCallback.end()) {
         if ((iter->second) != nullptr) {
             (iter->second)->OnServerSuccess(ifname, stationInfos);
             return;
@@ -325,8 +334,17 @@ ErrCode DhcpServerServiceImpl::StopDhcpServer(const std::string& ifname)
     if (DelSpecifiedInterface(ifname) != DHCP_OPT_SUCCESS) {
         return DHCP_E_FAILED;
     }
-    auto iter = m_mapServerCallBack.find(ifname);
-    if (iter != m_mapServerCallBack.end()) {
+#ifdef OHOS_ARCH_LITE
+    std::map<std::string, std::shared_ptr<IDhcpServerCallBack>> tempCallback;
+#else
+    std::map<std::string, sptr<IDhcpServerCallBack>> tempCallback;
+#endif
+    {
+        std::lock_guard<std::mutex> lock(callbackmutex_);
+        tempCallback= m_mapServerCallBack;
+    }
+    auto iter = tempCallback.find(ifname);
+    if (iter != tempCallback.end()) {
         if ((iter->second) != nullptr) {
             (iter->second)->OnServerStatusChanged(static_cast<int>(DHCP_SERVER_OFF));
         }

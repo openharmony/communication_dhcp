@@ -527,9 +527,15 @@ int DhcpIpv6Client::SendRouterSolicitation()
         return -1;
     }
 
+    std::string ifname;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ifname = interfaceName;
+    }
+
     struct ifreq ifr;
     memset_s(&ifr, sizeof(ifr), 0, sizeof(ifr));
-    if (strncpy_s(ifr.ifr_name, IFNAMSIZ, interfaceName.c_str(), IFNAMSIZ - 1) != EOK) {
+    if (strncpy_s(ifr.ifr_name, IFNAMSIZ, ifname.c_str(), IFNAMSIZ - 1) != EOK) {
         close(sock);
         return -1;
     }
@@ -550,7 +556,7 @@ int DhcpIpv6Client::SendRouterSolicitation()
     memset_s(&dest, sizeof(dest), 0, sizeof(dest));
     dest.sin6_family = AF_INET6;
     inet_pton(AF_INET6, "ff02::2", &dest.sin6_addr);
-    dest.sin6_scope_id = if_nametoindex(interfaceName.c_str());
+    dest.sin6_scope_id = if_nametoindex(ifname.c_str());
 
     if (sendto(sock, &rs, sizeof(rs), 0, (struct sockaddr*)&dest, sizeof(dest)) < 0) {
         DHCP_LOGE("SendRouterSolicitation sendto failed %{public}d", errno);

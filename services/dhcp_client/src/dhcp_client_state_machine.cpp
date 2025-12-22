@@ -1969,12 +1969,12 @@ void DhcpClientStateMachine::SetSecondsElapsed(struct DhcpPacket *packet)
 #ifndef OHOS_ARCH_LITE
 void DhcpClientStateMachine::GetIpTimerCallback()
 {
-    DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}" PRIu64",%{public}" PRIu64","
-        "%{public}" PRIu64",%{public}" PRIu64"",
-        threadExit_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
     ActionMode currentMode;
     {
         std::lock_guard<std::mutex> lock(dhcpClientMutex_);
+        DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}" PRIu64",%{public}" PRIu64","
+        "%{public}" PRIu64",%{public}" PRIu64"",
+        threadExit_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
         if (threadExit_.load()) {
             DHCP_LOGE("GetIpTimerCallback return!");
             return;
