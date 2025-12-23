@@ -131,13 +131,16 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
         DHCP_LOGI("create new DhcpClientCallbackProxy!");
     }
     std::string ifName = data.ReadString();
-    if (deathRecipient_ == nullptr) {
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (deathRecipient_ == nullptr) {
 #ifdef OHOS_ARCH_LITE
-         deathRecipient_ =sptr<DhcpClientDeathRecipient>::MakeSptr();
+            deathRecipient_ = sptr<DhcpClientDeathRecipient>::MakeSptr();
 #else
-         deathRecipient_ =sptr<ClientDeathRecipient>::MakeSptr(*this);
-        remoteDeathMap.insert(std::make_pair(remote, deathRecipient_));
+            deathRecipient_ = sptr<ClientDeathRecipient>::MakeSptr(*this);
+            remoteDeathMap.insert(std::make_pair(remote, deathRecipient_));
 #endif
+        }
     }
     ErrCode ret = RegisterDhcpClientCallBack(ifName, callback_);
     reply.WriteInt32(0);
