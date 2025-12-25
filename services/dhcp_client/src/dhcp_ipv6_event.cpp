@@ -29,6 +29,9 @@ constexpr int ND_OPT_HDR_LENGTH_BYTES = 2;
 #ifndef USER_HZ
 #define USER_HZ 100
 #endif
+#ifndef IFA_F_TEMPORARY
+#define IFA_F_TEMPORARY 0x01
+#endif
 void DhcpIpv6Client::setSocketFilter(void* addr)
 {
     if (!addr) {
@@ -245,7 +248,7 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
         nlh = NLMSG_NEXT(nlh, len);
     }
 }
-void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope)
+void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope, bool &isTemporary)
 {
     if (addrMsgptr == nullptr || addresses == nullptr) {
         DHCP_LOGE("ParseAddrAttributes addrMsg or addresses is nullptr.");
@@ -254,6 +257,7 @@ void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *ad
     struct ifaddrmsg *addrMsg = reinterpret_cast<ifaddrmsg *>(addrMsgptr);
     uint32_t preferredLifetime = 0;
     uint32_t validLifetime = 0;
+    isTemporary = false;
     for (rtattr *rtAttr = IFA_RTA(addrMsg); RTA_OK(rtAttr, len); rtAttr = RTA_NEXT(rtAttr, len)) {
         if (rtAttr == nullptr) {
             DHCP_LOGE("Invalid ifaddrmsg\n");
@@ -269,7 +273,8 @@ void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *ad
                 return;
             }
             scope = GetAddrScope(RTA_DATA(rtAttr));
-            DHCP_LOGI("ParseAddrMessage %{private}s\n", addresses);
+            isTemporary = (addrMsg->ifa_flags & IFA_F_TEMPORARY) != 0;
+            DHCP_LOGI("ParseAddrMessage %{private}s, isTemporary: %{public}d\n", addresses, isTemporary);
         } else if (rtAttr->rta_type == IFA_CACHEINFO) {
             if (rtAttr->rta_len < RTA_LENGTH(sizeof(struct ifa_cacheinfo))) {
                 DHCP_LOGI("handleKernelEvent ifa_cacheinfo rta_len:%{public}u is invalid.", rtAttr->rta_len);
@@ -282,8 +287,14 @@ void DhcpIpv6Client::ParseAddrAttributes(void *addrMsgptr, int32_t len, char *ad
                 preferredLifetime, validLifetime);
             {
                 std::lock_guard<std::mutex> lock(mutex_);
-                DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, preferredLifetime, LifeType::PREF_LIFE);
-                DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, validLifetime, LifeType::VALID_LIFE);
+                if (isTemporary) {
+                    DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, preferredLifetime, LifeType::TEMP_PREF_LIFE);
+                    DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, validLifetime, LifeType::TEMP_VALID_LIFE);
+                    DhcpIpv6InfoManager::UpdateUseTempAddr(dhcpIpv6Info.lifetime, interfaceName);
+                } else {
+                    DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, preferredLifetime, LifeType::PREF_LIFE);
+                    DhcpIpv6InfoManager::AddLifetime(dhcpIpv6Info, validLifetime, LifeType::VALID_LIFE);
+                }
             }
         }
     }
@@ -311,8 +322,9 @@ void DhcpIpv6Client::ParseAddrMessage(void *msg)
     char addresses[DHCP_INET6_ADDRSTRLEN];
     memset_s(addresses, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
     int scope = IPV6_ADDR_LINKLOCAL;
+    bool isTemporary = false;
     int32_t len = static_cast<int32_t>(IFA_PAYLOAD(hdrMsg));
-    ParseAddrAttributes(addrMsg, len, addresses, scope);
+    ParseAddrAttributes(addrMsg, len, addresses, scope, isTemporary);
     if (addresses[0] == '\0') {
         return;
     }

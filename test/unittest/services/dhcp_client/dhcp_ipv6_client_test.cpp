@@ -21,6 +21,7 @@
 #include <sys/stat.h>
 #include <sys/socket.h>
 #include <linux/rtnetlink.h>
+#include <linux/if_addr.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "securec.h"
@@ -564,6 +565,64 @@ HWTEST_F(DhcpIpv6ClientTest, SetRouterSolicitationIntervalTest, TestSize.Level1)
     ipv6Client->SetRouterSolicitationInterval(content);
     // Since it's writing to sysfs, we can't easily verify without mocking file operations
     // This test ensures no crash occurs
+}
+
+HWTEST_F(DhcpIpv6ClientTest, ParseAddrAttributes_TemporaryAddressTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ParseAddrAttributes_TemporaryAddressTest enter!");
+
+    // Prepare test data with rtattr
+    struct {
+        struct ifaddrmsg addrMsg;
+        struct rtattr rta;
+        struct in6_addr addr;
+    } msg;
+    memset_s(&msg, sizeof(msg), 0, sizeof(msg));
+    msg.addrMsg.ifa_family = AF_INET6;
+    msg.addrMsg.ifa_flags = IFA_F_TEMPORARY;  // Set temporary flag
+    msg.rta.rta_type = IFA_ADDRESS;
+    msg.rta.rta_len = RTA_LENGTH(sizeof(struct in6_addr));
+    inet_pton(AF_INET6, "2001:db8::1", &msg.addr);
+
+    char addresses[DHCP_INET6_ADDRSTRLEN] = {0};
+    int scope = 0;
+    bool isTemporary = false;
+
+    // Call ParseAddrAttributes
+    ipv6Client->ParseAddrAttributes(&msg, sizeof(msg), addresses, scope, isTemporary);
+
+    // Verify isTemporary is set to true
+    EXPECT_TRUE(isTemporary);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, ParseAddrAttributes_GlobalAddressTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("ParseAddrAttributes_GlobalAddressTest enter!");
+
+    // Prepare test data with rtattr
+    struct {
+        struct ifaddrmsg addrMsg;
+        struct rtattr rta;
+        struct in6_addr addr;
+    } msg;
+    memset_s(&msg, sizeof(msg), 0, sizeof(msg));
+    msg.addrMsg.ifa_family = AF_INET6;
+    msg.addrMsg.ifa_flags = 0;  // No temporary flag
+    msg.rta.rta_type = IFA_ADDRESS;
+    msg.rta.rta_len = RTA_LENGTH(sizeof(struct in6_addr));
+    inet_pton(AF_INET6, "2001:db8::1", &msg.addr);
+
+    char addresses[DHCP_INET6_ADDRSTRLEN] = {0};
+    int scope = 0;
+    bool isTemporary = true;  // Initially set to true
+
+    // Call ParseAddrAttributes
+    ipv6Client->ParseAddrAttributes(&msg, sizeof(msg), addresses, scope, isTemporary);
+
+    // Verify isTemporary is set to false
+    EXPECT_FALSE(isTemporary);
 }
 }
 }

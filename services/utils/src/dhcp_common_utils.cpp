@@ -341,5 +341,26 @@ bool IsValidPath(const std::string &filePath)
     free(realPaths);
     return true;
 }
+
+void ModifyKernelFile(const std::string &filePath, const char* num)
+{
+    if (!IsValidPath(filePath)) {
+        DHCP_LOGE("invalid path:%{public}s", filePath.c_str());
+        return;
+    }
+    FILE* file = fopen(filePath.c_str(), "w");
+    if (file == nullptr) {
+        DHCP_LOGI("Failed to open file");
+        return;
+    }
+    if (fwrite(num, 1, 1, file) != 1) {
+        DHCP_LOGI("Failed to write file");
+        (void)fclose(file);
+        return;
+    }
+    (void)fflush(file);
+    (void)fsync(fileno(file));
+    (void)fclose(file);
+}
 }
 }

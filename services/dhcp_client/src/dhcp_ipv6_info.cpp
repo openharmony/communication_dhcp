@@ -16,6 +16,7 @@
 #include "dhcp_ipv6_define.h"
 #include "dhcp_ipv6_info.h"
 #include "dhcp_logger.h"
+#include "dhcp_common_utils.h"
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6InfoManager");
@@ -255,15 +256,38 @@ bool DhcpIpv6InfoManager::AddLifetime(DhcpIpv6Info &dhcpIpv6Info, uint32_t lifet
 {
     switch (type) {
         case LifeType::VALID_LIFE: {
+            if (dhcpIpv6Info.validLifetime == lifetime) {
+                return true;
+            }
             dhcpIpv6Info.validLifetime = lifetime;
             break;
         }
         case LifeType::PREF_LIFE: {
+            if (dhcpIpv6Info.preferredLifetime == lifetime) {
+                return true;
+            }
             dhcpIpv6Info.preferredLifetime =lifetime;
             break;
         }
         case LifeType::ROUTE_LIFE: {
+            if (dhcpIpv6Info.routeLifetime == lifetime) {
+                return true;
+            }
             dhcpIpv6Info.routeLifetime = lifetime;
+            break;
+        }
+        case LifeType::TEMP_VALID_LIFE: {
+            if (dhcpIpv6Info.tempValidLifetime == lifetime) {
+                return true;
+            }
+            dhcpIpv6Info.tempValidLifetime = lifetime;
+            break;
+        }
+        case LifeType::TEMP_PREF_LIFE: {
+            if (dhcpIpv6Info.tempPreferredLifetime == lifetime) {
+                return true;
+            }
+            dhcpIpv6Info.tempPreferredLifetime = lifetime;
             break;
         }
         default: {
@@ -271,8 +295,32 @@ bool DhcpIpv6InfoManager::AddLifetime(DhcpIpv6Info &dhcpIpv6Info, uint32_t lifet
             return false;
         }
     }
-    dhcpIpv6Info.lifetime = std::min(dhcpIpv6Info.validLifetime, dhcpIpv6Info.preferredLifetime);
+    dhcpIpv6Info.lifetime = std::min(dhcpIpv6Info.tempValidLifetime, dhcpIpv6Info.tempPreferredLifetime);
     DHCP_LOGI("AddLifetime type %{public}d lifetime %{public}u", static_cast<int>(type), lifetime);
+    return true;
+}
+
+bool DhcpIpv6InfoManager::UpdateUseTempAddr(uint32_t lifetime, std::string ifname)
+{
+    if (lifetime >= IPV6_LIFETIME_INFINITY) {
+        DHCP_LOGI("UpdateUseTempAddr ifname %{public}s lifetime %{public}u is valid", ifname.c_str(), lifetime);
+        return true;
+    }
+
+    std::string path = "/proc/sys/net/ipv6/conf/" + ifname + "/use_tempaddr";
+    if (!IsValidPath(path)) {
+        DHCP_LOGE("UpdateUseTempAddr invalid path:%{public}s", path.c_str());
+        return false;
+    }
+    if (lifetime < IPV6_LIFETIME_MIN) {
+        ModifyKernelFile(path, "1");
+        DHCP_LOGI("UpdateUseTempAddr ifname %{public}s lifetime %{public}u is invalid, set use_tempaddr 1",
+            ifname.c_str(), lifetime);
+        return false;
+    }
+    ModifyKernelFile(path, "2");
+    DHCP_LOGI("UpdateUseTempAddr ifname %{public}s lifetime %{public}u is valid, set use_tempaddr 2",
+        ifname.c_str(), lifetime);
     return true;
 }
 }

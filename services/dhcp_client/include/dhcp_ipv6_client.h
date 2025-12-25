@@ -55,7 +55,7 @@ private:
     void handleKernelEvent(const uint8_t* data, int len);
     void parseNdUserOptMessage(void* msg, int len);
     void ParseAddrMessage(void *msg);
-    void ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope);
+    void ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope, bool &isTemporary);
     void parseRouteAttributes(void* rtMsgPtr, size_t size, char* dst, char* gateway, int& ifindex);
     void parseNDRouteMessage(void* msg);
     void parseNewneighMessage(void* msg);
