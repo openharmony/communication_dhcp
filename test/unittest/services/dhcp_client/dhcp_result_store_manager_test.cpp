@@ -29,9 +29,13 @@ public:
     static void TearDownTestCase()
     {}
     virtual void SetUp()
-    {}
+    {
+        dhcpResultStoreManager_ = std::make_unique<DhcpResultStoreManager>();
+    }
     virtual void TearDown()
     {}
+public:
+    std::unique_ptr<DhcpResultStoreManager>dhcpResultStoreManager_;
 };
 /**
  * @tc.name: SaveIpInfoInLocalFile_SUCCESS
@@ -45,7 +49,7 @@ HWTEST_F(DhcpResultStoreManagerTest, SaveIpInfoInLocalFile_SUCCESS, TestSize.Lev
     IpInfoCached ipInfoCached;
     ipInfoCached.bssid = "12:34:56:48:78:56";
     ipInfoCached.absoluteLeasetime = 1;
-    DHCP::DhcpResultStoreManager::GetInstance().SaveIpInfoInLocalFile(ipInfoCached);
+    dhcpResultStoreManager_->SaveIpInfoInLocalFile(ipInfoCached);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 /**
@@ -59,7 +63,7 @@ HWTEST_F(DhcpResultStoreManagerTest, GetCachedDhcpResult_SUCCESS, TestSize.Level
     DHCP_LOGE("enter GetCachedDhcpResult_SUCCESS");
     std::string targetBssid = "12:34:56:48:78:56";
     IpInfoCached ipInfo;
-    DHCP::DhcpResultStoreManager::GetInstance().GetCachedIp(targetBssid, ipInfo);
+    dhcpResultStoreManager_->GetCachedIp(targetBssid, ipInfo);
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 }  // namespace OHOS
