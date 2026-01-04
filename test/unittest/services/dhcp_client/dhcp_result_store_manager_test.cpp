@@ -19,7 +19,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultStoreManagerTest");
 
 using namespace testing::ext;
-
+using namespace OHOS::DHCP;
 namespace OHOS {
 constexpr int ZERO = 0;
 class DhcpResultStoreManagerTest : public testing::Test {
