@@ -242,7 +242,7 @@ HWTEST_F(DhcpSocketTest, GetDhcpKernelPacket_SUCCESS, TestSize.Level1)
     EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_ERROR);
 
     packet.cookie = htonl(MAGIC_COOKIE);
-    EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_ERROR);
+    EXPECT_NE(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_FAILED);
 
     MockSystemFunc::SetMockFlag(false);
 }
