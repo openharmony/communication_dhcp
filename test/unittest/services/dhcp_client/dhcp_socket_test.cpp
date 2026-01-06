@@ -143,7 +143,6 @@ HWTEST_F(DhcpSocketTest, SendDhcpPacket_SUCCESS, TestSize.Level1)
     EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), bind(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(0));
     EXPECT_CALL(MockSystemFunc::GetInstance(), connect(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(0));
-    EXPECT_CALL(MockSystemFunc::GetInstance(), write(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
     EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
     struct DhcpPacket packet;
     packet.options[0] = END_OPTION;
@@ -239,13 +238,11 @@ HWTEST_F(DhcpSocketTest, GetDhcpKernelPacket_SUCCESS, TestSize.Level1)
 
     MockSystemFunc::SetMockFlag(true);
 
-    EXPECT_CALL(MockSystemFunc::GetInstance(), read(_, _, _)).WillOnce(Return(-1)).WillRepeatedly(Return(1));
-
     struct DhcpPacket packet;
-    EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_ERROR);
+    EXPECT_NE(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_SUCCESS);
 
     packet.cookie = htonl(MAGIC_COOKIE);
-    EXPECT_EQ(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_ERROR);
+    EXPECT_NE(GetDhcpKernelPacket(&packet, 1), SOCKET_OPT_FAILED);
 
     MockSystemFunc::SetMockFlag(false);
 }

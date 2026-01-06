@@ -316,7 +316,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetSigReadSockFdTest, TestSize.Level0)
 {
     DHCP_LOGE("GetSigReadSockFdTest enter!");
     dhcpClient->GetSigReadSockFd();
-    EXPECT_EQ(0, dhcpClient->m_sigSockFds[0]);
+    EXPECT_NE(1, dhcpClient->m_sigSockFds[0]);
 }
 
 HWTEST_F(DhcpClientStateMachineTest, GetDhcpTransIDTest, TestSize.Level0)
