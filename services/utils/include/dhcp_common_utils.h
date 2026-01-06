@@ -61,6 +61,8 @@ int32_t AddArpEntry(const std::string& iface, const std::string& ipAddr, const s
 std::string Ipv6Anonymize(const std::string &str);
 
 bool IsValidPath(const std::string &filePath);
+
+void ModifyKernelFile(const std::string &filePath, const char* num);
 }
 }
 #endif

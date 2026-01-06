@@ -281,6 +281,7 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
         DHCP_LOGD("OnIpv6AddressUpdateEvent other scope:%{public}d", scope);
     }
     if (type == AddrType::UNKNOW) {
+        DHCP_LOGE("OnIpv6AddressUpdateEvent type UNKNOW");
         return;
     }
 

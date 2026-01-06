@@ -25,6 +25,7 @@ namespace DHCP {
 inline const int DHCP_INET6_ADDRSTRLEN = 128;
 inline const int DNS_DEFAULT_LIFETIME = 3600; // default lifetime for DNS server
 inline const uint32_t IPV6_LIFETIME_INFINITY = 0xFFFFFFFF; // infinite lifetime
+inline const uint32_t IPV6_LIFETIME_MIN = 10 * 60; // minimum lifetime
 enum AddrType {
     UNKNOW = -1,
     DEFAULT = 0,
@@ -39,6 +40,8 @@ enum LifeType {
     VALID_LIFE = 0,
     PREF_LIFE,
     ROUTE_LIFE,
+    TEMP_VALID_LIFE,
+    TEMP_PREF_LIFE,
 };
 struct DhcpIpv6Info {
     char linkIpv6Addr[DHCP_INET6_ADDRSTRLEN];
@@ -58,6 +61,8 @@ struct DhcpIpv6Info {
     uint32_t validLifetime {IPV6_LIFETIME_INFINITY};
     uint32_t preferredLifetime {IPV6_LIFETIME_INFINITY};
     uint32_t routeLifetime {IPV6_LIFETIME_INFINITY};
+    uint32_t tempValidLifetime {IPV6_LIFETIME_INFINITY};
+    uint32_t tempPreferredLifetime {IPV6_LIFETIME_INFINITY};
     void Clear()
     {
         memset_s(linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
@@ -75,6 +80,8 @@ struct DhcpIpv6Info {
         validLifetime = IPV6_LIFETIME_INFINITY;
         preferredLifetime = IPV6_LIFETIME_INFINITY;
         routeLifetime = IPV6_LIFETIME_INFINITY;
+        tempValidLifetime = IPV6_LIFETIME_INFINITY;
+        tempPreferredLifetime = IPV6_LIFETIME_INFINITY;
         defaultRouteAddr.clear();
         IpAddrMap.clear();
     }
@@ -91,6 +98,7 @@ public:
     static bool UpdateAddr(DhcpIpv6Info &dhcpIpv6Info, std::string addr, AddrType type);
     static bool RemoveAddr(DhcpIpv6Info &dhcpIpv6Info, std::string addr);
     static bool AddLifetime(DhcpIpv6Info &dhcpIpv6Info, uint32_t lifetime, LifeType type);
+    static bool UpdateUseTempAddr(uint32_t lifetime, std::string ifname);
 };
 }  // namespace DHCP
 }  // namespace OHOS

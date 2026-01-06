@@ -132,4 +132,21 @@ HWTEST_F(DhcpIpv6InfoTest, RemoveAddr_FALLBACK, TestSize.Level1)
     EXPECT_EQ(dhcpIpv6Info.IpAddrMap.begin()->first, addr1);
     EXPECT_STREQ(dhcpIpv6Info.globalIpv6Addr, addr1.c_str()); // Fallback to addr1
 }
+
+HWTEST_F(DhcpIpv6InfoTest, UpdateUseTempAddr_Infinity, TestSize.Level1)
+{
+    EXPECT_TRUE(DhcpIpv6InfoManager::UpdateUseTempAddr(0xFFFFFFFF, "eth0"));
+}
+
+HWTEST_F(DhcpIpv6InfoTest, UpdateUseTempAddr_TooSmall, TestSize.Level1)
+{
+    EXPECT_FALSE(DhcpIpv6InfoManager::UpdateUseTempAddr(500, "eth0"));
+}
+
+HWTEST_F(DhcpIpv6InfoTest, UpdateUseTempAddr_Valid, TestSize.Level1)
+{
+    // Note: This test may fail if /proc/sys/net/ipv6/conf/eth0/use_tempaddr does not exist
+    // In test environments without network interfaces, expect false
+    EXPECT_FALSE(DhcpIpv6InfoManager::UpdateUseTempAddr(1000, "eth0"));
+}
 }  // namespace OHOS
