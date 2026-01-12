@@ -18,6 +18,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <unistd.h>
+#include <fuzzer/FuzzedDataProvider.h>
 #include "securec.h"
 #include "address_utils.h"
 #include "dhcp_s_define.h"
@@ -28,70 +29,62 @@ constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr int CFG_DATA_MAX_BYTES = 20;
 
-void NetworkAddressTest(const uint8_t* data, size_t size)
+void NetworkAddressTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t ip = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     NetworkAddress(ip, netmask);
 }
 
-void FirstIpAddressTest(const uint8_t* data, size_t size)
+void FirstIpAddressTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t ip = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     FirstIpAddress(ip, netmask);
 }
 
-void NextIpAddressTest(const uint8_t* data, size_t size)
+void NextIpAddressTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t currIp = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
-    uint32_t offset = static_cast<uint32_t>(data[index++]);
+    uint32_t currIp = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t offset = FDP.ConsumeIntegral<uint32_t>();
     NextIpAddress(currIp, netmask, offset);
 }
 
-void FirstNetIpAddressTest(const uint8_t* data, size_t size)
+void FirstNetIpAddressTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t networkAddr = static_cast<uint32_t>(data[index++]);
+    uint32_t networkAddr = FDP.ConsumeIntegral<uint32_t>();
     FirstNetIpAddress(networkAddr);
 }
 
-void LastIpAddressTest(const uint8_t* data, size_t size)
+void LastIpAddressTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t ip = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     LastIpAddress(ip, netmask);
 }
 
-void IpInNetworkTest(const uint8_t* data, size_t size)
+void IpInNetworkTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t network = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t ip = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t network = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     IpInNetwork(ip, network, netmask);
 }
 
-void IpInRangeTest(const uint8_t* data, size_t size)
+void IpInRangeTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t beginIp = static_cast<uint32_t>(data[index++]);
-    uint32_t endIp = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t ip = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t beginIp = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t endIp = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     IpInRange(ip, beginIp, endIp, netmask);
 }
 
-void BroadCastAddressTest(const uint8_t* data, size_t size)
+void BroadCastAddressTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t ip = static_cast<uint32_t>(data[index++]);
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t ip = FDP.ConsumeIntegral<uint32_t>();
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     BroadCastAddress(ip, netmask);
 }
 
@@ -101,15 +94,15 @@ void ParseIpAddrTest(const uint8_t* data, size_t size)
     (void)ParseIpAddr(strIp);
 }
 
-void HostTotalTest(const uint8_t* data, size_t size)
+void HostTotalTest(FuzzedDataProvider& FDP)
 {
-    uint32_t netmask = static_cast<uint32_t>(data[0]);
+    uint32_t netmask = FDP.ConsumeIntegral<uint32_t>();
     HostTotal(netmask);
 }
 
 void ParseIpTest(const uint8_t* data, size_t size)
 {
-    uint8_t *ipAddr = NULL;
+    uint8_t *ipAddr = nullptr;
     if (memcpy_s(ipAddr, CFG_DATA_MAX_BYTES, data, CFG_DATA_MAX_BYTES - 1) != EOK) {
         return;
     }
@@ -143,17 +136,15 @@ void ParseHostNameTest(const uint8_t* data, size_t size)
     (void)ParseHostName(strHostName, &hostName[0]);
 }
 
-void HostToNetworkTest(const uint8_t* data, size_t size)
+void HostToNetworkTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t host = static_cast<uint32_t>(data[index++]);
+    uint32_t host = FDP.ConsumeIntegral<uint32_t>();
     HostToNetwork(host);
 }
 
-void NetworkToHostTest(const uint8_t* data, size_t size)
+void NetworkToHostTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
-    uint32_t network = static_cast<uint32_t>(data[index++]);
+    uint32_t network = FDP.ConsumeIntegral<uint32_t>();
     NetworkToHost(network);
 }
 
@@ -163,10 +154,9 @@ void ParseLogMacTest(const uint8_t* data, size_t size)
     ParseLogMac(&macAddr[0]);
 }
 
-void AddrEquelsTest(const uint8_t* data, size_t size)
+void AddrEquelsTest(FuzzedDataProvider& FDP)
 {
-    int index = 0;
-    int addrLength = static_cast<int>(data[index++]);
+    int addrLength = FDP.ConsumeIntegral<int>();
     uint8_t firstAddr[DHCP_HWADDR_LENGTH];
     uint8_t secondAddr[DHCP_HWADDR_LENGTH];
     AddrEquels(&firstAddr[0], &secondAddr[0], addrLength);
@@ -178,10 +168,9 @@ void ParseIpFuzzTest(const uint8_t* data, size_t size)
     ParseIp(ipAddr);
 }
 
-void ParseStrIpFuzzTest(const uint8_t* data, size_t size)
+void ParseStrIpFuzzTest(FuzzedDataProvider& FDP)
 {
-    int index = 0;
-    uint32_t ipAddr = static_cast<uint32_t>(data[index++]);
+    uint32_t ipAddr = FDP.ConsumeIntegral<uint32_t>();
     ParseStrIp(ipAddr);
 }
 /* Fuzzer entry point */
@@ -190,28 +179,29 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
+    FuzzedDataProvider FDP(data, size);
     sleep(DHCP_SLEEP_1);
-    OHOS::DHCP::NetworkAddressTest(data, size);
-    OHOS::DHCP::FirstIpAddressTest(data, size);
-    OHOS::DHCP::NextIpAddressTest(data, size);
-    OHOS::DHCP::FirstNetIpAddressTest(data, size);
-    OHOS::DHCP::LastIpAddressTest(data, size);
-    OHOS::DHCP::IpInNetworkTest(data, size);
-    OHOS::DHCP::IpInRangeTest(data, size);
-    OHOS::DHCP::BroadCastAddressTest(data, size);
+    OHOS::DHCP::NetworkAddressTest(FDP);
+    OHOS::DHCP::FirstIpAddressTest(FDP);
+    OHOS::DHCP::NextIpAddressTest(FDP);
+    OHOS::DHCP::FirstNetIpAddressTest(FDP);
+    OHOS::DHCP::LastIpAddressTest(FDP);
+    OHOS::DHCP::IpInNetworkTest(FDP);
+    OHOS::DHCP::IpInRangeTest(FDP);
+    OHOS::DHCP::BroadCastAddressTest(FDP);
     OHOS::DHCP::ParseIpAddrTest(data, size);
-    OHOS::DHCP::HostTotalTest(data, size);
+    OHOS::DHCP::HostTotalTest(FDP);
     OHOS::DHCP::ParseIpTest(data, size);
     OHOS::DHCP::IsEmptyHWAddrTest(data, size);
     OHOS::DHCP::ParseStrMacTest(data, size);
     OHOS::DHCP::ParseMacAddressTest(data, size);
     OHOS::DHCP::ParseHostNameTest(data, size);
-    OHOS::DHCP::HostToNetworkTest(data, size);
-    OHOS::DHCP::NetworkToHostTest(data, size);
+    OHOS::DHCP::HostToNetworkTest(FDP);
+    OHOS::DHCP::NetworkToHostTest(FDP);
     OHOS::DHCP::ParseLogMacTest(data, size);
-    OHOS::DHCP::AddrEquelsTest(data, size);
+    OHOS::DHCP::AddrEquelsTest(FDP);
     OHOS::DHCP::ParseIpFuzzTest(data, size);
-    OHOS::DHCP::ParseStrIpFuzzTest(data, size);
+    OHOS::DHCP::ParseStrIpFuzzTest(FDP);
     return 0;
 }
 }  // namespace DHCP

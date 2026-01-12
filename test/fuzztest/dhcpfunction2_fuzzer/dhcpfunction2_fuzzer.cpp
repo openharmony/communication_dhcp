@@ -29,6 +29,7 @@
 #include "securec.h"
 #include "dhcp_function.h"
 #include "dhcp_client_def.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace DHCP {
@@ -228,6 +229,7 @@ void MacChConToMacStrTest(const uint8_t* data, size_t size)
 
 void GetLocalInterfaceTest(const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider FDP(data, size);
     if (size < 1) {
         return;
     }
@@ -244,7 +246,7 @@ void GetLocalInterfaceTest(const uint8_t* data, size_t size)
     
     // Test with common interface names
     const std::vector<std::string> commonInterfaces = {"eth0", "wlan0", "lo", "enp0s3", "br0", "tun0"};
-    size_t interfaceIndex = data[LOOP_START_INDEX] % commonInterfaces.size();
+    size_t interfaceIndex = FDP.ConsumeIntegralInRange<size_t>(0, commonInterfaces.size() - 1);
     GetLocalInterface(commonInterfaces[interfaceIndex].c_str(), &ifindex, hwaddr, &ifaddr4);
     
     // Test with null parameters
@@ -270,6 +272,7 @@ void GetLocalInterfaceTest(const uint8_t* data, size_t size)
 
 void GetLocalIpTest(const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider FDP(data, size);
     if (size < 1) {
         return;
     }
@@ -284,7 +287,7 @@ void GetLocalIpTest(const uint8_t* data, size_t size)
     
     // Test with common interface names
     const std::vector<std::string> commonInterfaces = {"eth0", "wlan0", "lo", "enp0s3", "br0", "tun0"};
-    size_t interfaceIndex = data[LOOP_START_INDEX] % commonInterfaces.size();
+    size_t interfaceIndex = FDP.ConsumeIntegralInRange<size_t>(0, commonInterfaces.size() - 1);
     GetLocalIp(commonInterfaces[interfaceIndex].c_str(), &ifaddr4);
     
     // Test with null parameters

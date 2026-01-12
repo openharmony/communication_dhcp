@@ -17,28 +17,30 @@
 #include "dhcp_define.h"
 #include "dhcp_server.h"
 #include "dhcp_event.h"
+#include <fuzzer/FuzzedDataProvider.h>
 
 namespace OHOS {
 namespace DHCP {
+    static const int32_t NUM_BYTES = 1;
     std::shared_ptr<DhcpServer> dhcpServer = DhcpServer::GetInstance(DHCP_SERVER_ABILITY_ID);
     static OHOS::sptr<DhcpServerCallBack> dhcpServerCallBack =
         OHOS::sptr<DhcpServerCallBack>(new (std::nothrow)DhcpServerCallBack());
-    bool DhcpServerFuzzerTest(const uint8_t* data, size_t size)
+    bool DhcpServerFuzzerTest(FuzzedDataProvider& FDP)
     {
         if (dhcpServer == nullptr) {
             return false;
         }
-        std::string ifname = std::string(reinterpret_cast<const char*>(data), size);
+        std::string ifname = FDP.ConsumeBytesAsString(NUM_BYTES);
         DhcpRange range;
         int call = 2;
-        range.strTagName = std::string(reinterpret_cast<const char*>(data), size);
-        range.strStartip = std::string(reinterpret_cast<const char*>(data), size);
-        range.strEndip = std::string(reinterpret_cast<const char*>(data), size);
-        range.strSubnet = std::string(reinterpret_cast<const   char*>(data), size);
-        range.iptype = static_cast<int>(data[0]) % call;
-        range.leaseHours = static_cast<int>(data[0]);
+        range.strTagName = FDP.ConsumeBytesAsString(NUM_BYTES);
+        range.strStartip = FDP.ConsumeBytesAsString(NUM_BYTES);
+        range.strEndip = FDP.ConsumeBytesAsString(NUM_BYTES);
+        range.strSubnet = FDP.ConsumeBytesAsString(NUM_BYTES);
+        range.iptype = FDP.ConsumeIntegral<int>() % call;
+        range.leaseHours = FDP.ConsumeIntegral<int>();
         std::vector<std::string> dhcpClientInfo;
-        dhcpClientInfo.push_back(std::string(reinterpret_cast<const   char*>(data), size));
+        dhcpClientInfo.push_back(FDP.ConsumeBytesAsString(NUM_BYTES));
 
         dhcpServer->StartDhcpServer(ifname);
         dhcpServer->StopDhcpServer(ifname);
@@ -59,6 +61,7 @@ namespace DHCP {
 /* Fuzzer entry point */
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
 {
-    OHOS::DHCP::DhcpServerFuzzerTest(data, size);
+    FuzzedDataProvider FDP(data, size);
+    OHOS::DHCP::DhcpServerFuzzerTest(FDP);
     return 0;
 }
