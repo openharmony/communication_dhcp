@@ -19,6 +19,7 @@
 #include <cstdint>
 #include <unistd.h>
 #include <string>
+#include <fuzzer/FuzzedDataProvider.h>
 #include "securec.h"
 #include "common_util.h"
 
@@ -27,11 +28,10 @@ namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 
-void CommonUtilFuzzTest(const uint8_t* data, size_t size)
+void CommonUtilFuzzTest(FuzzedDataProvider& FDP)
 {
-    uint32_t index = 0;
     char buf[] = {"aabbcc"};
-    size_t bufSize = static_cast<uint32_t>(data[index++]);
+    size_t bufSize = FDP.ConsumeIntegral<uint32_t>();
     Tmspsec();
     Tmspusec();
     TrimString(buf);
@@ -56,8 +56,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
+    FuzzedDataProvider FDP(data, size);
     sleep(DHCP_SLEEP_1);
-    OHOS::DHCP::CommonUtilFuzzTest(data, size);
+    OHOS::DHCP::CommonUtilFuzzTest(FDP);
     OHOS::DHCP::GetFilePathTest();
     OHOS::DHCP::CreatePathTest();
     return 0;
