@@ -31,6 +31,7 @@
 #include <netinet/if_ether.h>
 #include <net/if_arp.h>
 #include <string>
+#include <fuzzer/FuzzedDataProvider.h>
 #include "clientstub_fuzzer.h"
 #include "message_parcel.h"
 #include "securec.h"
@@ -67,10 +68,12 @@ void OnRegisterCallBackTest(const std::string& ifname, size_t size)
     MessageParcel reply;
     MessageOption option;
     pDhcpClientStub->OnRemoteRequest(code, datas, reply, option);
+    pDhcpClientStub->RemoveDeviceCbDeathRecipient();
 }
 
 void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, const uint8_t* data)
 {
+    FuzzedDataProvider FDP(data, size);
     uint32_t code = static_cast<uint32_t>(DhcpClientInterfaceCode::DHCP_CLIENT_SVR_CMD_START_DHCP_CLIENT);
     MessageParcel datas;
     datas.WriteInterfaceToken(FORMMGR_INTERFACE_TOKEN);
@@ -79,7 +82,7 @@ void OnStartDhcpClientTest(const std::string& ifname, size_t size, bool ipv6, co
     datas.WriteString(std::string(reinterpret_cast<const char*>(data), size));
     datas.WriteBool(ipv6);
     datas.WriteBool(ipv6);
-    datas.WriteBool(static_cast<int>(data[0]) % THREE);
+    datas.WriteBool(FDP.ConsumeIntegral<int>() % THREE);
     datas.RewindRead(0);
     ipv6Client->runFlag_ = true;
     MessageParcel reply;
@@ -135,16 +138,23 @@ void IsGlobalIPv6AddressTest(const uint8_t* data, size_t size)
 
 void DhcpOfferResultSuccessTest(const uint8_t* data, size_t size)
 {
+    FuzzedDataProvider FDP(data, size);
     std::string ipAddress = std::string(reinterpret_cast<const char*>(data), size);
     struct DhcpIpResult ipResult;
     struct DhcpIpv6Info info;
     ipResult.ifname = ipAddress;
-    ipResult.uAddTime = static_cast<uint32_t>(data[0]);
+    ipResult.uAddTime = FDP.ConsumeIntegral<uint32_t>();
     pDhcpClientServiceImpl->DhcpOfferResultSuccess(ipResult);
     pDhcpClientServiceImpl->DhcpIpv4ResultSuccess(ipResult);
     pDhcpClientServiceImpl->DhcpIpv4ResultFail(ipResult);
     pDhcpClientServiceImpl->DhcpIpv4ResultExpired(ipAddress);
     pDhcpClientServiceImpl->DhcpIpv6ResulCallback(ipAddress, info);
+    pDhcpClientServiceImpl->OnStart();
+    pDhcpClientServiceImpl->Init();
+    pDhcpClientServiceImpl->DhcpIpv4ResultTimeOut(ipAddress);
+    OHOS::DHCP::DhcpResult result;
+    pDhcpClientServiceImpl->CheckDhcpResultExist(ipAddress, result);
+    pDhcpClientServiceImpl->IsGlobalIPv6Address(ipAddress);
 }
 
 /* Fuzzer entry point */
@@ -153,6 +163,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
+    FuzzedDataProvider FDP(data, size);
     std::string ifname = "wlan0";
     OnRegisterCallBackTest(ifname, size);
     OnStartDhcpClientTest(ifname, size, false, data);

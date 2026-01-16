@@ -16,6 +16,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <unistd.h>
+#include <fuzzer/FuzzedDataProvider.h>
 #include "dhcpserverimpl_fuzzer.h"
 #include "securec.h"
 #include "dhcp_server_service_impl.h"
@@ -27,75 +28,52 @@ namespace DHCP {
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t MAX_STRING_SIZE = 1024;
+static const int32_t NUM_BYTES = 1;
 sptr<DhcpServerServiceImpl> pDhcpServerServiceImpl = DhcpServerServiceImpl::GetInstance();
 
-void OnStartTest(const uint8_t* data, size_t size)
+void InitTest(const uint8_t* data, size_t size)
 {
     pDhcpServerServiceImpl->OnStart();
-}
-
-void OnStopTest(const uint8_t* data, size_t size)
-{
-    pDhcpServerServiceImpl->OnStop();
-}
-
-void StartDhcpServerTest(const uint8_t* data, size_t size)
-{
     std::string ifname = "";
     pDhcpServerServiceImpl->StartDhcpServer(ifname);
-}
-
-void StopDhcpServerTest(const uint8_t* data, size_t size)
-{
+    ifname = std::string(reinterpret_cast<const char*>(data), size);
+    pDhcpServerServiceImpl->StartDhcpServer(ifname);
     std::string ifname1 = "wlan0";
     std::string ifname2 = "";
     pDhcpServerServiceImpl->StopDhcpServer(ifname1);
     pDhcpServerServiceImpl->StopDhcpServer(ifname2);
-}
-
-void PutDhcpRangeTest(const uint8_t* data, size_t size)
-{
+    pDhcpServerServiceImpl->StopDhcpServer(ifname);
     std::string tagName = "sta";
     DhcpRange range;
     range.iptype = 0;
     pDhcpServerServiceImpl->PutDhcpRange(tagName, range);
     pDhcpServerServiceImpl->PutDhcpRange("", range);
-}
-
-void RemoveDhcpRangeTest(const uint8_t* data, size_t size)
-{
-    std::string tagName = "sta";
-    DhcpRange range;
-    range.iptype = 0;
+    pDhcpServerServiceImpl->PutDhcpRange(ifname, range);
     pDhcpServerServiceImpl->RemoveDhcpRange(tagName, range);
     pDhcpServerServiceImpl->RemoveDhcpRange("", range);
-}
-
-void RemoveAllDhcpRangeTest(const uint8_t* data, size_t size)
-{
-    std::string tagName1 = "sta";
+    pDhcpServerServiceImpl->RemoveDhcpRange(ifname, range);
     std::string tagName2 = "";
-    pDhcpServerServiceImpl->RemoveAllDhcpRange(tagName1);
+    pDhcpServerServiceImpl->RemoveAllDhcpRange(tagName);
     pDhcpServerServiceImpl->RemoveAllDhcpRange(tagName2);
-}
-
-void SetDhcpRangeTest(const uint8_t* data, size_t size)
-{
-    std::string ifname = "wlan0";
-    DhcpRange range;
-    range.iptype = 0;
+    pDhcpServerServiceImpl->RemoveAllDhcpRange(ifname);
     pDhcpServerServiceImpl->SetDhcpRange(ifname, range);
+    pDhcpServerServiceImpl->SetDhcpRange(ifname1, range);
+    pDhcpServerServiceImpl->SetDhcpName(ifname1, tagName);
+    pDhcpServerServiceImpl->SetDhcpName("", tagName);
+    pDhcpServerServiceImpl->SetDhcpName(ifname1, "");
+    pDhcpServerServiceImpl->SetDhcpName("", "");
+    pDhcpServerServiceImpl->SetDhcpName(ifname, tagName);
+    pDhcpServerServiceImpl->IsRemoteDied();
+    pDhcpServerServiceImpl->DeleteLeaseFile(ifname1);
+    pDhcpServerServiceImpl->DeleteLeaseFile(ifname);
+    pDhcpServerServiceImpl->CheckAndUpdateConf("");
+    pDhcpServerServiceImpl->CheckAndUpdateConf(ifname1);
+    pDhcpServerServiceImpl->CheckAndUpdateConf(ifname);
+    pDhcpServerServiceImpl->AddSpecifiedInterface(ifname);
+    pDhcpServerServiceImpl->AddSpecifiedInterface(ifname1);
+    pDhcpServerServiceImpl->OnStop();
 }
 
-void SetDhcpNameTest(const uint8_t* data, size_t size)
-{
-    std::string ifname = "wlan0";
-    std::string tagName = "sta";
-    pDhcpServerServiceImpl->SetDhcpName(ifname, tagName);
-    pDhcpServerServiceImpl->SetDhcpName("", tagName);
-    pDhcpServerServiceImpl->SetDhcpName(ifname, "");
-    pDhcpServerServiceImpl->SetDhcpName("", "");
-}
 
 void GetDhcpClientInfosTest(const uint8_t* data, size_t size)
 {
@@ -121,47 +99,20 @@ void UpdateLeasesTimeTest(const uint8_t* data, size_t size)
     pDhcpServerServiceImpl->UpdateLeasesTime(leaseTime);
 }
 
-void IsRemoteDiedTest(const uint8_t* data, size_t size)
-{
-    pDhcpServerServiceImpl->IsRemoteDied();
-}
-
-void DeleteLeaseFileTest(const uint8_t* data, size_t size)
-{
-    std::string ifname = "wlan0";
-    pDhcpServerServiceImpl->DeleteLeaseFile(ifname);
-}
-
-void CheckAndUpdateConfTest(const uint8_t* data, size_t size)
-{
-    std::string ifname1 = "";
-    std::string ifname2 = "wlan0";
-    pDhcpServerServiceImpl->CheckAndUpdateConf(ifname1);
-    pDhcpServerServiceImpl->CheckAndUpdateConf(ifname2);
-}
-
 void CheckIpAddrRangeTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size == 0) {
-        return;
-    }
+    FuzzedDataProvider FDP(data, size);
     DhcpRange range;
     int call = 2;
-    size_t safeSize = (size > MAX_STRING_SIZE) ? MAX_STRING_SIZE : size;
-    range.strTagName = std::string(reinterpret_cast<const char*>(data), safeSize);
-    range.strStartip = std::string(reinterpret_cast<const char*>(data), safeSize);
-    range.strEndip = std::string(reinterpret_cast<const char*>(data), safeSize);
-    range.strSubnet = std::string(reinterpret_cast<const char*>(data), safeSize);
-    range.iptype = static_cast<int>(data[0]) % call;
-    range.leaseHours = static_cast<int>(data[0]);
+    range.strTagName = FDP.ConsumeBytesAsString(NUM_BYTES);
+    range.strStartip = FDP.ConsumeBytesAsString(NUM_BYTES);
+    range.strEndip = FDP.ConsumeBytesAsString(NUM_BYTES);
+    range.strSubnet = FDP.ConsumeBytesAsString(NUM_BYTES);
+    range.iptype = FDP.ConsumeIntegral<int>() % call;
+    range.leaseHours = FDP.ConsumeIntegral<int>();
     pDhcpServerServiceImpl->CheckIpAddrRange(range);
 }
 
-void AddSpecifiedInterfaceTest(const uint8_t* data, size_t size)
-{
-    std::string ifname = "wlan0";
-    pDhcpServerServiceImpl->AddSpecifiedInterface(ifname);
-}
 
 void GetUsingIpRangeTest(const uint8_t* data, size_t size)
 {
@@ -261,23 +212,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
+    FuzzedDataProvider FDP(data, size);
     sleep(DHCP_SLEEP_1);
-    OHOS::DHCP::OnStartTest(data, size);
-    OHOS::DHCP::OnStopTest(data, size);
-    OHOS::DHCP::StartDhcpServerTest(data, size);
-    OHOS::DHCP::StopDhcpServerTest(data, size);
-    OHOS::DHCP::PutDhcpRangeTest(data, size);
-    OHOS::DHCP::RemoveDhcpRangeTest(data, size);
-    OHOS::DHCP::RemoveAllDhcpRangeTest(data, size);
-    OHOS::DHCP::SetDhcpRangeTest(data, size);
-    OHOS::DHCP::SetDhcpNameTest(data, size);
+    OHOS::DHCP::InitTest(data, size);
     OHOS::DHCP::GetDhcpClientInfosTest(data, size);
     OHOS::DHCP::UpdateLeasesTimeTest(data, size);
-    OHOS::DHCP::IsRemoteDiedTest(data, size);
-    OHOS::DHCP::DeleteLeaseFileTest(data, size);
-    OHOS::DHCP::CheckAndUpdateConfTest(data, size);
     OHOS::DHCP::CheckIpAddrRangeTest(data, size);
-    OHOS::DHCP::AddSpecifiedInterfaceTest(data, size);
     OHOS::DHCP::GetUsingIpRangeTest(data, size);
     OHOS::DHCP::CreateDefaultConfigFileTest(data, size);
     OHOS::DHCP::DelSpecifiedInterfaceTest(data, size);

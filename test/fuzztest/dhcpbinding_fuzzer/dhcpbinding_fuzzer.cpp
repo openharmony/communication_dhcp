@@ -20,74 +20,64 @@
 #include <unistd.h>
 #include "securec.h"
 #include "dhcp_binding.h"
+#include <fuzzer/FuzzedDataProvider.h>
+
 
 namespace OHOS {
 namespace DHCP {
 constexpr size_t DHCP_SLEEP_1 = 2;
 constexpr size_t U32_AT_SIZE_ZERO = 4;
 constexpr int CFG_DATA_MAX_BYTES = 512;
-constexpr int ADDRESS_MAX_BYTES = 8;
 
-void NextPendingIntervalTest(const uint8_t* data, size_t size)
+void NextPendingIntervalTest(FuzzedDataProvider& FDP)
 {
-    if (data == nullptr || size < 1) {
-        return;
-    }
-    uint64_t pendingInterval = static_cast<uint64_t>(data[0]);
+    uint64_t pendingInterval = FDP.ConsumeIntegral<uint64_t>();
     NextPendingInterval(pendingInterval);
 }
 
-void IsExpireTest(const uint8_t* data, size_t size)
+void IsExpireTest(FuzzedDataProvider& FDP)
 {
-    if (data == nullptr || size < 1) {
-        return;
-    }
     AddressBinding binding;
-    binding.ipAddress = static_cast<uint32_t>(data[0]);
-    binding.clientId = static_cast<uint32_t>(data[0]);
-    binding.bindingTime = static_cast<uint64_t>(data[0]);
-    binding.pendingTime = static_cast<uint64_t>(data[0]);
-    binding.expireIn = static_cast<uint64_t>(data[0]);
-    binding.leaseTime = static_cast<uint64_t>(data[0]);
-    binding.pendingInterval = static_cast<uint64_t>(data[0]);
+    binding.ipAddress =  FDP.ConsumeIntegral<uint32_t>();
+    binding.clientId = FDP.ConsumeIntegral<uint32_t>();
+    binding.bindingTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.pendingTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.expireIn = FDP.ConsumeIntegral<uint64_t>();
+    binding.leaseTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.pendingInterval = FDP.ConsumeIntegral<uint64_t>();
     IsExpire(&binding);
 }
 
-void ParseAddressBindingTest(const uint8_t* data, size_t size)
+void ParseAddressBindingTest(FuzzedDataProvider& FDP)
 {
-    if (data == nullptr || size < 1) {
-        return;
-    }
     AddressBinding binding;
-    binding.ipAddress = static_cast<uint32_t>(data[0]);
-    binding.clientId = static_cast<uint32_t>(data[0]);
-    binding.bindingTime = static_cast<uint64_t>(data[0]);
-    binding.pendingTime = static_cast<uint64_t>(data[0]);
-    binding.expireIn = static_cast<uint64_t>(data[0]);
-    binding.leaseTime = static_cast<uint64_t>(data[0]);
-    binding.pendingInterval = static_cast<uint64_t>(data[0]);
+    binding.ipAddress =  FDP.ConsumeIntegral<uint32_t>();
+    binding.clientId = FDP.ConsumeIntegral<uint32_t>();
+    binding.bindingTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.pendingTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.expireIn = FDP.ConsumeIntegral<uint64_t>();
+    binding.leaseTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.pendingInterval = FDP.ConsumeIntegral<uint64_t>();
     const char *buf = "Text";
     ParseAddressBinding(&binding, buf);
 }
 
 void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
 {
-    if (data == nullptr || size < ADDRESS_MAX_BYTES) {
-        return;
-    }
+    FuzzedDataProvider FDP(data, size);
     int index = 0;
     AddressBinding binding;
     int ret = memset_s(&binding, sizeof(binding), 0, sizeof(binding));
     if (ret != EOK) {
         return;
     }
-    binding.ipAddress = static_cast<uint32_t>(data[index++]);
-    binding.clientId = static_cast<uint32_t>(data[index++]);
-    binding.bindingTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingTime = static_cast<uint64_t>(data[index++]);
-    binding.expireIn = static_cast<uint64_t>(data[index++]);
-    binding.leaseTime = static_cast<uint64_t>(data[index++]);
-    binding.pendingInterval = static_cast<uint64_t>(data[index++]);
+    binding.ipAddress =  FDP.ConsumeIntegral<uint32_t>();
+    binding.clientId = FDP.ConsumeIntegral<uint32_t>();
+    binding.bindingTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.pendingTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.expireIn = FDP.ConsumeIntegral<uint64_t>();
+    binding.leaseTime = FDP.ConsumeIntegral<uint64_t>();
+    binding.pendingInterval = FDP.ConsumeIntegral<uint64_t>();
     char out[CFG_DATA_MAX_BYTES] = {0};
     if (index < static_cast<int>(size)) {
         uint32_t bindingSize = static_cast<uint32_t>(data[index]);
@@ -106,10 +96,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     if ((data == nullptr) || (size <= OHOS::DHCP::U32_AT_SIZE_ZERO)) {
         return 0;
     }
+    FuzzedDataProvider FDP(data, size);
     sleep(DHCP_SLEEP_1);
-    OHOS::DHCP::NextPendingIntervalTest(data, size);
-    OHOS::DHCP::IsExpireTest(data, size);
-    OHOS::DHCP::ParseAddressBindingTest(data, size);
+    OHOS::DHCP::NextPendingIntervalTest(FDP);
+    OHOS::DHCP::IsExpireTest(FDP);
+    OHOS::DHCP::ParseAddressBindingTest(FDP);
     OHOS::DHCP::WriteAddressBindingFuzzTest(data, size);
     return 0;
 }
