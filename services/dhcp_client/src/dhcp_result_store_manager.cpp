@@ -18,11 +18,14 @@
 #include "dhcp_errcode.h"
 #include "dhcp_logger.h"
 #include "securec.h"
+#include <algorithm>
+#include <ctime>
 
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpResultStoreManager");
 constexpr int MAC_ADDR_SIZE = 17;
+constexpr std::size_t MAX_DHCP_CACHE = 50;
 DhcpResultStoreManager::DhcpResultStoreManager()
 {
     DHCP_LOGI("DhcpResultStoreManager()");
@@ -124,6 +127,31 @@ static void ClearClass(IpInfoCached &item)
     item.ipResult.uOptLeasetime = 0;
 }
 
+static void EnforceMaxCache(std::vector<IpInfoCached> &cache)
+{
+    const time_t now = time(nullptr);
+    if (now == static_cast<time_t>(-1)) {
+        DHCP_LOGE("EnforceMaxCache: time() failed");
+        return;
+    }
+    const int64_t currentTime = static_cast<int64_t>(now);
+    const auto expired = [currentTime](const IpInfoCached& x) {
+        return (x.absoluteLeasetime > 0) && (x.absoluteLeasetime < currentTime);
+    };
+    cache.erase(std::remove_if(cache.begin(), cache.end(), expired), cache.end());
+
+    if (cache.size() <= MAX_DHCP_CACHE) {
+        return;
+    }
+    std::sort(cache.begin(), cache.end(), [](const IpInfoCached &a, const IpInfoCached &b) {
+        return a.absoluteLeasetime < b.absoluteLeasetime;
+    });
+    size_t toTrim = cache.size() - MAX_DHCP_CACHE;
+    DHCP_LOGI("EnforceMaxCache: trimming %{public}zu oldest entries to enforce MAX_DHCP_CACHE=%{public}zu",
+        toTrim, MAX_DHCP_CACHE);
+    cache.erase(cache.begin(), cache.begin() + toTrim);
+}
+
 static int32_t ReadNetworkSection(IpInfoCached &item, FILE *fp, char *line, size_t lineSize)
 {
     int32_t sectionError = 0;
@@ -188,6 +216,7 @@ int32_t DhcpResultStoreManager::SaveIpInfoInLocalFile(const IpInfoCached ipResul
         }
     }
     m_allIpCached.push_back(ipResult);
+    EnforceMaxCache(m_allIpCached);
     return SaveConfig();
 }
 
@@ -293,6 +322,7 @@ int32_t DhcpResultStoreManager::LoadAllIpCached(const std::string &fileName)
 
     (void)fclose(fp);
     free(realPaths);
+    EnforceMaxCache(m_allIpCached);
     return 0;
 }
 
