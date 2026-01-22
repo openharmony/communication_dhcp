@@ -570,7 +570,7 @@ int32_t DhcpArpChecker::SendData(uint8_t *buff, int32_t count, uint8_t *destHwad
     do {
         ret = sendto(socketFd, buff, count, 0, reinterpret_cast<struct sockaddr *>(&rawAddr), sizeof(rawAddr));
         if (ret == -1) {
-            DHCP_LOGE("Send: sendto fail");
+            DHCP_LOGE("Send: sendto fail, errno: %{public}d", errno);
             if (errno != EINTR) {
                 break;
             }
