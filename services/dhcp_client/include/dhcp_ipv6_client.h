@@ -68,6 +68,7 @@ private:
     void PublishIpv6Result();
     bool IsGlobalIpv6Address(const char *ipv6addr, int len);
     bool IsUniqueLocalIpv6Address(const char *ipv6addr, int len);
+    bool IsValidIpv6Address(const char *ipv6addr);
     uint32_t ConvertNetworkToHostLong(uint32_t value);
     // Callback function mutex
     std::mutex ipv6CallbackMutex_;
