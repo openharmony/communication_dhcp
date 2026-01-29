@@ -80,7 +80,7 @@ void WriteAddressBindingFuzzTest(const uint8_t* data, size_t size)
     binding.pendingInterval = FDP.ConsumeIntegral<uint64_t>();
     char out[CFG_DATA_MAX_BYTES] = {0};
     if (index < static_cast<int>(size)) {
-        uint32_t bindingSize = static_cast<uint32_t>(data[index]);
+        uint32_t bindingSize = FDP.ConsumeIntegral<uint32_t>();
         if (bindingSize > CFG_DATA_MAX_BYTES) {
             bindingSize = CFG_DATA_MAX_BYTES;
         }
