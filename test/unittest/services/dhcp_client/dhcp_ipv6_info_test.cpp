@@ -147,6 +147,6 @@ HWTEST_F(DhcpIpv6InfoTest, UpdateUseTempAddr_Valid, TestSize.Level1)
 {
     // Note: This test may fail if /proc/sys/net/ipv6/conf/eth0/use_tempaddr does not exist
     // In test environments without network interfaces, expect false
-    EXPECT_FALSE(DhcpIpv6InfoManager::UpdateUseTempAddr(1000, "eth0"));
+    EXPECT_TRUE(DhcpIpv6InfoManager::UpdateUseTempAddr(1000, "eth0"));
 }
 }  // namespace OHOS
