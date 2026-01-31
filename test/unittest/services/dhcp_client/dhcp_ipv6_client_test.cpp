@@ -473,6 +473,26 @@ HWTEST_F(DhcpIpv6ClientTest, IsUniqueLocalIpv6Address_InvalidInput, TestSize.Lev
     EXPECT_FALSE(ipv6Client->IsUniqueLocalIpv6Address("invalid", 40));
 }
 
+HWTEST_F(DhcpIpv6ClientTest, IsValidIpv6Address_ValidAndInvalid, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    // Any syntactically valid IPv6 should be treated as valid
+    EXPECT_TRUE(ipv6Client->IsValidIpv6Address("f1da::1"));
+    EXPECT_TRUE(ipv6Client->IsValidIpv6Address("f1da:abcd::1234"));
+    EXPECT_TRUE(ipv6Client->IsValidIpv6Address("f2da::1"));
+    EXPECT_TRUE(ipv6Client->IsValidIpv6Address("f1db::1"));
+    EXPECT_TRUE(ipv6Client->IsValidIpv6Address("2001:db8::1"));
+    // Invalid strings should be treated as invalid
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("invalid"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address(""));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address(":"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("2001:::1"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("gggg::1"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("12345::1"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("fe80::g"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("2001:db8::zzzz"));
+    EXPECT_FALSE(ipv6Client->IsValidIpv6Address("abcd:efgh::1"));
+}
 
 HWTEST_F(DhcpIpv6ClientTest, SendRouterSolicitationTest, TestSize.Level1)
 {

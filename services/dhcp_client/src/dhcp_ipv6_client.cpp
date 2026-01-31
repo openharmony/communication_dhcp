@@ -325,7 +325,7 @@ AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
             DHCP_LOGI("AddIpv6Address add randIpv6Addr %{public}s", Ipv6Anonymize(ipv6addr).c_str());
              type = AddrType::RAND;
         }
-    } else if (IsUniqueLocalIpv6Address(ipv6addr, len)) {
+    } else if (IsUniqueLocalIpv6Address(ipv6addr, len) || IsValidIpv6Address(ipv6addr)) {
         if (IsEui64ModeIpv6Address(ipv6addr, len, ifaceMac, MAC_ADDR_LEN)) {
             DHCP_LOGI("AddIpv6Address add uniqueLocalAddr1 %{public}s", Ipv6Anonymize(ipv6addr).c_str());
             type = AddrType::UNIQUE;
@@ -337,6 +337,18 @@ AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)
         DHCP_LOGI("AddIpv6Address add unknow %{public}s", Ipv6Anonymize(ipv6addr).c_str());
     }
     return type;
+}
+
+bool DhcpIpv6Client::IsValidIpv6Address(const char *ipv6addr)
+{
+    if (ipv6addr == nullptr) {
+        return false;
+    }
+    struct in6_addr addr = IN6ADDR_ANY_INIT;
+    // New behavior: any syntactically valid IPv6 address will be treated as ULA in AddIpv6Address
+    bool valid = (inet_pton(AF_INET6, ipv6addr, &addr) == 1);
+    DHCP_LOGI("IsValidIpv6Address result:%{public}s for addr", valid ? "true" : "false");
+    return valid;
 }
 
 bool DhcpIpv6Client::IsEui64ModeIpv6Address(const char *ipv6addr, int len, const unsigned char *ifaceMac, int macLen)
