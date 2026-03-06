@@ -1240,6 +1240,10 @@ int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
     }
     PDhcpOption optHostName = GetOption(&received->options, HOST_NAME_OPTION);
     if (optHostName) {
+        if (optHostName->length >= DEVICE_NAME_STRING_LENGTH) {
+              DHCP_LOGE("GetHostNameOption length too large");
+              return REPLY_NONE;
+        }
         if (memcpy_s(bindin->deviceName, DEVICE_NAME_STRING_LENGTH, (char*)optHostName->data,
             optHostName->length) != EOK) {
             DHCP_LOGE("GetHostNameOption pHost memcpy_s failed!");
