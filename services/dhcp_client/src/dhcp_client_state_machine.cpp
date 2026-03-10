@@ -30,6 +30,7 @@
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
 #include <net/if_arp.h>
+#include <chrono>
 #include <memory>
 #include <string>
 
@@ -96,7 +97,7 @@ DhcpClientStateMachine::DhcpClientStateMachine(std::string ifname) :
     }
 #endif
     m_cltCnf.ifaceIndex = 0;
-    threadExit_ = true;
+    threadState_ = IPV4_TASK_IDLE;
     m_conflictCount = 0;
     m_cltCnf.ifaceIpv4 = 0;
     m_cltCnf.getMode = DHCP_IP_TYPE_NONE;
@@ -118,7 +119,6 @@ void DhcpClientStateMachine::RunGetIPThreadFunc(const DhcpClientStateMachine &in
 {
     DHCP_LOGI("RunGetIPThreadFunc begin.");
     if ((m_cltCnf.getMode == DHCP_IP_TYPE_ALL) || (m_cltCnf.getMode == DHCP_IP_TYPE_V4)) {
-        threadExit_ = false;
         StartIpv4();  // Handle dhcp v4.
     }
     return;
@@ -140,9 +140,22 @@ int DhcpClientStateMachine::InitConfig(const std::string &ifname, bool isIpv6)
 
 int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6, ActionMode action)
 {
-    DHCP_LOGI("StartIpv4Type ifname:%{public}s isIpv6:%{public}d threadExit:%{public}d action:%{public}d",
-        ifname.c_str(), isIpv6, threadExit_.load(), action);
-    std::lock_guard<std::mutex> lock(dhcpClientMutex_);
+    DHCP_LOGI("StartIpv4Type ifname:%{public}s isIpv6:%{public}d threadState:%{public}d action:%{public}d",
+        ifname.c_str(), isIpv6, threadState_.load(), action);
+    std::unique_lock<std::mutex> lock(dhcpClientMutex_);
+    if (threadState_.load() != IPV4_TASK_IDLE) {
+        DHCP_LOGW("StartIpv4Type: previous ipv4 task is running, stop and restart.");
+        CloseAllRenewTimer();
+        StopIpv4();
+
+        constexpr int WAIT_IPV4_EXIT_MS = 500;
+        bool exited = ipv4ExitCv_.wait_for(lock, std::chrono::milliseconds(WAIT_IPV4_EXIT_MS),
+            [this]() { return threadState_.load() == IPV4_TASK_IDLE; });
+        if (!exited) {
+            DHCP_LOGW("StartIpv4Type: wait ipv4 exit timeout, continue restart.");
+        }
+    }
+
     m_ifName = ifname;
     m_action = action;
 #ifndef OHOS_ARCH_LITE
@@ -164,9 +177,9 @@ int DhcpClientStateMachine::StartIpv4Type(const std::string &ifname, bool isIpv6
 
 int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool isIpv6)
 {
-    DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d, threadExit:%{public}d", ifname.c_str(),
-        isIpv6, threadExit_.load());
-    if (!threadExit_.load()) {
+    DHCP_LOGI("InitStartIpv4Thread, ifname:%{public}s, isIpv6:%{public}d, threadState:%{public}d", ifname.c_str(),
+        isIpv6, threadState_.load());
+    if (threadState_.load() != IPV4_TASK_IDLE) {
         DHCP_LOGI("InitStartIpv4Thread ipv4Thread is run!");
         return DHCP_OPT_FAILED;
     }
@@ -177,9 +190,11 @@ int DhcpClientStateMachine::InitStartIpv4Thread(const std::string &ifname, bool 
     }
     std::function<void()> func = [this]() { RunGetIPThreadFunc(std::ref(*this)); };
     int delayTime = 0;
+    threadState_ = IPV4_TASK_RUNNING;
     bool result = ipv4Thread_->PostAsyncTask(func, delayTime);
     if (!result) {
         DHCP_LOGE("InitStartIpv4Thread ipv4Thread_ RunGetIPThreadFunc failed!");
+        threadState_ = IPV4_TASK_IDLE;
         return DHCP_OPT_FAILED;
     }
     DHCP_LOGE("InitStartIpv4Thread ipv4Thread_ RunGetIPThreadFunc ok");
@@ -267,27 +282,40 @@ int DhcpClientStateMachine::GetClientNetworkInfo(void)
 
 void DhcpClientStateMachine::StartIpv4()
 {
+    int sockFdRaw = -1;
+    int sockFdkernel = -1;
+    if ((m_action != ACTION_RENEW_T1) && (m_action != ACTION_RENEW_T2) && (m_action != ACTION_RENEW_T3)) {
+        DhcpInit();
+    }
+    firstSendPacketTime_ = 0;
+    if (!InitSocketFd(sockFdRaw, sockFdkernel)) {
+        threadState_ = IPV4_TASK_IDLE;
+        ipv4ExitCv_.notify_all();
+        return;
+    }
+    DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
+    StartIpv4Loop(sockFdRaw, sockFdkernel);
+
+    if (sockFdRaw >= 0) {
+        close(sockFdRaw);
+    }
+    if (sockFdkernel >= 0) {
+        close(sockFdkernel);
+    }
+    DHCP_LOGI("StartIpv4 exit");
+    threadState_ = IPV4_TASK_IDLE;
+    ipv4ExitCv_.notify_all();
+}
+
+void DhcpClientStateMachine::StartIpv4Loop(int sockFdRaw, int sockFdkernel)
+{
     int nRet;
     fd_set readfds;
     struct timeval timeout;
     timeout.tv_sec = 0;
     timeout.tv_usec = SELECT_TIMEOUT_US;
-    int sockFdRaw = -1;
-    int sockFdkernel = -1;
-    if ((m_action != ACTION_RENEW_T1) && (m_action != ACTION_RENEW_T2) && (m_action != ACTION_RENEW_T3)) {
-         DhcpInit();
-    }
-    firstSendPacketTime_ = 0;
-    if (!InitSocketFd(sockFdRaw, sockFdkernel)) {
-        threadExit_ = true;
-        return;
-    }
-    DHCP_LOGI("StartIpv4 m_dhcp4State:%{public}d m_action:%{public}d", m_dhcp4State, m_action);
-    for (; ;) {
-        if (threadExit_.load()) {
-            DHCP_LOGI("StartIpv4 send packet timed out, now break!");
-            break;
-        }
+
+    while (threadState_.load() == IPV4_TASK_RUNNING) {
         int sockFd = (m_socketMode == SOCKET_MODE_RAW) ? sockFdRaw : sockFdkernel;
         FD_ZERO(&readfds);
         FD_SET(sockFd, &readfds);
@@ -309,14 +337,12 @@ void DhcpClientStateMachine::StartIpv4()
             DhcpResponseHandle(curTimestamp, sockFd);
         }
     }
-    close(sockFdRaw);
-    close(sockFdkernel);
-    DHCP_LOGI("StartIpv4 exit");
+    DHCP_LOGI("StartIpv4Loop exit, threadState:%{public}d", threadState_.load());
 }
 
 int DhcpClientStateMachine::StopIpv4Type(void)
 {
-    DHCP_LOGI("StopIpv4Type threadExit:%{public}d", threadExit_.load());
+    DHCP_LOGI("StopIpv4Type threadState:%{public}d", threadState_.load());
     std::lock_guard<std::mutex> lock(dhcpClientMutex_);
     CloseAllRenewTimer();
     return StopIpv4();
@@ -324,9 +350,9 @@ int DhcpClientStateMachine::StopIpv4Type(void)
 
 int DhcpClientStateMachine::StopIpv4(void)
 {
-    DHCP_LOGI("StopIpv4 threadExit:%{public}d", threadExit_.load());
-    if (!threadExit_.load()) {
-        threadExit_ = true;
+    DHCP_LOGI("StopIpv4 threadState:%{public}d", threadState_.load());
+    if (threadState_.load() == IPV4_TASK_RUNNING) {
+        threadState_ = IPV4_TASK_STOP_REQUESTED;
         m_slowArpDetecting = false;
         m_conflictCount = 0;
 #ifndef OHOS_ARCH_LITE
@@ -1952,10 +1978,10 @@ void DhcpClientStateMachine::GetIpTimerCallback()
     ActionMode currentMode;
     {
         std::lock_guard<std::mutex> lock(dhcpClientMutex_);
-        DHCP_LOGI("GetIpTimerCallback isExit:%{public}d action:%{public}d [%{public}" PRIu64",%{public}" PRIu64","
+        DHCP_LOGI("GetIpTimerCallback threadState:%{public}d action:%{public}d [%{public}" PRIu64",%{public}" PRIu64","
         "%{public}" PRIu64",%{public}" PRIu64"",
-        threadExit_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
-        if (threadExit_.load()) {
+        threadState_.load(), m_action, getIpTimerId, renewDelayTimerId, rebindDelayTimerId, remainingDelayTimerId);
+        if (threadState_.load() != IPV4_TASK_RUNNING) {
             DHCP_LOGE("GetIpTimerCallback return!");
             return;
         }
@@ -2148,8 +2174,8 @@ void DhcpClientStateMachine::CloseAllRenewTimer()
 
 void DhcpClientStateMachine::ScheduleLeaseTimers(bool isCachedIp)
 {
-    DHCP_LOGI("ScheduleLeaseTimers threadExit:%{public}d m_action:%{public}d isCachedIp:%{public}d",
-        threadExit_.load(), m_action, isCachedIp);
+    DHCP_LOGI("ScheduleLeaseTimers threadState:%{public}d m_action:%{public}d isCachedIp:%{public}d",
+        threadState_.load(), m_action, isCachedIp);
     int64_t delay = 0;
     if (isCachedIp) {
         time_t curTimestamp = time(nullptr);

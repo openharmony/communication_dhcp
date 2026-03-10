@@ -15,6 +15,7 @@
 #ifndef OHOS_DHCP_CLIENT_STATEMACHINE_H
 #define OHOS_DHCP_CLIENT_STATEMACHINE_H
 
+#include <condition_variable>
 #include <thread>
 #include <string>
 #include <stdint.h>
@@ -109,6 +110,7 @@ private:
 #endif
     int InitStartIpv4Thread(const std::string &ifname, bool isIpv6);
     void StartIpv4(void);
+    void StartIpv4Loop(int sockFdRaw, int sockFdkernel);
     int StopIpv4(void);
     int ExecDhcpRelease(void);
     int ExecDhcpRenew(void);
@@ -144,7 +146,10 @@ private:
     uint32_t m_socketMode;
     uint32_t m_transID;
     DhcpClientCfg m_cltCnf;
-    std::atomic<bool> threadExit_{true};
+    static constexpr int32_t IPV4_TASK_IDLE = 0;           // Task not running / fully exited.
+    static constexpr int32_t IPV4_TASK_RUNNING = 1;        // Task running or scheduled.
+    static constexpr int32_t IPV4_TASK_STOP_REQUESTED = 2; // Stop requested, waiting task to exit.
+    std::atomic<int32_t> threadState_{IPV4_TASK_IDLE};
     std::string m_ifName;  //对象服务的网卡名称
     std::unique_ptr<DhcpThread> ipv4Thread_ = nullptr;
     ActionMode m_action;
@@ -166,6 +171,7 @@ private:
     int64_t firstSendPacketTime_;
     uint64_t slowArpTimeoutTimerId_;
     std::mutex dhcpClientMutex_;
+    std::condition_variable ipv4ExitCv_;
 };
 
 typedef struct{
