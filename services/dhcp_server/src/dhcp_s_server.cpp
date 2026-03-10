@@ -1268,7 +1268,7 @@ int GetUserClassOption(PDhcpMsgInfo received, AddressBinding *bindin)
             DHCP_LOGE("GetUserClassOption memcpy_s failed!");
             return REPLY_NONE;
         }
-        DHCP_LOGD("GetUserClassOption userClass:%{public}s", bindin->userClass);
+        DHCP_LOGD("GetUserClassOption userClass:%{private}s", bindin->userClass);
     } else {
         DHCP_LOGD("GetUserClassOption pHost is null");
     }
