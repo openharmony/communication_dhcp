@@ -58,7 +58,7 @@ public:
     }
     virtual void SetUp()
     {
-        dhcpClient->threadExit_ = false;
+        dhcpClient->threadState_ = DhcpClientStateMachine::IPV4_TASK_IDLE;
     }
     virtual void TearDown()
     {
@@ -843,7 +843,7 @@ HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest, TestSize.Level0)
 HWTEST_F(DhcpClientStateMachineTest, GetIpTimerCallbackTest1, TestSize.Level0)
 {
     DHCP_LOGI("GetIpTimerCallbackTest1 enter!");
-    dhcpClient->threadExit_ = 0;
+    dhcpClient->threadState_ = DhcpClientStateMachine::IPV4_TASK_RUNNING;
     dhcpClient->m_action = ACTION_RENEW_T1;
     dhcpClient->GetIpTimerCallback();
 
