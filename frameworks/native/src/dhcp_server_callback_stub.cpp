@@ -21,7 +21,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStub");
 
 namespace OHOS {
 namespace DHCP {
-DhcpServreCallBackStub::DhcpServreCallBackStub() : callback_(nullptr), mRemoteDied(false)
+DhcpServreCallBackStub::DhcpServreCallBackStub() : callback_(nullptr), mRemoteDied_(false)
 {
     DHCP_LOGI("DhcpServreCallBackStub Enter DhcpServreCallBackStub");
 }
@@ -84,13 +84,13 @@ void DhcpServreCallBackStub::RegisterCallBack(const sptr<IDhcpServerCallBack> &c
 
 bool DhcpServreCallBackStub::IsRemoteDied() const
 {
-    return mRemoteDied.load();
+    return mRemoteDied_.load();
 }
 
 void DhcpServreCallBackStub::SetRemoteDied(bool val)
 {
     DHCP_LOGI("DhcpServreCallBackStub::SetRemoteDied, state:%{public}d!", val);
-    mRemoteDied.store(val);
+    mRemoteDied_.store(val);
 }
 
 void DhcpServreCallBackStub::OnServerStatusChanged(int status)
