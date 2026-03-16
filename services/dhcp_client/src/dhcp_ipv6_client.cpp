@@ -288,7 +288,7 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (isUpdate ? DhcpIpv6InfoManager::UpdateAddr(dhcpIpv6Info, std::string(addr), type) :
-            DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) { 
+            DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) {
         }
     }
     PublishIpv6Result();
