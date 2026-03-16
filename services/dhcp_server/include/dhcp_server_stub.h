@@ -60,7 +60,7 @@ private:
 private:
     HandleFuncMap handleFuncMap;
     sptr<IRemoteObject::DeathRecipient> deathRecipient_;
-    bool mSingleCallback;
+    std::atomic<bool> mSingleCallback_;
     sptr<IDhcpServerCallBack> callback_;
 };
 }  // namespace DHCP

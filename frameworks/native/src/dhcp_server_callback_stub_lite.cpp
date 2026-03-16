@@ -22,7 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStubLite");
 namespace OHOS {
 namespace DHCP {
 
-DhcpServreCallBackStub::DhcpServreCallBackStub() : userCallback_(nullptr), mRemoteDied(false)
+DhcpServreCallBackStub::DhcpServreCallBackStub() : userCallback_(nullptr), mRemoteDied_(false)
 {
     DHCP_LOGI("DhcpServreCallBackStub Enter DhcpServreCallBackStub");
 }
@@ -36,9 +36,9 @@ int DhcpServreCallBackStub::OnRemoteRequest(uint32_t code, IpcIo *data)
 {
     int ret = -1;
     DHCP_LOGD("OnRemoteRequest code:%{public}u!", code);
-    if (mRemoteDied || data == nullptr) {
+    if (mRemoteDied.load() || data == nullptr) {
         DHCP_LOGD("Failed to %{public}s,mRemoteDied:%{public}d data:%{public}d!",
-            __func__, mRemoteDied, data == nullptr);
+            __func__, mRemoteDied.load(), data == nullptr);
         return ret;
     }
 
@@ -90,12 +90,12 @@ void DhcpServreCallBackStub::RegisterCallBack(const std::shared_ptr<IDhcpServerC
 
 bool DhcpServreCallBackStub::IsRemoteDied() const
 {
-    return mRemoteDied;
+    return mRemoteDied.load();
 }
 
 void DhcpServreCallBackStub::SetRemoteDied(bool val)
 {
-    mRemoteDied = val;
+    mRemoteDied.store(val);
 }
 
 void DhcpServreCallBackStub::OnServerStatusChanged(int status)

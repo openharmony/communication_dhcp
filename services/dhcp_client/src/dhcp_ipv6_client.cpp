@@ -285,9 +285,10 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
         return;
     }
 
-    if (isUpdate ? DhcpIpv6InfoManager::UpdateAddr(dhcpIpv6Info, std::string(addr), type) :
-        DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) {
-        PublishIpv6Result();
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (isUpdate ? DhcpIpv6InfoManager::UpdateAddr(dhcpIpv6Info, std::string(addr), type) :
+            DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) { 
     }
     // If a default address is added, send RS to configure other addresses
     if (isUpdate && type == AddrType::DEFAULT) {
@@ -295,9 +296,7 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
         return;
     }
     // If a global address is removed, send RS to reconfigure
-    if (!isUpdate && (type == AddrType::GLOBAL || type == AddrType::RAND)) {
-        SendRouterSolicitation();
-    }
+    if (!isUpdate && (type == AddrType::GLOBAL || type == AddrType::RAND)) { SendRouterSolicitation(); }
 }
 
 AddrType DhcpIpv6Client::AddIpv6Address(char *ipv6addr, int len)

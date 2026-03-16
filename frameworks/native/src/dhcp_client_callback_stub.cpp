@@ -19,7 +19,7 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientCallBackStub");
 namespace OHOS {
 namespace DHCP {
-DhcpClientCallBackStub::DhcpClientCallBackStub() : callback_(nullptr), mRemoteDied(false)
+DhcpClientCallBackStub::DhcpClientCallBackStub() : callback_(nullptr), mRemoteDied_(false)
 {
     DHCP_LOGD("Enter DhcpClientCallBackStub");
 }
@@ -67,6 +67,7 @@ int DhcpClientCallBackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 
 void DhcpClientCallBackStub::RegisterCallBack(const sptr<IDhcpClientCallBack> &callBack)
 {
+    std::unique_lock<std::mutex> lock(callbackMutex_);
     if (callBack == nullptr) {
         DHCP_LOGE("callBack is nullptr!");
         return;
@@ -76,36 +77,51 @@ void DhcpClientCallBackStub::RegisterCallBack(const sptr<IDhcpClientCallBack> &c
 
 bool DhcpClientCallBackStub::IsRemoteDied() const
 {
-    return mRemoteDied;
+    return mRemoteDied_.load();
 }
 
 void DhcpClientCallBackStub::SetRemoteDied(bool val)
 {
     DHCP_LOGI("SetRemoteDied, state:%{public}d!", val);
-    mRemoteDied = val;
+    mRemoteDied_.store(val);
 }
 
 void DhcpClientCallBackStub::OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result)
 {
     DHCP_LOGI("OnIpSuccessChanged, status:%{public}d!", status);
-    if (callback_) {
-        callback_->OnIpSuccessChanged(status, ifname, result);
+    sptr<IDhcpClientCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnIpSuccessChanged(status, ifname, result);
     }
 }
 
 void DhcpClientCallBackStub::OnIpFailChanged(int status, const std::string& ifname, const std::string& reason)
 {
     DHCP_LOGI("OnIpFailChanged, status:%{public}d!", status);
-    if (callback_) {
-        callback_->OnIpFailChanged(status, ifname, reason);
+    sptr<IDhcpClientCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnIpFailChanged(status, ifname, reason);
     }
 }
 
 void DhcpClientCallBackStub::OnDhcpOfferReport(int status, const std::string& ifname, DhcpResult& result)
 {
     DHCP_LOGI("OnDhcpOfferReport, status:%{public}d!", status);
-    if (callback_) {
-        callback_->OnDhcpOfferReport(status, ifname, result);
+    sptr<IDhcpClientCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnDhcpOfferReport(status, ifname, result);
     }
 }
 
