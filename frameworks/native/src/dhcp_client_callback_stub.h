@@ -43,6 +43,7 @@ private:
     int RemoteOnIpFailChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int RemoteOnDhcpOfferReport(uint32_t code, MessageParcel &data, MessageParcel &reply);
 
+    sptr<IDhcpClientCallBack> callback_;
     std::mutex callbackMutex_;
     std::atomic<bool> mRemoteDied_;
 };
