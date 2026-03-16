@@ -37,7 +37,7 @@ private:
     int RemoteOnIpFailChanged(uint32_t code, IpcIo *data);
 
     std::shared_ptr<IDhcpClientCallBack> callback_;
-    std::atomic<bool> mRemoteDied_;
+     bool mRemoteDied;
 };
 }  // namespace DHCP
 }  // namespace OHOS
