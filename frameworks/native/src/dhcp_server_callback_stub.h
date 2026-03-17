@@ -71,8 +71,7 @@ private:
     int RemoteOnServerSuccess(uint32_t code, MessageParcel &data, MessageParcel &reply);
     sptr<IDhcpServerCallBack> callback_;
 #endif
-    std::atomic<bool> mRemoteDied_;
-    std::mutex callbackMutex_;
+    bool mRemoteDied;
 };
 }  // namespace DHCP
 }  // namespace OHOS
