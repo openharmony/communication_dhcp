@@ -21,7 +21,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServreCallBackStub");
 
 namespace OHOS {
 namespace DHCP {
-DhcpServreCallBackStub::DhcpServreCallBackStub() : callback_(nullptr), mRemoteDied(false)
+DhcpServreCallBackStub::DhcpServreCallBackStub() : callback_(nullptr), mRemoteDied_(false)
 {
     DHCP_LOGI("DhcpServreCallBackStub Enter DhcpServreCallBackStub");
 }
@@ -74,6 +74,7 @@ int DhcpServreCallBackStub::OnRemoteRequest(uint32_t code, MessageParcel &data, 
 
 void DhcpServreCallBackStub::RegisterCallBack(const sptr<IDhcpServerCallBack> &callBack)
 {
+    std::unique_lock<std::mutex> lock(callbackMutex_);
     if (callBack == nullptr) {
         DHCP_LOGE("DhcpServreCallBackStub:callBack is nullptr!");
         return;
@@ -83,47 +84,66 @@ void DhcpServreCallBackStub::RegisterCallBack(const sptr<IDhcpServerCallBack> &c
 
 bool DhcpServreCallBackStub::IsRemoteDied() const
 {
-    return mRemoteDied;
+    return mRemoteDied_.load();
 }
 
 void DhcpServreCallBackStub::SetRemoteDied(bool val)
 {
     DHCP_LOGI("DhcpServreCallBackStub::SetRemoteDied, state:%{public}d!", val);
-    mRemoteDied = val;
+    mRemoteDied_.store(val);
 }
 
 void DhcpServreCallBackStub::OnServerStatusChanged(int status)
 {
     DHCP_LOGI("DhcpServreCallBackStub::OnServerStatusChanged, status:%{public}d", status);
-    if (callback_) {
-        callback_->OnServerStatusChanged(status);
+    sptr<IDhcpServerCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnServerStatusChanged(status);
     }
 }
 
 void DhcpServreCallBackStub::OnServerLeasesChanged(const std::string& ifname, std::vector<std::string>& leases)
 {
     DHCP_LOGI("DhcpServreCallBackStub::OnServerLeasesChanged, ifname:%{public}s", ifname.c_str());
-    if (callback_) {
-        callback_->OnServerLeasesChanged(ifname, leases);
+    sptr<IDhcpServerCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnServerLeasesChanged(ifname, leases);
     }
 }
 
 void DhcpServreCallBackStub::OnServerSuccess(const std::string &ifname, std::vector<DhcpStationInfo> &stationInfos)
 {
     DHCP_LOGI("DhcpServreCallBackStub::OnServerSuccess, ifname:%{public}s", ifname.c_str());
-    if (callback_) {
-        callback_->OnServerSuccess(ifname.c_str(), stationInfos);
+    sptr<IDhcpServerCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnServerSuccess(ifname.c_str(), stationInfos);
     }
 }
 
 void DhcpServreCallBackStub::OnServerSerExitChanged(const std::string& ifname)
 {
     DHCP_LOGI("DhcpServreCallBackStub::OnWifiWpsStateChanged, ifname:%{public}s", ifname.c_str());
-    if (callback_) {
-        callback_->OnServerSerExitChanged(ifname);
+    sptr<IDhcpServerCallBack> tempCallback;
+    {
+        std::unique_lock<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnServerSerExitChanged(ifname);
     }
 }
-
 int DhcpServreCallBackStub::RemoteOnServerStatusChanged(uint32_t code, MessageParcel &data, MessageParcel &reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
