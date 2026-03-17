@@ -74,7 +74,7 @@ sptr<DhcpClientServiceImpl> DhcpClientServiceImpl::GetInstance()
 
 DhcpClientServiceImpl::DhcpClientServiceImpl()
 #ifndef OHOS_ARCH_LITE
-    : SystemAbility(DHCP_CLIENT_ABILITY_ID, true), mPublishFlag(false),
+    : SystemAbility(DHCP_CLIENT_ABILITY_ID, true), mPublishFlag_(false),
     mState(ClientServiceRunningState::STATE_NOT_START)
 #endif
 {
@@ -132,14 +132,14 @@ void DhcpClientServiceImpl::OnStart()
 
 void DhcpClientServiceImpl::OnStop()
 {
-    mPublishFlag = false;
+    mPublishFlag_ = false;
     DHCP_LOGI("OnStop dhcp client service!");
 }
 
 bool DhcpClientServiceImpl::Init()
 {
     DHCP_LOGI("enter client Init");
-    if (!mPublishFlag) {
+    if (!mPublishFlag_.load()) {
 #ifdef OHOS_ARCH_LITE
         bool ret = true;
 #else
@@ -149,7 +149,7 @@ bool DhcpClientServiceImpl::Init()
             DHCP_LOGE("Failed to publish dhcp client service!");
             return false;
         }
-        mPublishFlag = true;
+        mPublishFlag_ = true;
     }
     return true;
 }

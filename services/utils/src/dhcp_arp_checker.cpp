@@ -143,8 +143,11 @@ bool DhcpArpChecker::ParseAndValidateMacAddress(const std::string& hwAddr)
     }
 
     // Store MAC address (values already validated by regex)
-    for (int i = 0; i < ETH_ALEN; i++) {
-        m_localMacAddr[i] = static_cast<uint8_t>(macValues[i]);
+    {
+        std::lock_guard<std::mutex> lock(arpMutex_);
+        for (int i = 0; i < ETH_ALEN; i++) {
+            m_localMacAddr[i] = static_cast<uint8_t>(macValues[i]);
+        }
     }
     
     // Set broadcast address
@@ -175,6 +178,7 @@ bool DhcpArpChecker::CreateSocketWithTimeout(const std::string& ifname)
 bool DhcpArpChecker::ValidateAndSetIpAddresses(const std::string& senderIp, const std::string& targetIp)
 {
     // Validate IP address validity
+    std::lock_guard<std::mutex> lock(arpMutex_);
     if (inet_aton(senderIp.c_str(), &m_localIpAddr) == 0) {
         DHCP_LOGE("invalid sender IP address: %{private}s", senderIp.c_str());
         return false;

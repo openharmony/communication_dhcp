@@ -22,7 +22,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerStub");
 
 namespace OHOS {
 namespace DHCP {
-DhcpServerStub::DhcpServerStub() : mSingleCallback(false), callback_(nullptr)
+DhcpServerStub::DhcpServerStub() : mSingleCallback_(false), callback_(nullptr)
 {
     InitHandleMap();
 }
@@ -101,12 +101,12 @@ int DhcpServerStub::OnRemoteRequest(uint32_t code, MessageParcel &data, MessageP
 
 bool DhcpServerStub::IsSingleCallback() const
 {
-    return mSingleCallback;
+    return mSingleCallback_.load();
 }
 
 void DhcpServerStub::SetSingleCallback(const bool isSingleCallback)
 {
-    mSingleCallback = true;
+    mSingleCallback_ = true;
 }
 
 int DhcpServerStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, MessageParcel &reply, MessageOption &option)

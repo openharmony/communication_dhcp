@@ -104,7 +104,7 @@ public:
 private:
     bool Init();
     bool IsGlobalIPv6Address(std::string ipAddress);
-    bool mPublishFlag;
+    std::atomic<bool> mPublishFlag_;
     static std::mutex g_instanceLock;
     ClientServiceRunningState mState;
 #ifdef OHOS_ARCH_LITE
