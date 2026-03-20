@@ -100,25 +100,37 @@ HWTEST_F(DhcpFunctionTest, CheckIpStr_FAILED, TestSize.Level1)
 HWTEST_F(DhcpFunctionTest, GetLocalIp_TEST, TestSize.Level1)
 {
     std::string ifname, ip, netmask;
-    testing::NiceMock<SystemFuncMock> mock;
     EXPECT_EQ(DHCP_OPT_ERROR, DhcpFunction::GetLocalIp(ifname, ip, netmask));
 
-    EXPECT_CALL(mock, socket(_, _, _)).WillRepeatedly(Return(1));
-    EXPECT_CALL(mock, ioctl(_, _, _))
-        .WillRepeatedly(Return(0));
-    EXPECT_CALL(mock, close(_)).WillRepeatedly(Return(0));
+    SystemFuncMock::SetMockFlag(true);
+    EXPECT_CALL(SystemFuncMock::GetInstance(), socket(_, _, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(SystemFuncMock::GetInstance(), ioctl(_, _, _)).WillRepeatedly(Return(0));
+    EXPECT_CALL(SystemFuncMock::GetInstance(), close(_)).WillRepeatedly(Return(0));
 
     ifname = "wlan";
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpFunction::GetLocalIp(ifname, ip, netmask));
-    EXPECT_EQ(DHCP_OPT_FAILED, DhcpFunction::GetLocalIp(ifname, ip, netmask));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, DhcpFunction::GetLocalIp(ifname, ip, netmask));
+    EXPECT_EQ(DHCP_OPT_SUCCESS, DhcpFunction::GetLocalIp(ifname, ip, netmask));
+
+    SystemFuncMock::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpFunctionTest, GetLocalMac_TEST, TestSize.Level1)
 {
+    SystemFuncMock::SetMockFlag(true);
+    EXPECT_CALL(SystemFuncMock::GetInstance(), socket(_, _, _))
+        .WillOnce(Return(-1))
+        .WillRepeatedly(Return(1));
+    EXPECT_CALL(SystemFuncMock::GetInstance(), ioctl(_, _, _))
+        .WillOnce(Return(-1))
+        .WillRepeatedly(Return(0));
+    EXPECT_CALL(SystemFuncMock::GetInstance(), close(_)).WillRepeatedly(Return(0));
+
     std::string ifname = "wlan";
     std::string mac;
     EXPECT_EQ(-1, DhcpFunction::GetLocalMac(ifname, mac));
     EXPECT_EQ(-1, DhcpFunction::GetLocalMac(ifname, mac));
+
+    SystemFuncMock::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpFunctionTest, CheckRangeNetwork_TEST, TestSize.Level1)
