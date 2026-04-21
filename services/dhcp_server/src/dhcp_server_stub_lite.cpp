@@ -311,7 +311,7 @@ int DhcpServerStub::OnUpdateLeasesTime(uint32_t code, IpcIo *req, IpcIo *reply)
         (void)WriteInt32(reply, ret);
         return DHCP_E_FAILED;
     }
-    std::string ifName = rawStr;
+    std::string leaseTime = rawStr;
     ErrCode ret = UpdateLeasesTime(leaseTime);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
