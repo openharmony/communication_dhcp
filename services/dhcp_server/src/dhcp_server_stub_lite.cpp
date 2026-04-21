@@ -37,7 +37,7 @@ int DhcpServerStub::CheckInterfaceToken(uint32_t code, IpcIo *req)
     uint16_t* interfaceRead = nullptr;
     interfaceRead = ReadInterfaceToken(req, &length);
     if (length > DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH) {
-        DHCP_LOGE("Scan stub token length too large: %{public}zu, code: %{public}u", length, code);
+        DHCP_LOGE("Scan stub token length too large");
         return DHCP_E_FAILED;
     }
     for (size_t i = 0; i < length; i++) {
