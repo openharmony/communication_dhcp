@@ -213,7 +213,7 @@ int DhcpServerStub::OnSetDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     ErrCode ret = SetDhcpRange(ifname, range);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
- 
+
     return 0;
 }
 int DhcpServerStub::OnRemoveAllDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
@@ -231,7 +231,7 @@ int DhcpServerStub::OnRemoveAllDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply
     ErrCode ret = RemoveAllDhcpRange(tagName);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
- 
+
     return 0;
 }
 int DhcpServerStub::OnRemoveDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
@@ -316,7 +316,7 @@ int DhcpServerStub::OnUpdateLeasesTime(uint32_t code, IpcIo *req, IpcIo *reply)
     ErrCode ret = UpdateLeasesTime(leaseTime);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
- 
+
     return 0;
 }
 
