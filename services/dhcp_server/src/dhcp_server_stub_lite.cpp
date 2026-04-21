@@ -102,7 +102,7 @@ int DhcpServerStub::OnRegisterCallBack(uint32_t code, IpcIo *req, IpcIo *reply)
 
     std::shared_ptr<IDhcpServerCallBack> callback_ = std::make_shared<DhcpServerCallbackProxy>(&sid);
     DHCP_LOGD("create new DhcpServerCallbackProxy!");
-    const char* rawStr = ReadString(req, &readLen);
+    const char* rawStr = (char *)ReadString(req, &readLen);
     if (rawStr == nullptr) {
         DHCP_LOGE("OnRegisterCallBack ReadString failed");
         (void)WriteInt32(reply, 0);
@@ -192,7 +192,7 @@ int DhcpServerStub::OnSetDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     const char* rawEndip = (char *)ReadString(req, &readLen);
     const char* rawSubnet = (char *)ReadString(req, &readLen);
     const char* rawIfname = (char *)ReadString(req, &readLen);
-    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || strSubnet == nullptr) {
+    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || rawIfname == nullptr || rawSubnet == nullptr) {
         DHCP_LOGE("OnSetDhcpRange ReadString failed");
         (void)WriteInt32(reply, 0);
         (void)WriteInt32(reply, DHCP_E_FAILED);
@@ -246,7 +246,7 @@ int DhcpServerStub::OnRemoveDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     const char* rawEndip = (char *)ReadString(req, &readLen);
     const char* rawSubnet = (char *)ReadString(req, &readLen);
     const char* rawIfname = (char *)ReadString(req, &readLen);
-    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || strSubnet == nullptr) {
+    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || rawIfname == nullptr || rawSubnet == nullptr) {
         DHCP_LOGE("OnRemoveDhcpRange ReadString failed");
         (void)WriteInt32(reply, 0);
         (void)WriteInt32(reply, DHCP_E_FAILED);
