@@ -296,7 +296,7 @@ int DhcpServerStub::OnGetDhcpClientInfos(uint32_t code, IpcIo *req, IpcIo *reply
     for (auto str : leases) {
         (void)WriteString(reply, str.c_str());
     }
- 
+
     return 0;
 }
 
