@@ -192,7 +192,8 @@ int DhcpServerStub::OnSetDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     const char* rawEndip = (char *)ReadString(req, &readLen);
     const char* rawSubnet = (char *)ReadString(req, &readLen);
     const char* rawIfname = (char *)ReadString(req, &readLen);
-    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || rawIfname == nullptr || rawSubnet == nullptr) {
+    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr ||
+            rawIfname == nullptr || rawSubnet == nullptr) {
         DHCP_LOGE("OnSetDhcpRange ReadString failed");
         (void)WriteInt32(reply, 0);
         (void)WriteInt32(reply, DHCP_E_FAILED);
@@ -246,7 +247,8 @@ int DhcpServerStub::OnRemoveDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     const char* rawEndip = (char *)ReadString(req, &readLen);
     const char* rawSubnet = (char *)ReadString(req, &readLen);
     const char* rawIfname = (char *)ReadString(req, &readLen);
-    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || rawIfname == nullptr || rawSubnet == nullptr) {
+    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr ||
+            rawIfname == nullptr || rawSubnet == nullptr) {
         DHCP_LOGE("OnRemoveDhcpRange ReadString failed");
         (void)WriteInt32(reply, 0);
         (void)WriteInt32(reply, DHCP_E_FAILED);
