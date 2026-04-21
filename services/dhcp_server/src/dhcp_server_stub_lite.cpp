@@ -203,14 +203,14 @@ int DhcpServerStub::OnSetDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     range.strStartip = rawStartip;
     range.strEndip = rawEndip;
     range.strSubnet = rawSubnet;
-    const char* rawIfname = (char *)ReadString(req, &readLen);
-    if (rawIfname == nullptr) {
+    const char* rawIfname01 = (char *)ReadString(req, &readLen);
+    if (rawIfname01 == nullptr) {
         DHCP_LOGE("OnSetDhcpRange ReadString ifname failed");
         (void)WriteInt32(reply, 0);
         (void)WriteInt32(reply, DHCP_E_FAILED);
         return DHCP_E_FAILED;
     }
-    std::string ifname = rawIfname;
+    std::string ifname = rawIfname01;
     ErrCode ret = SetDhcpRange(ifname, range);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
