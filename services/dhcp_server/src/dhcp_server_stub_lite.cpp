@@ -268,13 +268,13 @@ int DhcpServerStub::OnRemoveDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     ErrCode ret = RemoveDhcpRange(tagName, range);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
- 
+
     return 0;
 }
 int DhcpServerStub::OnGetDhcpClientInfos(uint32_t code, IpcIo *req, IpcIo *reply)
 {
     DHCP_LOGI("OnGetDhcpClientInfos\n");
-    size_t readLen;  
+    size_t readLen;
     std::vector<std::string> leases;
     const char* rawIfname = ReadString(req, &readLen);
     if (rawIfname == nullptr) {
