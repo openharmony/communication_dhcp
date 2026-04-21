@@ -276,7 +276,7 @@ int DhcpServerStub::OnGetDhcpClientInfos(uint32_t code, IpcIo *req, IpcIo *reply
     DHCP_LOGI("OnGetDhcpClientInfos\n");
     size_t readLen;
     std::vector<std::string> leases;
-    const char* rawIfname =(char *)ReadString(req, &readLen);
+    const char* rawIfname = (char *)ReadString(req, &readLen);
     if (rawIfname == nullptr) {
         DHCP_LOGE("OnGetDhcpClientInfos ReadString failed");
         (void)WriteInt32(reply, 0);
