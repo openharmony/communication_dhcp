@@ -310,7 +310,7 @@ int DhcpServerStub::OnUpdateLeasesTime(uint32_t code, IpcIo *req, IpcIo *reply)
     if (rawStr == nullptr) {
         DHCP_LOGE("OnRegisterCallBack ReadString failed");
         (void)WriteInt32(reply, 0);
-        (void)WriteInt32(reply, ret);
+        (void)WriteInt32(reply, DHCP_E_FAILED);
         return DHCP_E_FAILED;
     }
     std::string leaseTime = rawStr;
