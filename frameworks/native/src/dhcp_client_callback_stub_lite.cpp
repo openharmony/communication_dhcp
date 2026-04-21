@@ -126,7 +126,12 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, IpcIo *data)
     size_t readLen;
     int state = 0;
     (void)ReadInt32(data, &state);
-    std::string ifname = (char *)ReadString(data, &readLen);
+    char *ifnameStr = (char *)ReadString(data, &readLen);
+    if (ifnameStr == nullptr) {
+        DHCP_LOGE("RemoteOnIpSuccessChanged ReadString failed!");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname = ifnameStr;
 
     DhcpResult result;
     (void)ReadInt32(data, &result.iptype);
@@ -156,8 +161,18 @@ int DhcpClientCallBackStub::RemoteOnIpFailChanged(uint32_t code, IpcIo *data)
     size_t readLen;
     int state = 0;
     (void)ReadInt32(data, &state);
-    std::string ifname = (char *)ReadString(data, &readLen);
-    std::string reason = (char *)ReadString(data, &readLen);
+    char *ifnameStr = (char *)ReadString(data, &readLen);
+    if (ifnameStr == nullptr) {
+        DHCP_LOGE("RemoteOnIpFailChanged ifnameStr is nullptr!");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname = ifnameStr;
+    char *reasonStr = (char *)ReadString(data, &readLen);
+    if (reasonStr == nullptr) {
+        DHCP_LOGE("RemoteOnIpFailChanged reasonStr is nullptr!");
+        return DHCP_OPT_FAILED;
+    }
+    std::string reason = reasonStr;
     OnIpFailChanged(state, ifname, reason);
     return 0;
 }
