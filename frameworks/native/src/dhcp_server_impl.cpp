@@ -59,6 +59,7 @@ bool DhcpServerImpl::Init(int systemAbilityId)
     }
     if (clientProxy == nullptr) {
         DHCP_LOGE("clientProxy is nullptr.");
+        DhcpServerProxy::ReleaseInstance();
         return false;
     }
     if (clientProxy->Init() != DHCP_OPT_SUCCESS) {
