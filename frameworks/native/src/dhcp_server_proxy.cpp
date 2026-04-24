@@ -40,6 +40,7 @@ DhcpServerProxy::DhcpServerProxy(const sptr<IRemoteObject> &impl) : IRemoteProxy
         deathRecipient_ = new (std::nothrow)DhcpServerDeathRecipient(*this);
         if (deathRecipient_ == nullptr) {
             DHCP_LOGW("deathRecipient_ is nullptr!");
+            return;
         }
         if (!impl->AddDeathRecipient(deathRecipient_)) {
             DHCP_LOGW("AddDeathRecipient failed!");
