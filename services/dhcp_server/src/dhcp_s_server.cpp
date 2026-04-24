@@ -1759,7 +1759,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
     uint8_t *maxPos = (((uint8_t *)current) + (DHCP_OPTION_SIZE - MAGIC_COOKIE_LENGTH - OPT_HEADER_LENGTH -1));
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
-        if (((uint8_t *)end) - ((uint8_t *)current) < OPT_HEADER_LENGTH) {
+        if (((uint8_t *)end) - ((uint8_t *)current) - current->length< OPT_HEADER_LENGTH) {
             DHCP_LOGE("current->code:%{public}d out of option range.", current->code);
             return RET_FAILED;
         }
