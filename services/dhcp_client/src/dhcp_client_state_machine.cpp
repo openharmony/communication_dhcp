@@ -1249,7 +1249,7 @@ void DhcpClientStateMachine::DhcpAckOrNakPacketHandle(uint8_t type, struct DhcpP
     ParseDhcpAckPacket(packet, timestamp);
     if (SetLocalInterface(m_cltCnf.ifaceName,
         inet_addr(m_dhcpIpResult.strYiaddr), inet_addr(m_dhcpIpResult.strOptSubnet)) != DHCP_OPT_SUCCESS) {
-        DHCP_LOGE("DhcpAckOrNakPacketHandle error, SetLocalInterface yiaddr:%{public}s failed!",
+        DHCP_LOGE("DhcpAckOrNakPacketHandle error, SetLocalInterface yiaddr:%{private}s failed!",
             m_dhcpIpResult.strYiaddr);
         return;
     }
