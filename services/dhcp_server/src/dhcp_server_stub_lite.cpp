@@ -343,7 +343,7 @@ int DhcpServerStub::OnPutDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
         (void)WriteInt32(reply, DHCP_E_FAILED);
         return DHCP_E_FAILED;
     }
-    std::string tagName = rawIfname
+    std::string tagName = rawIfname;
  
     ErrCode ret = PutDhcpRange(tagName, range);
     (void)WriteInt32(reply, 0);
