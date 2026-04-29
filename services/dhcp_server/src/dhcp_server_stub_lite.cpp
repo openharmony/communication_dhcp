@@ -348,7 +348,7 @@ int DhcpServerStub::OnPutDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     ErrCode ret = PutDhcpRange(tagName, range);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
- 
+
     return 0;
 }
 
