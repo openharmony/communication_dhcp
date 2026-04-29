@@ -321,12 +321,30 @@ int DhcpServerStub::OnPutDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     size_t readLen;
     (void)ReadInt32(req, &range.iptype);
     (void)ReadInt32(req, &range.leaseHours);
-    range.strTagName = (char *)ReadString(req, &readLen);
-    range.strStartip = (char *)ReadString(req, &readLen);
-    range.strEndip = (char *)ReadString(req, &readLen);
-    range.strSubnet = (char *)ReadString(req, &readLen);
-    std::string tagName = (char *)ReadString(req, &readLen);
-
+    const char* rawTagName = (char *)ReadString(req, &readLen);
+    const char* rawStartip = (char *)ReadString(req, &readLen);
+    const char* rawEndip = (char *)ReadString(req, &readLen);
+    const char* rawSubnet = (char *)ReadString(req, &readLen);
+    if (rawTagName == nullptr || rawStartip == nullptr || rawEndip == nullptr || rawSubnet == nullptr) {
+        DHCP_LOGE("OnPutDhcpRange ReadString failed");
+        (void)WriteInt32(reply, 0);
+        (void)WriteInt32(reply, DHCP_E_FAILED);
+        return DHCP_E_FAILED;
+    }
+    range.strTagName = rawTagName;
+    range.strStartip = rawStartip;
+    range.strEndip = rawEndip;
+    range.strSubnet = rawSubnet;
+ 
+    const char* rawIfname = (char *)ReadString(req, &readLen);
+    if (rawIfname == nullptr) {
+        DHCP_LOGE("OnPutDhcpRange ReadString ifname failed");
+        (void)WriteInt32(reply, 0);
+        (void)WriteInt32(reply, DHCP_E_FAILED);
+        return DHCP_E_FAILED;
+    }
+    std::string tagName = rawIfname;
+ 
     ErrCode ret = PutDhcpRange(tagName, range);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
