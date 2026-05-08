@@ -88,7 +88,7 @@ void BroadCastAddressTest(FuzzedDataProvider& FDP)
     BroadCastAddress(ip, netmask);
 }
 
-void ParseIpAddrTest(const uint8_t* data, size_t size)
+void ParseIpAddrTest()
 {
     const char *strIp = "TEXT";
     (void)ParseIpAddr(strIp);
@@ -109,27 +109,27 @@ void ParseIpTest(const uint8_t* data, size_t size)
     ParseIp(ipAddr);
 }
 
-void IsEmptyHWAddrTest(const uint8_t* data, size_t size)
+void IsEmptyHWAddrTest()
 {
     uint8_t ipAddr[DHCP_HWADDR_LENGTH];
     IsEmptyHWAddr(&ipAddr[0]);
 }
 
-void ParseStrMacTest(const uint8_t* data, size_t size)
+void ParseStrMacTest()
 {
     uint8_t* macAddr = nullptr;
     size_t addrSize = MAC_ADDR_LENGTH;
     ParseStrMac(macAddr, addrSize);
 }
 
-void ParseMacAddressTest(const uint8_t* data, size_t size)
+void ParseMacAddressTest()
 {
     const char *strMac = "TEXT";
     uint8_t macAddr[DHCP_HWADDR_LENGTH];
     (void)ParseMacAddress(strMac, &macAddr[0]);
 }
 
-void ParseHostNameTest(const uint8_t* data, size_t size)
+void ParseHostNameTest()
 {
     const char *strHostName = "TEXT";
     char hostName[DHCP_BOOT_FILE_LENGTH];
@@ -148,7 +148,7 @@ void NetworkToHostTest(FuzzedDataProvider& FDP)
     NetworkToHost(network);
 }
 
-void ParseLogMacTest(const uint8_t* data, size_t size)
+void ParseLogMacTest()
 {
     uint8_t macAddr[DHCP_HWADDR_LENGTH];
     ParseLogMac(&macAddr[0]);
@@ -189,16 +189,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size)
     OHOS::DHCP::IpInNetworkTest(FDP);
     OHOS::DHCP::IpInRangeTest(FDP);
     OHOS::DHCP::BroadCastAddressTest(FDP);
-    OHOS::DHCP::ParseIpAddrTest(data, size);
+    OHOS::DHCP::ParseIpAddrTest();
     OHOS::DHCP::HostTotalTest(FDP);
     OHOS::DHCP::ParseIpTest(data, size);
-    OHOS::DHCP::IsEmptyHWAddrTest(data, size);
-    OHOS::DHCP::ParseStrMacTest(data, size);
-    OHOS::DHCP::ParseMacAddressTest(data, size);
-    OHOS::DHCP::ParseHostNameTest(data, size);
+    OHOS::DHCP::IsEmptyHWAddrTest();
+    OHOS::DHCP::ParseStrMacTest();
+    OHOS::DHCP::ParseMacAddressTest();
+    OHOS::DHCP::ParseHostNameTest();
     OHOS::DHCP::HostToNetworkTest(FDP);
     OHOS::DHCP::NetworkToHostTest(FDP);
-    OHOS::DHCP::ParseLogMacTest(data, size);
+    OHOS::DHCP::ParseLogMacTest();
     OHOS::DHCP::AddrEquelsTest(FDP);
     OHOS::DHCP::ParseIpFuzzTest(data, size);
     OHOS::DHCP::ParseStrIpFuzzTest(FDP);
