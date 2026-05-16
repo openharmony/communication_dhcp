@@ -124,7 +124,7 @@ static struct ServerContext *GetServerInstance(const DhcpServerContext *ctx)
     if (!ctx || !ctx->instance) {
         return nullptr;
     }
-    return (struct ServerContext *)ctx->instance;
+    return reinterpret_cast<struct ServerContext *>(ctx->instance);
 }
 
 int HasFixSocket(int fd)
@@ -1650,16 +1650,16 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
             if (reply->length > 0 && reply->length <= REPLY_PACKET_MAX_LEN) {
                 ret = sendto(srvIns->serverFd, &reply->packet,
                     reply->length, 0,
-                    (struct sockaddr *)destAddrIn,
+                    reinterpret_cast<struct sockaddr *>(destAddrIn),
                     sizeof(*destAddrIn));
             }
         } else {
-            ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)bcastAddrIn,
+            ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(bcastAddrIn),
                 sizeof(*bcastAddrIn));
         }
     } else {
         ret = sendto(
-            srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)bcastAddrIn, sizeof(*bcastAddrIn));
+            srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(bcastAddrIn), sizeof(*bcastAddrIn));
     }
     if (!ret) {
         DHCP_LOGE("failed to send dhcp message.");
@@ -1730,7 +1730,7 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
     }
 
     struct sockaddr_in *destAddrIn = BroadcastAddrIn();
-    int ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, (struct sockaddr *)destAddrIn,
+    int ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(destAddrIn),
         sizeof(*destAddrIn));
     if (!ret) {
         DHCP_LOGD("failed to send dhcp ack message.");
@@ -1754,8 +1754,8 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         DHCP_LOGE("bad magic cookie.");
         return RET_FAILED;
     }
-    current = (DhcpOption *)(((uint8_t *)current) + MAGIC_COOKIE_LENGTH);
-    uint8_t *pos = (((uint8_t *)current) + MAGIC_COOKIE_LENGTH);
+    current = static_cast<DhcpOption *>(static_cast<uint8_t *>(current) + MAGIC_COOKIE_LENGTH);
+    uint8_t *pos = ((static_cast<uint8_t *>(current)) + MAGIC_COOKIE_LENGTH);
     uint8_t *maxPos = (((uint8_t *)current) + (DHCP_OPTION_SIZE - MAGIC_COOKIE_LENGTH - OPT_HEADER_LENGTH -1));
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
