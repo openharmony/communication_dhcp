@@ -272,7 +272,8 @@ int SendToDhcpPacket(
     udpPackets.ip.ttl = IPDEFTTL;
     udpPackets.ip.check = GetCheckSum(reinterpret_cast<uint16_t *>(&(udpPackets.ip)), sizeof(udpPackets.ip));
 
-    ssize_t nBytes = sendto(nFd, &udpPackets, sendLen, 0, reinterpret_cast<struct sockaddr *>(&rawAddr), sizeof(rawAddr));
+    ssize_t nBytes = sendto(nFd, &udpPackets, sendLen, 0, reinterpret_cast<struct sockaddr *>(&rawAddr),
+        sizeof(rawAddr));
     if (nBytes <= 0) {
         DHCP_LOGE("SendToDhcpPacket optionLen:%{public}d sendLen:%{public}d, "
             "dhcpPackLen:%{public}d fd:%{public}d failed, sendto error:%{public}d.",
