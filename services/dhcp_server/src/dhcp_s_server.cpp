@@ -1756,8 +1756,8 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         DHCP_LOGE("bad magic cookie.");
         return RET_FAILED;
     }
-    current = static_cast<DhcpOption *>(static_cast<uint8_t *>(current) + MAGIC_COOKIE_LENGTH);
-    uint8_t *pos = ((static_cast<uint8_t *>(current)) + MAGIC_COOKIE_LENGTH);
+    current = reinterpret_cast<DhcpOption *>(reinterpret_cast<uint8_t *>(current) + MAGIC_COOKIE_LENGTH);
+    uint8_t *pos = ((reinterpret_cast<uint8_t *>(current)) + MAGIC_COOKIE_LENGTH);
     uint8_t *maxPos = (((uint8_t *)current) + (DHCP_OPTION_SIZE - MAGIC_COOKIE_LENGTH - OPT_HEADER_LENGTH -1));
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
