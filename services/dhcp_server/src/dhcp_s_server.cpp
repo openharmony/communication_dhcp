@@ -1782,9 +1782,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
             DHCP_LOGE("out of option max pos.");
             return RET_FAILED;
         }
-        if (PushBackOption(&msg->options, current) != RET_SUCCESS) {
-            DHCP_LOGD("failed to PushOption.");
-        }
+        if (PushBackOption(&msg->options, current) != RET_SUCCESS) { DHCP_LOGD("failed to PushOption."); }
         current = (DhcpOption *)(((uint8_t *)current) + OPT_HEADER_LENGTH + current->length);
         optTotal++;
     }
