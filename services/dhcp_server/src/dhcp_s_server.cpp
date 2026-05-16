@@ -1654,12 +1654,14 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
                     sizeof(*destAddrIn));
             }
         } else {
-            ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(bcastAddrIn),
+            ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0,
+                reinterpret_cast<struct sockaddr *>(bcastAddrIn),
                 sizeof(*bcastAddrIn));
         }
     } else {
         ret = sendto(
-            srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(bcastAddrIn), sizeof(*bcastAddrIn));
+            srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(bcastAddrIn),
+                sizeof(*bcastAddrIn));
     }
     if (!ret) {
         DHCP_LOGE("failed to send dhcp message.");
@@ -1730,7 +1732,8 @@ static int SendDhcpNak(PDhcpServerContext ctx, PDhcpMsgInfo reply)
     }
 
     struct sockaddr_in *destAddrIn = BroadcastAddrIn();
-    int ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0, reinterpret_cast<struct sockaddr *>(destAddrIn),
+    int ret = sendto(srvIns->serverFd, &reply->packet, reply->length, 0,
+        reinterpret_cast<struct sockaddr *>(destAddrIn),
         sizeof(*destAddrIn));
     if (!ret) {
         DHCP_LOGD("failed to send dhcp ack message.");
