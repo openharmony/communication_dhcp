@@ -46,7 +46,7 @@ static const char *GetName(Feature *feature)
 static void OnInitialize(Feature *feature, Service *parent, Identity identity)
 {
     if (feature != NULL) {
-        DhcpClientFeature *serverFeature = (DhcpClientFeature *)(feature);
+        DhcpClientFeature *serverFeature = (DhcpClientFeature *)feature;
         serverFeature->identity = identity;
         serverFeature->parent = parent;
     }
@@ -61,7 +61,7 @@ static void OnStop(Feature *feature, Identity identity)
         g_dhcpClientServiceImpl->OnStop();
     }
     if (feature != NULL) {
-        DhcpClientFeature *serverFeature = (DhcpClientFeature *)(feature);
+        DhcpClientFeature *serverFeature = (DhcpClientFeature *)feature;
         serverFeature->identity.queueId = NULL;
         serverFeature->identity.featureId = -1;
         serverFeature->identity.serviceId = -1;
