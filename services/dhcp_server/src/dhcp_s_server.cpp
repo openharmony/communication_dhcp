@@ -1635,7 +1635,6 @@ static int32_t TransmitOfferOrAckPacket(PDhcpServerContext ctx, PDhcpMsgInfo rep
             std::string ipAddr = Ip4IntConvertToStr(reply->packet.yiaddr, false);
             const char *mac = ParseStrMac(reply->packet.chaddr, sizeof(reply->packet.chaddr));
             if (mac == nullptr) {
-                DHCP_LOGE("ParseStrMac returned NULL.");
                 return RET_FAILED;
             }
             std::string macAddr(mac);
