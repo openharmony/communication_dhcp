@@ -98,7 +98,7 @@ static DhcpServerFeature g_serverFeature = {
 static void Init(void)
 {
     DHCP_LOGI("[DhcpServerFeature] Init start.");
-    BOOL ret = SAMGR_GetInstance()->RegisterFeature(WIFI_SERVICE_LITE, reinterpret_cast<Feature *>(&g_serverFeature));
+    BOOL ret = SAMGR_GetInstance()->RegisterFeature(DHCP_SERVICE_LITE, reinterpret_cast<Feature *>(&g_serverFeature));
     if (ret == FALSE) {
         DHCP_LOGE("[DhcpServerFeature] register feature fail.");
         return;
