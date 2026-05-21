@@ -97,7 +97,7 @@ ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
 
     g_sid.handle = IPC_INVALID_HANDLE;
     g_sid.token = SERVICE_TYPE_ANONYMOUS;
-    g_sid.cookie = (uintptr_t)&g_objStub;
+    g_sid.cookie = reinterpret_cast<uintptr_t>(&g_objStub);
 
     IpcIo req;
     char data[IPC_DATA_SIZE_SMALL];

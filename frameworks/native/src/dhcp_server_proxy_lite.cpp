@@ -40,7 +40,7 @@ static ErrCode ParseDhcpClientInfos(IpcIo *reply, std::vector<std::string> &info
     }
     unsigned int readLen;
     for (int i = 0; i < tmpsize; ++i) {
-        std::string str = (char *)ReadString(reply, &readLen);
+        std::string str = static_cast<char *>(ReadString(reply, &readLen));
         infos.emplace_back(str);
     }
     return DHCP_E_SUCCESS;
@@ -54,7 +54,7 @@ static int IpcCallback(void *owner, int code, IpcIo *reply)
         return DHCP_E_FAILED;
     }
 
-    struct IpcOwner *data = (struct IpcOwner *)owner;
+    struct IpcOwner *data = static_cast<struct IpcOwner *>(owner);
     (void)ReadInt32(reply, &data->exception);
     (void)ReadInt32(reply, &data->retCode);
     if (data->exception != 0 || data->retCode != DHCP_E_SUCCESS || data->variable == nullptr) {
@@ -63,7 +63,7 @@ static int IpcCallback(void *owner, int code, IpcIo *reply)
 
     switch (data->funcId) {
         case static_cast<uint32_t>(DhcpServerInterfaceCode::DHCP_SERVER_SVR_CMD_GET_DHCP_CLIENT_INFO): {
-            data->retCode = ParseDhcpClientInfos(reply, *((std::vector<std::string> *)data->variable));
+            data->retCode = ParseDhcpClientInfos(reply, *(static_cast<std::vector<std::string> *>(data->variable)));
             break;
         }
         default:
@@ -172,7 +172,7 @@ ErrCode DhcpServerProxy::RegisterDhcpServerCallBack(const std::string& ifname,
 
     g_sid.handle = IPC_INVALID_HANDLE;
     g_sid.token = SERVICE_TYPE_ANONYMOUS;
-    g_sid.cookie = (uintptr_t)&g_objStub;
+    g_sid.cookie = reinterpret_cast<uintptr_t>(&g_objStub);
 
     IpcIo request;
     char data[IPC_DATA_SIZE_SMALL];

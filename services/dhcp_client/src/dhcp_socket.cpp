@@ -270,9 +270,10 @@ int SendToDhcpPacket(
     udpPackets.ip.version = IPVERSION;
     udpPackets.ip.tot_len = htons(sendLen);
     udpPackets.ip.ttl = IPDEFTTL;
-    udpPackets.ip.check = GetCheckSum((uint16_t *)&(udpPackets.ip), sizeof(udpPackets.ip));
+    udpPackets.ip.check = GetCheckSum(reinterpret_cast<uint16_t *>(&(udpPackets.ip)), sizeof(udpPackets.ip));
 
-    ssize_t nBytes = sendto(nFd, &udpPackets, sendLen, 0, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
+    ssize_t nBytes = sendto(nFd, &udpPackets, sendLen, 0, reinterpret_cast<struct sockaddr *>(&rawAddr),
+        sizeof(rawAddr));
     if (nBytes <= 0) {
         DHCP_LOGE("SendToDhcpPacket optionLen:%{public}d sendLen:%{public}d, "
             "dhcpPackLen:%{public}d fd:%{public}d failed, sendto error:%{public}d.",
@@ -454,13 +455,13 @@ int GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
         return SOCKET_OPT_FAILED;
     }
     int nBytes = read(rawFd, &udpPackets, sizeof(struct UdpDhcpPacket));
-    int nRet = CheckReadBytes(nBytes, (int)ntohs(udpPackets.ip.tot_len));
+    int nRet = CheckReadBytes(nBytes, static_cast<int>(ntohs(udpPackets.ip.tot_len)));
     if (nRet != SOCKET_OPT_SUCCESS) {
         return nRet;
     }
 
     /* Check udp dhcp packet sum. */
-    nBytes = (int)ntohs(udpPackets.ip.tot_len);
+    nBytes = static_cast<int>(ntohs(udpPackets.ip.tot_len));
     nRet = CheckPacketIpSum(&udpPackets, nBytes);
     if (nRet != SOCKET_OPT_SUCCESS) {
         return nRet;
@@ -470,7 +471,7 @@ int GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
         return nRet;
     }
 
-    int nDhcpPacket = nBytes - (int)(sizeof(udpPackets.ip) + sizeof(udpPackets.udp));
+    int nDhcpPacket = nBytes - static_cast<int>(sizeof(udpPackets.ip) + sizeof(udpPackets.udp));
     if (memcpy_s(getPacket, sizeof(struct DhcpPacket), &(udpPackets.data), nDhcpPacket) != EOK) {
         DHCP_LOGE("GetDhcpRawPacket() memcpy_s packet.data failed!");
         return SOCKET_OPT_FAILED;

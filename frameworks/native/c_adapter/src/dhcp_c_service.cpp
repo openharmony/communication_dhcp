@@ -233,7 +233,7 @@ DhcpErrorCode RemoveDhcpRange(const char *tagName, const void *range)
 
 DhcpErrorCode ParseClientInfos(int staNumber, DhcpStationInfo *staInfo, int *staSize, std::vector<std::string> &vecInfo)
 {
-    int size = (int)vecInfo.size();
+    int size = static_cast<int>(vecInfo.size());
     DHCP_LOGI("ParseClientInfos staNumber:%{public}d size:%{public}d", staNumber, size);
     int i = 0;
     for (i = 0; i < size; i++) {
