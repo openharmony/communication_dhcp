@@ -104,7 +104,12 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("create new DhcpClientCallbackProxy!");
 
     size_t readLen;
-    std::string ifname = (char *)ReadString(req, &readLen);
+    const char* rawIfname = (char *)ReadString(req, &readLen);
+    if (rawIfname == nullptr) {
+        DHCP_LOGE("OnRegisterCallBack ReadString ifname failed");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname(rawIfname);
     DHCP_LOGI("ifname:%{public}s", ifname.c_str());
 
     ret = RegisterDhcpClientCallBack(ifname, callback_);
@@ -160,7 +165,12 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
 
     size_t readLen;
     bool bIpv6;
-    std::string ifname = (char *)ReadString(req, &readLen);
+    const char* rawIfname = (char *)ReadString(req, &readLen);
+    if (rawIfname == nullptr) {
+        DHCP_LOGE("OnStopDhcpClient ReadString ifname failed");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname(rawIfname);
     (void)ReadBool(req, &bIpv6);
     bool bIpv4 = true;
     (void)ReadBool(req, &bIpv4);
