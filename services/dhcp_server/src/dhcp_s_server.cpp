@@ -424,7 +424,7 @@ static int MessageProcess(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMs
         return replyType;
     }
     PDhcpOption opt = GetOption(&received->options, DHCP_MESSAGE_TYPE_OPTION);
-    if (!opt) {
+    if (!opt || opt->length == 0) {
         DHCP_LOGE("error dhcp message, missing required message type option.");
         return replyType;
     }
