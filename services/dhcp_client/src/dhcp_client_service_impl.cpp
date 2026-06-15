@@ -14,7 +14,6 @@
  */
 
 #include "dhcp_client_service_impl.h"
-#include <unistd.h>
 #include "dhcp_common_utils.h"
 #ifndef OHOS_ARCH_LITE
 #include "dhcp_client_death_recipient.h"
@@ -25,6 +24,11 @@
 #include "dhcp_logger.h"
 #include "dhcp_result_store_manager.h"
 #include "dhcp_permission_utils.h"
+#if DHCPV6_ENABLE
+#include "dhcp_v6_client.h"
+#include "dhcp_v6_constants.h"
+#include "dhcp_v6_callback_impl.h"
+#endif
 #ifndef OHOS_ARCH_LITE
 #include "ipc_skeleton.h"
 #include "netsys_controller.h"
@@ -99,19 +103,41 @@ DhcpClientServiceImpl::DhcpClientServiceImpl()
 DhcpClientServiceImpl::~DhcpClientServiceImpl()
 {
     DHCP_LOGI("enter ~DhcpClientServiceImpl()");
-    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-    auto iter = m_mapClientService.begin();
-    while(iter != m_mapClientService.end()) {
-        if ((iter->second).pipv6Client != nullptr) {
-            delete (iter->second).pipv6Client;
-            (iter->second).pipv6Client = nullptr; 
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iter = m_mapClientService.begin();
+        while(iter != m_mapClientService.end()) {
+            if ((iter->second).pipv6Client != nullptr) {
+                delete (iter->second).pipv6Client;
+                (iter->second).pipv6Client = nullptr;
+            }
+            if ((iter->second).pStaStateMachine != nullptr) {
+                delete (iter->second).pStaStateMachine;
+                (iter->second).pStaStateMachine = nullptr;
+            }
+#if DHCPV6_ENABLE
+            // Clean pDhcpV6Client (Stateful DHCPv6 client)
+            if ((iter->second).pDhcpV6Client != nullptr) {
+                (iter->second).pDhcpV6Client->DhcpV6Stop();
+                delete (iter->second).pDhcpV6Client;
+                (iter->second).pDhcpV6Client = nullptr;
+            }
+#endif
+            iter++;
         }
-        if ((iter->second).pStaStateMachine != nullptr) {
-            delete (iter->second).pStaStateMachine;
-            (iter->second).pStaStateMachine = nullptr;   
-        }
-        iter++;
+        m_mapClientService.clear();
+#if DHCPV6_ENABLE
+        m_dhcpv6Callbacks.clear();
+#endif
     }
+
+#if DHCPV6_ENABLE
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        m_lastDhcpV6.clear();
+        m_lastIpv6Info.clear();
+    }
+#endif
 }
 
 void DhcpClientServiceImpl::OnStart()
@@ -275,10 +301,7 @@ ErrCode DhcpClientServiceImpl::StartOldClient(const RouterConfig &config, DhcpCl
             NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
             NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
 #endif
-            dhcpClient.pipv6Client->Reset();
-            dhcpClient.pipv6Client->SetCallback(
-                [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
-            dhcpClient.pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
+            ret = StartSlaacClient(ifname, config.bIpv6, dhcpClient);
         }
     }
     if (ret != DHCP_E_SUCCESS) {
@@ -318,27 +341,168 @@ ErrCode DhcpClientServiceImpl::StartNewIpv4Client(const RouterConfig &config, Dh
     return DHCP_E_SUCCESS;
 }
 
+// Note: In this file, "ipv6" prefix refers to SLAAC (Stateless Address Autoconfiguration),
+// while "dhcpv6" prefix refers to DHCPv6 (Stateful DHCPv6).
+ErrCode DhcpClientServiceImpl::StartSlaacClient(const std::string &ifname, bool bIpv6, DhcpClient &client)
+{
+    if (client.pipv6Client == nullptr) {
+        client.pipv6Client = new (std::nothrow)DhcpIpv6Client(ifname);
+        if (client.pipv6Client == nullptr) {
+            DHCP_LOGE("StartSlaacClient: new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
+            return DHCP_E_FAILED;
+        }
+        DHCP_LOGI("StartSlaacClient: new SLAAC client, ifname:%{public}s", ifname.c_str());
+    } else {
+        DHCP_LOGI("StartSlaacClient: stop and restart SLAAC client, ifname:%{public}s", ifname.c_str());
+#if DHCPV6_ENABLE
+        client.pipv6Client->UnRegisterDhcpV6Callbacks();
+#endif
+        client.pipv6Client->DhcpIPV6Stop();
+        client.pipv6Client->Reset();
+    }
+
+    // Reset RA flags to ensure proactive query will trigger notification
+#if DHCPV6_ENABLE
+    client.managed_ = false;
+    client.other_ = false;
+#endif
+
+    client.pipv6Client->SetCallback(
+        [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
+#if DHCPV6_ENABLE
+    // Set callback for RA flags change to dynamically manage DHCPv6 client
+    client.pipv6Client->SetRaFlagsCallback(
+        [this](const std::string ifname, bool managed, bool other) {
+            this->OnRaFlagsChanged(ifname, managed, other);
+        });
+    // Set callback for kernel DAD result notification
+    client.pipv6Client->SetDadResultCallback(
+        [this](const std::string ifname, const std::string addr, bool isTentative) {
+            // isTentative=false means DAD success, isTentative=true means DAD failure (address deleted)
+            this->DhcpV6KernelDadCallback(ifname, addr, !isTentative);
+        });
+    // Set direct reference to DHCPv6 client for address type checking
+    // This allows SLAAC to recognize DHCPv6 addresses and classify them as GLOBAL
+    client.pipv6Client->SetDhcpV6Client(client.pDhcpV6Client);
+#endif
+    client.pipv6Client->StartIpv6Thread(ifname, bIpv6);
+    return DHCP_E_SUCCESS;
+}
+
+#if DHCPV6_ENABLE
+// Start DHCPv6 client based on RA flags (M/O bits)
+// M=1: Use DHCPv6 (stateful)
+// M=0, O=1: Use DHCPv6 for information only (stateless)
+// M=0, O=0: Use SLAAC only, stop DHCPv6
+ErrCode DhcpClientServiceImpl::StartDhcpV6ClientByRaFlags(const std::string &ifname,
+    bool managed, bool other, DhcpClient &client)
+{
+    // M=0, O=0: SLAAC Only, no DHCPv6 needed
+    if (!managed && !other) {
+        DHCP_LOGI("StartDhcpV6ClientByRaFlags: M=0 O=0, stop DHCPv6, ifname:%{public}s", ifname.c_str());
+        CleanupDhcpV6Client(ifname, client);
+        if (client.pipv6Client != nullptr) {
+            client.pipv6Client->SetDhcpV6Client(nullptr);
+        }
+        {
+            std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+            m_lastDhcpV6.erase(ifname);
+        }
+        return DHCP_E_SUCCESS;
+    }
+
+    // M=1 or M=0, O=1: Start DHCPv6 client
+    bool stateless = (!managed) && other;
+    DHCP_LOGI("StartDhcpV6ClientByRaFlags: starting DHCPv6, ifname:%{public}s stateless:%{public}d",
+        ifname.c_str(), stateless);
+
+    // Stop and delete existing DHCPv6 client, then create new one
+    if (client.pDhcpV6Client != nullptr) {
+        client.pDhcpV6Client->DhcpV6Stop();
+        delete client.pDhcpV6Client;
+        client.pDhcpV6Client = nullptr;
+    }
+
+    client.pDhcpV6Client = new (std::nothrow)DhcpV6Client(ifname);
+    if (client.pDhcpV6Client == nullptr) {
+        DHCP_LOGE("StartDhcpV6ClientByRaFlags: new DhcpV6Client failed!, ifname:%{public}s", ifname.c_str());
+        return DHCP_E_FAILED;
+    }
+
+    if (client.pipv6Client != nullptr) {
+        client.pipv6Client->SetDhcpV6Client(client.pDhcpV6Client);
+    }
+
+    auto cb = std::make_unique<DhcpV6CallbackImpl>(this, ifname, stateless);
+    client.pDhcpV6Client->DhcpV6RegisterCallback(cb.get());
+    m_dhcpv6Callbacks[ifname] = std::move(cb);
+    client.pDhcpV6Client->DhcpV6ConfigureStateless(stateless);
+    client.pDhcpV6Client->DhcpV6Start();
+    return DHCP_E_SUCCESS;
+}
+
+void DhcpClientServiceImpl::OnRaFlagsChanged(const std::string &ifname, bool managed, bool other)
+{
+    if (!DhcpV6FeatureSwitch::GetInstance().IsDhcpV6Enabled()) {
+        DHCP_LOGI("OnRaFlagsChanged: DHCPv6 feature disabled, skip");
+        return;
+    }
+    DHCP_LOGI("OnRaFlagsChanged: ifname=%{public}s M=%{public}d O=%{public}d", ifname.c_str(), managed, other);
+    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+    auto iter = m_mapClientService.find(ifname);
+    if (iter == m_mapClientService.end()) {
+        DHCP_LOGW("OnRaFlagsChanged: client not found, ifname=%{public}s", ifname.c_str());
+        return;
+    }
+    DhcpClient &client = iter->second;
+
+    bool prevManaged = client.managed_;
+    bool prevOther = client.other_;
+    if (managed == prevManaged && other == prevOther) {
+        DHCP_LOGI("OnRaFlagsChanged: M/O unchanged (M=%{public}d O=%{public}d), skip restart", managed, other);
+        return;
+    }
+    client.managed_ = managed;
+    client.other_ = other;
+    if (managed || other) {
+        DHCP_LOGI("OnRaFlagsChanged: M=%{public}d O=%{public}d, starting DHCPv6, ifname=%{public}s",
+            managed, other, ifname.c_str());
+    } else {
+        DHCP_LOGI("OnRaFlagsChanged: M=0 O=0, SLAAC only, stopping DHCPv6, ifname=%{public}s", ifname.c_str());
+    }
+    StartDhcpV6ClientByRaFlags(ifname, managed, other, client);
+}
+#endif // DHCPV6_ENABLE
+
 ErrCode DhcpClientServiceImpl::StartNewIpv6Client(const RouterConfig &config, DhcpClient &client)
 {
-    DHCP_LOGI("StartNewIpv6Client ifname:%{public}s", config.ifname.c_str());
+    DHCP_LOGI("StartNewIpv6Client ifname=%{public}s", config.ifname.c_str());
     const std::string ifname = config.ifname;
-    DhcpIpv6Client *pipv6Client  = new (std::nothrow)DhcpIpv6Client(ifname);
+
+#ifndef OHOS_ARCH_LITE
+    // Enable IPv6
+    NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
+    NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
+
+    // Start SLAAC client - M/O will be retrieved via RTM_GETLINK/RTM_NEWLINK
+    // DHCPv6 client will be started/stopped dynamically based on M/O changes
+    return StartSlaacClient(ifname, config.bIpv6, client);
+#else
+    // OHOS_ARCH_LITE version - always use SLAAC (no RA-based decision)
+    DhcpIpv6Client *pipv6Client = new (std::nothrow)DhcpIpv6Client(ifname);
     if (pipv6Client == nullptr) {
         DHCP_LOGE("StartNewIpv6Client new DhcpIpv6Client failed!, ifname:%{public}s", ifname.c_str());
         return DHCP_E_FAILED;
     }
     client.pipv6Client = pipv6Client;
-    DHCP_LOGI("StartNewClient new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
+    DHCP_LOGI("StartNewIpv6Client new DhcpIpv6Client, ifname:%{public}s, bIpv6:%{public}d", ifname.c_str(),
         config.bIpv6);
-#ifndef OHOS_ARCH_LITE
-    NetManagerStandard::NetsysController::GetInstance().SetIpv6PrivacyExtensions(ifname, DHCP_IPV6_ENABLE);
-    NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_ENABLE);
-#endif
     pipv6Client->Reset();
     pipv6Client->SetCallback(
         [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
     pipv6Client->StartIpv6Thread(ifname, config.bIpv6);
     return DHCP_E_SUCCESS;
+#endif
 }
 
 
@@ -402,6 +566,25 @@ ErrCode DhcpClientServiceImpl::StopDhcpIpv4Client(const std::string& ifname)
     return DHCP_E_SUCCESS;
 }
 
+void DhcpClientServiceImpl::RemoveIpv6Results(const std::string& ifname)
+{
+    std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
+    auto iter = m_mapDhcpResult.find(ifname);
+    if (iter == m_mapDhcpResult.end()) {
+        return;
+    }
+    for (auto result = iter->second.begin(); result != iter->second.end();) {
+        if (result->iptype == 1) {
+            result = iter->second.erase(result);
+        } else {
+            ++result;
+        }
+    }
+    if (iter->second.empty()) {
+        m_mapDhcpResult.erase(iter);
+    }
+}
+
 ErrCode DhcpClientServiceImpl::StopDhcpIpv6Client(const std::string& ifname)
 {
     {
@@ -412,34 +595,37 @@ ErrCode DhcpClientServiceImpl::StopDhcpIpv6Client(const std::string& ifname)
             DHCP_LOGI("StopDhcpClient erase ClientCallBack ifName:%{public}s", ifname.c_str());
         }
     }
-    std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
-    auto iter2 = m_mapClientService.find(ifname);
-    if (iter2 != m_mapClientService.end()) {
-        if ((iter2->second).pipv6Client != nullptr) {
-            DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s", ifname.c_str());
-            (iter2->second).pipv6Client->DhcpIPV6Stop();
-#ifndef OHOS_ARCH_LITE
-            NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
-#endif
-        }
-    }
+
+#if DHCPV6_ENABLE
     {
-        std::lock_guard<std::mutex> autoLock(m_dhcpResultMutex);
-        auto iter = m_mapDhcpResult.find(ifname);
-        if (iter != m_mapDhcpResult.end()) {
-            DHCP_LOGI("m_mapDhcpResult erase ifName:%{public}s", ifname.c_str());
-            for (auto result = iter->second.begin(); result != iter->second.end();) {
-                if (result->iptype == 1) {
-                    result = iter->second.erase(result);
-                } else {
-                    result++;
-                }
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iter = m_mapClientService.find(ifname);
+        if (iter != m_mapClientService.end()) {
+            if (iter->second.pipv6Client != nullptr) {
+                DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s", ifname.c_str());
+                iter->second.pipv6Client->DhcpIPV6Stop();
+#ifndef OHOS_ARCH_LITE
+                NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
+#endif
             }
-            if (iter->second.empty()) {
-                m_mapDhcpResult.erase(iter);
-            }
+            CleanupDhcpV6Client(ifname, iter->second);
         }
     }
+
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        m_lastDhcpV6.erase(ifname);
+    }
+#endif
+
+#ifndef OHOS_ARCH_LITE
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        m_lastIpv6Info.erase(ifname);
+    }
+#endif
+
+    RemoveIpv6Results(ifname);
     return DHCP_E_SUCCESS;
 }
 
@@ -657,19 +843,18 @@ int DhcpClientServiceImpl::DhcpIpv4ResultExpired(const std::string &ifname)
     return DHCP_OPT_SUCCESS;
 }
 
-void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info)
+void DhcpClientServiceImpl::FillDhcpResultFromIpv6Info(DhcpResult& result, const DhcpIpv6Info& info)
 {
-    OHOS::DHCP::DhcpResult result;
     result.uAddTime = (uint32_t)time(NULL);
     result.iptype = 1;
-    result.isOptSuc     = true;
-    result.uGetTime     = (uint32_t)time(NULL);
-    result.strYourCli   = info.globalIpv6Addr;
-    result.strSubnet    = info.ipv6SubnetAddr;
-    result.strRouter1   = info.routeAddr;
-    result.strDns1      = info.dnsAddr;
-    result.strDns2      = info.dnsAddr2;
-    result.strRouter2   = "*";
+    result.isOptSuc = true;
+    result.uGetTime = (uint32_t)time(NULL);
+    result.strYourCli = info.globalIpv6Addr;
+    result.strSubnet = info.ipv6SubnetAddr;
+    result.strRouter1 = info.routeAddr;
+    result.strDns1 = info.dnsAddr;
+    result.strDns2 = info.dnsAddr2;
+    result.strRouter2 = "*";
     result.strLinkIpv6Addr = info.linkIpv6Addr;
     result.strRandIpv6Addr = info.randIpv6Addr;
     result.strLocalAddr1 = info.uniqueLocalAddr1;
@@ -677,14 +862,25 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
     result.validLifetime = info.validLifetime;
     result.preferredLifetime = info.preferredLifetime;
     result.routeLifetime = info.routeLifetime;
-    // fill all ipv6 addresses and types
     for (const auto &kv : info.IpAddrMap) {
         result.IpAddrMap[kv.first] = kv.second;
     }
     for (auto dnsAddr : info.vectorDnsAddr) {
         result.vectorDnsAddr.push_back(dnsAddr);
     }
+}
 
+void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info& info)
+{
+    OHOS::DHCP::DhcpResult result;
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        m_lastIpv6Info[ifname] = info;
+        FillDhcpResultFromIpv6Info(result, info);
+    }
+#if DHCPV6_ENABLE
+    AppendDhcpV6Info(ifname, result);
+#endif
     DHCP_LOGI("DhcpIpv6ResulCallback %{public}s, %{public}d, opt:%{public}d, cli:%{public}s, server:%{public}s, "
         "Subnet:%{public}s, Dns1:%{public}s, Dns2:%{public}s, Router1:%{public}s, Router2:%{public}s, "
         "strVendor:%{public}s, strLinkIpv6Addr:%{public}s, strRandIpv6Addr:%{public}s, uLeaseTime:%{public}u, "
@@ -695,20 +891,70 @@ void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, Dhcp
         Ipv6Anonymize(result.strRouter1).c_str(), Ipv6Anonymize(result.strRouter2).c_str(),
         Ipv6Anonymize(result.strVendor).c_str(), Ipv6Anonymize(result.strLinkIpv6Addr).c_str(),
         Ipv6Anonymize(result.strRandIpv6Addr).c_str(), result.uLeaseTime, result.uAddTime, result.uGetTime);
-    std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
-    auto iter = m_mapClientCallBack.find(ifname);
-    if (iter == m_mapClientCallBack.end()) {
-        DHCP_LOGE("DhcpIpv6ResulCallback m_mapClientCallBack not find callback!");
-        return;
+    ClientCallBackType callbackCopy;
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+        auto iter = m_mapClientCallBack.find(ifname);
+        if (iter == m_mapClientCallBack.end()) {
+            DHCP_LOGE("DhcpIpv6ResulCallback m_mapClientCallBack not find callback!");
+            return;
+        }
+        if (iter->second == nullptr) {
+            DHCP_LOGE("DhcpIpv6ResulCallback mclientCallback == nullptr!");
+            return;
+        }
+        callbackCopy = iter->second;
+        PushDhcpResult(ifname, result);
     }
-    if ((iter->second) == nullptr) {
-        DHCP_LOGE("DhcpIpv6ResulCallback mclientCallback == nullptr!");
-        return;
-    }
-    PushDhcpResult(ifname, result);
-    (iter->second)->OnIpSuccessChanged(PUBLISH_CODE_SUCCESS, ifname, result);
-    DHCP_LOGI("DhcpIpv6ResulCallback OnIpSuccessChanged");
+    callbackCopy->OnIpSuccessChanged(PUBLISH_CODE_SUCCESS, ifname, result);
 }
+
+#if DHCPV6_ENABLE
+void DhcpClientServiceImpl::AppendDhcpV6Info(const std::string &ifname, OHOS::DHCP::DhcpResult &result)
+{
+    std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+    auto iter = m_lastDhcpV6.find(ifname);
+    if (iter == m_lastDhcpV6.end() || !iter->second.ready) {
+        return;
+    }
+    const auto &v6 = iter->second;
+
+    // Add DHCPv6 addresses with GLOBAL type for consistent handling with SLAAC
+    for (const auto &addr : v6.ipv6Addresses) {
+        if (!addr.empty() && result.IpAddrMap.find(addr) == result.IpAddrMap.end()) {
+            result.IpAddrMap[addr] = static_cast<int>(AddrType::GLOBAL);
+            if (result.strYourCli.empty()) {
+                result.strYourCli = addr;
+            }
+        }
+    }
+    // Add DHCPv6 DNS servers
+    for (const auto &dns : v6.dnsServers) {
+        if (!dns.empty() &&
+            std::find(result.vectorDnsAddr.begin(), result.vectorDnsAddr.end(), dns) ==
+            result.vectorDnsAddr.end()) {
+            result.vectorDnsAddr.push_back(dns);
+        }
+    }
+    // Use SLAAC lifetimes first; fallback to DHCPv6 only when SLAAC has no lifetimes
+    if (result.validLifetime == 0 && v6.validLifetime != 0) {
+        result.validLifetime = v6.validLifetime;
+    }
+    if (result.preferredLifetime == 0 && v6.preferredLifetime != 0) {
+        result.preferredLifetime = v6.preferredLifetime;
+    }
+}
+
+void DhcpClientServiceImpl::CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client)
+{
+    if (client.pDhcpV6Client != nullptr) {
+        client.pDhcpV6Client->DhcpV6Stop();
+        delete client.pDhcpV6Client;
+        client.pDhcpV6Client = nullptr;
+    }
+    m_dhcpv6Callbacks.erase(ifname);
+}
+#endif // DHCPV6_ENABLE
 
 int DhcpClientServiceImpl::DhcpIpv6ResultTimeOut(const std::string &ifname)
 {
@@ -726,6 +972,16 @@ int DhcpClientServiceImpl::DhcpFreeIpv6(const std::string ifname)
         if ((iter->second).pipv6Client != nullptr) {
             (iter->second).pipv6Client->DhcpIPV6Stop();
         }
+#if DHCPV6_ENABLE
+        CleanupDhcpV6Client(ifname, iter->second);
+#endif
+    }
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+#if DHCPV6_ENABLE
+        m_lastDhcpV6.erase(ifname);
+#endif
+        m_lastIpv6Info.erase(ifname);
     }
     return DHCP_OPT_SUCCESS;
 }
@@ -795,5 +1051,171 @@ bool DhcpClientServiceImpl::IsGlobalIPv6Address(std::string ipAddress)
     }
     return false;
 }
+
+#if DHCPV6_ENABLE
+void DhcpClientServiceImpl::DhcpV6ResultCallback(const std::string &ifname, const DhcpV6Result &result, bool stateless)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        auto &cache = m_lastDhcpV6[ifname];
+        cache.ipv6Addresses = result.ipv6Addresses;
+        cache.dnsServers = result.dnsServers;
+        cache.preferredLifetime = result.preferredLifetime;
+        cache.validLifetime = result.validLifetime;
+        cache.t1 = result.t1;
+        cache.t2 = result.t2;
+        cache.ready = true;
+    }
+    DhcpIpv6Info info;
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iter = m_mapClientService.find(ifname);
+        if (iter != m_mapClientService.end() && iter->second.pipv6Client != nullptr) {
+            iter->second.pipv6Client->GetIpv6InfoSnapshot(info);
+        }
+    }
+    DhcpIpv6ResulCallback(ifname, info);
 }
+
+void DhcpClientServiceImpl::ReportDhcpV6FailureCallback(
+    const std::string &ifname, int status, const char *reason)
+{
+    ClientCallBackType callbackCopy;
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientCallBackMutex);
+        auto iter = m_mapClientCallBack.find(ifname);
+        if (iter == m_mapClientCallBack.end()) {
+            DHCP_LOGE("ReportDhcpV6FailureCallback m_mapClientCallBack not find ifname:%{public}s",
+                ifname.c_str());
+            return;
+        }
+        if (iter->second == nullptr) {
+            DHCP_LOGE("ReportDhcpV6FailureCallback callback is nullptr ifname:%{public}s",
+                ifname.c_str());
+            return;
+        }
+        callbackCopy = iter->second;
+    }
+    callbackCopy->OnIpFailChanged(status, ifname.c_str(), reason);
+    DHCP_LOGI("ReportDhcpV6FailureCallback OnIpFailChanged ifname:%{public}s status:%{public}d",
+        ifname.c_str(), status);
 }
+
+void DhcpClientServiceImpl::DhcpV6FailCallback(const std::string &ifname, int errorCode, bool stateless)
+{
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        auto &cache = m_lastDhcpV6[ifname];
+        cache.ipv6Addresses.clear();
+        cache.dnsServers.clear();
+        cache.preferredLifetime = 0;
+        cache.validLifetime = 0;
+        cache.t1 = 0;
+        cache.t2 = 0;
+        cache.ready = false;
+    }
+
+    // Stateless failure (M=0,O=1): do not break SLAAC result publishing.
+    if (stateless) {
+        DHCP_LOGI("DhcpV6FailCallback stateless failed ifname:%{public}s err:%{public}d",
+            ifname.c_str(), errorCode);
+        return;
+    }
+
+    // Stateful failure (M=1): check if SLAAC already has address before reporting failure
+    bool hasSlaacAddress = false;
+    {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        auto iter = m_lastIpv6Info.find(ifname);
+        if (iter != m_lastIpv6Info.end() && strlen(iter->second.globalIpv6Addr) > 0) {
+            hasSlaacAddress = true;
+        }
+    }
+    if (hasSlaacAddress) {
+        DHCP_LOGI("DhcpV6FailCallback SLAAC already has address, skip ifname:%{public}s",
+            ifname.c_str());
+        return;
+    }
+
+    // Report IPv6 failure to upper layer
+    int status = DHCP_OPT_FAILED;
+    const char *reason = "dhcpv6 failed";
+    if (errorCode == ERR_RETRY_EXCEEDED) {
+        status = DHCP_OPT_TIMEOUT;
+        reason = "dhcpv6 timeout";
+    } else if (errorCode == ERR_DAD_FAILED) {
+        status = DHCP_OPT_FAILED;
+        reason = "dhcpv6 dad failed";
+    } else if (errorCode == ERR_LEASE_EXPIRED) {
+        status = DHCP_OPT_FAILED;
+        reason = "dhcpv6 lease expired";
+    }
+    ReportDhcpV6FailureCallback(ifname, status, reason);
+}
+
+void DhcpClientServiceImpl::DhcpV6ExpiredCallback(const std::string &ifname, bool stateless)
+{
+    // Treat expired as lease expired.
+    DhcpV6FailCallback(ifname, ERR_LEASE_EXPIRED, stateless);
+}
+
+void DhcpClientServiceImpl::DhcpV6StopCallback(const std::string &ifname, bool stateless)
+{
+    DHCP_LOGI("DhcpV6StopCallback ifname:%{public}s stateless:%{public}d", ifname.c_str(), stateless);
+
+    if (stateless) {
+        return;
+    }
+
+    std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+    auto itCache = m_lastDhcpV6.find(ifname);
+    if (itCache != m_lastDhcpV6.end()) {
+        itCache->second.ready = false;
+        itCache->second.ipv6Addresses.clear();
+        itCache->second.dnsServers.clear();
+    }
+}
+
+void DhcpClientServiceImpl::DhcpV6KernelDadCallback(const std::string &ifname,
+    const std::string &addr, bool success)
+{
+    if (!DhcpV6FeatureSwitch::GetInstance().IsDhcpV6Enabled()) {
+        DHCP_LOGI("DhcpV6KernelDadCallback: DHCPv6 feature disabled, skip");
+        return;
+    }
+    DHCP_LOGI("DhcpV6KernelDadCallback ifname:%{public}s addr:%{public}s success:%{public}d",
+        ifname.c_str(), Ipv6Anonymize(addr).c_str(), success);
+
+    std::lock_guard<std::mutex> lock(m_clientServiceMutex);
+    auto iter = m_mapClientService.find(ifname);
+    if (iter == m_mapClientService.end()) {
+        DHCP_LOGI("DhcpV6KernelDadCallback: no client for %{public}s", ifname.c_str());
+        return;
+    }
+#if DHCPV6_ENABLE
+    DhcpV6Client* v6Client = iter->second.pDhcpV6Client;
+    if (v6Client == nullptr) {
+        DHCP_LOGI("DhcpV6KernelDadCallback: no DhcpV6Client for %{public}s", ifname.c_str());
+        return;
+    }
+    // Only handle DAD failure for DHCPv6-assigned addresses (not SLAAC addresses)
+    // SLAAC uses EUI-64 which rarely has DAD conflicts, while DHCPv6 may encounter conflicts
+    if (!success) {
+        std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
+        auto itCache = m_lastDhcpV6.find(ifname);
+        bool isDhcpV6Addr = (itCache != m_lastDhcpV6.end() &&
+            std::find(itCache->second.ipv6Addresses.begin(), itCache->second.ipv6Addresses.end(), addr) !=
+            itCache->second.ipv6Addresses.end());
+        if (!isDhcpV6Addr) {
+            DHCP_LOGI("DhcpV6KernelDadCallback: address not from DHCPv6, skipping");
+            return;
+        }
+        DHCP_LOGW("DhcpV6KernelDadCallback: DAD conflict for %{public}s",
+            Ipv6Anonymize(addr).c_str());
+        v6Client->OnKernelDadConflict(addr);
+    }
+#endif
+}
+#endif
+} // namespace DHCP
+} // namespace OHOS

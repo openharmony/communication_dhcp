@@ -38,6 +38,12 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_callback_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_feature_switch.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_statemachine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_message.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_socket.cpp",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func/mock_dhcp_permission_utils.cpp",
     "dhcp_client_callback_proxy_test.cpp",
     "dhcp_client_death_recipient_test.cpp",
@@ -53,6 +59,11 @@ ohos_unittest("dhcp_client_unittest") {
     "dhcp_result_store_manager_test.cpp",
     "dhcp_result_test.cpp",
     "dhcp_socket_test.cpp",
+    "dhcp_v6_socket_test.cpp",
+    "dhcp_v6_message_test.cpp",
+    "dhcp_v6_client_test.cpp",
+    "dhcp_v6_statemachine_test.cpp",
+    "dhcp_v6_callback_impl_test.cpp",
     "mock_custom_func.cpp",
     "mock_system_func.cpp",
   ]
@@ -68,6 +79,7 @@ ohos_unittest("dhcp_client_unittest") {
     "$DHCP_ROOT_DIR/interfaces/kits/c",
     "$DHCP_ROOT_DIR/services",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/include",
     "$DHCP_ROOT_DIR/services/dhcp_server/include",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
   ]
@@ -119,12 +131,14 @@ ohos_unittest("dhcp_client_unittest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "time_service:time_client",
+    "wifi:wifi_base",
   ]
 
   configs = [ ":module_private_config" ]
 
-  defines = [
+defines = [
     "OHOS_EUPDATER",
+    "DHCPV6_ENABLE",
     "private = public",
     "protected = public",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",

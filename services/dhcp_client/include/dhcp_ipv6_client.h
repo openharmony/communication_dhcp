@@ -17,12 +17,18 @@
 
 #include <mutex>
 #include <string>
-#include <sys/types.h>
-#include <stdint.h>
+#include <vector>
 #include <thread>
+#include <atomic>
+#include <sys/types.h>
 #include "dhcp_ipv6_dns_repository.h"
+
 namespace OHOS {
 namespace DHCP {
+
+#if DHCPV6_ENABLE
+class DhcpV6Client;
+#endif
 
 class DhcpIpv6Client {
 public:
@@ -31,13 +37,24 @@ public:
 
     bool IsRunning();
     void SetCallback(std::function<void(const std::string ifname, DhcpIpv6Info &info)> callback);
+    void SetRaFlagsCallback(std::function<void(const std::string ifname, bool managed, bool other)> callback);
+    bool GetIpv6InfoSnapshot(DhcpIpv6Info &info);
+    void SetAcceptRa(const std::string &content);
+    void SetRouterSolicitations(const std::string &content);
+    void SetRouterSolicitationInterval(const std::string &content);
     void *DhcpIpv6Start();
     void DhcpIPV6Stop(void);
     void Reset();
     void RunIpv6ThreadFunc();
     int StartIpv6();
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
-public:
+    void SetDadResultCallback(
+        std::function<void(const std::string ifname, const std::string addr, bool isTentative)> callback);
+#if DHCPV6_ENABLE
+    void SetDhcpV6Client(DhcpV6Client* client);
+    void UnRegisterDhcpV6Callbacks();
+#endif
+
 private:
     int32_t createKernelSocket(void);
     void GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, uint8_t prefixLen);
@@ -45,6 +62,7 @@ private:
     int GetAddrScope(void *addr);
     int GetAddrType(const struct in6_addr *addr);
     AddrType AddIpv6Address(char *ipv6addr, int len);
+    bool GetInterfaceInfo(int &ifaceIndex, unsigned char *ifaceMac);
     unsigned int ipv6AddrScope2Type(unsigned int scope);
     void onIpv6DnsAddEvent(void* data, int len, int ifaIndex);
     void OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaIndex, bool isAdd = true);
@@ -56,15 +74,18 @@ private:
     void parseNdUserOptMessage(void* msg, int len);
     void ParseAddrMessage(void *msg);
     void ParseAddrAttributes(void *addrMsgptr, int32_t len, char *addresses, int &scope, bool &isTemporary);
+    void NotifyRaFlagsChanged(bool managed, bool other);
     void parseRouteAttributes(void* rtMsgPtr, size_t size, char* dst, char* gateway, int& ifindex);
     void parseNDRouteMessage(void* msg);
     void parseNewneighMessage(void* msg);
+    void ParseLinkMessage(void *msg);
+    void QueryInterfaceRaFlags();
+    void StartRaFlagsQueryTimer();// // Query RA flags after delay when link-local address is added
+    bool BuildAndSendNetlinkRequest(unsigned int ifIndex, std::vector<uint8_t>& response);
+    void ParseAfSpecAttributes(struct rtattr *afRta, int afLen, unsigned int ifIndex);
     void getIpv6RouteAddr();
     void fillRouteData(char* buff, int &len);
     bool IsEui64ModeIpv6Address(const char *ipv6addr, int len, const unsigned char *ifaceMac, int macLen);
-    void SetAcceptRa(const std::string &content);
-    void SetRouterSolicitations(const std::string &content);
-    void SetRouterSolicitationInterval(const std::string &content);
     void PublishIpv6Result();
     bool IsGlobalIpv6Address(const char *ipv6addr, int len);
     bool IsUniqueLocalIpv6Address(const char *ipv6addr, int len);
@@ -73,6 +94,15 @@ private:
     // Callback function mutex
     std::mutex ipv6CallbackMutex_;
     std::function<void(const std::string ifname, DhcpIpv6Info &info)> onIpv6AddressChanged_ { nullptr };
+    // Callback for RA flags (M/O) change
+    std::function<void(const std::string ifname, bool managed, bool other)> onRaFlagsChanged_ { nullptr };
+    // Callback for kernel DAD result (address, tentative flag state)
+    std::function<void(const std::string ifname, const std::string addr,
+        bool isTentative)> onIpv6DadResult_ { nullptr };
+    // Direct reference to DhcpV6Client for address type checking
+#if DHCPV6_ENABLE
+    DhcpV6Client* pDhcpV6Client_ { nullptr };
+#endif
     // global variables
     std::mutex mutex_;
     std::string interfaceName;
@@ -83,6 +113,8 @@ private:
     std::unique_ptr<std::thread> ipv6Thread_ = nullptr;
     // DNS repository
     std::unique_ptr<DnsServerRepository> dhcpIpv6DnsRepository_ = nullptr;
+    // Flag to track if RA flags have been queried after first global address
+    std::atomic<bool> raFlagsQueried_ { false };
 };
 }  // namespace DHCP
 }  // namespace OHOS

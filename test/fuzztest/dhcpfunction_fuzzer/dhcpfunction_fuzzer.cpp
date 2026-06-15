@@ -100,14 +100,6 @@ void CreateDirsTest()
     pDhcpFunction->CreateDirs(dirs, mode);
 }
 
-
-void GetLocalMacTest()
-{
-    std::string ethInf = FDP->ConsumeBytesAsString(NUM_BYTES);
-    std::string ethMac = FDP->ConsumeBytesAsString(NUM_BYTES);
-    pDhcpFunction->GetLocalMac(ethInf, ethMac);
-}
-
 void CheckRangeNetworkTest()
 {
     std::string strInf = FDP->ConsumeBytesAsString(NUM_BYTES);
@@ -134,7 +126,6 @@ void DhcpFunctionFuzzTest()
     OHOS::DHCP::RemoveFileTest();
     OHOS::DHCP::FormatStringTest();
     OHOS::DHCP::CreateDirsTest();
-    OHOS::DHCP::GetLocalMacTest();
     OHOS::DHCP::CheckRangeNetworkTest();
     OHOS::DHCP::CheckSameNetworkTest();
 }

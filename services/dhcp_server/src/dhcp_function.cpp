@@ -179,49 +179,6 @@ int DhcpFunction::GetLocalIp(const std::string strInf, std::string& strIp, std::
     return DHCP_OPT_SUCCESS;
 }
 
-int DhcpFunction::GetLocalMac(const std::string ethInf, std::string& ethMac)
-{
-    struct ifreq ifr;
-    int sd = 0;
-
-    bzero(&ifr, sizeof(struct ifreq));
-    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        DHCP_LOGE("GetLocalMac socket ethInf:%{public}s,error:%{public}d!", ethInf.c_str(), errno);
-        return -1;
-    }
-
-    if (strncpy_s(ifr.ifr_name, IFNAMSIZ, ethInf.c_str(), IFNAMSIZ - 1) != EOK) {
-        close(sd);
-        return -1;
-    }
-
-    if (ioctl(sd, SIOCGIFHWADDR, &ifr) < 0) {
-        DHCP_LOGE("GetLocalMac ioctl ethInf:%{public}s,error:%{public}d!", ethInf.c_str(), errno);
-        close(sd);
-        return -1;
-    }
-
-    char mac[ETH_MAC_ADDR_LEN * ETH_MAC_ADDR_CHAR_NUM] = { 0 };
-    int nRes = snprintf_s(mac,
-        ETH_MAC_ADDR_LEN * ETH_MAC_ADDR_CHAR_NUM,
-        ETH_MAC_ADDR_LEN * ETH_MAC_ADDR_CHAR_NUM - 1,
-        "%02x:%02x:%02x:%02x:%02x:%02x",
-        (unsigned char)ifr.ifr_hwaddr.sa_data[ETH_MAC_ADDR_INDEX_0],
-        (unsigned char)ifr.ifr_hwaddr.sa_data[ETH_MAC_ADDR_INDEX_1],
-        (unsigned char)ifr.ifr_hwaddr.sa_data[ETH_MAC_ADDR_INDEX_2],
-        (unsigned char)ifr.ifr_hwaddr.sa_data[ETH_MAC_ADDR_INDEX_3],
-        (unsigned char)ifr.ifr_hwaddr.sa_data[ETH_MAC_ADDR_INDEX_4],
-        (unsigned char)ifr.ifr_hwaddr.sa_data[ETH_MAC_ADDR_INDEX_5]);
-    if (nRes < 0) {
-        DHCP_LOGE("GetLocalMac snprintf_s ethInf:%{public}s,error:%{public}d!", ethInf.c_str(), errno);
-        close(sd);
-        return -1;
-    }
-    ethMac = mac;
-    close(sd);
-    return 0;
-}
-
 int DhcpFunction::CheckRangeNetwork(const std::string strInf, const std::string strBegin, const std::string strEnd)
 {
     if (strInf.empty() || strBegin.empty() || strEnd.empty()) {

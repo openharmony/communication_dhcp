@@ -644,5 +644,104 @@ HWTEST_F(DhcpIpv6ClientTest, ParseAddrAttributes_GlobalAddressTest, TestSize.Lev
     // Verify isTemporary is set to false
     EXPECT_FALSE(isTemporary);
 }
+
+HWTEST_F(DhcpIpv6ClientTest, SetRaFlagsCallbackTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetRaFlagsCallbackTest enter!");
+
+    std::atomic<int> callbackCount {0};
+    std::string lastIfname;
+    bool lastManaged = false;
+    bool lastOther = false;
+
+    auto callback = [&callbackCount, &lastIfname, &lastManaged, &lastOther](
+        const std::string ifname, bool managed, bool other) {
+        callbackCount++;
+        lastIfname = ifname;
+        lastManaged = managed;
+        lastOther = other;
+    };
+
+    EXPECT_NO_FATAL_FAILURE(ipv6Client->SetRaFlagsCallback(callback));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, SetDadResultCallbackTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetDadResultCallbackTest enter!");
+
+    std::atomic<int> callbackCount {0};
+    std::string lastIfname;
+    std::string lastAddr;
+    bool lastIsTentative = false;
+
+    auto callback = [&callbackCount, &lastIfname, &lastAddr, &lastIsTentative](
+        const std::string ifname, const std::string addr, bool isTentative) {
+        callbackCount++;
+        lastIfname = ifname;
+        lastAddr = addr;
+        lastIsTentative = isTentative;
+    };
+
+    EXPECT_NO_FATAL_FAILURE(ipv6Client->SetDadResultCallback(callback));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, SetDhcpV6ClientTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetDhcpV6ClientTest enter!");
+    EXPECT_NO_FATAL_FAILURE(ipv6Client->SetDhcpV6Client(nullptr));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, GetIpv6InfoSnapshotTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("GetIpv6InfoSnapshotTest enter!");
+
+    DhcpIpv6Info info;
+    bool result = ipv6Client->GetIpv6InfoSnapshot(info);
+    EXPECT_TRUE(result);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, PublishIpv6ResultTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("PublishIpv6ResultTest enter!");
+
+    std::atomic<int> callbackCount {0};
+
+    auto callback = [&callbackCount](const std::string ifname, DhcpIpv6Info &info) {
+        callbackCount++;
+    };
+
+    ipv6Client->SetCallback(callback);
+    ipv6Client->PublishIpv6Result();
+}
+
+HWTEST_F(DhcpIpv6ClientTest, GetIpv6PrefixTest_ValidPrefix, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("GetIpv6PrefixTest_ValidPrefix enter!");
+
+    char ipv6Addr[] = "2001:db8:85a3:0000:0000:8a2e:0370:7334";
+    char ipv6PrefixBuf[INET6_ADDRSTRLEN] = {0};
+
+    ipv6Client->GetIpv6Prefix(ipv6Addr, ipv6PrefixBuf, 64);
+}
+
+HWTEST_F(DhcpIpv6ClientTest, SetCallbackTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetCallbackTest enter!");
+
+    std::atomic<int> callbackCount {0};
+
+    auto callback = [&callbackCount](const std::string ifname, DhcpIpv6Info &info) {
+        callbackCount++;
+    };
+
+    EXPECT_NO_FATAL_FAILURE(ipv6Client->SetCallback(callback));
+}
 }
 }

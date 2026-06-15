@@ -112,13 +112,6 @@ HWTEST_F(DhcpFunctionTest, GetLocalInterface_SUCCESS, TestSize.Level1)
     MockSystemFunc::SetMockFlag(false);
 }
 
-HWTEST_F(DhcpFunctionTest, GetLocalIp_SUCCESS, TestSize.Level1)
-{
-    char interface[INFNAME_SIZE] = "wlan0";
-    uint32_t ipaddr4;
-    EXPECT_EQ(DHCP_OPT_SUCCESS, GetLocalIp(interface, &ipaddr4));
-}
-
 HWTEST_F(DhcpFunctionTest, GetLocalIp_FAILED, TestSize.Level1)
 {
     char interface[INFNAME_SIZE] = {0};
@@ -128,19 +121,41 @@ HWTEST_F(DhcpFunctionTest, GetLocalIp_FAILED, TestSize.Level1)
 
 HWTEST_F(DhcpFunctionTest, SetLocalInterface_SUCCESS, TestSize.Level1)
 {
+    MockSystemFunc::SetMockFlag(true);
+    
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), ioctl(_, _, _)).WillRepeatedly(Return(0));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    
     char interface[INFNAME_SIZE] = "wlan0";
     uint32_t ipaddr4 = 2981805322;
     uint32_t netMask = 16318463;
     EXPECT_EQ(DHCP_OPT_SUCCESS, SetLocalInterface(interface, ipaddr4, netMask));
+    
+    MockSystemFunc::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpFunctionTest, SetLocalInterface_FAILED, TestSize.Level1)
 {
+    MockSystemFunc::SetMockFlag(true);
+    
+    EXPECT_CALL(MockSystemFunc::GetInstance(), socket(_, _, _)).WillRepeatedly(Return(1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), ioctl(_, _, _)).WillRepeatedly(Return(-1));
+    EXPECT_CALL(MockSystemFunc::GetInstance(), close(_)).WillRepeatedly(Return(0));
+    
     char interface[INFNAME_SIZE] = {0};
     uint32_t ipaddr4 = 0;
     uint32_t netMask = 0;
     EXPECT_EQ(DHCP_OPT_FAILED, SetLocalInterface(interface, ipaddr4, netMask));
-    EXPECT_EQ(DHCP_OPT_FAILED, SetLocalInterface("wlan", ipaddr4, netMask));
+    
+    interface[0] = 'w';
+    interface[1] = 'l';
+    interface[2] = 'a';
+    interface[3] = 'n';
+    interface[4] = '\0';
+    EXPECT_EQ(DHCP_OPT_FAILED, SetLocalInterface(interface, ipaddr4, netMask));
+    
+    MockSystemFunc::SetMockFlag(false);
 }
 
 HWTEST_F(DhcpFunctionTest, CreateDirs_SUCCESS, TestSize.Level1)

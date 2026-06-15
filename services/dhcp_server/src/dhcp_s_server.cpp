@@ -1251,7 +1251,7 @@ int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
         }
         DHCP_LOGI("GetHostNameOption deviceName:%{public}s", bindin->deviceName);
     } else {
-        DHCP_LOGD("GetHostNameOption pHost is null");
+        DHCP_LOGI("GetHostNameOption pHost is null");
     }
     return REPLY_NAK;
 }
@@ -1762,7 +1762,7 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         (DHCP_OPTION_SIZE - MAGIC_COOKIE_LENGTH - OPT_HEADER_LENGTH -1));
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
-        if (((uint8_t *)end) - ((uint8_t *)current) - current->length< OPT_HEADER_LENGTH) {
+        if (((uint8_t *)end) - ((uint8_t *)current) - current->length < OPT_HEADER_LENGTH) {
             DHCP_LOGE("current->code:%{public}d out of option range.", current->code);
             return RET_FAILED;
         }

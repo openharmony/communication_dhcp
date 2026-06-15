@@ -16,7 +16,6 @@
 #define OHOS_DHCP_CLIENT_STATEMACHINE_H
 
 #include <condition_variable>
-#include <thread>
 #include <string>
 #include <stdint.h>
 #include <sys/types.h>
@@ -24,6 +23,9 @@
 #include "dhcp_client_def.h"
 #include "dhcp_ipv6_client.h"
 #include "dhcp_thread.h"
+#ifdef DHCPV6_ENABLE
+#include "dhcp_v6_client.h"
+#endif
 #ifndef OHOS_EUPDATER
 #include "dhcp_system_timer.h"
 #endif
@@ -174,12 +176,17 @@ private:
     std::condition_variable ipv4ExitCv_;
 };
 
-typedef struct{
+struct DhcpClient {
     std::string ifName;
     bool isIpv6;
     DhcpClientStateMachine *pStaStateMachine;
     DhcpIpv6Client *pipv6Client;
-}DhcpClient;
+#if DHCPV6_ENABLE
+    DhcpV6Client *pDhcpV6Client = nullptr;
+    bool managed_ = false;
+    bool other_ = false;
+#endif
+};
 }  // namespace DHCP
 }  // namespace OHOS
 #endif

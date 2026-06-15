@@ -30,6 +30,11 @@ local_base_include_dirs = [
   "$DHCP_ROOT_DIR/frameworks/native/src",
   "$DHCP_ROOT_DIR/services",
   "$DHCP_ROOT_DIR/services/dhcp_client/include",
+]
+if (dhcpv6_feature_enable) {
+  local_base_include_dirs += [ "$DHCP_ROOT_DIR/services/dhcp_v6_client/include" ]
+}
+local_base_include_dirs += [
   "$DHCP_ROOT_DIR/services/utils/include",
   "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
 ]
@@ -43,7 +48,6 @@ if (defined(ohos_lite)) {
       "src/dhcp_function.cpp",
       "src/dhcp_ipv6_client.cpp",
       "src/dhcp_ipv6_dns_repository.cpp",
-      "src/dhcp_ipv6_event.cpp",
       "src/dhcp_ipv6_info.cpp",
       "src/dhcp_options.cpp",
       "src/dhcp_result.cpp",
@@ -103,6 +107,16 @@ if (defined(ohos_lite)) {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
   ]
+  if (dhcpv6_feature_enable) {
+    local_base_sources += [
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_callback_impl.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_feature_switch.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_client.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_statemachine.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_message.cpp",
+      "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_socket.cpp",
+    ]
+  }
   config("dhcp_manager_service_header") {
     visibility = [ ":*" ]
     include_dirs = local_base_include_dirs
@@ -125,11 +139,16 @@ if (defined(ohos_lite)) {
       "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
       "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
     ]
+    if (dhcpv6_feature_enable) {
+      defines += [ "DHCPV6_ENABLE" ]
+    }
     if (is_asan) {
       defines += [ "DTFUZZ_TEST" ]
     }
 
-    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
+    deps = [
+      "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
+    ]
 
     external_deps = [
       "ability_runtime:wantagent_innerkits",
@@ -141,6 +160,7 @@ if (defined(ohos_lite)) {
       "netmanager_base:netsys_controller",
       "safwk:system_ability_fwk",
       "time_service:time_client",
+      "wifi:wifi_base",
     ]
 
     if (defined(global_parts_info) &&
@@ -185,11 +205,16 @@ if (defined(ohos_lite)) {
       "DEFAULT_IPV4_DNS_PRI=\"$IPV4_DNS_PRI\"",
       "DEFAULT_IPV4_DNS_SEC=\"$IPV4_DNS_SEC\"",
     ]
+    if (dhcpv6_feature_enable) {
+      defines += [ "DHCPV6_ENABLE" ]
+    }
     if (is_asan) {
       defines += [ "DTFUZZ_TEST" ]
     }
 
-    deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
+    deps = [
+      "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
+    ]
 
     external_deps = [
       "ability_runtime:wantagent_innerkits",
@@ -201,6 +226,7 @@ if (defined(ohos_lite)) {
       "netmanager_base:netsys_controller",
       "safwk:system_ability_fwk",
       "time_service:time_client",
+      "wifi:wifi_base",
     ]
 
     if (defined(global_parts_info) &&

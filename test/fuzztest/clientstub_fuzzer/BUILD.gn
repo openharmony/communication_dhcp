@@ -31,6 +31,7 @@ ohos_fuzztest("ClientStubFuzzTest") {
     "$DHCP_ROOT_DIR/frameworks/native/src",
     "$DHCP_ROOT_DIR/services",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/include",
     "$DHCP_ROOT_DIR/services/utils/include",
     "$DHCP_ROOT_DIR/frameworks/native/c_adapter/inc",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
@@ -57,6 +58,11 @@ ohos_fuzztest("ClientStubFuzzTest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_callback_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_statemachine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_message.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_socket.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
@@ -80,9 +86,11 @@ ohos_fuzztest("ClientStubFuzzTest") {
     "netmanager_base:netsys_controller",
     "safwk:system_ability_fwk",
     "time_service:time_client",
+    "wifi:wifi_base",
   ]
 
   defines = [
+    "DHCPV6_ENABLE",
     "private = public",
     "OHOS_EUPDATER",
     "DTFUZZ_TEST",

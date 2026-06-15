@@ -32,6 +32,7 @@ ohos_fuzztest("DhcpClientFunFuzzTest") {
     "$DHCP_ROOT_DIR/interfaces/kits/c",
     "$DHCP_ROOT_DIR/services",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/include",
     "$DHCP_ROOT_DIR/test/fuzztest/fuzz_common_func",
   ]
   cflags = [
@@ -55,11 +56,19 @@ ohos_fuzztest("DhcpClientFunFuzzTest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_callback_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_feature_switch.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_statemachine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_message.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_socket.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     "dhcpclientfun_fuzzer.cpp",
   ]
-  deps = [ "$DHCP_ROOT_DIR/services/utils:dhcp_utils" ]
+  deps = [
+    "$DHCP_ROOT_DIR/services/utils:dhcp_utils",
+  ]
   external_deps = [
     "ability_runtime:wantagent_innerkits",
     "access_token:libaccesstoken_sdk",
@@ -73,9 +82,11 @@ ohos_fuzztest("DhcpClientFunFuzzTest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "time_service:time_client",
+    "wifi:wifi_base",
   ]
   defines = [
     "DTFUZZ_TEST",
+    "DHCPV6_ENABLE",
     "private = public",
     "protected = public",
     "VENDOR_NAME_PREFIX=\"$VENDOR_NAME\"",

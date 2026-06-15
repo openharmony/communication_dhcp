@@ -145,7 +145,7 @@ int BindRawSocket(const int rawFd, const int ifaceIndex, const uint8_t *ifaceAdd
         close(rawFd);
         return SOCKET_OPT_FAILED;
     }
-    int nRet = bind(rawFd, (struct sockaddr *)&rawAddr, sizeof(rawAddr));
+    int nRet = bind(rawFd, reinterpret_cast<sockaddr*>(&rawAddr), sizeof(rawAddr));
     if (nRet == -1) {
         DHCP_LOGE("BindRawSocket() index:%{public}d failed, bind error:%{public}d.", ifaceIndex, errno);
         close(rawFd);
@@ -205,7 +205,7 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
     kernelAddr.sin_addr.s_addr = sockIp;
     kernelAddr.sin_port = htons(sockPort);
     kernelAddr.sin_family = AF_INET;
-    int nRet = bind(sockFd, (struct sockaddr *)&kernelAddr, sizeof(kernelAddr));
+    int nRet = bind(sockFd, reinterpret_cast<sockaddr*>(&kernelAddr), sizeof(kernelAddr));
     if (nRet == -1) {
         DHCP_LOGE("BindKernelSocket() sockFd:%{public}d failed, bind error:%{public}d.", sockFd, errno);
         close(sockFd);
@@ -240,7 +240,7 @@ int SendToDhcpPacket(
     rawAddr.sll_protocol = htons(ETH_P_IP);
     rawAddr.sll_family = AF_PACKET;
     rawAddr.sll_halen = MAC_ADDR_LEN;
-    if (bind(nFd, (struct sockaddr *)&rawAddr, sizeof(rawAddr)) == -1) {
+    if (bind(nFd, reinterpret_cast<sockaddr*>(&rawAddr), sizeof(rawAddr)) == -1) {
         close(nFd);
         DHCP_LOGE("SendToDhcpPacket bind fail.");
         return SOCKET_OPT_FAILED;
@@ -308,7 +308,7 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
     kernelAddr.sin_addr.s_addr = destIp;
     kernelAddr.sin_port = htons(BOOTP_SERVER);
     kernelAddr.sin_family = AF_INET;
-    int nRet = connect(nFd, (struct sockaddr *)&kernelAddr, sizeof(kernelAddr));
+    int nRet = connect(nFd, reinterpret_cast<sockaddr*>(&kernelAddr), sizeof(kernelAddr));
     if (nRet == -1) {
         DHCP_LOGE("SendDhcpPacket nFd:%{public}d failed, connect error:%{public}d.", nFd, errno);
         close(nFd);
