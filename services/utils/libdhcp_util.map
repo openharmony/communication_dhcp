@@ -42,6 +42,7 @@
 "OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long, bool)";
 "OHOS::DHCP::DhcpThread::PostAsyncTask(std::__h::function<void ()> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, long)";
 "OHOS::DHCP::ModifyKernelFile(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, char const*)";
+ "OHOS::DHCP::GetLocalMac(std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>> const&, std::__h::basic_string<char, std::__h::char_traits<char>, std::__h::allocator<char>>&)";
  };
     local:
         *;

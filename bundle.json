@@ -61,7 +61,8 @@
                 "access_token",
                 "samgr",
                 "ffrt",
-                "time_service"
+                "time_service",
+                "wifi"
             ],
             "third_party": [ "openssl" ]
         },

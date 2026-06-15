@@ -35,7 +35,6 @@ public:
     static bool Ip6StrConToChar(const std::string& strIp, uint8_t chIp[], size_t uSize);
     static bool CheckIpStr(const std::string& strIp);
     static int GetLocalIp(const std::string strInf, std::string& strIp, std::string& strMask);
-    static int GetLocalMac(const std::string ethInf, std::string& ethMac);
     static int CheckRangeNetwork(const std::string strInf, const std::string strBegin, const std::string strEnd);
     static bool CheckSameNetwork(const uint32_t srcIp, const uint32_t dstIp, const uint32_t maskIp);
 

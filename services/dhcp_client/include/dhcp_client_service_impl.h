@@ -16,8 +16,6 @@
 #define OHOS_DHCP_CLIENT_SERVICE_IMPL_H
 
 #include <map>
-#include <list>
-#include <thread>
 #include <mutex>
 #include "i_dhcp_client_callback.h"
 #include "dhcp_client_def.h"
@@ -28,6 +26,11 @@
 #include "system_ability.h"
 #include "iremote_object.h"
 #include "dhcp_client_stub.h"
+#endif
+#if DHCPV6_ENABLE
+#include "dhcp_v6_callback.h"
+#include "dhcp_v6_result.h"
+#include "dhcp_v6_feature_switch.h"
 #endif
 
 namespace OHOS {
@@ -70,8 +73,13 @@ public:
     bool IsRemoteDied(void) override;
     ErrCode StartNewIpv4Client(const RouterConfig &config, DhcpClient &dhcpClient);
     ErrCode StartNewIpv6Client(const RouterConfig &config, DhcpClient &dhcpClient);
+    ErrCode StartSlaacClient(const std::string &ifname, bool bIpv6, DhcpClient &client);
     ErrCode StartOldClient(const RouterConfig &config, DhcpClient &dhcpClient);
     ErrCode StartNewClient(const RouterConfig &config);
+#if DHCPV6_ENABLE
+    ErrCode StartDhcpV6ClientByRaFlags(const std::string &ifname, bool managed, bool other, DhcpClient &client);
+    void OnRaFlagsChanged(const std::string &ifname, bool managed, bool other);
+#endif
 
     int DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult);
 #ifndef OHOS_ARCH_LITE
@@ -83,10 +91,21 @@ public:
     int DhcpIpv6ResultTimeOut(const std::string &ifname);
     int DhcpFreeIpv6(const std::string ifname);
     void DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info &info);
+    void FillDhcpResultFromIpv6Info(DhcpResult& result, const DhcpIpv6Info& info);
+    void RemoveIpv6Results(const std::string& ifname);
+#if DHCPV6_ENABLE
+    void DhcpV6ResultCallback(const std::string &ifname, const DhcpV6Result &result, bool stateless);
+    void DhcpV6FailCallback(const std::string &ifname, int errorCode, bool stateless);
+    void DhcpV6ExpiredCallback(const std::string &ifname, bool stateless);
+    void DhcpV6StopCallback(const std::string &ifname, bool stateless);
+    void DhcpV6KernelDadCallback(const std::string &ifname, const std::string &addr, bool success);
+
+private:
+    void ReportDhcpV6FailureCallback(const std::string &ifname, int status, const char *reason);
+#endif
     void PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
     bool CheckDhcpResultExist(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
 public:
-    // manager multi-instance
     std::mutex m_clientServiceMutex;
     std::map<std::string, DhcpClient> m_mapClientService;
 
@@ -97,13 +116,17 @@ public:
     // client call back
     std::mutex m_clientCallBackMutex;
 #ifdef OHOS_ARCH_LITE
-    std::map<std::string, std::shared_ptr<IDhcpClientCallBack>> m_mapClientCallBack;
+    using ClientCallBackType = std::shared_ptr<IDhcpClientCallBack>;
 #else
-    std::map<std::string, sptr<IDhcpClientCallBack>> m_mapClientCallBack;
+    using ClientCallBackType = sptr<IDhcpClientCallBack>;
 #endif
+    std::map<std::string, ClientCallBackType> m_mapClientCallBack;
 private:
     bool Init();
     bool IsGlobalIPv6Address(std::string ipAddress);
+#if DHCPV6_ENABLE
+    void AppendDhcpV6Info(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
+#endif
     std::atomic<bool> mPublishFlag_;
     static std::mutex g_instanceLock;
     ClientServiceRunningState mState;
@@ -112,7 +135,18 @@ private:
 #else
     static sptr<DhcpClientServiceImpl> g_instance;
 #endif
-   std::string m_bssid;
+    std::string m_bssid;
+
+    std::mutex m_ipv6MergeMutex;
+    std::map<std::string, DhcpIpv6Info> m_lastIpv6Info;
+#if DHCPV6_ENABLE
+    std::map<std::string, DhcpV6Result> m_lastDhcpV6;
+
+    std::map<std::string, std::unique_ptr<IDhcpV6Callback>> m_dhcpv6Callbacks;
+
+    // Cleanup DhcpV6Client (stop, delete, erase callbacks)
+    void CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client);
+#endif
 };
 }  // namespace DHCP
 }  // namespace OHOS

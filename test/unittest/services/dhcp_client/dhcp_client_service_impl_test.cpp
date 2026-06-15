@@ -19,6 +19,7 @@
 #include "dhcp_client_service_impl.h"
 #include "dhcp_client_state_machine.h"
 #include "dhcp_define.h"
+#include "dhcp_v6_constants.h"
 #include "securec.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImplTest");
@@ -104,6 +105,14 @@ HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)
 
     bIpv6 = false;
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
+
+    // CRITICAL: Clean up DhcpClientStateMachine before test ends
+    // DhcpClient struct doesn't have destructor, pointers must be manually cleaned
+    if (client.pStaStateMachine != nullptr) {
+        client.pStaStateMachine->StopIpv4();
+        delete client.pStaStateMachine;
+        client.pStaStateMachine = nullptr;
+    }
 }
 
 HWTEST_F(DhcpClientServiceImplTest, StartNewClientTest, TestSize.Level1)
@@ -327,6 +336,140 @@ HWTEST_F(DhcpClientServiceImplTest, DealWifiDhcpCacheTest, TestSize.Level1)
     ipCacheInfo.bssid = "123";
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->DealWifiDhcpCache(WIFI_DHCP_CACHE_ADD, ipCacheInfo));
     EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->DealWifiDhcpCache(WIFI_DHCP_CACHE_REMOVE, ipCacheInfo));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, RemoveIpv6ResultsTest, TestSize.Level1)
+{
+    DHCP_LOGI("RemoveIpv6ResultsTest enter!");
+    std::string ifname = "wlan0";
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->RemoveIpv6Results(ifname));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, OnRaFlagsChangedTest, TestSize.Level1)
+{
+    DHCP_LOGI("OnRaFlagsChangedTest enter!");
+    std::string ifname = "wlan0";
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnRaFlagsChanged(ifname, false, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnRaFlagsChanged(ifname, true, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnRaFlagsChanged(ifname, false, true));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnRaFlagsChanged(ifname, true, true));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpV6ResultCallbackTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpV6ResultCallbackTest enter!");
+    std::string ifname = "wlan0";
+    DhcpV6Result result;
+    result.ipv6Addresses = {"2001:db8::1"};
+    result.dnsServers = {"2001:db8::53"};
+    result.preferredLifetime = 1800;
+    result.validLifetime = 3600;
+
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ResultCallback(ifname, result, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ResultCallback(ifname, result, true));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpV6FailCallbackTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpV6FailCallbackTest enter!");
+    std::string ifname = "wlan0";
+
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6FailCallback(ifname, -1, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6FailCallback(ifname, -1, true));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpV6ExpiredCallbackTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpV6ExpiredCallbackTest enter!");
+    std::string ifname = "wlan0";
+
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ExpiredCallback(ifname, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ExpiredCallback(ifname, true));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpV6StopCallbackTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpV6StopCallbackTest enter!");
+    std::string ifname = "wlan0";
+
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6StopCallback(ifname, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6StopCallback(ifname, true));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpV6KernelDadCallbackTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpV6KernelDadCallbackTest enter!");
+    std::string ifname = "wlan0";
+    std::string addr = "2001:db8::1";
+
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6KernelDadCallback(ifname, addr, true));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6KernelDadCallback(ifname, addr, false));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, StartSlaacClientTest, TestSize.Level1)
+{
+    DHCP_LOGI("StartSlaacClientTest enter!");
+    std::string ifname = "wlan0";
+    DhcpClient client;
+    client.ifName = ifname;
+
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartSlaacClient(ifname, true, client));
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartSlaacClient(ifname, false, client));
+
+    // CRITICAL: Stop DhcpIpv6Client before test ends
+    // DhcpClient struct doesn't have destructor, pointers must be manually cleaned
+    if (client.pipv6Client != nullptr) {
+        client.pipv6Client->DhcpIPV6Stop();
+        delete client.pipv6Client;
+        client.pipv6Client = nullptr;
+    }
+}
+
+HWTEST_F(DhcpClientServiceImplTest, StartDhcpV6ClientByRaFlagsTest, TestSize.Level1)
+{
+    DHCP_LOGI("StartDhcpV6ClientByRaFlagsTest enter!");
+    std::string ifname = "wlan0";
+    DhcpClient client;
+    client.ifName = ifname;
+
+    // M=0, O=0 - no DHCPv6 needed
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpV6ClientByRaFlags(ifname, false, false, client));
+    EXPECT_EQ(nullptr, client.pDhcpV6Client);
+
+    // M=1 - stateful DHCPv6
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpV6ClientByRaFlags(ifname, true, false, client));
+    EXPECT_NE(nullptr, client.pDhcpV6Client);
+    // Stop before next call - function will do it internally, but ensure clean state
+    client.pDhcpV6Client->DhcpV6Stop();
+    delete client.pDhcpV6Client;
+    client.pDhcpV6Client = nullptr;
+
+    // M=0, O=1 - stateless DHCPv6
+    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartDhcpV6ClientByRaFlags(ifname, false, true, client));
+    EXPECT_NE(nullptr, client.pDhcpV6Client);
+    
+    // Final cleanup
+    if (client.pDhcpV6Client != nullptr) {
+        client.pDhcpV6Client->DhcpV6Stop();
+        delete client.pDhcpV6Client;
+        client.pDhcpV6Client = nullptr;
+    }
+}
+
+HWTEST_F(DhcpClientServiceImplTest, DhcpV6ResultCallback_MultipleAddressesTest, TestSize.Level1)
+{
+    DHCP_LOGI("DhcpV6ResultCallback_MultipleAddressesTest enter!");
+    std::string ifname = "wlan0";
+    DhcpV6Result result;
+    result.ipv6Addresses = {"2001:db8::1", "2001:db8::2", "2001:db8::3"};
+    result.dnsServers = {"2001:db8::53", "2001:db8::54"};
+    result.preferredLifetime = 1800;
+    result.validLifetime = 3600;
+    result.t1 = 900;
+    result.t2 = 1350;
+
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ResultCallback(ifname, result, false));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ResultCallback(ifname, result, true));
 }
 }
 }

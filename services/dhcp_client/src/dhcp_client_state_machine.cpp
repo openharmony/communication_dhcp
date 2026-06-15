@@ -14,22 +14,13 @@
  */
 #include "dhcp_client_state_machine.h"
 
-#include <cstdio>
-#include <cstdlib>
-#include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include <cerrno>
-#include <csignal>
 #include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/socket.h>
-#include <sys/file.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <netinet/if_ether.h>
-#include <net/if_arp.h>
 #include <chrono>
 #include <memory>
 #include <string>

@@ -14,6 +14,7 @@
  */
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <net/if.h>
 #include <net/if_arp.h>
 #include <netinet/in.h>
 #include <unistd.h>
@@ -361,6 +362,52 @@ void ModifyKernelFile(const std::string &filePath, const char* num)
     (void)fflush(file);
     (void)fsync(fileno(file));
     (void)fclose(file);
+}
+
+int GetLocalMac(const std::string& ethInf, std::string& ethMac)
+{
+    struct ifreq ifr;
+    int sd = 0;
+
+    if (ethInf.empty()) {
+        DHCP_LOGE("GetLocalMac ethInf is empty");
+        return -1;
+    }
+
+    bzero(&ifr, sizeof(struct ifreq));
+    if ((sd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        DHCP_LOGE("GetLocalMac socket ethInf:%{public}s,error:%{public}d!", ethInf.c_str(), errno);
+        return -1;
+    }
+
+    if (strncpy_s(ifr.ifr_name, IFNAMSIZ, ethInf.c_str(), IFNAMSIZ - 1) != EOK) {
+        close(sd);
+        return -1;
+    }
+
+    if (ioctl(sd, SIOCGIFHWADDR, &ifr) < 0) {
+        DHCP_LOGE("GetLocalMac ioctl ethInf:%{public}s,error:%{public}d!", ethInf.c_str(), errno);
+        close(sd);
+        return -1;
+    }
+
+    char mac[GATEWAY_MAC_LENTH] = { 0 };
+    int nRes = snprintf_s(mac, sizeof(mac), sizeof(mac) - 1,
+        "%02x:%02x:%02x:%02x:%02x:%02x",
+        static_cast<uint8_t>(ifr.ifr_hwaddr.sa_data[MAC_INDEX_0]),
+        static_cast<uint8_t>(ifr.ifr_hwaddr.sa_data[MAC_INDEX_1]),
+        static_cast<uint8_t>(ifr.ifr_hwaddr.sa_data[MAC_INDEX_2]),
+        static_cast<uint8_t>(ifr.ifr_hwaddr.sa_data[MAC_INDEX_3]),
+        static_cast<uint8_t>(ifr.ifr_hwaddr.sa_data[MAC_INDEX_4]),
+        static_cast<uint8_t>(ifr.ifr_hwaddr.sa_data[MAC_INDEX_5]));
+    if (nRes < 0) {
+        DHCP_LOGE("GetLocalMac snprintf_s ethInf:%{public}s,error:%{public}d!", ethInf.c_str(), errno);
+        close(sd);
+        return -1;
+    }
+    ethMac = mac;
+    close(sd);
+    return 0;
 }
 }
 }

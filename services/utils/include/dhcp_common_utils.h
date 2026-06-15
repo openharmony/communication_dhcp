@@ -63,6 +63,16 @@ std::string Ipv6Anonymize(const std::string &str);
 bool IsValidPath(const std::string &filePath);
 
 void ModifyKernelFile(const std::string &filePath, const char* num);
+
+/**
+ * @Description Get local interface MAC address using ioctl
+ *
+ * @param iface - Interface name
+ * @param mac - Output MAC address (format: "xx:xx:xx:xx:xx:xx")
+ * @return int - 0: success; -1: failed
+ */
+int GetLocalMac(const std::string& ethInf, std::string& ethMac);
+
 }
 }
 #endif

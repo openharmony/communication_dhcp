@@ -168,4 +168,20 @@ HWTEST_F(DhcpCommonUtilsTest, CheckDataTolonglongTest, TestSize.Level1)
     result = CheckDataTolonglong(data, base);
     EXPECT_EQ(result, 0);
 }
+
+HWTEST_F(DhcpCommonUtilsTest, GetLocalMac_EmptyIface_FAILED, TestSize.Level1)
+{
+    DHCP_LOGI("enter GetLocalMac_EmptyIface_FAILED");
+    std::string mac;
+    int result = GetLocalMac("", mac);
+    EXPECT_EQ(result, -1);
+}
+
+HWTEST_F(DhcpCommonUtilsTest, GetLocalMac_InvalidIface_FAILED, TestSize.Level1)
+{
+    DHCP_LOGI("enter GetLocalMac_InvalidIface_FAILED");
+    std::string mac;
+    int result = GetLocalMac("invalid_iface_that_does_not_exist_12345", mac);
+    EXPECT_EQ(result, -1);
+}
 }

@@ -12,11 +12,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <linux/if_link.h>
+#include <linux/rtnetlink.h>
 #include "dhcp_ipv6_client.h"
+#include "dhcp_ipv6_define.h"
 #include "securec.h"
 #include <unistd.h>
 #include "dhcp_logger.h"
-#include <linux/rtnetlink.h>
+#include <net/if.h>
+#include "dhcp_ipv6_dns_repository.h"
+#include "dhcp_common_utils.h"
+#if DHCPV6_ENABLE
+#include "dhcp_v6_constants.h"
+#endif
+#include <map>
+
 namespace OHOS {
 namespace DHCP {
 DEFINE_DHCPLOG_DHCP_LABEL("WifiDhcpIpv6Event");
@@ -24,8 +34,10 @@ DEFINE_DHCPLOG_DHCP_LABEL("WifiDhcpIpv6Event");
 const int KERNEL_SOCKET_FAMILY = 16;
 const int KERNEL_SOCKET_IFA_FAMILY = 10;
 const int KERNEL_ICMP_TYPE = 134;
-const int IPV6_LENGTH_BYTES = 16;
 constexpr int ND_OPT_HDR_LENGTH_BYTES = 2;
+// Reason: Router typically sends RA within 3 seconds after link-local address is configured.
+// Waiting avoids querying old RA flags from the previous network before new RA arrives.
+const int WAIT_RA_DELAY = 3;
 #ifndef USER_HZ
 #define USER_HZ 100
 #endif
@@ -38,10 +50,10 @@ void DhcpIpv6Client::setSocketFilter(void* addr)
         DHCP_LOGE("setSocketFilter failed, addr invalid.");
         return;
     }
-    struct sockaddr_nl *nladdr = (struct sockaddr_nl*)addr;
+    struct sockaddr_nl *nladdr = reinterpret_cast<struct sockaddr_nl*>(addr);
     nladdr->nl_family = KERNEL_SOCKET_FAMILY;
     nladdr->nl_pid = 0;
-    nladdr->nl_groups = RTMGRP_IPV6_IFADDR | RTMGRP_IPV6_ROUTE | (1 << (RTNLGRP_ND_USEROPT - 1));
+    nladdr->nl_groups = RTMGRP_LINK | RTMGRP_IPV6_IFADDR | RTMGRP_IPV6_ROUTE | (1 << (RTNLGRP_ND_USEROPT - 1));
 }
 
 void DhcpIpv6Client::parseNdUserOptMessage(void* data, int len)
@@ -244,6 +256,9 @@ void DhcpIpv6Client::handleKernelEvent(const uint8_t* data, int len)
             parseNDRouteMessage((void*)nlh);
         } else if (nlh->nlmsg_type == RTM_NEWNEIGH) {
             parseNewneighMessage((void*)nlh);
+        } else if (nlh->nlmsg_type == RTM_NEWLINK) {
+            DHCP_LOGI("handleKernelEvent nlmsg_type: RTM_NEWLINK.");
+            ParseLinkMessage((void*)nlh);
         }
         nlh = NLMSG_NEXT(nlh, len);
     }
@@ -328,9 +343,248 @@ void DhcpIpv6Client::ParseAddrMessage(void *msg)
     if (addresses[0] == '\0') {
         return;
     }
+
+    DHCP_LOGI("ParseAddrMessage: parsed addr %{public}s, scope %{public}d (0=global, 0x20=linklocal)",
+              Ipv6Anonymize(addresses).c_str(), scope);
+
+    // Notify DHCPv6 client about global address deletion for DAD handling
+    if (scope == IPV6_ADDR_SCOPE_GLOBAL && nlType == RTM_DELADDR) {
+        if (onIpv6DadResult_) {
+            std::string ifname;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                ifname = interfaceName;
+            }
+            DHCP_LOGI("ParseAddrMessage: %{public}s deleted", Ipv6Anonymize(addresses).c_str());
+            std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+            onIpv6DadResult_(ifname, std::string(addresses), false);  // false = DAD failed
+        }
+    }
     OnIpv6AddressUpdateEvent(addresses, DHCP_INET6_ADDRSTRLEN, addrMsg->ifa_prefixlen, addrMsg->ifa_index,
         scope, nlType == RTM_NEWADDR);
     return;
+}
+
+void DhcpIpv6Client::NotifyRaFlagsChanged(bool managed, bool other)
+{
+    std::string ifname;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ifname = interfaceName;
+    }
+    if (ifname.empty() || !onRaFlagsChanged_) {
+        return;
+    }
+    // Copy callback under lock, then release lock before calling
+    decltype(onRaFlagsChanged_) callback;
+    {
+        std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+        callback = onRaFlagsChanged_;
+    }
+    if (callback) {
+        callback(ifname, managed, other);
+    }
+}
+
+#ifndef IFLA_INET6_FLAGS
+#define IFLA_INET6_FLAGS 1
+#endif
+#ifndef AF_INET6
+#define AF_INET6 10
+#endif
+// RA flag bits in the high byte of IFLA_INET6_FLAGS (big-endian network order)
+#ifndef ND_RA_FLAG_MANAGED
+#define ND_RA_FLAG_MANAGED 0x80  // M flag - DHCPv6 should be used
+#endif
+#ifndef ND_RA_FLAG_OTHER
+#define ND_RA_FLAG_OTHER 0x40  // O flag - Other config via DHCPv6
+#endif
+// Byte shift for extracting high byte from uint32_t (big-endian network order)
+#ifndef BYTE_SHIFT_24
+#define BYTE_SHIFT_24 24
+#endif
+#ifndef BYTE_MASK
+#define BYTE_MASK 0xFF
+#endif
+
+void DhcpIpv6Client::ParseAfSpecAttributes(struct rtattr *afRta, int afLen, unsigned int ifIndex)
+{
+    DHCP_LOGI("ParseAfSpecAttributes: afLen %{public}d, ifIndex %{public}u", afLen, ifIndex);
+    for (; RTA_OK(afRta, afLen); afRta = RTA_NEXT(afRta, afLen)) {
+        if (afRta->rta_type != AF_INET6) {
+            continue;
+        }
+        int innerLen = RTA_PAYLOAD(afRta);
+        struct rtattr *innerRta = static_cast<struct rtattr *>(RTA_DATA(afRta));
+        for (; RTA_OK(innerRta, innerLen); innerRta = RTA_NEXT(innerRta, innerLen)) {
+            if (innerRta->rta_type != IFLA_INET6_FLAGS) {
+                continue;
+            }
+            if (RTA_PAYLOAD(innerRta) < sizeof(uint32_t)) {
+                DHCP_LOGE("ParseAfSpecAttributes: IFLA_INET6_FLAGS payload too small");
+                continue;
+            }
+            uint32_t flags = *static_cast<uint32_t *>(RTA_DATA(innerRta));
+            // IFLA_INET6_FLAGS is a single byte, extract low byte for M/O bits
+            uint8_t flagByte = flags & BYTE_MASK;
+            bool other = (flagByte & ND_RA_FLAG_MANAGED) != 0;
+            bool managed = (flagByte & ND_RA_FLAG_OTHER) != 0;
+            DHCP_LOGI("ParseAfSpecAttributes: flags=0x%{public}x, flagByte=0x%{public}x, "
+                "managed=%{public}d, other=%{public}d", flags, flagByte, managed, other);
+            NotifyRaFlagsChanged(managed, other);
+        }
+    }
+}
+
+void DhcpIpv6Client::ParseLinkMessage(void *msg)
+{
+    if (msg == nullptr) {
+        DHCP_LOGE("ParseLinkMessage msg nullptr.");
+        return;
+    }
+    struct nlmsghdr *hdrMsg = static_cast<struct nlmsghdr *>(msg);
+    if (hdrMsg->nlmsg_len < NLMSG_LENGTH(sizeof(struct ifinfomsg))) {
+        DHCP_LOGE("ParseLinkMessage nlmsg_len:%{public}u is invalid.", hdrMsg->nlmsg_len);
+        return;
+    }
+
+    struct ifinfomsg *ifi = static_cast<struct ifinfomsg *>(NLMSG_DATA(hdrMsg));
+    if (ifi->ifi_family != AF_UNSPEC && ifi->ifi_family != AF_INET6) {
+        DHCP_LOGI("ParseLinkMessage: skip family %{public}d (not AF_UNSPEC/AF_INET6)", ifi->ifi_family);
+        return;
+    }
+
+    unsigned int ifIndex = ifi->ifi_index;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        if (interfaceName.empty()) {
+            return;
+        }
+        unsigned int myIfIndex = if_nametoindex(interfaceName.c_str());
+        if (myIfIndex == 0 || ifIndex != myIfIndex) {
+            return;
+        }
+    }
+
+    int len = hdrMsg->nlmsg_len - NLMSG_HDRLEN;
+    if (len < static_cast<int>(sizeof(struct ifinfomsg))) {
+        DHCP_LOGE("ParseLinkMessage: invalid payload length %{public}d", len);
+        return;
+    }
+    len -= sizeof(struct ifinfomsg);
+
+    struct rtattr *rta = IFLA_RTA(ifi);
+    bool foundAfSpec = false;
+    for (; RTA_OK(rta, len); rta = RTA_NEXT(rta, len)) {
+        if (rta->rta_type == IFLA_AF_SPEC) {
+            foundAfSpec = true;
+            DHCP_LOGI("ParseLinkMessage: found IFLA_AF_SPEC");
+            int afLen = RTA_PAYLOAD(rta);
+            struct rtattr *afRta = static_cast<struct rtattr *>(RTA_DATA(rta));
+            ParseAfSpecAttributes(afRta, afLen, ifIndex);
+        }
+    }
+    if (!foundAfSpec) {
+        DHCP_LOGI("ParseLinkMessage: IFLA_AF_SPEC not found in message");
+    }
+}
+
+void DhcpIpv6Client::QueryInterfaceRaFlags()
+{
+    std::string ifname;
+    {
+        std::lock_guard<std::mutex> lock(mutex_);
+        ifname = interfaceName;
+    }
+    if (ifname.empty()) {
+        DHCP_LOGE("QueryInterfaceRaFlags: interface name is empty");
+        return;
+    }
+
+    unsigned int ifIndex = if_nametoindex(ifname.c_str());
+    if (ifIndex == 0) {
+        DHCP_LOGE("QueryInterfaceRaFlags: if_nametoindex failed for %{public}s", ifname.c_str());
+        return;
+    }
+
+    std::vector<uint8_t> response;
+    if (!BuildAndSendNetlinkRequest(ifIndex, response)) {
+        DHCP_LOGE("QueryInterfaceRaFlags: BuildAndSendNetlinkRequest failed");
+        return;
+    }
+
+    // Parse response to find RA flags
+    int len = static_cast<int>(response.size());
+    for (struct nlmsghdr* nlh = reinterpret_cast<struct nlmsghdr*>(response.data());
+         NLMSG_OK(nlh, len); nlh = NLMSG_NEXT(nlh, len)) {
+        if (nlh->nlmsg_type == NLMSG_DONE || nlh->nlmsg_type != RTM_NEWLINK) {
+            break;
+        }
+        struct ifinfomsg* ifm = reinterpret_cast<struct ifinfomsg*>(NLMSG_DATA(nlh));
+        if (ifm->ifi_index != static_cast<int>(ifIndex)) {
+            continue;
+        }
+        int remaining = RTM_PAYLOAD(nlh);
+        for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, remaining); rta = RTA_NEXT(rta, remaining)) {
+            if (rta->rta_type == IFLA_AF_SPEC) {
+                int afLen = RTA_PAYLOAD(rta);
+                struct rtattr* afRta = reinterpret_cast<struct rtattr*>(RTA_DATA(rta));
+                ParseAfSpecAttributes(afRta, afLen, ifIndex);
+                return;
+            }
+        }
+    }
+    DHCP_LOGI("QueryInterfaceRaFlags: IFLA_AF_SPEC not found in query response");
+}
+
+bool DhcpIpv6Client::BuildAndSendNetlinkRequest(unsigned int ifIndex, std::vector<uint8_t>& response)
+{
+    struct {
+        struct nlmsghdr nlh;
+        struct ifinfomsg ifm;
+    } request = {};
+    request.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    request.nlh.nlmsg_type = RTM_GETLINK;
+    request.nlh.nlmsg_flags = NLM_F_REQUEST;
+    request.nlh.nlmsg_seq = 1;
+    request.ifm.ifi_family = AF_UNSPEC;
+    request.ifm.ifi_index = ifIndex;
+
+    int sockFd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
+    if (sockFd < 0) {
+        DHCP_LOGE("BuildAndSendNetlinkRequest: socket failed");
+        return false;
+    }
+
+    struct sockaddr_nl addr = { .nl_family = AF_NETLINK, .nl_pid = 0, .nl_groups = 0 };
+    if (sendto(sockFd, &request, request.nlh.nlmsg_len, 0,
+        reinterpret_cast<struct sockaddr*>(&addr), sizeof(addr)) < 0) {
+        DHCP_LOGE("BuildAndSendNetlinkRequest: sendto failed");
+        close(sockFd);
+        return false;
+    }
+
+    response.resize(NETLINK_RECV_BUFFER_SIZE);
+    int len = recv(sockFd, response.data(), response.size(), 0);
+    close(sockFd);
+    if (len < 0) {
+        DHCP_LOGE("BuildAndSendNetlinkRequest: recv failed");
+        return false;
+    }
+    response.resize(len);
+    return true;
+}
+
+void DhcpIpv6Client::StartRaFlagsQueryTimer()
+{
+    if (!raFlagsQueried_) {
+        raFlagsQueried_ = true;
+        std::thread([this]() {
+            std::this_thread::sleep_for(std::chrono::seconds(WAIT_RA_DELAY));
+            DHCP_LOGI("StartRaFlagsQueryTimer: querying RA flags");
+            QueryInterfaceRaFlags();
+        }).detach();
+    }
 }
 }  // namespace DHCP
 }  // namespace OHOS

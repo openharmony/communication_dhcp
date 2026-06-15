@@ -36,6 +36,12 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_callback_impl.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_feature_switch.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_client.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_statemachine.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_message.cpp",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_socket.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_arp_checker.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_common_utils.cpp",
     "$DHCP_ROOT_DIR/services/utils/src/dhcp_system_timer.cpp",
@@ -58,6 +64,7 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/interfaces/kits/c",
     "$DHCP_ROOT_DIR/services",
     "$DHCP_ROOT_DIR/services/dhcp_client/include",
+    "$DHCP_ROOT_DIR/services/dhcp_v6_client/include",
     "$DHCP_ROOT_DIR/services/dhcp_server/include",
     "$DHCP_ROOT_DIR/services/utils/include",
     "$DHCP_ROOT_DIR/test/unittest/services/dhcp_client",
@@ -93,7 +100,7 @@ ohos_unittest("dhcp_util_unittest") {
     "-Wl,--wrap=GetSelectRet",
   ]
 
-  cflags_cc = [ 
+  cflags_cc = [
     "-Wno-unused-variable",
   ]
 
@@ -113,10 +120,12 @@ ohos_unittest("dhcp_util_unittest") {
     "safwk:system_ability_fwk",
     "samgr:samgr_proxy",
     "time_service:time_client",
+    "wifi:wifi_base",
   ]
 
-  defines = [
+defines = [
     "DHCP_MOCK_TEST",
+    "DHCPV6_ENABLE",
     "OHOS_EUPDATER",
     "private = public",
     "protected = public",
