@@ -414,9 +414,9 @@ void DhcpIpv6Client::ParseAfSpecAttributes(struct rtattr *afRta, int afLen, unsi
         if (afRta->rta_type != AF_INET6) {
             continue;
         }
-        int innerLen = RTA_PAYLOAD(afRta);
+        unsigned int innerLen = RTA_PAYLOAD(afRta);
         struct rtattr *innerRta = static_cast<struct rtattr *>(RTA_DATA(afRta));
-        for (; RTA_OK(innerRta, innerLen); innerRta = RTA_NEXT(innerRta, innerLen)) {
+        for (; RTA_OK(innerRta, static_cast<int>(innerLen)); innerRta = RTA_NEXT(innerRta, innerLen)) {
             if (innerRta->rta_type != IFLA_INET6_FLAGS) {
                 continue;
             }
@@ -454,7 +454,7 @@ void DhcpIpv6Client::ParseLinkMessage(void *msg)
         return;
     }
 
-    unsigned int ifIndex = ifi->ifi_index;
+    unsigned int ifIndex = static_cast<unsigned int>(ifi->ifi_index);
     {
         std::lock_guard<std::mutex> lock(mutex_);
         if (interfaceName.empty()) {
@@ -466,16 +466,16 @@ void DhcpIpv6Client::ParseLinkMessage(void *msg)
         }
     }
 
-    int len = hdrMsg->nlmsg_len - NLMSG_HDRLEN;
-    if (len < static_cast<int>(sizeof(struct ifinfomsg))) {
-        DHCP_LOGE("ParseLinkMessage: invalid payload length %{public}d", len);
+    unsigned int len = hdrMsg->nlmsg_len - NLMSG_ALIGN(sizeof(struct nlmsghdr));
+    if (len < sizeof(struct ifinfomsg)) {
+        DHCP_LOGE("ParseLinkMessage: invalid payload length %{public}u", len);
         return;
     }
     len -= sizeof(struct ifinfomsg);
 
     struct rtattr *rta = IFLA_RTA(ifi);
     bool foundAfSpec = false;
-    for (; RTA_OK(rta, len); rta = RTA_NEXT(rta, len)) {
+    for (; RTA_OK(rta, static_cast<int>(len)); rta = RTA_NEXT(rta, len)) {
         if (rta->rta_type == IFLA_AF_SPEC) {
             foundAfSpec = true;
             DHCP_LOGI("ParseLinkMessage: found IFLA_AF_SPEC");
@@ -514,22 +514,23 @@ void DhcpIpv6Client::QueryInterfaceRaFlags()
     }
 
     // Parse response to find RA flags
-    int len = static_cast<int>(response.size());
+    unsigned int len = response.size();
     for (struct nlmsghdr* nlh = reinterpret_cast<struct nlmsghdr*>(response.data());
-         NLMSG_OK(nlh, len); nlh = NLMSG_NEXT(nlh, len)) {
+         NLMSG_OK(nlh, static_cast<int>(len)); nlh = NLMSG_NEXT(nlh, len)) {
         if (nlh->nlmsg_type == NLMSG_DONE || nlh->nlmsg_type != RTM_NEWLINK) {
             break;
         }
         struct ifinfomsg* ifm = reinterpret_cast<struct ifinfomsg*>(NLMSG_DATA(nlh));
-        if (ifm->ifi_index != static_cast<int>(ifIndex)) {
+        if (static_cast<unsigned int>(ifm->ifi_index) != ifIndex) {
             continue;
         }
-        int remaining = RTM_PAYLOAD(nlh);
-        for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, remaining); rta = RTA_NEXT(rta, remaining)) {
+        unsigned int remaining = RTM_PAYLOAD(nlh);
+        for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, static_cast<int>(remaining));
+             rta = RTA_NEXT(rta, remaining)) {
             if (rta->rta_type == IFLA_AF_SPEC) {
-                int afLen = RTA_PAYLOAD(rta);
+                unsigned int afLen = RTA_PAYLOAD(rta);
                 struct rtattr* afRta = reinterpret_cast<struct rtattr*>(RTA_DATA(rta));
-                ParseAfSpecAttributes(afRta, afLen, ifIndex);
+                ParseAfSpecAttributes(afRta, static_cast<int>(afLen), ifIndex);
                 return;
             }
         }
@@ -543,12 +544,12 @@ bool DhcpIpv6Client::BuildAndSendNetlinkRequest(unsigned int ifIndex, std::vecto
         struct nlmsghdr nlh;
         struct ifinfomsg ifm;
     } request = {};
-    request.nlh.nlmsg_len = NLMSG_LENGTH(sizeof(struct ifinfomsg));
+    request.nlh.nlmsg_len = static_cast<unsigned int>(NLMSG_LENGTH(sizeof(struct ifinfomsg)));
     request.nlh.nlmsg_type = RTM_GETLINK;
     request.nlh.nlmsg_flags = NLM_F_REQUEST;
     request.nlh.nlmsg_seq = 1;
     request.ifm.ifi_family = AF_UNSPEC;
-    request.ifm.ifi_index = ifIndex;
+    request.ifm.ifi_index = static_cast<int>(ifIndex);
 
     int sockFd = socket(AF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
     if (sockFd < 0) {
