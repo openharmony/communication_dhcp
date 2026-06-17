@@ -107,7 +107,7 @@ private:
     std::mutex mutex_;
     std::string interfaceName;
     struct DhcpIpv6Info dhcpIpv6Info;
-    int32_t ipv6SocketFd = 0;
+    int32_t ipv6SocketFd = -1;
     std::atomic<bool> runFlag_ { false };
     // IPv6 thread
     std::unique_ptr<std::thread> ipv6Thread_ = nullptr;

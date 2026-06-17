@@ -677,6 +677,7 @@ int DhcpIpv6Client::StartIpv6()
         std::lock_guard<std::mutex> lock(mutex_);
         DHCP_LOGE("StartIpv6 ipv6 malloc buff failed.");
         close(ipv6SocketFd);
+        ipv6SocketFd = -1;
         runFlag_ = false;
         return -1;
     }
@@ -725,7 +726,7 @@ int DhcpIpv6Client::StartIpv6()
     {
         std::lock_guard<std::mutex> lock(mutex_);
         close(ipv6SocketFd);
-        ipv6SocketFd = 0;
+        ipv6SocketFd = -1;
     }
     free(buff);
     buff = NULL;
@@ -857,7 +858,7 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
             DHCP_LOGI("DhcpIPV6Stop: closing socket fd=%{public}d to interrupt recv", ipv6SocketFd);
             shutdown(ipv6SocketFd, SHUT_RDWR);
             close(ipv6SocketFd);
-            ipv6SocketFd = 0;
+            ipv6SocketFd = -1;
         }
     }
     if (ipv6Thread_ && ipv6Thread_->joinable()) {
