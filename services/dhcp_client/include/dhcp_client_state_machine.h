@@ -183,8 +183,6 @@ struct DhcpClient {
     DhcpIpv6Client *pipv6Client;
 #if DHCPV6_ENABLE
     DhcpV6Client *pDhcpV6Client = nullptr;
-    bool managed_ = false;
-    bool other_ = false;
 #endif
 };
 }  // namespace DHCP

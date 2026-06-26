@@ -22,6 +22,7 @@
 #include <atomic>
 #include <sys/types.h>
 #include "dhcp_ipv6_dns_repository.h"
+#include "dhcp_define.h"
 
 namespace OHOS {
 namespace DHCP {
@@ -50,6 +51,8 @@ public:
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
     void SetDadResultCallback(
         std::function<void(const std::string ifname, const std::string addr, bool isTentative)> callback);
+    void GetRaFlags(uint8_t &raFlags) const;
+    void ResetRaFlags();
 #if DHCPV6_ENABLE
     void SetDhcpV6Client(DhcpV6Client* client);
     void UnRegisterDhcpV6Callbacks();
@@ -115,6 +118,10 @@ private:
     std::unique_ptr<DnsServerRepository> dhcpIpv6DnsRepository_ = nullptr;
     // Flag to track if RA flags have been queried after first global address
     std::atomic<bool> raFlagsQueried_ { false };
+    // RA flags stored for reporting (M/O bits)
+    std::atomic<uint8_t> raFlags_ { 0 };
+    // Flag to track if valid RA has been received from current network (via RTM_NEWNDUSEROPT)
+    std::atomic<bool> raReceived_ { false };
 };
 }  // namespace DHCP
 }  // namespace OHOS

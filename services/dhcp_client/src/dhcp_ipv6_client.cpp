@@ -97,6 +97,16 @@ void DhcpIpv6Client::SetRaFlagsCallback(
     onRaFlagsChanged_ = callback;
 }
 
+void DhcpIpv6Client::GetRaFlags(uint8_t &raFlags) const
+{
+    raFlags = raFlags_.load();
+}
+
+void DhcpIpv6Client::ResetRaFlags()
+{
+    raFlags_.store(0);
+}
+
 void DhcpIpv6Client::SetDadResultCallback(
     std::function<void(const std::string ifname, const std::string addr, bool isTentative)> callback)
 {
@@ -527,6 +537,7 @@ void DhcpIpv6Client::OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaInd
     bool isChanged = false;
     if (strlen(dst) == 0 && strlen(gateway) != 0) {
         if (isAdd) {
+            raReceived_ = true;
             isChanged = DhcpIpv6InfoManager::AddRoute(dhcpIpv6Info, std::string(gateway));
         } else {
             isChanged = DhcpIpv6InfoManager::RemoveRoute(dhcpIpv6Info, std::string(gateway));
@@ -736,6 +747,9 @@ int DhcpIpv6Client::StartIpv6()
 
 void *DhcpIpv6Client::DhcpIpv6Start()
 {
+    raFlags_.store(0);
+    raFlagsQueried_ = false;
+    raReceived_ = false;
     SetAcceptRa(ACCEPT_OVERRULE_FORWORGING);
     SetRouterSolicitations(ROUTER_SOLICITATIONS_COUNT);
     SetRouterSolicitationInterval(ROUTER_SOLICITATION_INTERVAL_VALUE);
@@ -851,6 +865,9 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
     }
     runFlag_ = false;
     raFlagsQueried_ = false;
+    raReceived_ = false;
+    // Clear RA flags to avoid stale values from previous network
+    raFlags_.store(0);
 
     {
         std::lock_guard<std::mutex> lock(mutex_);

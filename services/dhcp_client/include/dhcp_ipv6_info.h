@@ -63,6 +63,8 @@ struct DhcpIpv6Info {
     uint32_t routeLifetime {IPV6_LIFETIME_INFINITY};
     uint32_t tempValidLifetime {IPV6_LIFETIME_INFINITY};
     uint32_t tempPreferredLifetime {IPV6_LIFETIME_INFINITY};
+    // Bit 0: managed flag (M), Bit 1: other flag (O)
+    uint8_t raFlags { 0 };
     void Clear()
     {
         memset_s(linkIpv6Addr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);

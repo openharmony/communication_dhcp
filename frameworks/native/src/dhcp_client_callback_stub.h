@@ -42,6 +42,8 @@ private:
     int RemoteOnIpSuccessChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int RemoteOnIpFailChanged(uint32_t code, MessageParcel &data, MessageParcel &reply);
     int RemoteOnDhcpOfferReport(uint32_t code, MessageParcel &data, MessageParcel &reply);
+    // Helper function to deserialize DhcpResult from Parcel
+    DhcpResult DeserializeDhcpResult(MessageParcel &data);
 
     sptr<IDhcpClientCallBack> callback_;
     std::mutex callbackMutex_;

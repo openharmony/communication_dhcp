@@ -110,6 +110,7 @@ void DhcpClientCallBack::OnIpSuccessChanged(int status, const std::string& ifnam
     dhcpResult.ipv6LifeTime.validLifeTime = result.validLifetime;
     dhcpResult.ipv6LifeTime.prefLifeTime = result.preferredLifetime;
     dhcpResult.ipv6LifeTime.routerLifeTime = result.routeLifetime;
+    dhcpResult.raFlags = result.raFlags;
     ResultInfoCopy(dhcpResult, result);
     DHCP_LOGI("ResultInfoCopy dstDnsNumber:%{public}u srcDnsNumber:%{public}zu", dhcpResult.dnsList.dnsNumber,
         result.vectorDnsAddr.size());

@@ -45,6 +45,7 @@ void DhcpClientCallbackProxy::WriteDhcpResult(const DhcpResult& result, MessageP
     data.WriteString(result.strRandIpv6Addr);
     data.WriteString(result.strLocalAddr1);
     data.WriteString(result.strLocalAddr2);
+    data.WriteUint8(result.raFlags);
     data.WriteInt32(static_cast<int32_t>(result.vectorDnsAddr.size()));
     for (auto &dns : result.vectorDnsAddr) {
         data.WriteString(dns);

@@ -130,12 +130,20 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, MessageParce
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     int state = data.ReadInt32();
     std::string ifname = data.ReadString();
+    DhcpResult result = DeserializeDhcpResult(data);
+    OnIpSuccessChanged(state, ifname, result);
+    reply.WriteInt32(0);
+    return 0;
+}
+
+DhcpResult DhcpClientCallBackStub::DeserializeDhcpResult(MessageParcel &data)
+{
     DhcpResult result;
     result.iptype = data.ReadInt32();
     result.isOptSuc = data.ReadBool();
-    result.uLeaseTime = data.ReadInt32();
-    result.uAddTime = data.ReadInt32();
-    result.uGetTime = data.ReadInt32();
+    result.uLeaseTime = static_cast<uint32_t>(data.ReadInt32());
+    result.uAddTime = static_cast<uint32_t>(data.ReadInt32());
+    result.uGetTime = static_cast<uint32_t>(data.ReadInt32());
     result.strYourCli = data.ReadString();
     result.strServer = data.ReadString();
     result.strSubnet = data.ReadString();
@@ -148,31 +156,29 @@ int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, MessageParce
     result.strRandIpv6Addr = data.ReadString();
     result.strLocalAddr1 = data.ReadString();
     result.strLocalAddr2 = data.ReadString();
-    int size = data.ReadInt32();
+    result.raFlags = data.ReadUint8();
+    int32_t size = data.ReadInt32();
     if (size < 0 || size >= DHCP_MAX_DNS_SIZE) {
         size = 0;
     }
-    for (int i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
+    for (int32_t i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
         std::string str = data.ReadString();
         if (!str.empty()) {
             result.vectorDnsAddr.push_back(str);
         }
     }
-    // Deserialize IPv6 addresses and types
-    int addrCnt = data.ReadInt32();
+    int32_t addrCnt = data.ReadInt32();
     if (addrCnt <= 0 || addrCnt > DHCP_MAX_ADDR_SIZE) {
         addrCnt = 0;
     }
-    for (int i = 0; i < addrCnt; i++) {
+    for (int32_t i = 0; i < addrCnt; i++) {
         std::string addr = data.ReadString();
         int type = data.ReadInt32();
         if (!addr.empty()) {
             result.IpAddrMap[addr] = type;
         }
     }
-    OnIpSuccessChanged(state, ifname, result);
-    reply.WriteInt32(0);
-    return 0;
+    return result;
 }
 
 int DhcpClientCallBackStub::RemoteOnIpFailChanged(uint32_t code, MessageParcel &data, MessageParcel &reply)
@@ -191,46 +197,7 @@ int DhcpClientCallBackStub::RemoteOnDhcpOfferReport(uint32_t code, MessageParcel
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     int state = data.ReadInt32();
     std::string ifname = data.ReadString();
-    DhcpResult result;
-    result.iptype = data.ReadInt32();
-    result.isOptSuc = data.ReadBool();
-    result.uLeaseTime = data.ReadInt32();
-    result.uAddTime = data.ReadInt32();
-    result.uGetTime = data.ReadInt32();
-    result.strYourCli = data.ReadString();
-    result.strServer = data.ReadString();
-    result.strSubnet = data.ReadString();
-    result.strDns1 = data.ReadString();
-    result.strDns2 = data.ReadString();
-    result.strRouter1 = data.ReadString();
-    result.strRouter2 = data.ReadString();
-    result.strVendor = data.ReadString();
-    result.strLinkIpv6Addr = data.ReadString();
-    result.strRandIpv6Addr = data.ReadString();
-    result.strLocalAddr1 = data.ReadString();
-    result.strLocalAddr2 = data.ReadString();
-    int size = data.ReadInt32();
-    if (size < 0 || size >= DHCP_MAX_DNS_SIZE) {
-        size = 0;
-    }
-    for (int i = 0; i < size && i < DHCP_MAX_DNS_SIZE; i++) {
-        std::string str = data.ReadString();
-        if (!str.empty()) {
-            result.vectorDnsAddr.push_back(str);
-        }
-    }
-    // Deserialize IPv6 addresses and types
-    int addrCnt = data.ReadInt32();
-    if (addrCnt <= 0 || addrCnt > DHCP_MAX_ADDR_SIZE) {
-        addrCnt = 0;
-    }
-    for (int i = 0; i < addrCnt; i++) {
-        std::string addr = data.ReadString();
-        int type = data.ReadInt32();
-        if (!addr.empty()) {
-            result.IpAddrMap[addr] = type;
-        }
-    }
+    DhcpResult result = DeserializeDhcpResult(data);
     OnDhcpOfferReport(state, ifname, result);
     reply.WriteInt32(0);
     return 0;

@@ -57,6 +57,10 @@ const int PID_MAX_LEN           = 16;
 const int PARAM_MAX_SIZE        = 40;
 const int DEFAULT_UMASK         = 027;
 const int DIR_MAX_LEN           = 256;
+
+// RA flags bit masks (M/O bits)
+constexpr uint8_t RA_FLAG_MANAGED_MASK = 0x01;  // M flag - DHCPv6 should be used
+constexpr uint8_t RA_FLAG_OTHER_MASK = 0x02;    // O flag - Other config via DHCPv6
 const int DIR_DEFAULT_MODE      = S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH;
 const int DHCP_IPV4_GETTED  = 1;
 const int DHCP_IPV6_GETTED  = 2;
@@ -270,6 +274,7 @@ struct DhcpResult {
     uint32_t validLifetime {LIFETIME_INFINITY};
     uint32_t preferredLifetime {LIFETIME_INFINITY};
     uint32_t routeLifetime {LIFETIME_INFINITY};
+    uint8_t raFlags { 0 };
     DhcpResult()
     {
         iptype      = -1;
@@ -294,6 +299,7 @@ struct DhcpResult {
         validLifetime = LIFETIME_INFINITY;
         preferredLifetime = LIFETIME_INFINITY;
         routeLifetime = LIFETIME_INFINITY;
+        raFlags = 0;
     }
 };
 
