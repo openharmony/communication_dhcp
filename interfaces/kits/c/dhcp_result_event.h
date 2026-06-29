@@ -77,7 +77,8 @@ typedef struct{
     DnsList dnsList;                            /* dhcp dns list */
     AddrList addrList;                          /* dhcp addr list */
     Ipv6LifeTime ipv6LifeTime;                  /* dhcp ipv6 life time */
-}DhcpResult;
+    uint8_t raFlags;                            /* RA flags: bit0=M flag, bit1=O flag */
+} DhcpResult;
 
 typedef struct DhcpRange{
     int iptype;                           /* 0-ipv4,1-ipv6 */

@@ -361,12 +361,6 @@ ErrCode DhcpClientServiceImpl::StartSlaacClient(const std::string &ifname, bool 
         client.pipv6Client->Reset();
     }
 
-    // Reset RA flags to ensure proactive query will trigger notification
-#if DHCPV6_ENABLE
-    client.managed_ = false;
-    client.other_ = false;
-#endif
-
     client.pipv6Client->SetCallback(
         [this](const std::string ifname, DhcpIpv6Info &info) { this->DhcpIpv6ResulCallback(ifname, info); });
 #if DHCPV6_ENABLE
@@ -443,10 +437,6 @@ ErrCode DhcpClientServiceImpl::StartDhcpV6ClientByRaFlags(const std::string &ifn
 
 void DhcpClientServiceImpl::OnRaFlagsChanged(const std::string &ifname, bool managed, bool other)
 {
-    if (!DhcpV6FeatureSwitch::GetInstance().IsDhcpV6Enabled()) {
-        DHCP_LOGI("OnRaFlagsChanged: DHCPv6 feature disabled, skip");
-        return;
-    }
     DHCP_LOGI("OnRaFlagsChanged: ifname=%{public}s M=%{public}d O=%{public}d", ifname.c_str(), managed, other);
     std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
     auto iter = m_mapClientService.find(ifname);
@@ -456,21 +446,29 @@ void DhcpClientServiceImpl::OnRaFlagsChanged(const std::string &ifname, bool man
     }
     DhcpClient &client = iter->second;
 
-    bool prevManaged = client.managed_;
-    bool prevOther = client.other_;
-    if (managed == prevManaged && other == prevOther) {
-        DHCP_LOGI("OnRaFlagsChanged: M/O unchanged (M=%{public}d O=%{public}d), skip restart", managed, other);
+    // Read previous RA flags from raFlags_ for comparison
+    uint8_t prevFlags = 0;
+    if (client.pipv6Client != nullptr) {
+        client.pipv6Client->GetRaFlags(prevFlags);
+    }
+    uint8_t currentFlags = (managed ? RA_FLAG_MANAGED_MASK : 0) | (other ? RA_FLAG_OTHER_MASK : 0);
+    if (currentFlags == prevFlags) {
+        DHCP_LOGI("OnRaFlagsChanged: RA flags unchanged (0x%{public}x), skip restart", currentFlags);
         return;
     }
-    client.managed_ = managed;
-    client.other_ = other;
-    if (managed || other) {
-        DHCP_LOGI("OnRaFlagsChanged: M=%{public}d O=%{public}d, starting DHCPv6, ifname=%{public}s",
-            managed, other, ifname.c_str());
+    // RA flags should be reported regardless of DHCPv6 feature switch
+    if (DhcpV6FeatureSwitch::GetInstance().IsDhcpV6Enabled()) {
+        if (managed || other) {
+            DHCP_LOGI("OnRaFlagsChanged: M=%{public}d O=%{public}d, starting DHCPv6, ifname=%{public}s",
+                managed, other, ifname.c_str());
+        } else {
+            DHCP_LOGI("OnRaFlagsChanged: M=0 O=0, SLAAC only, stopping DHCPv6, ifname=%{public}s", ifname.c_str());
+        }
+        StartDhcpV6ClientByRaFlags(ifname, managed, other, client);
     } else {
-        DHCP_LOGI("OnRaFlagsChanged: M=0 O=0, SLAAC only, stopping DHCPv6, ifname=%{public}s", ifname.c_str());
+        DHCP_LOGI("OnRaFlagsChanged: DHCPv6 feature disabled, RA flags saved but DHCPv6 not started, ifname=%{public}s",
+            ifname.c_str());
     }
-    StartDhcpV6ClientByRaFlags(ifname, managed, other, client);
 }
 #endif // DHCPV6_ENABLE
 
@@ -609,6 +607,8 @@ ErrCode DhcpClientServiceImpl::StopDhcpIpv6Client(const std::string& ifname)
 #endif
             }
             CleanupDhcpV6Client(ifname, iter->second);
+            // Clear RA flags to avoid stale values from previous network
+            iter->second.pipv6Client->ResetRaFlags();
         }
     }
 
@@ -868,16 +868,25 @@ void DhcpClientServiceImpl::FillDhcpResultFromIpv6Info(DhcpResult& result, const
     for (auto dnsAddr : info.vectorDnsAddr) {
         result.vectorDnsAddr.push_back(dnsAddr);
     }
+    result.raFlags = info.raFlags;
 }
 
 void DhcpClientServiceImpl::DhcpIpv6ResulCallback(const std::string ifname, DhcpIpv6Info& info)
 {
     OHOS::DHCP::DhcpResult result;
+    // Get RA flags
+    {
+        std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
+        auto iter = m_mapClientService.find(ifname);
+        if (iter != m_mapClientService.end() && iter->second.pipv6Client != nullptr) {
+            iter->second.pipv6Client->GetRaFlags(info.raFlags);
+        }
+    }
     {
         std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
         m_lastIpv6Info[ifname] = info;
-        FillDhcpResultFromIpv6Info(result, info);
     }
+    FillDhcpResultFromIpv6Info(result, info);
 #if DHCPV6_ENABLE
     AppendDhcpV6Info(ifname, result);
 #endif

@@ -103,6 +103,7 @@ public:
 private:
     void ReportDhcpV6FailureCallback(const std::string &ifname, int status, const char *reason);
 #endif
+    void GetRaFlagsFromClient(const std::string &ifname, uint8_t &raFlags);
     void PushDhcpResult(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
     bool CheckDhcpResultExist(const std::string &ifname, OHOS::DHCP::DhcpResult &result);
 public:

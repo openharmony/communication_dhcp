@@ -102,7 +102,7 @@ enum DhcpV6StatusCode {
 struct DhcpV6Config {
     std::string clientId;
     std::string serverId;
-    uint32_t transactionId;
+    uint32_t transactionId = 0;
     std::vector<uint16_t> requestedOptions;
     bool stateless {false}; // true: Information-Request; false: Solicit/Request (IA_NA)
     // Fields for Renew/Rebind (RFC 8415 Section 18.10.3/18.10.4)
@@ -113,7 +113,7 @@ struct DhcpV6Config {
 
 struct DhcpV6Advertise {
     std::string serverId;
-    uint8_t preference;
+    uint8_t preference = 0;
     std::vector<std::string> ipv6Addresses;
     uint32_t iaid {0};
     uint32_t t1 {0};

@@ -367,12 +367,21 @@ void DhcpIpv6Client::ParseAddrMessage(void *msg)
 
 void DhcpIpv6Client::NotifyRaFlagsChanged(bool managed, bool other)
 {
+    // flags bit layout: bit0=M(Managed), bit1=O(Other)
+    // 0x00: M=0,O=0 (SLAAC only)
+    // 0x01: M=1,O=0 (DHCPv6 stateful)
+    // 0x02: M=0,O=1 (DHCPv6 stateless)
+    // 0x03: M=1,O=1 (DHCPv6 stateful, O is meaningless when M=1)
+    uint8_t flags = (managed ? RA_FLAG_MANAGED_MASK : 0) | (other ? RA_FLAG_OTHER_MASK : 0);
+
     std::string ifname;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         ifname = interfaceName;
     }
     if (ifname.empty() || !onRaFlagsChanged_) {
+        // No callback, still store the flags
+        raFlags_.store(flags);
         return;
     }
     // Copy callback under lock, then release lock before calling
@@ -384,6 +393,8 @@ void DhcpIpv6Client::NotifyRaFlagsChanged(bool managed, bool other)
     if (callback) {
         callback(ifname, managed, other);
     }
+    // Store RA flags after callback completes
+    raFlags_.store(flags);
 }
 
 #ifndef IFLA_INET6_FLAGS
@@ -466,6 +477,11 @@ void DhcpIpv6Client::ParseLinkMessage(void *msg)
         }
     }
 
+    if (!(ifi->ifi_flags & IFF_RUNNING) || !(ifi->ifi_flags & IFF_UP)) {
+        DHCP_LOGI("ParseLinkMessage: interface not running/up (flags=0x%{public}x), skip RA flags", ifi->ifi_flags);
+        return;
+    }
+
     unsigned int len = hdrMsg->nlmsg_len - NLMSG_ALIGN(sizeof(struct nlmsghdr));
     if (len < sizeof(struct ifinfomsg)) {
         DHCP_LOGE("ParseLinkMessage: invalid payload length %{public}u", len);
@@ -478,7 +494,6 @@ void DhcpIpv6Client::ParseLinkMessage(void *msg)
     for (; RTA_OK(rta, static_cast<int>(len)); rta = RTA_NEXT(rta, len)) {
         if (rta->rta_type == IFLA_AF_SPEC) {
             foundAfSpec = true;
-            DHCP_LOGI("ParseLinkMessage: found IFLA_AF_SPEC");
             int afLen = RTA_PAYLOAD(rta);
             struct rtattr *afRta = static_cast<struct rtattr *>(RTA_DATA(rta));
             ParseAfSpecAttributes(afRta, afLen, ifIndex);
@@ -491,6 +506,9 @@ void DhcpIpv6Client::ParseLinkMessage(void *msg)
 
 void DhcpIpv6Client::QueryInterfaceRaFlags()
 {
+    if (!raReceived_.load()) {
+        return;
+    }
     std::string ifname;
     {
         std::lock_guard<std::mutex> lock(mutex_);
@@ -523,6 +541,10 @@ void DhcpIpv6Client::QueryInterfaceRaFlags()
         struct ifinfomsg* ifm = reinterpret_cast<struct ifinfomsg*>(NLMSG_DATA(nlh));
         if (static_cast<unsigned int>(ifm->ifi_index) != ifIndex) {
             continue;
+        }
+        if (!(ifm->ifi_flags & IFF_RUNNING) || !(ifm->ifi_flags & IFF_UP)) {
+            DHCP_LOGI("QueryInterfaceRaFlags: interface not running/up, skip RA flags");
+            return;
         }
         unsigned int remaining = RTM_PAYLOAD(nlh);
         for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, static_cast<int>(remaining));
