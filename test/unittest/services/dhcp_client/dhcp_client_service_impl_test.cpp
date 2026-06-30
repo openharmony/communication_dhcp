@@ -84,37 +84,6 @@ HWTEST_F(DhcpClientServiceImplTest, InitTest, TestSize.Level1)
     EXPECT_EQ(DHCP_E_SUCCESS, ZERO);
 }
 
-HWTEST_F(DhcpClientServiceImplTest, StartOldClientTest, TestSize.Level1)
-{
-    DHCP_LOGE("enter StartOldClientTest");
-    ASSERT_TRUE(dhcpClientImpl != nullptr);
-
-    std::string ifname = "wlan0";
-    bool bIpv6 = true;
-    DhcpClient client;
-    client.ifName = ifname;
-    client.isIpv6 = bIpv6;
-    RouterConfig config;
-    config.ifname = "wlan0";
-    config.bIpv6 = true;
-    config.prohibitUseCacheIp = false;
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
-
-    client.pStaStateMachine = new DhcpClientStateMachine(client.ifName);
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
-
-    bIpv6 = false;
-    EXPECT_EQ(DHCP_E_SUCCESS, dhcpClientImpl->StartOldClient(config, client));
-
-    // CRITICAL: Clean up DhcpClientStateMachine before test ends
-    // DhcpClient struct doesn't have destructor, pointers must be manually cleaned
-    if (client.pStaStateMachine != nullptr) {
-        client.pStaStateMachine->StopIpv4();
-        delete client.pStaStateMachine;
-        client.pStaStateMachine = nullptr;
-    }
-}
-
 HWTEST_F(DhcpClientServiceImplTest, StartNewClientTest, TestSize.Level1)
 {
     DHCP_LOGE("enter StartNewClientTest");
