@@ -546,7 +546,7 @@ void DhcpIpv6Client::QueryInterfaceRaFlags()
             DHCP_LOGI("QueryInterfaceRaFlags: interface not running/up, skip RA flags");
             return;
         }
-        int remaining = static_cast<int>(RTM_PAYLOAD(nlh))
+        int remaining = static_cast<int>(RTM_PAYLOAD(nlh));
         for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, remaining);
              rta = RTA_NEXT(rta, remaining)) {
             if (rta->rta_type == IFLA_AF_SPEC) {
