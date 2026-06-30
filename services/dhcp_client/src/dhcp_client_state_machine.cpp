@@ -2141,16 +2141,13 @@ void DhcpClientStateMachine::RemainingDelayCallback()
 {
     DHCP_LOGI("RemainingDelayCallback timerId:%{public}" PRIu64"", remainingDelayTimerId);
     std::lock_guard<std::mutex> lock(dhcpClientMutex_);
-    StopTimer(remainingDelayTimerId);
     StopIpv4();
-    m_action = ACTION_RENEW_T3;  // T3 expired,
-    InitConfig(m_ifName, m_cltCnf.isIpv6);
-    StartTimer(TIMER_GET_IP, getIpTimerId, timeOut_, true);
-    m_dhcp4State = DHCP_STATE_INIT;
-    m_sentPacketNum = 0;
-    m_timeoutTimestamp = 0;
-    SetSocketMode(SOCKET_MODE_RAW);
-    InitStartIpv4Thread(m_ifName, m_cltCnf.isIpv6);  // int discover
+    CloseAllRenewTimer();
+    m_action = ACTION_RENEW_T3;
+    struct DhcpIpResult ipResult;
+    ipResult.code = PUBLISH_CODE_EXPIRED;
+    ipResult.ifname = m_cltCnf.ifaceName;
+    PublishDhcpIpv4Result(ipResult);
 }
 #endif
 
