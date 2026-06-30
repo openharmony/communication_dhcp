@@ -425,9 +425,9 @@ void DhcpIpv6Client::ParseAfSpecAttributes(struct rtattr *afRta, int afLen, unsi
         if (afRta->rta_type != AF_INET6) {
             continue;
         }
-        unsigned int innerLen = RTA_PAYLOAD(afRta);
+        int innerLen = RTA_PAYLOAD(afRta);
         struct rtattr *innerRta = static_cast<struct rtattr *>(RTA_DATA(afRta));
-        for (; RTA_OK(innerRta, static_cast<int>(innerLen)); innerRta = RTA_NEXT(innerRta, innerLen)) {
+        for (; RTA_OK(innerRta, innerLen); innerRta = RTA_NEXT(innerRta, innerLen)) {
             if (innerRta->rta_type != IFLA_INET6_FLAGS) {
                 continue;
             }
@@ -532,9 +532,9 @@ void DhcpIpv6Client::QueryInterfaceRaFlags()
     }
 
     // Parse response to find RA flags
-    unsigned int len = response.size();
+    int len = static_cast<int>(response.size());
     for (struct nlmsghdr* nlh = reinterpret_cast<struct nlmsghdr*>(response.data());
-         NLMSG_OK(nlh, static_cast<int>(len)); nlh = NLMSG_NEXT(nlh, len)) {
+        NLMSG_OK(nlh, len); nlh = NLMSG_NEXT(nlh, len)) {
         if (nlh->nlmsg_type == NLMSG_DONE || nlh->nlmsg_type != RTM_NEWLINK) {
             break;
         }
@@ -546,13 +546,13 @@ void DhcpIpv6Client::QueryInterfaceRaFlags()
             DHCP_LOGI("QueryInterfaceRaFlags: interface not running/up, skip RA flags");
             return;
         }
-        unsigned int remaining = RTM_PAYLOAD(nlh);
-        for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, static_cast<int>(remaining));
+        int remaining = static_cast<int>(RTM_PAYLOAD(nlh))
+        for (struct rtattr* rta = IFLA_RTA(ifm); RTA_OK(rta, remaining);
              rta = RTA_NEXT(rta, remaining)) {
             if (rta->rta_type == IFLA_AF_SPEC) {
-                unsigned int afLen = RTA_PAYLOAD(rta);
+                int afLen = RTA_PAYLOAD(rta);
                 struct rtattr* afRta = reinterpret_cast<struct rtattr*>(RTA_DATA(rta));
-                ParseAfSpecAttributes(afRta, static_cast<int>(afLen), ifIndex);
+                ParseAfSpecAttributes(afRta, afLen, ifIndex);
                 return;
             }
         }
