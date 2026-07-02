@@ -879,6 +879,14 @@ HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest, TestSize.Level0
     EXPECT_EQ(DHCP_OPT_SUCCESS, ZERO);
 }
 
+HWTEST_F(DhcpClientStateMachineTest, RemainingDelayCallbackTest1, TestSize.Level0)
+{
+    DHCP_LOGI("RemainingDelayCallbackTest1 enter!");
+    dhcpClient->m_action = ACTION_INVALID;
+    dhcpClient->RemainingDelayCallback();
+    EXPECT_EQ(dhcpClient->m_action, ACTION_RENEW_T3);
+}
+
 HWTEST_F(DhcpClientStateMachineTest, ScheduleLeaseTimersTest, TestSize.Level0)
 {
     DHCP_LOGI("ScheduleLeaseTimersTest enter!");
