@@ -146,7 +146,7 @@ private:
     std::map<std::string, std::unique_ptr<IDhcpV6Callback>> m_dhcpv6Callbacks;
 
     // Cleanup DhcpV6Client (stop, delete, erase callbacks)
-    void CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client);
+    DhcpV6Client* CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client);
 #endif
 };
 }  // namespace DHCP

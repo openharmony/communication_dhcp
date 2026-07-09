@@ -103,12 +103,16 @@ DhcpClientServiceImpl::DhcpClientServiceImpl()
 DhcpClientServiceImpl::~DhcpClientServiceImpl()
 {
     DHCP_LOGI("enter ~DhcpClientServiceImpl()");
+    std::vector<DhcpIpv6Client*> ipv6ClientsToDelete;
+#if DHCPV6_ENABLE
+    std::vector<DhcpV6Client*> dhcpV6ClientsToDelete;
+#endif
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
         auto iter = m_mapClientService.begin();
         while(iter != m_mapClientService.end()) {
             if ((iter->second).pipv6Client != nullptr) {
-                delete (iter->second).pipv6Client;
+                ipv6ClientsToDelete.push_back((iter->second).pipv6Client);
                 (iter->second).pipv6Client = nullptr;
             }
             if ((iter->second).pStaStateMachine != nullptr) {
@@ -116,10 +120,8 @@ DhcpClientServiceImpl::~DhcpClientServiceImpl()
                 (iter->second).pStaStateMachine = nullptr;
             }
 #if DHCPV6_ENABLE
-            // Clean pDhcpV6Client (Stateful DHCPv6 client)
             if ((iter->second).pDhcpV6Client != nullptr) {
-                (iter->second).pDhcpV6Client->DhcpV6Stop();
-                delete (iter->second).pDhcpV6Client;
+                dhcpV6ClientsToDelete.push_back((iter->second).pDhcpV6Client);
                 (iter->second).pDhcpV6Client = nullptr;
             }
 #endif
@@ -130,6 +132,17 @@ DhcpClientServiceImpl::~DhcpClientServiceImpl()
         m_dhcpv6Callbacks.clear();
 #endif
     }
+    
+    for (auto* client : ipv6ClientsToDelete) {
+        delete client;  // 析构函数会自动调用 DhcpIPV6Stop
+        client = nullptr;
+    }
+#if DHCPV6_ENABLE
+    for (auto* client : dhcpV6ClientsToDelete) {
+        delete client;  // 析构函数会自动调用 DhcpV6Stop
+        client = nullptr;
+    }
+#endif
 
 #if DHCPV6_ENABLE
     {
@@ -590,26 +603,37 @@ ErrCode DhcpClientServiceImpl::StopDhcpIpv6Client(const std::string& ifname)
         auto iter = m_mapClientCallBack.find(ifname);
         if (iter != m_mapClientCallBack.end()) {
             m_mapClientCallBack.erase(iter);
-            DHCP_LOGI("StopDhcpClient erase ClientCallBack ifName:%{public}s", ifname.c_str());
         }
     }
 
 #if DHCPV6_ENABLE
+    DhcpIpv6Client* pipv6ClientToStop = nullptr;
+    DhcpV6Client* pDhcpV6ClientToStop = nullptr;
     {
         std::lock_guard<std::mutex> autoLock(m_clientServiceMutex);
         auto iter = m_mapClientService.find(ifname);
         if (iter != m_mapClientService.end()) {
             if (iter->second.pipv6Client != nullptr) {
-                DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s", ifname.c_str());
-                iter->second.pipv6Client->DhcpIPV6Stop();
+                pipv6ClientToStop = iter->second.pipv6Client;
 #ifndef OHOS_ARCH_LITE
                 NetManagerStandard::NetsysController::GetInstance().SetEnableIpv6(ifname, DHCP_IPV6_DISENABLE);
 #endif
             }
-            CleanupDhcpV6Client(ifname, iter->second);
-            // Clear RA flags to avoid stale values from previous network
-            iter->second.pipv6Client->ResetRaFlags();
+            pDhcpV6ClientToStop = CleanupDhcpV6Client(ifname, iter->second);
+            if (iter->second.pipv6Client != nullptr) {
+                iter->second.pipv6Client->ResetRaFlags();
+            }
         }
+    }
+
+    if (pipv6ClientToStop != nullptr) {
+        DHCP_LOGI("StopDhcpClient pipv6Client DhcpIPV6Stop, ifname:%{public}s", ifname.c_str());
+        pipv6ClientToStop->DhcpIPV6Stop();
+    }
+    if (pDhcpV6ClientToStop != nullptr) {
+        pDhcpV6ClientToStop->DhcpV6Stop();
+        delete pDhcpV6ClientToStop;
+        pDhcpV6ClientToStop = nullptr;
     }
 
     {
@@ -954,14 +978,12 @@ void DhcpClientServiceImpl::AppendDhcpV6Info(const std::string &ifname, OHOS::DH
     }
 }
 
-void DhcpClientServiceImpl::CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client)
+DhcpV6Client* DhcpClientServiceImpl::CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client)
 {
-    if (client.pDhcpV6Client != nullptr) {
-        client.pDhcpV6Client->DhcpV6Stop();
-        delete client.pDhcpV6Client;
-        client.pDhcpV6Client = nullptr;
-    }
+    DhcpV6Client* toStop = client.pDhcpV6Client;
+    client.pDhcpV6Client = nullptr;
     m_dhcpv6Callbacks.erase(ifname);
+    return toStop;
 }
 #endif // DHCPV6_ENABLE
 
@@ -975,16 +997,34 @@ int DhcpClientServiceImpl::DhcpIpv6ResultTimeOut(const std::string &ifname)
 int DhcpClientServiceImpl::DhcpFreeIpv6(const std::string ifname)
 {
     DHCP_LOGI("DhcpFreeIpv6 ifname:%{public}s", ifname.c_str());
-    std::lock_guard<std::mutex> autoLockServer(m_clientServiceMutex);
-    auto iter = m_mapClientService.find(ifname);
-    if (iter != m_mapClientService.end()) {
-        if ((iter->second).pipv6Client != nullptr) {
-            (iter->second).pipv6Client->DhcpIPV6Stop();
-        }
+    DhcpIpv6Client* pipv6ClientToStop = nullptr;
 #if DHCPV6_ENABLE
-        CleanupDhcpV6Client(ifname, iter->second);
+    DhcpV6Client* pDhcpV6ClientToStop = nullptr;
 #endif
+    {
+        std::lock_guard<std::mutex> autoLockServer(m_clientServiceMutex);
+        auto iter = m_mapClientService.find(ifname);
+        if (iter != m_mapClientService.end()) {
+            if ((iter->second).pipv6Client != nullptr) {
+                pipv6ClientToStop = (iter->second).pipv6Client;
+            }
+#if DHCPV6_ENABLE
+            pDhcpV6ClientToStop = CleanupDhcpV6Client(ifname, iter->second);
+#endif
+        }
     }
+    
+    if (pipv6ClientToStop != nullptr) {
+        pipv6ClientToStop->DhcpIPV6Stop();
+    }
+#if DHCPV6_ENABLE
+    if (pDhcpV6ClientToStop != nullptr) {
+        pDhcpV6ClientToStop->DhcpV6Stop();
+        delete pDhcpV6ClientToStop;
+        pDhcpV6ClientToStop = nullptr;
+    }
+#endif
+    
     {
         std::lock_guard<std::mutex> lock(m_ipv6MergeMutex);
 #if DHCPV6_ENABLE
