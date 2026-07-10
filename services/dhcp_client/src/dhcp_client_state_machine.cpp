@@ -307,14 +307,24 @@ void DhcpClientStateMachine::StartIpv4Loop(int sockFdRaw, int sockFdkernel)
     timeout.tv_usec = SELECT_TIMEOUT_US;
 
     while (threadState_.load() == IPV4_TASK_RUNNING) {
-        int sockFd = (m_socketMode == SOCKET_MODE_RAW) ? sockFdRaw : sockFdkernel;
+        uint32_t socketMode = 0;
+        {
+            std::lock_guard<std::mutex> lock(dhcpClientMutex_);
+            socketMode = m_socketMode;
+        }
+        int sockFd = (socketMode == SOCKET_MODE_RAW) ? sockFdRaw : sockFdkernel;
         FD_ZERO(&readfds);
         FD_SET(sockFd, &readfds);
         time_t curTimestamp = time(NULL);
         if (curTimestamp == static_cast<time_t>(-1)) {
             DHCP_LOGI("StartIpv4, time return failed");
         }
-        if (m_timeoutTimestamp - curTimestamp <= 0) {
+        int64_t timeoutTimestamp = 0;
+        {
+            std::lock_guard<std::mutex> lock(dhcpClientMutex_);
+            timeoutTimestamp = m_timeoutTimestamp;
+        }
+        if (timeoutTimestamp - curTimestamp <= 0) {
             DHCP_LOGI("StartIpv4 already timed out, need send or resend packet...");
             DhcpRequestHandle(curTimestamp);
             continue;
@@ -435,6 +445,7 @@ uint32_t DhcpClientStateMachine::GetDhcpTransID(void)
 
 void DhcpClientStateMachine::SetSocketMode(uint32_t mode)
 {
+    std::lock_guard<std::mutex> lock(dhcpClientMutex_);
     m_socketMode = mode;
     DHCP_LOGI("SetSocketMode() the socket mode %{public}s.", (mode == SOCKET_MODE_RAW) ? "raw"
         : ((mode == SOCKET_MODE_KERNEL) ? "kernel" : "not valid"));
@@ -849,7 +860,7 @@ void DhcpClientStateMachine::DhcpOfferPacketHandle(uint8_t type, const struct Dh
             type);
         return;
     }
-
+    std::lock_guard<std::mutex> lock(dhcpClientMutex_);
     m_transID = packet->xid;
     m_requestedIp4 = packet->yiaddr;
     m_serverIp4 = htonl(u32Data);
@@ -1693,6 +1704,7 @@ int DhcpClientStateMachine::DhcpRenew(uint32_t transid, uint32_t clientip, uint3
     /* Begin broadcast or unicast dhcp request packet. */
     if (serverip == 0) {
         DHCP_LOGI("DhcpRenew rebind, begin broadcast req packet");
+        std::lock_guard<std::mutex> lock(dhcpClientMutex_);
         return SendToDhcpPacket(&packet, INADDR_ANY, INADDR_BROADCAST, m_cltCnf.ifaceIndex, (uint8_t *)MAC_BCAST_ADDR);
     }
     DHCP_LOGI("DhcpRenew send renew, begin unicast request packet");
@@ -1956,12 +1968,12 @@ void DhcpClientStateMachine::SetSecondsElapsed(struct DhcpPacket *packet)
         return;
     }
     int64_t curTimeSeconds = GetElapsedSecondsSinceBoot();
-    if (firstSendPacketTime_ == 0) {
-        firstSendPacketTime_ = curTimeSeconds;
+    if (firstSendPacketTime_.load() == 0) {
+        firstSendPacketTime_.store(curTimeSeconds);
     }
-    packet->secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+    packet->secs = htons(static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_.load()));
     DHCP_LOGI("SetSecondsElapsed curTimeSeconds:%{public}" PRId64" %{public}" PRId64", secs:%{public}u",
-        curTimeSeconds, firstSendPacketTime_, static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
+        curTimeSeconds, firstSendPacketTime_.load(), static_cast<uint16_t>(curTimeSeconds - firstSendPacketTime_));
 }
 
 #ifndef OHOS_ARCH_LITE

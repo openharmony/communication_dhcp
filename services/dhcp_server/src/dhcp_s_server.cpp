@@ -29,7 +29,9 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <mutex>
 #include <pthread.h>
+#include <atomic>
 #include "address_utils.h"
 #include "common_util.h"
 #include "dhcp_address_pool.h"
@@ -88,9 +90,10 @@ struct ServerContext {
     DhcpServerCallback callback;
     DeviceConnectFun deviceConnectFun;
     DhcpConfig config;
-    int serverFd;
-    int looperState;
+    std::atomic<int> serverFd;
+    std::atomic<int> looperState;
     int initialized;
+    std::mutex fdMutex;
 };
 
 enum LooperState {
@@ -526,17 +529,20 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
         DHCP_LOGE("dhcp server context pointer is null.");
         return nullptr;
     }
-    ctx->instance->serverFd = InitServer(ctx->ifname);
-    if (ctx->instance->serverFd < 0) {
-        DHCP_LOGE("failed to initialize server socket.");
-        return nullptr;
+    {
+        std::lock_guard<std::mutex> lock(srvIns->fdMutex);
+        ctx->instance->serverFd = InitServer(ctx->ifname);
+        if (ctx->instance->serverFd < 0) {
+            DHCP_LOGE("failed to initialize server socket.");
+            return nullptr;
+        }
     }
     InitOptionList(&from.options);
     InitOptionList(&reply.options);
     srvIns->looperState = LS_RUNNING;
     while (srvIns->looperState) {
         if (OnLooperStateChanged(ctx) != RET_SUCCESS) {
-            DHCP_LOGI("OnLooperStateChanged break, looperState:%{public}d", srvIns->looperState);
+            DHCP_LOGI("OnLooperStateChanged break, looperState:%{public}d", srvIns->looperState.load());
             break;
         }
         ClearOptions(&from.options);
@@ -559,8 +565,11 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
     FreeOptionList(&from.options);
     FreeOptionList(&reply.options);
     DHCP_LOGI("dhcp server message looper stopped.");
-    close(ctx->instance->serverFd);
-    ctx->instance->serverFd = -1;
+    {
+        std::lock_guard<std::mutex> lock(srvIns->fdMutex);
+        close(ctx->instance->serverFd);
+        ctx->instance->serverFd = -1;
+    }
     srvIns->looperState = LS_STOPED;
     return nullptr;
 }
@@ -710,8 +719,7 @@ int GetServerStatus(PDhcpServerContext ctx)
         DHCP_LOGE("dhcp server context pointer is null.");
         return -1;
     }
-    return srvIns->looperState;
-}
+    return srvIns->looperState.load();
 
 int FillReply(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
@@ -1073,6 +1081,15 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
         *yourIpAddr = reqIp;
     }
 
+    if (!srcIp && !cliIp && !reqIp) {
+        DHCP_LOGE("no valid ip address found.");
+        return RET_FAILED;
+    }
+ 
+    if (*yourIpAddr == 0 || *yourIpAddr == INADDR_BROADCAST) {
+        DHCP_LOGE("no valid client ip address could be determined.");
+        return RET_FAILED;
+    }
     if ((ntohl(*yourIpAddr) < ntohl(pool->addressRange.beginAddress))
             || (ntohl(*yourIpAddr) > ntohl(pool->addressRange.endAddress))) {
         return RET_FAILED;

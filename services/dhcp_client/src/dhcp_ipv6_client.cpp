@@ -1,4 +1,4 @@
-/*
+ /*
  * Copyright (C) 2023 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -301,10 +301,7 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
             return;
         }
     }
-    if (!addr) {
-        DHCP_LOGE("OnIpv6AddressUpdateEvent failed, data invalid.");
-        return;
-    }
+    if (!addr) { return; }
     AddrType type = AddrType::UNKNOW;
     if (scope == 0) {
         getIpv6RouteAddr();
@@ -513,7 +510,10 @@ void DhcpIpv6Client::onIpv6DnsAddEvent(void* data, int len, int ifaIndex)
     bool changed = dhcpIpv6DnsRepository_->AddServers(lifetime, dnsAddrVector);
     if (changed) {
         DHCP_LOGI("onIpv6DnsAddEvent dns servers changed");
-        dhcpIpv6DnsRepository_->SetCurrentServers(dhcpIpv6Info);
+        {
+            std::lock_guard<std::mutex> lock(mutex_);
+            dhcpIpv6DnsRepository_->SetCurrentServers(dhcpIpv6Info);
+        }
         PublishIpv6Result();
     }
 }
@@ -538,9 +538,15 @@ void DhcpIpv6Client::OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaInd
     if (strlen(dst) == 0 && strlen(gateway) != 0) {
         if (isAdd) {
             raReceived_ = true;
-            isChanged = DhcpIpv6InfoManager::AddRoute(dhcpIpv6Info, std::string(gateway));
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                isChanged = DhcpIpv6InfoManager::AddRoute(dhcpIpv6Info, std::string(gateway));
+            }
         } else {
-            isChanged = DhcpIpv6InfoManager::RemoveRoute(dhcpIpv6Info, std::string(gateway));
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                isChanged = DhcpIpv6InfoManager::RemoveRoute(dhcpIpv6Info, std::string(gateway));
+            }
             // Trigger RS when default route is removed (possible roaming)
             SendRouterSolicitation();
         }

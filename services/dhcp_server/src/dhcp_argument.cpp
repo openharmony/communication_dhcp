@@ -57,8 +57,8 @@ int HasArgument(const char *argument)
         return 0;
     }
     size_t ssize = strlen(argument);
-    if (ssize > ARGUMENT_NAME_SIZE) {
-        ssize = ARGUMENT_NAME_SIZE;
+    if (ssize >= ARGUMENT_NAME_SIZE) {
+        ssize = ARGUMENT_NAME_SIZE -1;
     }
     if (memcpy_s(name, ARGUMENT_NAME_SIZE, argument, ssize) != EOK) {
         DHCP_LOGE("failed to set argument name.");
