@@ -1080,7 +1080,6 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
     } else if (reqIp && reqIp != INADDR_BROADCAST) {
         *yourIpAddr = reqIp;
     }
-
     if (!srcIp && !cliIp && !reqIp) {
         DHCP_LOGE("no valid ip address found.");
         return RET_FAILED;
@@ -1463,9 +1462,7 @@ static int OnReceivedDecline(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
 
 static int OnReceivedRelease(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
-    if (!received || !reply) {
-        return REPLY_NONE;
-    }
+    if (!received || !reply) { return REPLY_NONE; }
     DHCP_LOGI("received 'Release' message from: %s", ParseLogMac(received->packet.chaddr));
     if (!ctx || !ctx->instance) {
         return RET_FAILED;
@@ -1766,6 +1763,10 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         DHCP_LOGE("ParseMessageOptions, msg length:%{public}d error", msg->length);
         return RET_FAILED;
     }
+    if (msg->length > DHCP_MSG_HEADER_SIZE + DHCP_OPTIONS_SIZE) {
+        DHCP_LOGE("ParseMessageOptions, msg length too large:%{public}d", msg->length);
+        return RET_FAILED;
+    }
     DhcpOption *current, *end;
     current = (DhcpOption *)msg->packet.options;
     end = (DhcpOption *)(((uint8_t *)msg->packet.options) + (msg->length - DHCP_MSG_HEADER_SIZE));
@@ -1779,6 +1780,10 @@ static int ParseMessageOptions(PDhcpMsgInfo msg)
         (DHCP_OPTION_SIZE - MAGIC_COOKIE_LENGTH - OPT_HEADER_LENGTH -1));
     int optTotal = 0;
     while (current < end && current->code != END_OPTION) {
+        if (((uint8_t *)end) - ((uint8_t *)current) < OPT_HEADER_LENGTH) {
+            DHCP_LOGE("current->code:%{public}d out of option range.", current->code);
+            return RET_FAILED;
+        }
         if (((uint8_t *)end) - ((uint8_t *)current) - current->length < OPT_HEADER_LENGTH) {
             DHCP_LOGE("current->code:%{public}d out of option range.", current->code);
             return RET_FAILED;
@@ -1936,7 +1941,10 @@ static int InitServerContext(DhcpConfig *config, DhcpServerContext *ctx)
         DHCP_LOGD("failed to set interface name.");
         return RET_FAILED;
     }
-    srvIns->serverFd = 0;
+    {
+        std::lock_guard<std::mutex> lock(srvIns->fdMutex);
+        srvIns->serverFd = 0;
+    }
     srvIns->callback = 0;
     srvIns->looperState = LS_IDLE;
     srvIns->broadCastFlagEnable = static_cast<int>(config->broadcast);
