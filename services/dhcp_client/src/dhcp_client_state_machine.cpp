@@ -406,13 +406,17 @@ bool DhcpClientStateMachine::InitSocketFd(int &sockFdRaw, int &sockFdkernel)
         close(sockFdRaw);
         return false;
     }
+    if (sockFdkernel < 0) {
+        DHCP_LOGE("InitSocketFd CreateKernelSocket failed, sockFdkernel:%{public}d invalid!", sockFdkernel);
+        close(sockFdRaw);
+        return false;
+    }
     if (BindKernelSocket(sockFdkernel, m_cltCnf.ifaceName, INADDR_ANY, BOOTP_CLIENT, true) != SOCKET_OPT_SUCCESS) {
         DHCP_LOGE("InitSocketFd BindKernelSocket failed, fd:%{public}d,ifname:%{public}s failed!",
             sockFdkernel, m_cltCnf.ifaceName);
         close(sockFdRaw);
         return false;
     }
-    
     DHCP_LOGI("InitSocketFd success, sockFdRaw:%{public}d  sockFdkernel:%{public}d ifname:%{public}s!",
         sockFdRaw, sockFdkernel, m_cltCnf.ifaceName);
     return true;

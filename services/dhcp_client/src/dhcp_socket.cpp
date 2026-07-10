@@ -257,6 +257,16 @@ int SendToDhcpPacket(
     int optionLen = GetEndOptionIndex(sendPacket->options) + DHCP_APPEND_LEN;
     int sendLen = sizeof(udpPackets) - sizeof(udpPackets.data.options) + optionLen;
     int dhcpPackLen = sizeof(struct DhcpPacket) - sizeof(udpPackets.data.options) + optionLen;
+    if (optionLen < 0 || optionLen > DHCP_OPT_SIZE) {
+        DHCP_LOGE("SendToDhcpPacket invalid optionLen:%{public}d.", optionLen);
+        close(nFd);
+        return SOCKET_OPT_FAILED;
+    }
+    if (sendLen <= 0 || sendLen > (int)sizeof(udpPackets)) {
+        DHCP_LOGE("SendToDhcpPacket invalid sendLen:%{public}d.", sendLen);
+        close(nFd);
+        return SOCKET_OPT_FAILED;
+    }
     udpPackets.udp.source = htons(BOOTP_CLIENT);
     udpPackets.udp.dest = htons(BOOTP_SERVER);
     udpPackets.udp.len = htons(sizeof(udpPackets.udp) + dhcpPackLen);
@@ -478,6 +488,10 @@ int GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
     int nDhcpPacket = nBytes - static_cast<int>(sizeof(udpPackets.ip) + sizeof(udpPackets.udp));
     if (memcpy_s(getPacket, sizeof(struct DhcpPacket), &(udpPackets.data), nDhcpPacket) != EOK) {
         DHCP_LOGE("GetDhcpRawPacket() memcpy_s packet.data failed!");
+        return SOCKET_OPT_FAILED;
+    }
+    if (nBytes < static_cast<int>(sizeof(struct DhcpPacket))) {
+        DHCP_LOGE("GetDhcpKernelPacket() read bytes:%{public}d less than DhcpPacket size!", nBytes);
         return SOCKET_OPT_FAILED;
     }
     if (ntohl(getPacket->cookie) != MAGIC_COOKIE) {
