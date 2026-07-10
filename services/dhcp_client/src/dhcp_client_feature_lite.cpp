@@ -23,6 +23,9 @@
 #include "service.h"
 #include "dhcp_ipc_lite_adapter.h"
 #include "dhcp_client_service_impl.h"
+#include "dhcp_logger.h"
+
+DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientFeatureLite");
 
 using namespace OHOS::DHCP;
 static std::shared_ptr<DhcpClientServiceImpl> g_dhcpClientServiceImpl = DhcpClientServiceImpl::GetInstance();
@@ -75,14 +78,14 @@ static BOOL OnMessage(Feature *feature, Request *request)
 
 static int Invoke(IServerProxy *proxy, int funcId, void *origin, IpcIo *req, IpcIo *reply)
 {
-    LOGI("[DhcpClientFeature] begin to call Invoke, funcId is %{public}d", funcId);
+    DHCP_LOGI("[DhcpClientFeature] begin to call Invoke, funcId is %{public}d", funcId);
     if (g_dhcpClientServiceImpl != NULL) {
         return g_dhcpClientServiceImpl->OnRemoteRequest(funcId, req, reply);
     }
     return EC_FAILURE;
 }
 
-static DhcpServerFeature g_serverFeature = {
+static DhcpClientFeature  g_serverFeature = {
     .GetName = GetName,
     .OnInitialize = OnInitialize,
     .OnStop = OnStop,
@@ -95,16 +98,16 @@ static DhcpServerFeature g_serverFeature = {
 
 static void Init(void)
 {
-    LOGI("[DhcpClientFeature] Init start.");
+    DHCP_LOGI("[DhcpClientFeature] Init start.");
     BOOL ret = SAMGR_GetInstance()->RegisterFeature(DHCP_CLIENT_LITE, (Feature *)&g_serverFeature);
     if (ret == FALSE) {
-        LOGE("[DhcpClientFeature] register feature fail.");
+        DHCP_LOGE("[DhcpClientFeature] register feature fail.");
         return;
     }
     ret = SAMGR_GetInstance()->RegisterFeatureApi(DHCP_CLIENT_LITE,
         DHCP_FEATRUE_CLIENT, GET_IUNKNOWN(g_serverFeature));
     if (ret == FALSE) {
-        LOGE("[DhcpClientFeature] register feature api fail.");
+        DHCP_LOGE("[DhcpClientFeature] register feature api fail.");
     }
 }
 SYSEX_FEATURE_INIT(Init);

@@ -120,32 +120,53 @@ void DhcpClientCallBackStub::OnIpFailChanged(int status, const std::string& ifna
 }
 
 
-int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, IpcIo *data)
+static std::string ReadStringValue(IpcIo *data, size_t &readLen)
 {
-    DHCP_LOGI("run %{public}s code %{public}u", __func__, code);
-    size_t readLen;
-    int state = 0;
-    (void)ReadInt32(data, &state);
-    std::string ifname = (char *)ReadString(data, &readLen);
+    const char *value = reinterpret_cast<const char *>(ReadString(data, &readLen));
+    return value == nullptr ? "" : value;
+}
 
-    DhcpResult result;
+static void ReadDhcpResultBase(IpcIo *data, DhcpResult &result)
+{
     (void)ReadInt32(data, &result.iptype);
     (void)ReadBool(data, &result.isOptSuc);
     (void)ReadUint32(data, &result.uLeaseTime);
     (void)ReadUint32(data, &result.uAddTime);
     (void)ReadUint32(data, &result.uGetTime);
-    result.strYourCli = (char *)ReadString(data, &readLen);
-    result.strServer = (char *)ReadString(data, &readLen);
-    result.strSubnet = (char *)ReadString(data, &readLen);
-    result.strDns1 = (char *)ReadString(data, &readLen);
-    result.strDns2 = (char *)ReadString(data, &readLen);
-    result.strRouter1 = (char *)ReadString(data, &readLen);
-    result.strRouter2 = (char *)ReadString(data, &readLen);
-    result.strVendor = (char *)ReadString(data, &readLen);
-    result.strLinkIpv6Addr = (char *)ReadString(data, &readLen);
-    result.strRandIpv6Addr = (char *)ReadString(data, &readLen);
-    result.strLocalAddr1 = (char *)ReadString(data, &readLen);
-    result.strLocalAddr2 = (char *)ReadString(data, &readLen);
+}
+
+static void ReadDhcpResultStrings(IpcIo *data, DhcpResult &result)
+{
+    size_t readLen;
+    result.strYourCli = ReadStringValue(data, readLen);
+    result.strServer = ReadStringValue(data, readLen);
+    result.strSubnet = ReadStringValue(data, readLen);
+    result.strDns1 = ReadStringValue(data, readLen);
+    result.strDns2 = ReadStringValue(data, readLen);
+    result.strRouter1 = ReadStringValue(data, readLen);
+    result.strRouter2 = ReadStringValue(data, readLen);
+    result.strVendor = ReadStringValue(data, readLen);
+    result.strLinkIpv6Addr = ReadStringValue(data, readLen);
+    result.strRandIpv6Addr = ReadStringValue(data, readLen);
+    result.strLocalAddr1 = ReadStringValue(data, readLen);
+    result.strLocalAddr2 = ReadStringValue(data, readLen);
+}
+
+int DhcpClientCallBackStub::RemoteOnIpSuccessChanged(uint32_t code, IpcIo *data)
+{
+    DHCP_LOGI("run %{public}s code %{public}u", __func__, code);
+    if (data == nullptr) {
+        DHCP_LOGE("DhcpClientCallBackStub::RemoteOnIpSuccessChanged, data is nullptr!");
+        return -1;
+    }
+    size_t readLen;
+    int state = 0;
+    (void)ReadInt32(data, &state);
+    std::string ifname = ReadStringValue(data, readLen);
+
+    DhcpResult result;
+    ReadDhcpResultBase(data, result);
+    ReadDhcpResultStrings(data, result);
     OnIpSuccessChanged(state, ifname, result);
     return 0;
 }
@@ -156,8 +177,18 @@ int DhcpClientCallBackStub::RemoteOnIpFailChanged(uint32_t code, IpcIo *data)
     size_t readLen;
     int state = 0;
     (void)ReadInt32(data, &state);
-    std::string ifname = (char *)ReadString(data, &readLen);
-    std::string reason = (char *)ReadString(data, &readLen);
+    char *ifnameStr = reinterpret_cast<char *>(ReadString(data, &readLen));
+    if (ifnameStr == nullptr) {
+        DHCP_LOGE("RemoteOnIpFailChanged ifnameStr is nullptr!");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname = ifnameStr;
+    char *reasonStr = reinterpret_cast<char *>(ReadString(data, &readLen));
+    if (reasonStr == nullptr) {
+        DHCP_LOGE("RemoteOnIpFailChanged reasonStr is nullptr!");
+        return DHCP_OPT_FAILED;
+    }
+    std::string reason = reasonStr;
     OnIpFailChanged(state, ifname, reason);
     return 0;
 }

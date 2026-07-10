@@ -57,7 +57,7 @@ bool DhcpClientImpl::Init(int systemAbilityId)
         DHCP_LOGE("get dhcp client proxy failed.");
         return false;
     }
-    if (clientProxy->Init() != DHCP_OPT_SUCCESS) {
+    if (!clientProxy->Initialize()) {
         DHCP_LOGE("dhcp client proxy init failed.");
         DhcpClientProxy::ReleaseInstance();
         return false;

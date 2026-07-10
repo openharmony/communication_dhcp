@@ -104,7 +104,12 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("create new DhcpClientCallbackProxy!");
 
     size_t readLen;
-    std::string ifname = (char *)ReadString(req, &readLen);
+    char *rawIfname = reinterpret_cast<char *>(ReadString(req, &readLen));
+    if (rawIfname == nullptr) {
+        DHCP_LOGE("OnRegisterCallBack ReadString ifname failed");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname(rawIfname);
     DHCP_LOGI("ifname:%{public}s", ifname.c_str());
 
     ret = RegisterDhcpClientCallBack(ifname, callback_);
@@ -117,14 +122,6 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u", __func__, code);
     ErrCode ret = DHCP_E_FAILED;
-    SvcIdentity sid;
-    bool readSid = ReadRemoteObject(req, &sid);
-    if (!readSid) {
-        DHCP_LOGE("read SvcIdentity failed");
-        (void)WriteInt32(reply, 0);
-        (void)WriteInt32(reply, ret);
-        return DHCP_OPT_FAILED;
-    }
 
     size_t readLen;
     RouterConfig config;
@@ -134,6 +131,8 @@ int DhcpClientStub::OnStartDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     (void)ReadBool(req, &config.prohibitUseCacheIp);
     (void)ReadBool(req, &config.bIpv6);
     (void)ReadBool(req, &config.bSpecificNetwork);
+    config.ifname = ifname;
+    config.bssid = bssid;
     (void)ReadBool(req, &config.isStaticIpv4);
     (void)ReadBool(req, &config.bIpv4);
     DHCP_LOGI("ifname:%{public}s prohibitUseCacheIp:%{public}d, bIpv6:%{public}d, bSpecificNetwork:%{public}d",
@@ -149,18 +148,15 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
 {
     DHCP_LOGI("run %{public}s code %{public}u", __func__, code);
     ErrCode ret = DHCP_E_FAILED;
-    SvcIdentity sid;
-    bool readSid = ReadRemoteObject(req, &sid);
-    if (!readSid) {
-        DHCP_LOGE("read SvcIdentity failed");
-        (void)WriteInt32(reply, 0);
-        (void)WriteInt32(reply, ret);
-        return DHCP_OPT_FAILED;
-    }
 
     size_t readLen;
     bool bIpv6;
-    std::string ifname = (char *)ReadString(req, &readLen);
+    char *rawIfname = reinterpret_cast<char *>(ReadString(req, &readLen));
+    if (rawIfname == nullptr) {
+        DHCP_LOGE("OnStopDhcpClient ReadString ifname failed");
+        return DHCP_OPT_FAILED;
+    }
+    std::string ifname(rawIfname);
     (void)ReadBool(req, &bIpv6);
     bool bIpv4 = true;
     (void)ReadBool(req, &bIpv4);

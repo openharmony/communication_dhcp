@@ -15,7 +15,7 @@
 
 #ifndef OHOS_DHCP_IPC_LITE_ADAPTER_H
 #define OHOS_DHCP_IPC_LITE_ADAPTER_H
-
+#include "ipc_skeleton.h"
 #define DHCP_CLIENT_LITE "dhcpclientlite"
 #define DHCP_FEATRUE_CLIENT "dhcpclient"
 

@@ -33,6 +33,14 @@
 #endif
 #endif
 
+#ifdef OHOS_ARCH_LITE
+#include <unistd.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include <cstring>
+#include <iostream>
+#endif
+
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientServiceImpl");
 
 namespace OHOS {
@@ -489,6 +497,75 @@ ErrCode DhcpClientServiceImpl::StopClientSa(void)
 #endif
 }
 
+#ifdef OHOS_ARCH_LITE
+static constexpr int EXEC_ROUTE_FAILED_CODE = 127;
+
+static int ExecRouteAdd(const char *router, const char *iface)
+{
+    pid_t pid = fork();
+    if (pid < 0) {
+        perror("fork failed");
+        return -1;
+    }
+
+    if (pid == 0) {
+        // child
+        execl("/bin/route", "route",
+              "add", "default",
+              "gw", router,
+              "dev", iface,
+              (char *)nullptr);
+        perror("exec route failed");
+        _exit(EXEC_ROUTE_FAILED_CODE);
+    }
+
+    // parent
+    int status = 0;
+    waitpid(pid, &status, 0);
+    return WIFEXITED(status) ? WEXITSTATUS(status) : -1;
+}
+
+static int WriteResolvConf(const char *dns1, const char *dns2)
+{
+    int fd = open("/etc/resolv.conf",
+                  O_WRONLY | O_CREAT | O_TRUNC,
+                  0644);
+    if (fd < 0) {
+        perror("open resolv.conf failed");
+        return -1;
+    }
+
+    std::string content;
+    content += "nameserver ";
+    content += dns1;
+    content += "\n";
+
+    if (dns2 && dns2[0] != '\0') {
+        content += "nameserver ";
+        content += dns2;
+        content += "\n";
+    }
+
+    ssize_t ret = write(fd, content.c_str(), content.size());
+    close(fd);
+
+    return (ret == (ssize_t)content.size()) ? 0 : -1;
+}
+
+static void SaveDefaultRouteAndDns(OHOS::DHCP::DhcpResult &result, std::string &ifname)
+{
+    if (!result.strRouter1.empty()) {
+        DHCP_LOGI("SaveDefaultRouteAndDns result.strRouter1 %{public}s", result.strRouter1.c_str());
+        ExecRouteAdd(result.strRouter1.c_str(), ifname.c_str());
+    }
+    if (!result.strDns1.empty() || !result.strDns2.empty()) {
+        DHCP_LOGI("SaveDefaultRouteAndDns result.strDns1 %{public}s", result.strDns1.c_str());
+        DHCP_LOGI("SaveDefaultRouteAndDns result.strDns2 %{public}s", result.strDns2.c_str());
+        WriteResolvConf(result.strDns1.c_str(), result.strDns2.c_str());
+    }
+}
+#endif
+
 int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
 {
     std::string ifname = ipResult.ifname;
@@ -533,6 +610,9 @@ int DhcpClientServiceImpl::DhcpIpv4ResultSuccess(struct DhcpIpResult &ipResult)
     }
     PushDhcpResult(ifname, result);
     (iter->second)->OnIpSuccessChanged(DHCP_OPT_SUCCESS, ifname, result);
+#ifdef OHOS_ARCH_LITE
+    SaveDefaultRouteAndDns(result, ifname);
+#endif
     return DHCP_OPT_SUCCESS;
 }
 #ifndef OHOS_ARCH_LITE

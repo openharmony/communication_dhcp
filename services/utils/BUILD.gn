@@ -25,11 +25,14 @@ if (defined(ohos_lite)) {
     sources = [
       "src/dhcp_arp_checker.cpp",
       "src/dhcp_common_utils.cpp",
+      "src/dhcp_permission_utils.cpp"
     ]
 
     include_dirs = [
       "$DHCP_ROOT_DIR/services",
       "$DHCP_ROOT_DIR/services/utils/include",
+      "//third_party/bounds_checking_function/include",
+      "//base/hiviewdfx/hilog_lite/interfaces/native/innerkits"
     ]
     configs -= [ "//build/lite/config:language_cpp" ]
     cflags = [
@@ -41,8 +44,10 @@ if (defined(ohos_lite)) {
       "-fno-rtti",
     ]
 
-    deps = []
-    external_deps = []
+    deps = [
+      "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared"
+    ]
+    external_deps = [ "bounds_checking_function:libsec_shared" ]
     defines = [
       "_GNU_SOURCE",
       "OHOS_ARCH_LITE",
