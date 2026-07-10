@@ -533,7 +533,6 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
         std::lock_guard<std::mutex> lock(srvIns->fdMutex);
         ctx->instance->serverFd = InitServer(ctx->ifname);
         if (ctx->instance->serverFd < 0) {
-            DHCP_LOGE("failed to initialize server socket.");
             return nullptr;
         }
     }
@@ -552,9 +551,7 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
             DHCP_LOGI("ReceiveDhcpMessage");
             continue;
         }
-        if (ContinueReceive(&from, recvRet)) {
-            continue;
-        }
+        if (ContinueReceive(&from, recvRet)) { continue; }
         InitReply(ctx, &from, &reply);
         int replyType = MessageProcess(ctx, &from, &reply);
         if (replyType && SendDhcpReply(ctx, replyType, &reply) != RET_SUCCESS) {
@@ -720,6 +717,7 @@ int GetServerStatus(PDhcpServerContext ctx)
         return -1;
     }
     return srvIns->looperState.load();
+}
 
 int FillReply(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
@@ -903,7 +901,6 @@ static void AddReplyMessageTypeOption(PDhcpMsgInfo reply, uint8_t replyMessageTy
     DhcpOption optMsgType = {DHCP_MESSAGE_TYPE_OPTION, OPT_MESSAGE_TYPE_LEGTH, {replyMessageType, 0}};
     PushBackOption(&reply->options, &optMsgType);
 }
-
 
 AddressBinding *GetBinding(DhcpAddressPool *pool, PDhcpMsgInfo received)
 {
