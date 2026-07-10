@@ -422,7 +422,6 @@ AddressBinding *GetLease(DhcpAddressPool *pool, uint32_t ipAddress)
         return nullptr;
     }
     uint32_t ipAddr = ipAddress;
-    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     if (pool->leaseTable.count(ipAddr) > 0) {
         return &pool->leaseTable[ipAddr];
     }
