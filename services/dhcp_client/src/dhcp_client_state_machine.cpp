@@ -445,7 +445,6 @@ uint32_t DhcpClientStateMachine::GetDhcpTransID(void)
 
 void DhcpClientStateMachine::SetSocketMode(uint32_t mode)
 {
-    std::lock_guard<std::mutex> lock(dhcpClientMutex_);
     m_socketMode = mode;
     DHCP_LOGI("SetSocketMode() the socket mode %{public}s.", (mode == SOCKET_MODE_RAW) ? "raw"
         : ((mode == SOCKET_MODE_KERNEL) ? "kernel" : "not valid"));
