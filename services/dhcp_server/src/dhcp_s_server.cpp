@@ -1080,9 +1080,6 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
     } else if (reqIp && reqIp != INADDR_BROADCAST) {
         *yourIpAddr = reqIp;
     }
-
-
-
     if ((ntohl(*yourIpAddr) < ntohl(pool->addressRange.beginAddress))
             || (ntohl(*yourIpAddr) > ntohl(pool->addressRange.endAddress))) {
         return RET_FAILED;
