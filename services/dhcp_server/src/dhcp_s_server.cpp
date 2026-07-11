@@ -1066,8 +1066,8 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
     }
     if (!srcIp && !cliIp && !reqIp) {
         DHCP_LOGE("no valid ip address found.");
- 	    return RET_FAILED;
- 	}
+        return RET_FAILED;
+    }
 
     if (*yourIpAddr == 0 || *yourIpAddr == INADDR_BROADCAST) {
         DHCP_LOGE("no valid client ip address could be determined.");
