@@ -251,6 +251,7 @@ int InitAddressPool(DhcpAddressPool *pool, const char *ifname, PDhcpOptionList o
     pool->distribue = AddressDistribute;
     pool->binding = QueryBinding;
     pool->newBinding = AddNewBinding;
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     pool->leaseTable.clear();
     return RET_SUCCESS;
 }
