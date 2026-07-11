@@ -490,10 +490,7 @@ int GetDhcpRawPacket(struct DhcpPacket *getPacket, int rawFd)
         DHCP_LOGE("GetDhcpRawPacket() memcpy_s packet.data failed!");
         return SOCKET_OPT_FAILED;
     }
-    if (nBytes < static_cast<int>(sizeof(struct DhcpPacket))) {
-        DHCP_LOGE("GetDhcpKernelPacket() read bytes:%{public}d less than DhcpPacket size!", nBytes);
-        return SOCKET_OPT_FAILED;
-    }
+
     if (ntohl(getPacket->cookie) != MAGIC_COOKIE) {
         DHCP_LOGE("GetDhcpRawPacket() cook:%{public}x error, COOK:%{public}x!", ntohl(getPacket->cookie), MAGIC_COOKIE);
         return SOCKET_OPT_FAILED;
