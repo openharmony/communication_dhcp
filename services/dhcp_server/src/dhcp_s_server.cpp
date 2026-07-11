@@ -532,9 +532,7 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
     {
         std::lock_guard<std::mutex> lock(srvIns->fdMutex);
         ctx->instance->serverFd = InitServer(ctx->ifname);
-        if (ctx->instance->serverFd < 0) {
-            return nullptr;
-        }
+        if (ctx->instance->serverFd < 0) { return nullptr; }
     }
     InitOptionList(&from.options);
     InitOptionList(&reply.options);
