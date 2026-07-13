@@ -34,6 +34,11 @@ bool DhcpIpv6InfoManager::AddRoute(DhcpIpv6Info &dhcpIpv6Info, std::string defau
         return false;
     }
     for (auto route : dhcpIpv6Info.defaultRouteAddr) {
+        size_t routeLen = route.length();
+        if (routeLen >= DHCP_INET6_ADDRSTRLEN) {
+            DHCP_LOGE("AddRoute route address too long");
+            continue;
+        }
         if (memcpy_s(dhcpIpv6Info.routeAddr, DHCP_INET6_ADDRSTRLEN, route.c_str(), route.length() + 1) == EOK) {
             return true;
         }
@@ -302,6 +307,10 @@ bool DhcpIpv6InfoManager::AddLifetime(DhcpIpv6Info &dhcpIpv6Info, uint32_t lifet
 
 bool DhcpIpv6InfoManager::UpdateUseTempAddr(uint32_t lifetime, std::string ifname)
 {
+    if (ifname.empty()) {
+        DHCP_LOGE("UpdateUseTempAddr ifname is empty");
+        return false;
+    }
     if (lifetime >= IPV6_LIFETIME_INFINITY) {
         DHCP_LOGI("UpdateUseTempAddr ifname %{public}s lifetime %{public}u is valid", ifname.c_str(), lifetime);
         return true;
