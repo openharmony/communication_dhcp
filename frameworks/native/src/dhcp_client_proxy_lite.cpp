@@ -13,11 +13,17 @@
  * limitations under the License.
  */
 #include "dhcp_client_proxy.h"
+#include <unistd.h>
 #include "dhcp_manager_service_ipc_interface_code.h"
 #include "dhcp_client_callback_stub_lite.h"
 #include "dhcp_c_utils.h"
 #include "dhcp_errcode.h"
 #include "dhcp_logger.h"
+#include "samgr_lite.h"
+#include "dhcp_ipc_lite_adapter.h"
+#include "dhcp_error_code.h"
+#include "dhcp_define.h"
+#include "dhcp_sdk_define.h"
 
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpClientProxyLite");
 
@@ -26,6 +32,8 @@ namespace DHCP {
 static SvcIdentity g_sid;
 static IpcObjectStub g_objStub;
 static DhcpClientCallBackStub g_dhcpClientCallBackStub;
+const int RETRY_TIMES = 30;
+const int ERROR_SLEEP_TIMES = 300;
 
 DhcpClientProxy *DhcpClientProxy::g_instance = nullptr;
 DhcpClientProxy::DhcpClientProxy() : remoteDied_(false)
@@ -62,16 +70,16 @@ static int IpcCallback(void *owner, int code, IpcIo *reply)
     if (code != 0 || owner == nullptr || reply == nullptr) {
         DHCP_LOGE("Callback error, code:%{public}d, owner:%{public}d, reply:%{public}d",
             code, owner == nullptr, reply == nullptr);
-        return ERR_FAILED;
+        return DHCP_FAILED;
     }
 
     struct IpcOwner *data = (struct IpcOwner *)owner;
     (void)ReadInt32(reply, &data->exception);
     (void)ReadInt32(reply, &data->retCode);
     if (data->exception != 0 || data->retCode != DHCP_OPT_SUCCESS || data->variable == nullptr) {
-        return ERR_FAILED;
+        return DHCP_FAILED;
     }
-    return ERR_NONE;
+    return DHCP_SUCCESS;
 }
 
 static int AsyncCallback(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption option)
@@ -83,13 +91,40 @@ static int AsyncCallback(uint32_t code, IpcIo *data, IpcIo *reply, MessageOption
     return g_dhcpClientCallBackStub.OnRemoteRequest(code, data);
 }
 
+bool DhcpClientProxy::Initialize() const
+{
+    if (remote_ != nullptr) {
+        return true;
+    }
+    int retry = RETRY_TIMES;
+    IUnknown *iUnknown = nullptr;
+    while (retry--) {
+        iUnknown = SAMGR_GetInstance()->GetFeatureApi(DHCP_CLIENT_LITE, DHCP_FEATRUE_CLIENT);
+        if (iUnknown == nullptr) {
+            usleep(ERROR_SLEEP_TIMES); // sleep 300ms
+            continue;
+        }
+        (void)iUnknown->QueryInterface(iUnknown, CLIENT_PROXY_VER, (void **)&remote_);
+        if (remote_ == nullptr) {
+            DHCP_LOGE("dhcp client remote_ is null");
+            usleep(ERROR_SLEEP_TIMES); // sleep 300ms
+            continue;
+        }
+        return true;
+    }
+    if (iUnknown == nullptr) {
+        DHCP_LOGE("iUnknown is null");
+    }
+    return false;
+}
+
 ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
     const std::shared_ptr<IDhcpClientCallBack> &callback)
 {
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
             __func__, remoteDied_, remote_ == nullptr);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
     g_objStub.func = AsyncCallback;
     g_objStub.args = nullptr;
@@ -106,13 +141,13 @@ ErrCode DhcpClientProxy::RegisterDhcpClientCallBack(const std::string& ifname,
     IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
     if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
         DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
     (void)WriteInt32(&req, 0);
     bool writeRemote = WriteRemoteObject(&req, &g_sid);
     if (!writeRemote) {
         DHCP_LOGE("WriteRemoteObject failed.");
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
 
     (void)WriteString(&req, ifname.c_str());
@@ -139,7 +174,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
             __func__, remoteDied_, remote_ == nullptr);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
 
     IpcIo req;
@@ -149,7 +184,7 @@ ErrCode DhcpClientProxy::StartDhcpClient(const RouterConfig &config)
     IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
     if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
         DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
 
     (void)WriteInt32(&req, 0);
@@ -182,7 +217,7 @@ ErrCode DhcpClientProxy::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCac
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
             __func__, remoteDied_, remote_ == nullptr);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
 
     IpcIo req;
@@ -192,7 +227,7 @@ ErrCode DhcpClientProxy::DealWifiDhcpCache(int32_t cmd, const IpCacheInfo &ipCac
     IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
     if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
         DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
 
     (void)WriteInt32(&req, 0);
@@ -221,7 +256,7 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6, b
     if (remoteDied_ || remote_ == nullptr) {
         DHCP_LOGE("failed to %{public}s, remoteDied_: %{public}d, remote_: %{public}d",
             __func__, remoteDied_, remote_ == nullptr);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
     IpcIo req;
     char data[IPC_DATA_SIZE_SMALL];
@@ -230,7 +265,7 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6, b
     IpcIoInit(&req, data, IPC_DATA_SIZE_SMALL, MAX_IPC_OBJ_COUNT);
     if (!WriteInterfaceToken(&req, DECLARE_INTERFACE_DESCRIPTOR_L1, DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH)) {
         DHCP_LOGE("Write interface token error: %{public}s", __func__);
-        return DHCP_OPT_FAILED;
+        return DHCP_E_FAILED;
     }
 
     (void)WriteInt32(&req, 0);
@@ -253,6 +288,19 @@ ErrCode DhcpClientProxy::StopDhcpClient(const std::string& ifname, bool bIpv6, b
     }
     DHCP_LOGI("StopDhcpClient ok, exception:%{public}d", owner.exception);
     return DHCP_E_SUCCESS;
+}
+
+ErrCode DhcpClientProxy::StopClientSa(void)
+{
+    return DHCP_E_SUCCESS;
+}
+
+bool DhcpClientProxy::IsRemoteDied(void)
+{
+    if (remoteDied_) {
+        DHCP_LOGW("IsRemoteDied! remote is died now!");
+    }
+    return remoteDied_;
 }
 }  // namespace DHCP
 }  // namespace OHOS

@@ -48,6 +48,11 @@ if (defined(ohos_lite)) {
       "src/dhcp_options.cpp",
       "src/dhcp_result.cpp",
       "src/dhcp_socket.cpp",
+      "src/dhcp_result_store_manager.cpp",
+      #"src/dhcp_thread.cpp",
+      "$DHCP_ROOT_DIR/services/utils/src/dhcp_thread.cpp",
+      "src/dhcp_client_feature_lite.cpp",
+      "src/dhcp_client_mgr_service_lite.cpp"
     ]
 
     include_dirs = local_base_include_dirs
@@ -56,11 +61,14 @@ if (defined(ohos_lite)) {
       "//third_party/bounds_checking_function/include",
       "//foundation/systemabilitymgr/samgr_lite/interfaces/innerkits/registry",
       "//foundation/systemabilitymgr/samgr_lite/interfaces/innerkits/samgr",
+      "//foundation/communication/dhcp/services/utils/include",
+      "//commonlibrary/c_utils/base/include",
     ]
 
     deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",
       "//foundation/systemabilitymgr/samgr_lite/samgr:samgr",
+      "//foundation/communication/dhcp/services/utils:dhcp_utils"
     ]
     external_deps = [ "bounds_checking_function:libsec_shared" ]
     defines = [

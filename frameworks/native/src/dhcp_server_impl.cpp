@@ -57,12 +57,12 @@ bool DhcpServerImpl::Init(int systemAbilityId)
         DHCP_LOGE("get dhcp server proxy failed.");
         return false;
     }
-    if (clientProxy->Init() != DHCP_OPT_SUCCESS) {
+    if (serverProxy->Init() != DHCP_OPT_SUCCESS) {
         DHCP_LOGE("dhcp server proxy init failed.");
         DhcpServerProxy::ReleaseInstance();
         return false;
     }
-    client_ = clientProxy;
+    client_ = serverProxy;
     return true;
 #else
     systemAbilityId_ = systemAbilityId;

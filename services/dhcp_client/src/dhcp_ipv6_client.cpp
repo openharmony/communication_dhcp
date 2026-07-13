@@ -227,7 +227,7 @@ void DhcpIpv6Client::GetIpv6Prefix(const char* ipv6Addr, char* ipv6PrefixBuf, ui
         return;
     }
     uint32_t bitOffset = prefixLen & MASK_FILTER;
-    if ((bitOffset != 0) && (byteIndex < INET_ADDRSTRLEN)) {
+    if ((bitOffset != 0) && (byteIndex < sizeof(ipv6Prefix.s6_addr))) {
         ipv6Prefix.s6_addr[byteIndex] = ipv6AddrBuf.s6_addr[byteIndex] & (0xff00 >> bitOffset);
     }
     inet_ntop(AF_INET6, &ipv6Prefix, ipv6PrefixBuf, INET6_ADDRSTRLEN);

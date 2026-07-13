@@ -22,6 +22,9 @@
 #include "iservice_registry.h"
 #endif
 #include <map>
+#include <iostream>
+#include <mutex>
+#include <stdlib.h>
 #include "securec.h"
 #include "dhcp_errcode.h"
 #include "kits/c/dhcp_result_event.h"

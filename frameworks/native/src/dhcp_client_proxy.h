@@ -54,6 +54,7 @@ public:
     ErrCode StopClientSa(void) override;
 #ifdef OHOS_ARCH_LITE
     void OnRemoteDied(void);
+    bool Initialize() const;
 private:
     static DhcpClientProxy *g_instance;
     IClientProxy *remote_ = nullptr;

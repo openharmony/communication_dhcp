@@ -75,6 +75,11 @@ void DhcpClientCallBack::ResultInfoCopyExt(DhcpResult &dhcpResult, OHOS::DHCP::D
             DHCP_LOGE("ResultInfoCopy break, i:%{public}zu, dns max number:%{public}d", i, DHCP_DNS_MAX_NUMBER);
             break;
         }
+        if (result.vectorDnsAddr[i].empty()) {
+            DHCP_LOGE("ResultInfoCopy vectorDnsAddr[%{public}zu] is empty!", i);
+            continue;
+        }
+        DHCP_LOGI("ResultInfoCopy result.vectorDnsAddr[%{public}zu] %{public}s", i, result.vectorDnsAddr[i].c_str());
         if (strncpy_s(dhcpResult.dnsList.dnsAddr[i], DHCP_DNS_DATA_MAX_LEN, result.vectorDnsAddr[i].c_str(),
             result.vectorDnsAddr[i].length()) != EOK) {
             DHCP_LOGE("ResultInfoCopy, strncpy_s failed, i:%{public}zu", i);

@@ -32,21 +32,22 @@ local_sdk_include_dirs = [
 ]
 
 if (defined(ohos_lite)) {
-  shared_library("dhcp_sdk") {
+  shared_library("dhcp_client_sdk") {
     sources = [
-      "c_adapter/src/dhcp_c_service.cpp",
-      "c_adapter/src/dhcp_c_utils.cpp",
       "src/dhcp_client.cpp",
       "src/dhcp_client_callback_stub_lite.cpp",
       "src/dhcp_client_proxy_lite.cpp",
       "src/dhcp_event.cpp",
-      "src/dhcp_server.cpp",
-      "src/dhcp_server_callback_stub_lite.cpp",
-      "src/dhcp_server_impl.cpp",
-      "src/dhcp_server_proxy_lite.cpp",
+      "src/dhcp_client_impl.cpp",
+      "c_adapter/src/dhcp_lite_c_client_api.cpp",
+      "c_adapter/src/dhcp_c_utils.cpp"
     ]
     include_dirs = local_sdk_include_dirs
-    include_dirs += [ "//commonlibrary/c_utils/base/include" ]
+    include_dirs += [
+      "//commonlibrary/c_utils/base/include",
+      "//commonlibrary/utils_lite/include",
+      "//foundation/systemabilitymgr/samgr_lite/interfaces/kits/samgr",
+    ]
 
     deps = [
       "//base/hiviewdfx/hilog_lite/frameworks/featured:hilog_shared",

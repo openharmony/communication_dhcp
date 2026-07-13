@@ -301,6 +301,10 @@ ErrCode DhcpServerProxy::PutDhcpRange(const std::string& tagName, const DhcpRang
 
 ErrCode DhcpServerProxy::RemoveAllDhcpRange(const std::string& tagName)
 {
+    if (tagName.empty()) {
+        DHCP_LOGE("RemoveAllDhcpRange invalid tagName");
+        return DHCP_E_FAILED;
+    }
     DHCP_LOGI("DhcpServerProxy enter RemoveAllDhcpRange mRemoteDied:%{public}d", mRemoteDied);
     if (mRemoteDied) {
         DHCP_LOGE("failed to `%{public}s`,remote service is died!", __func__);
@@ -501,7 +505,7 @@ ErrCode DhcpServerProxy::GetDhcpClientInfos(const std::string& ifname, std::vect
         int tmpsize = reply.ReadInt32();
         DHCP_LOGI("DhcpServerProxy GetDhcpClientInfos ok, exception:%{public}d, reply data size:%{public}d", exception,
             tmpsize);
-        if (tmpsize > MAX_SIZE) {
+        if (tmpsize < 0 || tmpsize > MAX_SIZE) {
             DHCP_LOGE("GetDhcpClientInfos tmpsize error: %{public}d", tmpsize);
             return DHCP_E_FAILED;
         }

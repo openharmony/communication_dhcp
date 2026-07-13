@@ -218,6 +218,10 @@ int BindKernelSocket(const int sockFd, const char *ifaceName, const uint32_t soc
 int SendToDhcpPacket(
     const struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destIp, int destIndex, const uint8_t *destHwaddr)
 {
+    if (destHwaddr == nullptr) {
+        DHCP_LOGE("SendToDhcpPacket destHwaddr is NULL");
+        return SOCKET_OPT_FAILED;
+    }
     DHCP_LOGI("SendToDhcpPacket enter, destIndex:%{public}d, destHwaddr:%{public}d", destIndex, *destHwaddr);
     int nFd = -1;
     if (CreateRawSocket(&nFd) != SOCKET_OPT_SUCCESS) {

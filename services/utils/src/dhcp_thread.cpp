@@ -22,6 +22,7 @@
 #include <chrono>
 #include <condition_variable>
 #include <deque>
+#include <future>
 #include <memory>
 #include <mutex>
 #include <thread>
@@ -202,6 +203,19 @@ public:
     {
         DHCP_LOGE("DhcpThreadImpl PostAsyncTask with name Unsupported in lite.");
         return false;
+    }
+    int PostSyncTimeOutTask(const std::function<int32_t()> &callback, int64_t waitTime)
+    {
+        auto task = std::make_shared<std::packaged_task<int32_t()>>(callback);
+        std::future<int32_t> future = task->get_future();
+        std::thread([task]() {
+            (*task)();
+        }).detach();
+        if (future.wait_for(std::chrono::milliseconds(waitTime)) == std::future_status::timeout) {
+            DHCP_LOGE("PostSyncTimeOutTask: Task timeout");
+            return ERROR_TIMEOUT;
+        }
+        return future.get();
     }
     void RemoveAsyncTask(const std::string &name)
     {
