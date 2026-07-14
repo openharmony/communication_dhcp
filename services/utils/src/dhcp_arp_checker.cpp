@@ -325,7 +325,10 @@ bool DhcpArpChecker::IsValidArpReply(uint8_t* recvBuff, int32_t readLen)
                   readLen, sizeof(struct ArpPacket));
         return false;
     }
-
+    if (recvBuff == nullptr) {
+        DHCP_LOGE("IsValidArpReply recvBuff is null");
+        return false;
+    }
     struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
     return (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER &&
             ntohs(respPacket->ar_pro) == ETH_P_IP &&
@@ -497,6 +500,10 @@ int32_t DhcpArpChecker::CreateRawSocket(uint16_t protocol)
 int32_t DhcpArpChecker::BindSocketToInterface(int32_t socketFd, int32_t ifaceIndex,
                                               uint16_t protocol, const char *iface)
 {
+    if (iface == nullptr) {
+        DHCP_LOGE("BindSocketToInterface iface is null");
+        return OPT_FAIL;
+    }
     struct sockaddr_ll rawAddr;
     rawAddr.sll_ifindex = ifaceIndex;
     rawAddr.sll_protocol = htons(protocol);

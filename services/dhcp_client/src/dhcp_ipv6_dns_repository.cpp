@@ -79,10 +79,12 @@ bool DnsServerRepository::SetCurrentServers(DhcpIpv6Info &ipv6Info)
     int ret  = memset_s(ipv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
     if (ret != EOK) {
         DHCP_LOGE("SetCurrentServers() memset_s failed!");
+        return false;
     }
     ret = memset_s(ipv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN, 0, DHCP_INET6_ADDRSTRLEN);
     if (ret != EOK) {
         DHCP_LOGE("SetCurrentServers() memset_s failed!");
+        return false;
     }
     int index = 0;
     for (auto dnsServer: currentServers_) {
@@ -92,12 +94,14 @@ bool DnsServerRepository::SetCurrentServers(DhcpIpv6Info &ipv6Info)
             ret = strcpy_s(ipv6Info.dnsAddr, DHCP_INET6_ADDRSTRLEN, dnsServer.c_str());
             if (ret != EOK) {
                 DHCP_LOGE("SetCurrentServers() strcpy_s failed!");
+                return false;
             }
         }
         if (index == SECOND_DNS_SERVER) {
             ret = strcpy_s(ipv6Info.dnsAddr2, DHCP_INET6_ADDRSTRLEN, dnsServer.c_str());
             if (ret != EOK) {
                 DHCP_LOGE("SetCurrentServers() strcpy_s failed!");
+                return false;
             }
         }
         index++;

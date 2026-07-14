@@ -130,6 +130,12 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, MessageParcel &data, Messa
         callback_ = sptr<DhcpClientCallbackProxy>::MakeSptr(remote);
         DHCP_LOGI("create new DhcpClientCallbackProxy!");
     }
+    if (callback_ == nullptr) {
+        DHCP_LOGE("callback_ is nullptr after iface_cast and MakeSptr!");
+        reply.WriteInt32(0);
+        reply.WriteInt32(DHCP_E_INVALID_PARAM);
+        return DHCP_E_INVALID_PARAM;
+    }
     std::string ifName = data.ReadString();
     {
         std::lock_guard<std::mutex> lock(mutex_);

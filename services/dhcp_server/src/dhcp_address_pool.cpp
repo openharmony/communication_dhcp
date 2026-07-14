@@ -480,7 +480,10 @@ int LoadBindingRecoders(DhcpAddressPool *pool)
         DHCP_LOGE("Failed to get dhcp lease file path!");
         return RET_FAILED;
     }
-
+    if (!OHOS::DHCP::IsValidPath(filePath)) {
+        DHCP_LOGE("invalid path:%{public}s", filePath);
+        return RET_FAILED;
+    }
     FILE *fp = fopen(filePath, "r");
     if (fp == nullptr) {
         return RET_FAILED;

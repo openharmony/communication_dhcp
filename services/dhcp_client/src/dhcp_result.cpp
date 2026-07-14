@@ -72,11 +72,11 @@ bool PublishDhcpIpv4Result(struct DhcpIpResult &ipResult)
 
 bool DhcpIpv6TimerCallbackEvent(const char *ifname)
 {
-    DHCP_LOGI("DhcpIpv6TimerCallbackEvent ifname:%{public}s", ifname);
     if (ifname == nullptr) {
         DHCP_LOGE("DhcpIpv6TimerCallbackEvent ifname is nullptr!");
         return false;
     }
+    DHCP_LOGI("DhcpIpv6TimerCallbackEvent ifname:%{public}s", ifname);
 #ifndef OHOS_ARCH_LITE
     OHOS::sptr<OHOS::DHCP::DhcpClientServiceImpl> clientImpl = OHOS::DHCP::DhcpClientServiceImpl::GetInstance();
 #else
