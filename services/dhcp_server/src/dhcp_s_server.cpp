@@ -29,7 +29,9 @@
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <mutex>
 #include <pthread.h>
+#include <atomic>
 #include "address_utils.h"
 #include "common_util.h"
 #include "dhcp_address_pool.h"
@@ -88,9 +90,10 @@ struct ServerContext {
     DhcpServerCallback callback;
     DeviceConnectFun deviceConnectFun;
     DhcpConfig config;
-    int serverFd;
-    int looperState;
+    std::atomic<int> serverFd;
+    std::atomic<int> looperState;
     int initialized;
+    std::mutex fdMutex;
 };
 
 enum LooperState {
@@ -526,17 +529,17 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
         DHCP_LOGE("dhcp server context pointer is null.");
         return nullptr;
     }
-    ctx->instance->serverFd = InitServer(ctx->ifname);
-    if (ctx->instance->serverFd < 0) {
-        DHCP_LOGE("failed to initialize server socket.");
-        return nullptr;
+    {
+        std::lock_guard<std::mutex> lock(srvIns->fdMutex);
+        ctx->instance->serverFd = InitServer(ctx->ifname);
+        if (ctx->instance->serverFd < 0) { return nullptr; }
     }
     InitOptionList(&from.options);
     InitOptionList(&reply.options);
     srvIns->looperState = LS_RUNNING;
     while (srvIns->looperState) {
         if (OnLooperStateChanged(ctx) != RET_SUCCESS) {
-            DHCP_LOGI("OnLooperStateChanged break, looperState:%{public}d", srvIns->looperState);
+            DHCP_LOGI("OnLooperStateChanged break, looperState:%{public}d", srvIns->looperState.load());
             break;
         }
         ClearOptions(&from.options);
@@ -546,9 +549,7 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
             DHCP_LOGI("ReceiveDhcpMessage");
             continue;
         }
-        if (ContinueReceive(&from, recvRet)) {
-            continue;
-        }
+        if (ContinueReceive(&from, recvRet)) { continue; }
         InitReply(ctx, &from, &reply);
         int replyType = MessageProcess(ctx, &from, &reply);
         if (replyType && SendDhcpReply(ctx, replyType, &reply) != RET_SUCCESS) {
@@ -559,8 +560,11 @@ static void *BeginLooper(void *argc) __attribute__((no_sanitize("cfi")))
     FreeOptionList(&from.options);
     FreeOptionList(&reply.options);
     DHCP_LOGI("dhcp server message looper stopped.");
-    close(ctx->instance->serverFd);
-    ctx->instance->serverFd = -1;
+    {
+        std::lock_guard<std::mutex> lock(srvIns->fdMutex);
+        close(ctx->instance->serverFd);
+        ctx->instance->serverFd = -1;
+    }
     srvIns->looperState = LS_STOPED;
     return nullptr;
 }
@@ -710,7 +714,7 @@ int GetServerStatus(PDhcpServerContext ctx)
         DHCP_LOGE("dhcp server context pointer is null.");
         return -1;
     }
-    return srvIns->looperState;
+    return srvIns->looperState.load();
 }
 
 int FillReply(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
@@ -895,7 +899,6 @@ static void AddReplyMessageTypeOption(PDhcpMsgInfo reply, uint8_t replyMessageTy
     DhcpOption optMsgType = {DHCP_MESSAGE_TYPE_OPTION, OPT_MESSAGE_TYPE_LEGTH, {replyMessageType, 0}};
     PushBackOption(&reply->options, &optMsgType);
 }
-
 
 AddressBinding *GetBinding(DhcpAddressPool *pool, PDhcpMsgInfo received)
 {
@@ -1447,9 +1450,7 @@ static int OnReceivedDecline(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
 
 static int OnReceivedRelease(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhcpMsgInfo reply)
 {
-    if (!received || !reply) {
-        return REPLY_NONE;
-    }
+    if (!received || !reply) { return REPLY_NONE; }
     DHCP_LOGI("received 'Release' message from: %s", ParseLogMac(received->packet.chaddr));
     if (!ctx || !ctx->instance) {
         return RET_FAILED;
@@ -1920,7 +1921,10 @@ static int InitServerContext(DhcpConfig *config, DhcpServerContext *ctx)
         DHCP_LOGD("failed to set interface name.");
         return RET_FAILED;
     }
-    srvIns->serverFd = 0;
+    {
+        std::lock_guard<std::mutex> lock(srvIns->fdMutex);
+        srvIns->serverFd = 0;
+    }
     srvIns->callback = 0;
     srvIns->looperState = LS_IDLE;
     srvIns->broadCastFlagEnable = static_cast<int>(config->broadcast);

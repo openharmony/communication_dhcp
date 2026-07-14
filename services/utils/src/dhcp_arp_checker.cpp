@@ -341,9 +341,9 @@ bool DhcpArpChecker::IsValidArpReply(uint8_t* recvBuff, int32_t readLen)
 
 void DhcpArpChecker::GetGwMacAddrList(int32_t timeoutMillis, bool isFillSenderIp, std::vector<std::string>& gwMacLists)
 {
-    gwMacLists.clear();
     {
         std::lock_guard<std::mutex> lock(arpMutex_);
+        gwMacLists.clear();
         if (!m_isSocketCreated) {
             DHCP_LOGE("GetGwMacAddrList failed, socket not created");
             return;

@@ -15,6 +15,7 @@
 #ifndef OHOS_DHCP_CLIENT_STATEMACHINE_H
 #define OHOS_DHCP_CLIENT_STATEMACHINE_H
 
+#include <atomic>
 #include <condition_variable>
 #include <string>
 #include <stdint.h>
@@ -170,7 +171,7 @@ private:
     DhcpIpResult m_dhcpIpResult;
     std::function<void(bool isReachable)> m_slowArpCallback;
     bool m_slowArpDetecting;
-    int64_t firstSendPacketTime_;
+    std::atomic<int64_t> firstSendPacketTime_;
     uint64_t slowArpTimeoutTimerId_;
     std::mutex dhcpClientMutex_;
     std::condition_variable ipv4ExitCv_;

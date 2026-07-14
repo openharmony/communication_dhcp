@@ -18,6 +18,7 @@
 #include <stdint.h>
 #include <cstdio>
 #include <cstdlib>
+#include <mutex>
 #include "dhcp_dhcpd.h"
 #include "securec.h"
 #include "address_utils.h"
@@ -35,6 +36,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerMain");
 constexpr char DEFAUTL_NET_MASK[] = "255.255.255.0";
 
 static DhcpConfig g_dhcpConfig;
+static std::mutex g_dhcpConfigMutex;
 
 static PDhcpServerContext g_dhcpServer = 0;
 static DeviceConnectFun deviceConnectFun;
@@ -337,6 +339,7 @@ static int InitializeDhcpConfig(const char *ifname, DhcpConfig *config)
 
 static void FreeLocalConfig(void)
 {
+    std::lock_guard<std::mutex> lock(g_dhcpConfigMutex);
     FreeOptionList(&g_dhcpConfig.options);
 }
 
@@ -371,12 +374,15 @@ int StartDhcpServerMain(const std::string& ifName, const std::string& netMask, c
         FreeArguments();
         return 1;
     }
-    if (InitializeDhcpConfig(ifaceName->value, &g_dhcpConfig) != RET_SUCCESS) {
-        DHCP_LOGW("failed to initialize config.");
-    }
-    if (strcpy_s(g_dhcpConfig.ifname, IFACE_NAME_SIZE, ifaceName->value) != EOK) {
-        DHCP_LOGE("cpy ifname failed!");
-        return 1;
+    {
+        std::lock_guard<std::mutex> lock(g_dhcpConfigMutex);
+        if (InitializeDhcpConfig(ifaceName->value, &g_dhcpConfig) != RET_SUCCESS) {
+            DHCP_LOGW("failed to initialize config.");
+        }
+        if (strcpy_s(g_dhcpConfig.ifname, IFACE_NAME_SIZE, ifaceName->value) != EOK) {
+            DHCP_LOGE("cpy ifname failed!");
+            return 1;
+        }
     }
     g_dhcpServer = InitializeServer(&g_dhcpConfig);
     if (g_dhcpServer == nullptr) {

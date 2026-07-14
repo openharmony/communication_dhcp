@@ -14,6 +14,7 @@
  */
 
 #include "dhcp_address_pool.h"
+#include <atomic>
 #include <map>
 #include <mutex>
 #include <securec.h>
@@ -33,6 +34,7 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerAddressPool");
 static int g_releaseRemoveMode = DHCP_RELEASE_REMOVE_MODE;
 static std::map<std::size_t, AddressBinding> g_bindingRecoders;
 static std::mutex g_bindingMapMutex;
+static std::mutex g_leaseTableMutex;
 static int g_distributeMode = 0;
 
 #define HASH_DEFAULT_VALUE 5381
@@ -249,6 +251,7 @@ int InitAddressPool(DhcpAddressPool *pool, const char *ifname, PDhcpOptionList o
     pool->distribue = AddressDistribute;
     pool->binding = QueryBinding;
     pool->newBinding = AddNewBinding;
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     pool->leaseTable.clear();
     return RET_SUCCESS;
 }
@@ -264,6 +267,7 @@ void FreeAddressPool(DhcpAddressPool *pool)
     }
 
     if (pool) {
+        std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
         pool->leaseTable.clear();
     }
 
@@ -292,6 +296,7 @@ int IsReservedIp(DhcpAddressPool *pool, uint32_t ipAddress)
     if (!ipAddress) {
         return DHCP_FALSE;
     }
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     if (pool->leaseTable.count(ipAddress) >0) {
         AddressBinding *lease = &pool->leaseTable[ipAddress];
         if (lease && lease->bindingMode == BIND_MODE_RESERVED) {
@@ -392,7 +397,7 @@ int AddLease(DhcpAddressPool *pool, AddressBinding *lease)
         DHCP_LOGE("add lease pool ipAddress or chaddr pointer is null.");
         return RET_ERROR;
     }
-
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     if (pool->leaseTable.count(lease->ipAddress) > 0) {
         DHCP_LOGI("update lease info.");
         pool->leaseTable[lease->ipAddress] = *lease;
@@ -415,6 +420,7 @@ AddressBinding *GetLease(DhcpAddressPool *pool, uint32_t ipAddress)
         return nullptr;
     }
     uint32_t ipAddr = ipAddress;
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     if (pool->leaseTable.count(ipAddr) > 0) {
         return &pool->leaseTable[ipAddr];
     }
@@ -433,6 +439,7 @@ int UpdateLease(DhcpAddressPool *pool, AddressBinding *lease)
         DHCP_LOGE("update lease pool ipAddress or chaddr pointer is null.");
         return RET_ERROR;
     }
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     if (pool->leaseTable.count(lease->ipAddress) > 0) {
         pool->leaseTable[lease->ipAddress] = *lease;
         return RET_SUCCESS;
@@ -453,6 +460,7 @@ int RemoveLease(DhcpAddressPool *pool, AddressBinding *lease)
         return RET_ERROR;
     }
 
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     if (pool->leaseTable.count(lease->ipAddress) > 0) {
         pool->leaseTable.erase(lease->ipAddress);
         return RET_SUCCESS;
@@ -494,6 +502,7 @@ int LoadBindingRecoders(DhcpAddressPool *pool)
             continue;
         }
         if (IpInRange(bind.ipAddress, beginIp, endIp, netmask)) {
+            std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
             pool->leaseTable[bind.ipAddress] = bind;
         }
     }
@@ -532,12 +541,15 @@ int SaveBindingRecoders(const DhcpAddressPool *pool, int force)
         DHCP_LOGE("Save binding records %{private}s failed: %{public}d", filePath, errno);
         return RET_FAILED;
     }
-    for (auto index: pool->leaseTable) {
-        AddressBinding *binding = &index.second;
-        if (binding && WriteAddressBinding(binding, line, sizeof(line)) != RET_SUCCESS) {
-            DHCP_LOGE("Failed to convert binding info to string");
-        } else {
-            fprintf(fp, "%s\n", line);
+    {
+        std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
+        for (auto index: pool->leaseTable) {
+            AddressBinding *binding = &index.second;
+            if (binding && WriteAddressBinding(binding, line, sizeof(line)) != RET_SUCCESS) {
+                DHCP_LOGE("Failed to convert binding info to string");
+            } else {
+                fprintf(fp, "%s\n", line);
+            }
         }
     }
 
@@ -563,6 +575,7 @@ int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease)
         DHCP_LOGE("DeleteMacInLease pointer is null.");
         return RET_ERROR;
     }
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     for (auto it = pool->leaseTable.begin(); it != pool->leaseTable.end();) {
         AddressBinding *binding = &(it->second);
         if (binding && AddrEquels(binding->chaddr, lease->chaddr, MAC_ADDR_LENGTH)) {
