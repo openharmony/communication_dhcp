@@ -1079,10 +1079,6 @@ static int GetYourIpAddress(PDhcpMsgInfo received, uint32_t *yourIpAddr, DhcpAdd
             || (ntohl(*yourIpAddr) > ntohl(pool->addressRange.endAddress))) {
         return RET_FAILED;
     }
-    if (*yourIpAddr == 0 || *yourIpAddr == INADDR_BROADCAST) {
-        DHCP_LOGE("no valid client ip address could be determined.");
-        return RET_FAILED;
-    }
     if (srcIp && srcIp != INADDR_BROADCAST) {
         DestinationAddr(srcIp);
     } else if (srcIp == INADDR_ANY) {
