@@ -387,6 +387,10 @@ void DhcpArpChecker::CollectGwMacAddresses(int32_t timeoutMillis, std::vector<st
 void DhcpArpChecker::ProcessReceivedPacket(uint8_t* recvBuff, int32_t readLen, std::vector<std::string>& gwMacLists)
 {
     std::lock_guard<std::mutex> lock(arpMutex_);
+    if (recvBuff == nullptr) {
+        DHCP_LOGE("ProcessReceivedPacket recvBuff is null");
+        return;
+    }
     if (readLen >= static_cast<int32_t>(sizeof(struct ArpPacket)) && readLen <= MAX_LENGTH) {
         struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
         if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER &&
