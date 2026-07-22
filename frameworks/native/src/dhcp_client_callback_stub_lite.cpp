@@ -114,10 +114,10 @@ void DhcpClientCallBackStub::OnIpSuccessChanged(int status, const std::string& i
     std::shared_ptr<IDhcpClientCallBack> tempCallback;
     {
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        tempCallback; = callback_;
+        tempCallback = callback_;
     }
-    if (tempCallback;) {
-        tempCallback;->OnIpSuccessChanged(status, ifname, result);
+    if (tempCallback) {
+        tempCallback->OnIpSuccessChanged(status, ifname, result);
     }
 }
 
