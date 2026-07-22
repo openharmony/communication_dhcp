@@ -957,7 +957,7 @@ void DhcpClientStateMachine::ParseNetworkDnsInfo(const struct DhcpPacket *packet
         uData = 0;
         if (memcpy_s(&uData, sizeof(uData), p, sizeof(uData)) != EOK) {
             DHCP_LOGE("ParseNetworkDnsInfo memcpy_s failed!");
-            break;
+            continue;
         }
         if (uData > 0) {
             ParseNetworkDnsValue(result, uData, len, count);
