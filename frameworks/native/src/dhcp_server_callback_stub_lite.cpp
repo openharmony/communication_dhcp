@@ -45,6 +45,10 @@ int DhcpServreCallBackStub::OnRemoteRequest(uint32_t code, IpcIo *data)
     size_t length;
     uint16_t* interfaceRead = nullptr;
     interfaceRead = ReadInterfaceToken(data, &length);
+    if (interfaceRead == nullptr || length == 0) {
+ 	    DHCP_LOGE("ReadInterfaceToken failed or empty");
+ 	    return -1;
+ 	}
     for (size_t i = 0; i < length; i++) {
         if (i >= DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH || interfaceRead[i] != DECLARE_INTERFACE_DESCRIPTOR_L1[i]) {
             DHCP_LOGE("Scan stub token verification error: %{public}d", code);
