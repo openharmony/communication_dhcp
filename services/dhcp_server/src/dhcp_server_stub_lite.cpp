@@ -139,7 +139,7 @@ int DhcpServerStub::OnStartDhcpServer(uint32_t code, IpcIo *req, IpcIo *reply)
     ErrCode ret = StartDhcpServer(ifName);
     (void)WriteInt32(reply, 0);
     (void)WriteInt32(reply, ret);
- 
+
     return 0;
 }
 
