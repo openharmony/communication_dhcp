@@ -93,6 +93,7 @@ void DhcpClientCallBackStub::RegisterCallBack(const std::shared_ptr<IDhcpClientC
         DHCP_LOGE("DhcpClientCallBackStub:callBack is nullptr!");
         return;
     }
+    std::lock_guard<std::mutex> lock(callbackMutex_);
     callback_ = callBack;
 }
 
@@ -110,16 +111,26 @@ void DhcpClientCallBackStub::SetRemoteDied(bool val)
 void DhcpClientCallBackStub::OnIpSuccessChanged(int status, const std::string& ifname, DhcpResult& result)
 {
     DHCP_LOGI("DhcpClientCallBackStub::OnIpSuccessChanged, status:%{public}d!", status);
-    if (callback_) {
-        callback_->OnIpSuccessChanged(status, ifname, result);
+    std::shared_ptr<IDhcpClientCallBack> tempCallback;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnIpSuccessChanged(status, ifname, result);
     }
 }
 
 void DhcpClientCallBackStub::OnIpFailChanged(int status, const std::string& ifname, const std::string& reason)
 {
     DHCP_LOGI("DhcpClientCallBackStub::OnIpFailChanged, status:%{public}d!", status);
-    if (callback_) {
-        callback_->OnIpFailChanged(status, ifname, reason);
+    std::shared_ptr<IDhcpClientCallBack> tempCallback;
+    {
+        std::lock_guard<std::mutex> lock(callbackMutex_);
+        tempCallback = callback_;
+    }
+    if (tempCallback) {
+        tempCallback->OnIpFailChanged(status, ifname, reason);
     }
 }
 
