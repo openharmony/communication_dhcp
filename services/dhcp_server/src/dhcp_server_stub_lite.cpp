@@ -185,7 +185,7 @@ int DhcpServerStub::OnSetDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("OnSetDhcpRange\n");
     DhcpRange range;
     size_t readLen;
-    (void)ReadInt32(req, &range.iptype);	 
+    (void)ReadInt32(req, &range.iptype);
     (void)ReadInt32(req, &range.leaseHours);
     const char* rawTagName = (char *)ReadString(req, &readLen);
     const char* rawStartip = (char *)ReadString(req, &readLen);
@@ -239,7 +239,7 @@ int DhcpServerStub::OnRemoveDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("OnRemoveDhcpRange\n");
     DhcpRange range;
     size_t readLen;
-    (void)ReadInt32(req, &range.iptype);	 
+    (void)ReadInt32(req, &range.iptype);
     (void)ReadInt32(req, &range.leaseHours);
     const char* rawTagName = (char *)ReadString(req, &readLen);
     const char* rawStartip = (char *)ReadString(req, &readLen);
@@ -323,7 +323,7 @@ int DhcpServerStub::OnPutDhcpRange(uint32_t code, IpcIo *req, IpcIo *reply)
     DHCP_LOGI("OnPutDhcpRange\n");
     DhcpRange range;
     size_t readLen;
-    (void)ReadInt32(req, &range.iptype);	 
+    (void)ReadInt32(req, &range.iptype);
     (void)ReadInt32(req, &range.leaseHours);
     const char* rawTagName = (char *)ReadString(req, &readLen);
     const char* rawStartip = (char *)ReadString(req, &readLen);
