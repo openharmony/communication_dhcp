@@ -391,6 +391,7 @@ void DhcpArpChecker::ProcessReceivedPacket(uint8_t* recvBuff, int32_t readLen, s
         DHCP_LOGE("ProcessReceivedPacket recvBuff is null");
         return;
     }
+
     if (readLen >= static_cast<int32_t>(sizeof(struct ArpPacket)) && readLen <= MAX_LENGTH) {
         struct ArpPacket *respPacket = reinterpret_cast<struct ArpPacket*>(recvBuff);
         if (ntohs(respPacket->ar_hrd) == ARPHRD_ETHER &&
