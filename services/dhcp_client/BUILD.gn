@@ -129,6 +129,7 @@ if (defined(ohos_lite)) {
       cfi_cross_dso = true  # Cross-SO CFI Checks
       integer_overflow = true  # Enable integer overflow detection
       ubsan = true  # Enable some Ubsan options
+      cfi_vcall_icall_only = true
       debug = false
     }
     install_enable = true
@@ -196,6 +197,7 @@ if (defined(ohos_lite)) {
       cfi_cross_dso = true  # Cross-SO CFI Checks
       integer_overflow = true  # Enable integer overflow detection
       ubsan = true  # Enable some Ubsan options
+      cfi_vcall_icall_only = true
       debug = false
     }
     sources = local_base_sources
@@ -261,6 +263,7 @@ if (defined(ohos_lite)) {
       cfi_cross_dso = true  # Cross-SO CFI Checks
       integer_overflow = true  # Enable integer overflow detection
       ubsan = true  # Enable some Ubsan options
+      cfi_vcall_icall_only = true
       debug = false
     }
     install_enable = true
