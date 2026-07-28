@@ -34,7 +34,6 @@ DEFINE_DHCPLOG_DHCP_LABEL("DhcpServerAddressPool");
 static int g_releaseRemoveMode = DHCP_RELEASE_REMOVE_MODE;
 static std::map<std::size_t, AddressBinding> g_bindingRecoders;
 static std::mutex g_bindingMapMutex;
-static std::mutex g_leaseTableMutex;
 static int g_distributeMode = 0;
 
 #define HASH_DEFAULT_VALUE 5381
