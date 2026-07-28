@@ -197,6 +197,11 @@ int DhcpClientCallBackStub::RemoteOnDhcpOfferReport(uint32_t code, MessageParcel
     DHCP_LOGI("run %{public}s code %{public}u, datasize %{public}zu", __func__, code, data.GetRawDataSize());
     int state = data.ReadInt32();
     std::string ifname = data.ReadString();
+    if (ifname.empty()) {
+        DHCP_LOGE("RemoteOnDhcpOfferReport ifname is empty, invalid data.");
+        reply.WriteInt32(DHCP_E_FAILED);
+        return DHCP_E_FAILED;
+    }
     DhcpResult result = DeserializeDhcpResult(data);
     OnDhcpOfferReport(state, ifname, result);
     reply.WriteInt32(0);
