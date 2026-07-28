@@ -77,5 +77,9 @@ int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease);
 #ifdef __cplusplus
 }
 #endif
-inline std::mutex g_leaseTableMutex;
+
+#ifdef __cplusplus
+extern std::mutex g_leaseTableMutex;
+#endif
+ 
 #endif
