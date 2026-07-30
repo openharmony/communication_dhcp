@@ -24,10 +24,10 @@
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpOptions");
 
 /* Check packet option OPTION_OVERLOAD_OPTION. */
-static bool CheckOptSoverloaded(const struct DhcpPacket *packet, int code, int maxLen, int *over, int *index)
+static bool CheckOptSoverloaded(const uint8_t *pOption, int code, int maxLen, int *over, int *index)
 {
-    if (packet == nullptr) {
-        DHCP_LOGE("CheckOptSoverloaded failed, packet == nullptr!");
+    if (pOption == nullptr) {
+        DHCP_LOGE("CheckOptSoverloaded failed, pOption == nullptr!");
         return false;
     }
 
@@ -43,10 +43,10 @@ static bool CheckOptSoverloaded(const struct DhcpPacket *packet, int code, int m
 }
 
 /* Check packet options based on the code and index. */
-static int CheckOptionsData(const struct DhcpPacket *packet, int code, int index, int maxLen)
+static int CheckOptionsData(const uint8_t *pOption, int code, int index, int maxLen)
 {
-    if (packet == nullptr) {
-        DHCP_LOGE("CheckOptionsData failed, packet == nullptr!");
+    if (pOption == nullptr) {
+        DHCP_LOGE("CheckOptionsData failed, pOption == nullptr!");
         return DHCP_OPT_FAILED;
     }
 
@@ -56,7 +56,6 @@ static int CheckOptionsData(const struct DhcpPacket *packet, int code, int index
         return DHCP_OPT_FAILED;
     }
 
-    const uint8_t *pOption = packet->options;
     if (pOption[index + DHCP_OPT_CODE_INDEX] != code) {
         return DHCP_OPT_NULL;
     }
@@ -161,7 +160,7 @@ const uint8_t *GetDhcpOption(const struct DhcpPacket *packet, int code, size_t *
     const uint8_t *pOption = packet->options;
     int nIndex = 0, maxLen = DHCP_OPT_SIZE, nOver = 0, nFinished = 0, nFlag = OPTION_FIELD;
     while (nFinished == 0) {
-        int nRet = CheckOptionsData(packet, code, nIndex, maxLen);
+        int nRet = CheckOptionsData(pOption, code, nIndex, maxLen);
         if (nRet == DHCP_OPT_SUCCESS) {
             *length = pOption[nIndex + DHCP_OPT_LEN_INDEX];
             return pOption + nIndex + DHCP_OPT_DATA_INDEX;
@@ -174,7 +173,7 @@ const uint8_t *GetDhcpOption(const struct DhcpPacket *packet, int code, size_t *
                 nIndex++;
                 break;
             case OPTION_OVERLOAD_OPTION:
-                if (!CheckOptSoverloaded(packet, code, maxLen, &nOver, &nIndex)) {
+                if (!CheckOptSoverloaded(pOption, code, maxLen, &nOver, &nIndex)) {
                     return nullptr;
                 }
                 break;
