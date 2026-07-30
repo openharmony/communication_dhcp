@@ -1253,6 +1253,7 @@ int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
             DHCP_LOGE("GetHostNameOption pHost memcpy_s failed!");
             return REPLY_NONE;
         }
+        bindin->deviceName[optHostName->length] = '\0';
         DHCP_LOGI("GetHostNameOption deviceName:%{public}s", bindin->deviceName);
     } else {
         DHCP_LOGI("GetHostNameOption pHost is null");
