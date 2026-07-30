@@ -31,7 +31,6 @@ static bool CheckOptSoverloaded(const uint8_t *pOption, int code, int maxLen, in
         return false;
     }
 
-    const uint8_t *pOption = packet->options;
     if (*index + DHCP_OPT_LEN_INDEX + pOption[*index + DHCP_OPT_LEN_INDEX] >= maxLen) {
         DHCP_LOGW("CheckOptSoverloaded code:%{public}d,*index:%{public}d more than max bytes:%{public}d!",
             code, *index, maxLen);
