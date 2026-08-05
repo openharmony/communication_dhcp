@@ -335,7 +335,6 @@ int SendDhcpPacket(struct DhcpPacket *sendPacket, uint32_t srcIp, uint32_t destI
     int32_t sendLen = sizeof(struct DhcpPacket) - DHCP_OPT_SIZE + optionLen;
     if (sendLen <= 0 || sendLen > DHCP_MAX_PACKET_LEN) {
         DHCP_LOGE("SendDhcpPacket invalid sendLen:%{public}d.", sendLen);
-        close(nFd);
         return SOCKET_OPT_FAILED;
     }
     ssize_t nBytes = write(nFd, sendPacket, sendLen);
