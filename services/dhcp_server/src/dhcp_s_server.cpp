@@ -473,8 +473,7 @@ int SaveLease(PDhcpServerContext ctx)
     }
     int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
     if (saveRet == RET_FAILED) {
-        std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
-        DHCP_LOGD("failed to save lease recoders. total: %zu", srvIns->addressPool.leaseTable.size());
+        DHCP_LOGD("failed to save lease recoders.");
     } else if (saveRet == RET_SUCCESS) {
         DHCP_LOGD("lease recoders saved.");
     }
