@@ -43,13 +43,5 @@ void DhcpV6CallbackImpl::OnDhcpV6Expired()
     service_->DhcpV6ExpiredCallback(ifname_, stateless_);
 }
 
-void DhcpV6CallbackImpl::OnDhcpV6Stop()
-{
-    if (service_ == nullptr) {
-        return;
-    }
-    service_->DhcpV6StopCallback(ifname_, stateless_);
-}
-
 } // namespace DHCP
 } // namespace OHOS

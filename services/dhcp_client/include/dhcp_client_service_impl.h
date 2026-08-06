@@ -30,7 +30,6 @@
 #if DHCPV6_ENABLE
 #include "dhcp_v6_callback.h"
 #include "dhcp_v6_result.h"
-#include "dhcp_v6_feature_switch.h"
 #endif
 
 namespace OHOS {
@@ -97,8 +96,9 @@ public:
     void DhcpV6ResultCallback(const std::string &ifname, const DhcpV6Result &result, bool stateless);
     void DhcpV6FailCallback(const std::string &ifname, int errorCode, bool stateless);
     void DhcpV6ExpiredCallback(const std::string &ifname, bool stateless);
-    void DhcpV6StopCallback(const std::string &ifname, bool stateless);
-    void DhcpV6KernelDadCallback(const std::string &ifname, const std::string &addr, bool success);
+    void DhcpV6KernelDadCallback(const std::string &ifname, const std::string &addr, bool dadFailed);
+    // Callback for address removal notification (to clear DHCPv6 cache on IPv6 self-healing)
+    void OnDhcpV6AddressRemoved(const std::string &ifname, const std::string &addr);
 
 private:
     void ReportDhcpV6FailureCallback(const std::string &ifname, int status, const char *reason);
@@ -147,6 +147,8 @@ private:
 
     // Cleanup DhcpV6Client (stop, delete, erase callbacks)
     DhcpV6Client* CleanupDhcpV6Client(const std::string &ifname, DhcpClient &client);
+    // Stop DhcpV6Client (stop only, no delete)
+    ErrCode StopDhcpV6Client(const std::string &ifname, DhcpClient &client);
 #endif
 };
 }  // namespace DHCP

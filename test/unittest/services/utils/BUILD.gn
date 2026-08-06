@@ -37,7 +37,6 @@ ohos_unittest("dhcp_util_unittest") {
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_result_store_manager.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_socket.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_callback_impl.cpp",
-    "$DHCP_ROOT_DIR/services/dhcp_client/src/dhcp_v6_feature_switch.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_client.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_statemachine.cpp",
     "$DHCP_ROOT_DIR/services/dhcp_v6_client/src/dhcp_v6_message.cpp",

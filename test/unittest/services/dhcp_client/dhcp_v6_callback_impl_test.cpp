@@ -59,13 +59,6 @@ public:
         lastIfname = ifname;
         lastStateless = stateless;
     }
-
-    void DhcpV6StopCallback(const std::string &ifname, bool stateless)
-    {
-        stopCallbackCount++;
-        lastIfname = ifname;
-        lastStateless = stateless;
-    }
 };
 
 class DhcpV6CallbackImplTest : public testing::Test {
@@ -122,12 +115,6 @@ HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Expired_NullService, TestSize.Level1)
     EXPECT_NO_FATAL_FAILURE(callback.OnDhcpV6Expired());
 }
 
-HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Stop_NullService, TestSize.Level1)
-{
-    DhcpV6CallbackImpl callback(nullptr, "wlan0", false);
-    EXPECT_NO_FATAL_FAILURE(callback.OnDhcpV6Stop());
-}
-
 HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Success_StatelessMode, TestSize.Level1)
 {
     DhcpV6CallbackImpl callback(nullptr, "wlan0", true);
@@ -150,12 +137,6 @@ HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Expired_StatelessMode, TestSize.Level1)
     EXPECT_NO_FATAL_FAILURE(callback.OnDhcpV6Expired());
 }
 
-HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Stop_StatelessMode, TestSize.Level1)
-{
-    DhcpV6CallbackImpl callback(nullptr, "wlan0", true);
-    EXPECT_NO_FATAL_FAILURE(callback.OnDhcpV6Stop());
-}
-
 HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Success_WithResult, TestSize.Level1)
 {
     DhcpV6CallbackImpl callback(nullptr, "wlan0", false);
@@ -172,11 +153,5 @@ HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Failed_LeaseExpired, TestSize.Level1)
 {
     DhcpV6CallbackImpl callback(nullptr, "wlan0", false);
     EXPECT_NO_FATAL_FAILURE(callback.OnDhcpV6Failed(-3));
-}
-
-HWTEST_F(DhcpV6CallbackImplTest, OnDhcpV6Stop_StatefulMode, TestSize.Level1)
-{
-    DhcpV6CallbackImpl callback(nullptr, "wlan0", false);
-    EXPECT_NO_FATAL_FAILURE(callback.OnDhcpV6Stop());
 }
 }  // namespace OHOS

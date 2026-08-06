@@ -27,7 +27,6 @@ public:
     virtual void OnDhcpV6Success(const DhcpV6Result& result) = 0;
     virtual void OnDhcpV6Failed(int errorCode) = 0;
     virtual void OnDhcpV6Expired() = 0;
-    virtual void OnDhcpV6Stop() = 0;
 };
 
 } // namespace DHCP

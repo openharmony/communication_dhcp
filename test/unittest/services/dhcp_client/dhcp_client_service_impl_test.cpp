@@ -356,15 +356,6 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpV6ExpiredCallbackTest, TestSize.Level1)
     EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ExpiredCallback(ifname, true));
 }
 
-HWTEST_F(DhcpClientServiceImplTest, DhcpV6StopCallbackTest, TestSize.Level1)
-{
-    DHCP_LOGI("DhcpV6StopCallbackTest enter!");
-    std::string ifname = "wlan0";
-
-    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6StopCallback(ifname, false));
-    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6StopCallback(ifname, true));
-}
-
 HWTEST_F(DhcpClientServiceImplTest, DhcpV6KernelDadCallbackTest, TestSize.Level1)
 {
     DHCP_LOGI("DhcpV6KernelDadCallbackTest enter!");
@@ -439,6 +430,54 @@ HWTEST_F(DhcpClientServiceImplTest, DhcpV6ResultCallback_MultipleAddressesTest, 
 
     EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ResultCallback(ifname, result, false));
     EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->DhcpV6ResultCallback(ifname, result, true));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, OnDhcpV6AddressRemovedTest, TestSize.Level1)
+{
+    DHCP_LOGI("OnDhcpV6AddressRemovedTest enter!");
+    std::string ifname = "wlan0";
+    std::string addr = "2001:db8::1";
+
+    // Test with no DHCPv6 cache - should not crash
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, addr));
+
+    // Add DHCPv6 cache
+    DhcpV6Result result;
+    result.ipv6Addresses = {"2001:db8::1", "2001:db8::2"};
+    result.dnsServers = {"2001:db8::53"};
+    result.preferredLifetime = 1800;
+    result.validLifetime = 3600;
+    dhcpClientImpl->DhcpV6ResultCallback(ifname, result, false);
+
+    // Remove one address
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, addr));
+
+    // Remove the last address - should clear the cache
+    std::string addr2 = "2001:db8::2";
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, addr2));
+
+    // Test with non-existent address - should not crash
+    std::string addr3 = "2001:db8::99";
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, addr3));
+}
+
+HWTEST_F(DhcpClientServiceImplTest, OnDhcpV6AddressRemoved_AllAddressesRemovedTest, TestSize.Level1)
+{
+    DHCP_LOGI("OnDhcpV6AddressRemoved_AllAddressesRemovedTest enter!");
+    std::string ifname = "wlan0";
+
+    // Add DHCPv6 cache with multiple addresses
+    DhcpV6Result result;
+    result.ipv6Addresses = {"2001:db8::1", "2001:db8::2", "2001:db8::3"};
+    result.dnsServers = {"2001:db8::53"};
+    result.preferredLifetime = 1800;
+    result.validLifetime = 3600;
+    dhcpClientImpl->DhcpV6ResultCallback(ifname, result, false);
+
+    // Remove all addresses one by one
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, "2001:db8::1"));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, "2001:db8::2"));
+    EXPECT_NO_FATAL_FAILURE(dhcpClientImpl->OnDhcpV6AddressRemoved(ifname, "2001:db8::3"));
 }
 }
 }
