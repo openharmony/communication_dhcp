@@ -53,8 +53,6 @@ public:
         expiredCount++;
     }
 
-    void OnDhcpV6Stop() override {}
-
     int successCount;
     int failureCount;
     int expiredCount;

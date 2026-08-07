@@ -51,6 +51,8 @@ public:
     int StartIpv6Thread(const std::string &ifname, bool isIpv6);
     void SetDadResultCallback(
         std::function<void(const std::string ifname, const std::string addr, bool isTentative)> callback);
+    void SetAddrRemovedCallback(
+        std::function<void(const std::string ifname, const std::string addr)> callback);
     void GetRaFlags(uint8_t &raFlags) const;
     void ResetRaFlags();
 #if DHCPV6_ENABLE
@@ -71,6 +73,7 @@ private:
     void OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaIndex, bool isAdd = true);
     void OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefixLen,
                                 int ifaIndex, int scope, bool isUpdate);
+    void ProcessAddressChange(char *addr, AddrType type, bool isUpdate);
     int SendRouterSolicitation();
     void setSocketFilter(void* addr);
     void handleKernelEvent(const uint8_t* data, int len);
@@ -102,6 +105,8 @@ private:
     // Callback for kernel DAD result (address, tentative flag state)
     std::function<void(const std::string ifname, const std::string addr,
         bool isTentative)> onIpv6DadResult_ { nullptr };
+    // Callback for address removal notification (to clear DHCPv6 cache on IPv6 self-healing)
+    std::function<void(const std::string ifname, const std::string addr)> onAddrRemoved_ { nullptr };
     // Direct reference to DhcpV6Client for address type checking
 #if DHCPV6_ENABLE
     DhcpV6Client* pDhcpV6Client_ { nullptr };

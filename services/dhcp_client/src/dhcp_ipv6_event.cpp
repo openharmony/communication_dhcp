@@ -349,15 +349,22 @@ void DhcpIpv6Client::ParseAddrMessage(void *msg)
 
     // Notify DHCPv6 client about global address deletion for DAD handling
     if (scope == IPV6_ADDR_SCOPE_GLOBAL && nlType == RTM_DELADDR) {
-        if (onIpv6DadResult_) {
+        bool dadFailed = (addrMsg->ifa_flags & IFA_F_DADFAILED);
+        if (dadFailed) {
+            decltype(onIpv6DadResult_) callback;
             std::string ifname;
             {
                 std::lock_guard<std::mutex> lock(mutex_);
                 ifname = interfaceName;
             }
-            DHCP_LOGI("ParseAddrMessage: %{public}s deleted", Ipv6Anonymize(addresses).c_str());
-            std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
-            onIpv6DadResult_(ifname, std::string(addresses), false);  // false = DAD failed
+            {
+                std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+                callback = onIpv6DadResult_;
+            }
+            if (callback) {
+                DHCP_LOGI("ParseAddrMessage: DAD failure for %{public}s", Ipv6Anonymize(addresses).c_str());
+                callback(ifname, std::string(addresses), true);  // true = DAD failure
+            }
         }
     }
     OnIpv6AddressUpdateEvent(addresses, DHCP_INET6_ADDRSTRLEN, addrMsg->ifa_prefixlen, addrMsg->ifa_index,

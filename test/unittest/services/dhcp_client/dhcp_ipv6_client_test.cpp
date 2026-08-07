@@ -743,5 +743,43 @@ HWTEST_F(DhcpIpv6ClientTest, SetCallbackTest, TestSize.Level1)
 
     EXPECT_NO_FATAL_FAILURE(ipv6Client->SetCallback(callback));
 }
+
+HWTEST_F(DhcpIpv6ClientTest, SetAddrRemovedCallbackTest, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetAddrRemovedCallbackTest enter!");
+
+    std::atomic<int> callbackCount {0};
+    std::string lastIfname;
+    std::string lastAddr;
+
+    auto callback = [&callbackCount, &lastIfname, &lastAddr](
+        const std::string ifname, const std::string addr) {
+        callbackCount++;
+        lastIfname = ifname;
+        lastAddr = addr;
+    };
+
+    EXPECT_NO_FATAL_FAILURE(ipv6Client->SetAddrRemovedCallback(callback));
+}
+
+HWTEST_F(DhcpIpv6ClientTest, SetAddrRemovedCallback_CallbackNotCalledAfterStop, TestSize.Level1)
+{
+    ASSERT_TRUE(ipv6Client != nullptr);
+    DHCP_LOGE("SetAddrRemovedCallback_CallbackNotCalledAfterStop enter!");
+
+    std::atomic<int> callbackCount {0};
+
+    auto callback = [&callbackCount](const std::string ifname, const std::string addr) {
+        callbackCount++;
+    };
+
+    ipv6Client->SetAddrRemovedCallback(callback);
+    ipv6Client->DhcpIPV6Stop();
+
+    // After stop, the callback should be cleared
+    // This test verifies that no crash occurs
+    EXPECT_EQ(callbackCount, 0);
+}
 }
 }

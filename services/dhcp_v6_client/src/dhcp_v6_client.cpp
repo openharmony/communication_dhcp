@@ -154,19 +154,11 @@ int DhcpV6Client::DhcpV6Stop()
     stateMachine_->StopHandlerThread();
     DHCP_LOGI("[DHCPv6] DhcpV6Stop: state machine stopped");
 
-    // Step 6: Notify upper layer that DHCPv6 client stopped
-    // Network manager will handle kernel address removal
+    // Step 6: Clear callback and result
+    // The caller (DhcpClientServiceImpl) is responsible for cache cleanup
     {
         std::lock_guard<std::mutex> lock(callbackMutex_);
-        if (callback_) {
-            DHCP_LOGI("[DHCPv6] DhcpV6Stop: calling OnDhcpV6Stop callback");
-            callback_->OnDhcpV6Stop();
-        }
-    }
-
-    // Step 7: Clear local result (network manager handles kernel address removal)
-    {
-        std::lock_guard<std::mutex> lock(callbackMutex_);
+        callback_ = nullptr;
         result_.ipv6Addresses.clear();
         result_.dnsServers.clear();
     }

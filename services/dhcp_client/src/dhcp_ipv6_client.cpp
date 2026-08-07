@@ -61,6 +61,8 @@ struct nd_opt_rdnss {
     uint32_t nd_opt_rdnss_lifetime;
 } _packed;
 #endif
+// Default IPv6 prefix length when kernel does not provide it
+constexpr uint8_t DEFAULT_IPV6_PREFIX_LEN = 64;
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6Client");
 DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname)
 {
@@ -113,6 +115,14 @@ void DhcpIpv6Client::SetDadResultCallback(
     DHCP_LOGI("SetDadResultCallback()");
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     onIpv6DadResult_ = callback;
+}
+
+void DhcpIpv6Client::SetAddrRemovedCallback(
+    std::function<void(const std::string ifname, const std::string addr)> callback)
+{
+    DHCP_LOGI("SetAddrRemovedCallback()");
+    std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+    onAddrRemoved_ = callback;
 }
 
 #if DHCPV6_ENABLE
@@ -313,7 +323,9 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
                 return;
             }
             dhcpIpv6Info.status |= 1;
-            GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, prefixLen);
+            // 内核可能未设置 DHCPv6 地址的前缀长度，使用默认值
+            uint8_t effectivePrefixLen = (prefixLen == 0) ? DEFAULT_IPV6_PREFIX_LEN : prefixLen;
+            GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, effectivePrefixLen);
         }
         type = AddIpv6Address(addr, INET6_ADDRSTRLEN);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
@@ -325,10 +337,30 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
         DHCP_LOGE("OnIpv6AddressUpdateEvent type UNKNOW");
         return;
     }
+    ProcessAddressChange(addr, type, isUpdate);
+}
 
+void DhcpIpv6Client::ProcessAddressChange(char *addr, AddrType type, bool isUpdate)
+{
     if (isUpdate ? DhcpIpv6InfoManager::UpdateAddr(dhcpIpv6Info, std::string(addr), type) :
         DhcpIpv6InfoManager::RemoveAddr(dhcpIpv6Info, std::string(addr))) {
         PublishIpv6Result();
+        if (!isUpdate) {
+            std::string ifname;
+            {
+                std::lock_guard<std::mutex> lock(mutex_);
+                ifname = interfaceName;
+            }
+            std::function<void(const std::string, const std::string)> callback;
+            {
+                std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
+                callback = onAddrRemoved_;
+            }
+            if (callback) {
+                DHCP_LOGI("ProcessAddressChange: addr removed ifname:%{public}s", ifname.c_str());
+                callback(ifname, std::string(addr));
+            }
+        }
     }
     // If a default address is added, send RS to configure other addresses
     if (isUpdate && type == AddrType::DEFAULT) {
@@ -542,6 +574,8 @@ void DhcpIpv6Client::OnIpv6RouteUpdateEvent(char* gateway, char* dst, int ifaInd
                 std::lock_guard<std::mutex> lock(mutex_);
                 isChanged = DhcpIpv6InfoManager::AddRoute(dhcpIpv6Info, std::string(gateway));
             }
+            //IPv6 connectivity is restored, DHCPv6 restart (default route added via RA)
+            QueryInterfaceRaFlags();
         } else {
             {
                 std::lock_guard<std::mutex> lock(mutex_);
@@ -893,6 +927,7 @@ void DhcpIpv6Client::DhcpIPV6Stop(void)
 
     std::lock_guard<std::mutex> lock(ipv6CallbackMutex_);
     onIpv6AddressChanged_ = nullptr;
+    onAddrRemoved_ = nullptr;
 #if DHCPV6_ENABLE
     onRaFlagsChanged_ = nullptr;
     pDhcpV6Client_ = nullptr;

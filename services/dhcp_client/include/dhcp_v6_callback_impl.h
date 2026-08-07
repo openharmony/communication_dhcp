@@ -33,7 +33,6 @@ public:
     void OnDhcpV6Success(const DhcpV6Result& result) override;
     void OnDhcpV6Failed(int errorCode) override;
     void OnDhcpV6Expired() override;
-    void OnDhcpV6Stop() override;
 
 private:
     DhcpClientServiceImpl *service_;
