@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 #include <map>
+#include <mutex>
 #include "dhcp_binding.h"
 #include "dhcp_s_define.h"
 #include "dhcp_option.h"
@@ -76,4 +77,9 @@ int DeleteMacInLease(DhcpAddressPool *pool, AddressBinding *lease);
 #ifdef __cplusplus
 }
 #endif
+
+#ifdef __cplusplus
+extern std::mutex g_leaseTableMutex;
+#endif
+ 
 #endif

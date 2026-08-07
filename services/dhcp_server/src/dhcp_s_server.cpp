@@ -473,7 +473,7 @@ int SaveLease(PDhcpServerContext ctx)
     }
     int saveRet = SaveBindingRecoders(&srvIns->addressPool, 1);
     if (saveRet == RET_FAILED) {
-        DHCP_LOGD("failed to save lease recoders. total: %zu", srvIns->addressPool.leaseTable.size());
+        DHCP_LOGD("failed to save lease recoders.");
     } else if (saveRet == RET_SUCCESS) {
         DHCP_LOGD("lease recoders saved.");
     }
@@ -612,6 +612,7 @@ void InitBindingRecoders(DhcpAddressPool *pool)
         return;
     }
     uint32_t realLeaseTotal = 0;
+    std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
     for (auto current: pool->leaseTable) {
         int invalidBindig;
         AddressBinding *binding = &current.second;
@@ -827,6 +828,7 @@ static int Repending(DhcpAddressPool *pool, AddressBinding *binding)
         return REPLY_NAK;
     }
     if (srcIp && srcIp == bindingIp) {
+        std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
         if (pool->leaseTable.count(srcIp) == 0) {
             DHCP_LOGD("can't find lease information.");
             pool->leaseTable[srcIp] = *binding;
@@ -1436,13 +1438,16 @@ static int OnReceivedDecline(PDhcpServerContext ctx, PDhcpMsgInfo received, PDhc
         DHCP_LOGD("invalid request ip address.");
         return REPLY_NONE;
     }
-    if (srvIns->addressPool.leaseTable.count(reqIp) > 0) {
-        AddressBinding *lease = &srvIns->addressPool.leaseTable[reqIp];
-        if (lease) {
-            lease->bindingStatus = BIND_MODE_RESERVED;
-            lease->expireIn = Tmspsec() + lease->leaseTime;
-        } else {
-            DHCP_LOGE("failed to get lease info.");
+    {
+        std::lock_guard<std::mutex> leaseLock(g_leaseTableMutex);
+        if (srvIns->addressPool.leaseTable.count(reqIp) > 0) {
+            AddressBinding *lease = &srvIns->addressPool.leaseTable[reqIp];
+            if (lease) {
+                lease->bindingStatus = BIND_MODE_RESERVED;
+                lease->expireIn = Tmspsec() + lease->leaseTime;
+            } else {
+                DHCP_LOGE("failed to get lease info.");
+            }
         }
     }
     RemoveBinding(received->packet.chaddr);
