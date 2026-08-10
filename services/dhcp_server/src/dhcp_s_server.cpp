@@ -1250,6 +1250,11 @@ int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
             DHCP_LOGE("GetHostNameOption length too large");
             return REPLY_NONE;
         }
+        if (memchr(optHostName->data, '\n', optHostName->length) != NULL ||
+            memchr(optHostName->data, '\r', optHostName->length) != NULL) {
+            DHCP_LOGE("GetHostNameOption host name contains newline character");
+            return REPLY_NONE;
+        }
         if (memcpy_s(bindin->deviceName, DEVICE_NAME_STRING_LENGTH, (char*)optHostName->data,
             optHostName->length) != EOK) {
             DHCP_LOGE("GetHostNameOption pHost memcpy_s failed!");
@@ -1258,9 +1263,14 @@ int GetHostNameOption(PDhcpMsgInfo received, AddressBinding *bindin)
         bindin->deviceName[optHostName->length] = '\0';
         DHCP_LOGI("GetHostNameOption deviceName:%{public}s", bindin->deviceName);
     } else {
-        DHCP_LOGI("GetHostNameOption pHost is null");
+        if (strncpy_s(bindin->deviceName, sizeof(bindin->deviceName), "unknown-device",
+            sizeof("unknown-device") - 1) != EOK) {
+            DHCP_LOGE("set default name failed");
+        }
+        DHCP_LOGW("GetHostNameOption pHost is null, use default name");
+        return REPLY_NONE;
     }
-    return REPLY_NAK;
+    return REPLY_ACK;
 }
 
 int GetUserClassOption(PDhcpMsgInfo received, AddressBinding *bindin)
