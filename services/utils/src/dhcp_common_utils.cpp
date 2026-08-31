@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include "dhcp_common_utils.h"
+#include "parse_dhcp_int.h"
 #include <arpa/inet.h>
 #include <netinet/if_ether.h>
 #include <regex>
@@ -161,69 +162,42 @@ std::string MacArray2Str(uint8_t *macArray, int32_t len)
 
 int CheckDataLegal(const std::string &data, int base)
 {
-    std::regex pattern("\\d+");
-    if (!std::regex_search(data, pattern)) {
+    int32_t value = 0;
+    if (!ParseDhcpInt32(data, value, base)) {
+        DHCP_LOGE("CheckDataLegal parse failed, data:%{private}s", data.c_str());
         return 0;
     }
-    errno = 0;
-    char *endptr = nullptr;
-    long int num = std::strtol(data.c_str(), &endptr, base);
-    if (errno == ERANGE) {
-        DHCP_LOGE("CheckDataLegal errno == ERANGE, data:%{private}s", data.c_str());
-        return 0;
-    }
-    return static_cast<int>(num);
+    return value;
 }
 
 unsigned int CheckDataToUint(const std::string &data, int base)
 {
-    std::regex pattern("\\d+");
-    std::regex patternTmp("-\\d+");
-    if (!std::regex_search(data, pattern) || std::regex_search(data, patternTmp)) {
-        DHCP_LOGE("CheckDataToUint regex unsigned int value fail, data:%{private}s", data.c_str());
+    uint32_t value = 0;
+    if (!ParseDhcpUInt32(data, value, base)) {
+        DHCP_LOGE("CheckDataToUint parse failed, data:%{private}s", data.c_str());
         return 0;
     }
-    errno = 0;
-    char *endptr = nullptr;
-    unsigned long int num = std::strtoul(data.c_str(), &endptr, base);
-    if (errno == ERANGE) {
-        DHCP_LOGE("CheckDataToUint errno == ERANGE, data:%{private}s", data.c_str());
-        return 0;
-    }
-    return static_cast<unsigned int>(num);
+    return value;
 }
 
 long long CheckDataTolonglong(const std::string &data, int base)
 {
-    std::regex pattern("\\d+");
-    if (!std::regex_search(data, pattern)) {
+    int64_t value = 0;
+    if (!ParseDhcpInt64(data, value, base)) {
+        DHCP_LOGE("CheckDataTolonglong parse failed, data:%{private}s", data.c_str());
         return 0;
     }
-    errno = 0;
-    char *endptr = nullptr;
-    long long int num = std::strtoll(data.c_str(), &endptr, base);
-    if (errno == ERANGE) {
-        DHCP_LOGE("CheckDataTolonglong errno == ERANGE, data:%{private}s", data.c_str());
-        return 0;
-    }
-    return num;
+    return value;
 }
 
 uint64_t CheckDataToUint64(const std::string &data, int base)
 {
-    std::regex pattern("\\d+");
-    if (!std::regex_search(data, pattern)) {
-        DHCP_LOGE("CheckDataToUint64 regex unsigned int value fail, data:%{private}s", data.c_str());
+    uint64_t value = 0;
+    if (!ParseDhcpUInt64(data, value, base)) {
+        DHCP_LOGE("CheckDataToUint64 parse failed, data:%{private}s", data.c_str());
         return 0;
     }
-    errno = 0;
-    char *endptr = nullptr;
-    uint64_t num = std::strtoull(data.c_str(), &endptr, base);
-    if (errno == ERANGE) {
-        DHCP_LOGE("CheckDataToUint64 errno == ERANGE, data:%{private}s", data.c_str());
-        return 0;
-    }
-    return num;
+    return value;
 }
 
 int64_t GetElapsedSecondsSinceBoot()
