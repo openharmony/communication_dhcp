@@ -563,12 +563,26 @@ ErrCode DhcpClientServiceImpl::StartNewClient(const RouterConfig &config)
         ret = StartNewIpv6Client(config, client);
     }
     if (ret != DHCP_E_SUCCESS) {
+        if (client.pipv6Client != nullptr) {
+            client.pipv6Client->DhcpIPV6Stop();
+            delete client.pipv6Client;
+            client.pipv6Client = nullptr;
+        }
         return ret;
     }
     if (config.bIpv4) {
         ret = StartNewIpv4Client(config, client);
     }
     if (ret != DHCP_E_SUCCESS) {
+        if (client.pipv6Client != nullptr) {
+            client.pipv6Client->DhcpIPV6Stop();
+            delete client.pipv6Client;
+            client.pipv6Client = nullptr;
+        }
+        if (client.pStaStateMachine != nullptr) {
+            delete client.pStaStateMachine;
+            client.pStaStateMachine = nullptr;
+        }
         return ret;
     }
     client.ifName = ifname;
