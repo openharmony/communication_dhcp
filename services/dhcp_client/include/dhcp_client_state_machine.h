@@ -179,9 +179,9 @@ private:
 
 struct DhcpClient {
     std::string ifName;
-    bool isIpv6;
-    DhcpClientStateMachine *pStaStateMachine;
-    DhcpIpv6Client *pipv6Client;
+    bool isIpv6{false};
+    DhcpClientStateMachine *pStaStateMachine{nullptr};
+    DhcpIpv6Client *pipv6Client{nullptr};
 #if DHCPV6_ENABLE
     DhcpV6Client *pDhcpV6Client = nullptr;
 #endif
