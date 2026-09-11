@@ -61,8 +61,6 @@ struct nd_opt_rdnss {
     uint32_t nd_opt_rdnss_lifetime;
 } _packed;
 #endif
-// Default IPv6 prefix length when kernel does not provide it
-constexpr uint8_t DEFAULT_IPV6_PREFIX_LEN = 64;
 DEFINE_DHCPLOG_DHCP_LABEL("DhcpIpv6Client");
 DhcpIpv6Client::DhcpIpv6Client(std::string ifname) : interfaceName(ifname)
 {
@@ -323,9 +321,6 @@ void DhcpIpv6Client::OnIpv6AddressUpdateEvent(char *addr, int addrlen, int prefi
                 return;
             }
             dhcpIpv6Info.status |= 1;
-            // 内核可能未设置 DHCPv6 地址的前缀长度，使用默认值
-            uint8_t effectivePrefixLen = (prefixLen == 0) ? DEFAULT_IPV6_PREFIX_LEN : prefixLen;
-            GetIpv6Prefix(DEFAULT_ROUTE, dhcpIpv6Info.ipv6SubnetAddr, effectivePrefixLen);
         }
         type = AddIpv6Address(addr, INET6_ADDRSTRLEN);
     } else if (scope == IPV6_ADDR_LINKLOCAL) {
