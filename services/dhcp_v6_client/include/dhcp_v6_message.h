@@ -132,8 +132,8 @@ struct DhcpV6Option {
 };
 
 struct DhcpV6MessageInfo {
-    uint8_t msgType;
-    uint32_t transactionId;  // 24-bit, stored in 32-bit for convenience
+    uint8_t msgType{0};
+    uint32_t transactionId{0};  // 24-bit, stored in 32-bit for convenience
     std::vector<DhcpV6Option> options;
 };
 

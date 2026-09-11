@@ -318,8 +318,12 @@ bool DhcpV6Message::ParseV6Advertise(const std::vector<uint8_t>& data,
     DhcpV6Advertise& advertise)
 {
     DhcpV6MessageInfo info;
-    if (!ParseV6Message(data, info) || info.msgType != ADVERTISE) {
-        DHCP_LOGE("[DHCPv6] ParseV6Advertise: parse failed or wrong msgType %{public}d (%{public}s)",
+    if (!ParseV6Message(data, info)) {
+        DHCP_LOGE("[DHCPv6] ParseV6Advertise: ParseV6Message failed, data.size=%{public}zu", data.size());
+        return false;
+    }
+    if (info.msgType != ADVERTISE) {
+        DHCP_LOGE("[DHCPv6] ParseV6Advertise: wrong msgType %{public}d (%{public}s)",
             info.msgType, GetMsgTypeName(info.msgType));
         return false;
     }
