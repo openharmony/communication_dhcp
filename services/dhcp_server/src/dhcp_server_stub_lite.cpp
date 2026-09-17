@@ -40,8 +40,13 @@ int DhcpServerStub::CheckInterfaceToken(uint32_t code, IpcIo *req)
         DHCP_LOGE("ReadInterfaceToken failed or empty");
         return DHCP_E_FAILED;
     }
-    for (size_t i = 0; i < length; i++) {
-        if (i >= DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH ||interfaceRead[i] != DECLARE_INTERFACE_DESCRIPTOR_L1[i]) {
+    if (length != DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH) {
+        DHCP_LOGE("InterfaceToken length mismatch, expected: %{public}zu, actual: %{public}zu",
+            DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH, length);
+        return DHCP_E_FAILED;
+    }
+    for (size_t i = 0; i < DECLARE_INTERFACE_DESCRIPTOR_L1_LENGTH; i++) {
+        if (interfaceRead[i] != DECLARE_INTERFACE_DESCRIPTOR_L1[i]) {
             DHCP_LOGE("Scan stub token verification error: %{public}d", code);
             return DHCP_E_FAILED;
         }

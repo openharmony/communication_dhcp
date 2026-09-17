@@ -777,6 +777,10 @@ bool DhcpServerServiceImpl::CheckIpAddrRange(const DhcpRange &range)
             return false;
         }
         /* check ip6 start and end ip */
+        if (memcmp(uStartIp6, uEndIp6, sizeof(struct in6_addr)) >= 0) {
+            DHCP_LOGE("CheckIpAddrRange failed, ipv6 start ip not less end ip!");
+            return false;
+        }
     }
 
     return true;
