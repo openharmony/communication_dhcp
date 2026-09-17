@@ -107,6 +107,8 @@ int DhcpClientStub::OnRegisterCallBack(uint32_t code, IpcIo *req, IpcIo *reply)
     const char* rawIfname = (char *)ReadString(req, &readLen);
     if (rawIfname == nullptr) {
         DHCP_LOGE("OnRegisterCallBack ReadString ifname failed");
+        (void)WriteInt32(reply, 0);
+        (void)WriteInt32(reply, ret);
         return DHCP_OPT_FAILED;
     }
     std::string ifname(rawIfname);
@@ -168,6 +170,8 @@ int DhcpClientStub::OnStopDhcpClient(uint32_t code, IpcIo *req, IpcIo *reply)
     const char* rawIfname = (char *)ReadString(req, &readLen);
     if (rawIfname == nullptr) {
         DHCP_LOGE("OnStopDhcpClient ReadString ifname failed");
+        (void)WriteInt32(reply, 0);
+        (void)WriteInt32(reply, ret);
         return DHCP_OPT_FAILED;
     }
     std::string ifname(rawIfname);
